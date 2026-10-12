@@ -4,9 +4,12 @@
 `dsp2mk.py` (new: Monolith's workspace as make rules), `mkdeps.py`,
 `releasesrc.py`, `retailextract.py` (rewritten for NOLF2), `rezextract.py`
 and `playtest.sh`, and `build/reference.sh` uses `enumfuncs.py` and
-`vtabaudit.py`. The rest -- the scoreboard (`progress.py`, `ratchet.py`) and
-the reconstruction tools -- still know NOLF's binaries and paths
-(`lithtech.exe`, `d3d.ren`, `src/engine/`): the text below is nolfsrc's.
+`vtabaudit.py`. The scoreboard (`progress.py`, `ratchet.py`, with the new
+`libscan.py`) is adapted: it reads the binaries it scores from
+`progress/targets.py` and knows none by name, and `richhdr.py` names the
+tool ids NOLF2's binaries carry. The rest -- the reconstruction tools --
+still know NOLF's binaries and paths (`lithtech.exe`, `d3d.ren`,
+`src/engine/`): the text below is nolfsrc's, except for those four rows.
 
 Everything here serves one of two jobs: building and running the game, or
 proving, function by function, that the C++ in `src/engine/` recompiles to
@@ -84,7 +87,7 @@ the client will regress the server.
 
 | Tool | What it does |
 |---|---|
-| `progress.py` | The scoreboard: enumerates every function of the retail images and libraries and classifies each against our build (`identical`, `near`, `small`, `attempted`, `todo`), writing `out/progress/functions.csv` and `summary.json`. `--nears[=<target>]` lists the near matches closest first (the order to work them in); `--todo`, `--attempted`, `--small` list those rows. See `progress/README.md`. |
+| `progress.py` | The scoreboard: enumerates every function of each retail binary `progress/targets.py` lists and classifies each against our build (`identical`, `near`, `small`, `attempted`, `todo`; `crt`, `middleware` and `encrypted` are listed, not counted), writing `out/progress/functions.csv` and `summary.json`. Our side of a binary is the image `make` built and every object and library its link's response file names. `--nears[=<target>]` lists the near matches closest first (the order to work them in); `--todo`, `--attempted`, `--small` list those rows. See `progress/README.md`. |
 | `ratchet.py` | Holds a scoring run to the baseline in `progress/`: `check` fails if a recorded identical function stopped matching, `update` records the run and rewrites `README.md`'s table, `readme` rewrites only the table. `make progress` runs both tools. |
 | `decoded.py` | Bytes under *structural* reconstruction in `d3d.ren` (and big functions elsewhere): a file named `big<addr>.cpp` holding a function that has the shipped control flow and calls but is not yet byte-exact, scored by how many of its calls agree with the shipped ones (`callseq.py`). Never added to `progress.py`'s figure: understood is not reproduced. Reads `progress/decoded-extents.csv` and `decoded-moved.csv`; writes `out/progress/decoded.csv`. |
 | `decodedlt.py` | The same for `lithtech.exe`, whose reconstructions are ordinary named functions: the address of each comes from `progress/lithtech-decoded-map.csv`. |
@@ -106,7 +109,8 @@ out of.
 | `vtabaudit.py` | Vtables from evidence, one table per row, where `vtabmap.py` sees only runs (adjacent tables run together): table starts are the addresses constructors store, and each slot records how many argument bytes its `ret` pops. |
 | `sdkvtab.py` | The virtual-function order of an LT2 SDK interface, read off its header in `src/LT2/sdk/inc`: the name list for a vtable's slots. |
 | `msvcdemangle.py` | A conservative MSVC (VC6) demangler: it covers what this codebase contains and refuses everything else rather than guessing. |
-| `richhdr.py` | Decodes the "Rich" header: which compiler and linker builds produced an image, with object counts. The source of the per-binary compiler revisions (8168, 8447, ...) the build pins. |
+| `richhdr.py` | Decodes the "Rich" header: which compiler and linker builds produced an image, with object counts, each tool id named (Intel's compilers write no `@comp.id`, so their objects are id `0x00`). The source of the per-binary compiler map, `progress/COMPILERS.md`. |
+| `libscan.py` | Where each library's code sits in a retail image: every function of the given `.lib`s found at exactly one address, grouped into runs. How `progress/targets.py`'s boundaries (the C runtime, D3DX, WONAPI) were found. |
 | `compid.py` | The compiler build number of each object in a COFF object or `.lib` (`@comp.id`): direct evidence of which compiler built a static library. |
 | `asmweb.py` | Renders a retail image's whole app region as one scrollable web page (`out/asmweb.html`): every instruction, every recovered function labelled with its demangled signature, its status and its source file, and calls annotated with their target's name. `--stats` prints counts only. |
 | `ghidra/decomp.sh` | Batch-decompiles an image's app region to one `.c` file with headless Ghidra (`DumpDecomp.java`). A reading aid for control flow and field offsets, never source: Ghidra normalises away exactly what byte-matching depends on. Optionally seeded with a function table. Needs `ghidra.analyzeHeadless` and about 2 GB of RAM. |

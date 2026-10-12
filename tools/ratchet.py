@@ -19,8 +19,9 @@ progress/ -- the list of every function already byte-identical
   ratchet.py update [--accept-losses]
       Records the run as the new baseline and rewrites README.md's table.
       Refuses a run that lost a recorded function unless --accept-losses
-      is given, and a run that did not score the libraries (NOLF2_SOURCE),
-      since the baseline has to cover every target.
+      is given, and a run that did not score the shipped libraries (when
+      progress/targets.py has any), since the baseline has to cover every
+      target.
   ratchet.py readme
       Rewrites README.md's table from progress/summary.json only.
 
@@ -45,24 +46,24 @@ END = "<!-- progress:end -->"
 # (tools/progress.py). Neither may go up.
 COVERAGE = ("unwritten", "unplaced")
 
-LIBS = ["StdLith", "CryptMgr", "RegMgr", "RegMgr_Debug", "MFCStub", "ButeMgrNoMFC",
-        "ltguimgr_LT2", "LithFontMgr_LT2"]
-# The README's rows: (label, what it is, the targets it adds up)
-ROWS = [
-    ("`lithtech.exe`", "the engine", ["lithtech.exe"]),
-    ("`server.dll`", "the server", ["server.dll"]),
-    ("`d3d.ren`", "the Direct3D renderer", ["d3d.ren"]),
-    ("`NOLF.exe`", "the launcher", ["NOLF.exe"]),
-    ("lithshared", "the shared libraries", LIBS),
-    ("`CShell.dll`", "the game: client", ["CShell.dll"]),
-    ("`Object.lto`", "the game: server objects", ["Object.lto"]),
-]
-# Rows listed after ROWS but left out of the total: a resource-only image,
-# scored resource by resource (tools/progress.py, rows_for_resources). Its
+sys.path.insert(0, os.path.join(REPO, "progress"))
+sys.dont_write_bytecode = True     # no progress/__pycache__
+import targets as cfg  # noqa: E402
+
+# The README's rows, in progress/targets.py's order: (label, what it is, the
+# targets it adds up). Libraries scored on their own (cfg.LIBS) share one
+# row.
+ROWS = [("`%s`" % t["label"], t["what"], [t["label"]])
+        for t in cfg.TARGETS if t["kind"] != "resources"]
+if cfg.LIBS:
+    ROWS.append(("libraries", "the shared libraries", [l for l, _p in cfg.LIBS]))
+# Rows listed after ROWS but left out of the total: resource-only images,
+# scored resource by resource (tools/progress.py, rows_for_resources). Their
 # data is not code, so it is not added to the total.
-RES_ROWS = [
-    ("`CRes.dll`", "the game's resources", ["CRes.dll"]),
-]
+RES_ROWS = [("`%s`" % t["label"], t["what"], [t["label"]])
+            for t in cfg.TARGETS if t["kind"] == "resources"]
+# what names the shipped libraries' directory, for the messages below
+LIBS_ENV = cfg.SHIPPED_ENV or "the shipped libraries' variable"
 
 
 def load_run():
@@ -125,6 +126,10 @@ def render(summary):
             f"{agg['unwritten']:,} | {agg['unplaced']:,} |")
     for label, what, names in RES_ROWS:
         agg = {k: sum(t[n].get(k, 0) for n in names) for k in tot}
+        if not agg["funcs"]:                # an empty resource directory
+            out.append(f"| {label} | {what}, not in the total | no "
+                       f"resources | -- | -- | -- | -- |")
+            continue
         out.append(
             f"| {label} | {what}, not in the total | {agg['identical']:,} / "
             f"{agg['funcs']:,} resources | "
@@ -204,8 +209,8 @@ def cmd_check(complete, covered=False):
     print()
     ok = True
     if not run_summary.get("libraries_scored"):
-        print("note: the lithshared libraries were not scored (NOLF2_SOURCE is "
-              "not set), so their recorded functions were not checked")
+        print("note: the shipped libraries were not scored (%s is not "
+              "set), so their recorded functions were not checked" % LIBS_ENV)
     if lost:
         ok = False
         print(f"FAIL: {len(lost)} function(s) recorded as byte-identical no "
@@ -228,7 +233,7 @@ def cmd_check(complete, covered=False):
               f"{BASE}/summary.json -- run tools/ratchet.py readme")
     if complete:
         short = [(k, v) for k, v in sorted(run_summary["targets"].items())
-                 if v["started"] and v["identical"] < v["funcs"]]
+                 if v["identical"] < v["funcs"]]
         for label, v in short:
             ok = False
             print(f"FAIL (--complete): {label}: {v['identical']} of "
@@ -258,8 +263,8 @@ def cmd_update(accept_losses):
     run_summary, rows = load_run()
     if not run_summary.get("libraries_scored"):
         sys.exit("ratchet.py: this run did not score the libraries "
-                 "(NOLF2_SOURCE is not set); the baseline must cover every "
-                 "target, so it was not updated")
+                 "(%s is not set); the baseline must cover every "
+                 "target, so it was not updated" % LIBS_ENV)
     lost, gained, drops, rises, base_summary = compare(run_summary, rows)
     if (lost or drops or rises) and not accept_losses:
         for t, f in lost:

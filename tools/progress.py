@@ -1,8 +1,9 @@
 #!/usr/bin/env python3
 """The scoreboard: how much of every targeted binary we rebuild exactly.
 
-For each shipped target this enumerates its functions (name + byte size)
-and classifies our reconstruction of each as:
+The binaries, and where each one's code and ours is, are progress/targets.py:
+this file knows none of them by name. For each shipped binary it enumerates
+the functions (name + byte size) and classifies our build of each as:
 
   identical  our bytes match the shipped function exactly (reloc-masked)
   near       we have the function but bytes differ (compiler-revision variance)
@@ -11,17 +12,19 @@ and classifies our reconstruction of each as:
              COMDATs); reconstructed, not verified
   attempted  no match and no pairing, but there is evidence the address has
              been worked on (cited in src/, or recorded in progress/*.csv)
-  todo       the shipped function has no counterpart in our sources yet
+  todo       the shipped function has no counterpart in our build yet
   unplaced   (ours, not theirs) a function of ours that our own link puts in
              our image, but that no shipped function is placed for, even by
              position (the join in _rows_for_image): WRITTEN BUT UNPLACED
   unlinked   (ours) a function our own link leaves out of our image too:
              compiled, but not part of this binary
   driver     (ours) a function only a scoring driver (DRIVER_OBJS) emits
-  crt        outside the image's app region (the static CRT/MFC): listed,
-             not counted
-  middleware inside a third-party library linked into the app region
-             (MIDDLEWARE: the GameSpy SDK): listed, not counted
+  crt        outside the image's own code (`app`): the C runtime, import
+             thunks and exception funclets: listed, not counted
+  middleware inside a third-party library linked into `app` (D3DX in the
+             engine): listed, not counted
+  encrypted  in code the retail image keeps encrypted (`encrypted`, the
+             SecuROM pages of Lithtech.exe): listed, not counted
 
 Coverage is the pair of counts summary.json carries per target: UNWRITTEN
 (todo + attempted: shipped functions with nothing of ours placed at them)
@@ -31,21 +34,17 @@ over; tools/ratchet.py keeps either from going up (and `check --covered`
 requires both at zero). unplaced, unlinked and driver rows are ours, not
 shipped functions: none of them is in the denominator.
 
-Ground truth is always the SHIPPED binary, so the denominator can't drift.
-The engine images (lithtech.exe, server.dll, d3d.ren, NOLF.exe) come from the
-installed retail game into out/reference/ (`tools/retailextract.py
-reference`), and so do the
-Game of the Year game DLLs (CShell.dll, Object.lto, CRes.dll, out of
-NOLFGOTY.REZ); CRes.dll holds no code of Monolith's, so it is scored
-resource by resource instead (rows_for_resources); the lithshared
-libraries (and RegMgr's Debug build) are compared per COFF symbol against Monolith's prebuilt
-.libs from the NOLF Source Code v1.003 release, found through $NOLF2_SOURCE
-and checked against progress/shipped-libs.sha256. Without NOLF2_SOURCE the
-libraries are left out and only the images are scored.
+Ground truth is always the SHIPPED binary, so the denominator can't drift:
+the retail images build/reference.sh extracts into out/reference/. A
+resource-only image is scored resource by resource (rows_for_resources). A
+binary with no build of ours yet (the engine, until its source exists) is
+enumerated all the same and scores as all unwritten. Libraries a project
+can score symbol by symbol against shipped prebuilt .libs (NOLF's
+lithshared) are LIBS in the config; NOLF2 has none.
 
-What is compared is what the build left in the tree: src/engine/*/Release/,
-src/game/*/Final_Release/ (CRes.dll: src/game/ClientRes/Release/) and
-src/lithshared/out/. Run `make` first.
+What is compared is what the build left in the tree: each target's `built`
+image and the objects and libraries its link read (its response file). Run
+`make` first; this compiles nothing.
 
 Outputs (under out/progress/):
   functions.csv   one row per shipped function: target, name, size, status
@@ -65,6 +64,7 @@ already size-exact usually needs one source change, where one off by a
 hundred bytes needs a different shape. --todo (and the other statuses) list
 that status's rows, largest first.
 """
+import bisect
 import csv
 import glob
 import json
@@ -75,70 +75,53 @@ import sys
 import tempfile
 
 NEAR_PAIRS = []
-# (label, shipped address) -> "module.obj:symbol", for every function exematch
+# (label, shipped address) -> "module:symbol", for every function exematch
 # PLACES. rows_for_image deliberately reports placed functions as `sub_<addr>`
 # because the scoreboard only needs the count, so the symbol is dropped there;
 # a tool labelling a disassembly needs it. Written alongside `matched` and
 # read by nothing in this file, exactly as NEAR_PAIRS above.
 PLACED_SYMS = {}
 # The same for the "small" pass (functions too short to anchor, placed by
-# shape): (label, shipped address) -> "module.obj:symbol". Weaker evidence
+# shape): (label, shipped address) -> "module:symbol". Weaker evidence
 # than PLACED_SYMS, so kept apart.
 SMALL_SYMS = {}
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from objdiff import parse_obj  # noqa: E402
 from libextract import extract  # noqa: E402
-from d3dcheck import strip_pad, NAMED as D3D_NAMED, SYMBOLS as D3D_SYMBOLS  # noqa: E402
 from exematch import parse_obj_masked, find  # noqa: E402
 from exedump import Pe  # noqa: E402
 from enumfuncs import Image as EnumImage, enumerate_functions  # noqa: E402
 
 REPO = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+sys.path.insert(0, os.path.join(REPO, "progress"))
+sys.dont_write_bytecode = True     # no progress/__pycache__
+import targets as cfg  # noqa: E402
 
-
-# The retail images every denominator and oracle comes from, extracted from
-# the installed retail game by `tools/retailextract.py reference` (`make
-# progress` does it); the build itself never reads them.
-REFERENCE = "out/reference"
-
-# Where this writes, and where the recorded baseline and the hand-curated
-# evidence the enumeration reads live.
-OUT = "out/progress"
-DATA = "progress"
-
-# lithshared libraries: (label, ours.lib); theirs is SHIPPED_LIB in the
-# source release, or SHIPPED_AS's path (relative to SHIPPED_LIB's directory)
-LIBS = [
-    ("StdLith",         "src/lithshared/out/StdLith.lib"),
-    ("CryptMgr",        "src/lithshared/out/CryptMgr.lib"),
-    ("RegMgr",          "src/lithshared/out/RegMgr.lib"),
-    ("RegMgr_Debug",    "src/lithshared/out/RegMgr_Debug.lib"),
-    ("MFCStub",         "src/lithshared/out/MFCStub.lib"),
-    ("ButeMgrNoMFC",    "src/lithshared/out/ButeMgrNoMFC.lib"),
-    ("ltguimgr_LT2",    "src/lithshared/out/ltguimgr_LT2.lib"),
-    ("LithFontMgr_LT2", "src/lithshared/out/LithFontMgr_LT2.lib"),
-]
-SHIPPED_LIB = "LT2/lithshared/libs/Release/{}.lib"
-# The GOTY CShell.dll linked the Debug build of RegMgr (build/libs.sh), so
-# that one is scored against the release's Debug library.
-SHIPPED_AS = {"RegMgr_Debug": "../Debug/RegMgr.lib"}
+REFERENCE = cfg.REFERENCE
+OUT = cfg.OUT
+DATA = cfg.DATA
+TARGETS = cfg.TARGETS
+BY_LABEL = {t["label"]: t for t in TARGETS}
+LIBS = cfg.LIBS
+DRIVER_OBJS = {o.lower() for o in cfg.DRIVER_OBJS}
 SHIPPED_SUMS = DATA + "/shipped-libs.sha256"
 
 
 def shipped_lib_dir():
-    """The directory holding the source release's prebuilt .libs, or None.
-
-    $NOLF2_SOURCE is the extracted NOLF Source Code v1.003 release (the
-    directory holding LT2/); a directory holding the Release .libs themselves
-    is accepted too, with the Debug ones (SHIPPED_AS) in ../Debug. Every library is checked against SHIPPED_SUMS: a library
-    from another release would score against the wrong ground truth, so a
-    mismatch is fatal rather than a skip.
+    """The directory holding the shipped prebuilt .libs LIBS is scored
+    against, or None: $<SHIPPED_ENV> names the extracted source release
+    (the directory holding SHIPPED_LIB's path), or a directory holding the
+    .libs themselves. Every library is checked against SHIPPED_SUMS: a
+    library from another release would score against the wrong ground
+    truth, so a mismatch is fatal rather than a skip.
     """
-    root = os.environ.get("NOLF2_SOURCE", "")
+    if not LIBS or not cfg.SHIPPED_ENV:
+        return None
+    root = os.environ.get(cfg.SHIPPED_ENV, "")
     if not root:
         return None
-    d = os.path.join(root, os.path.dirname(SHIPPED_LIB))
+    d = os.path.join(root, os.path.dirname(cfg.SHIPPED_LIB))
     if not os.path.isdir(d):
         d = root
     want = {}
@@ -155,252 +138,142 @@ def shipped_lib_dir():
         elif hashlib.sha256(open(p, "rb").read()).hexdigest() != h:
             bad.append("%s: SHA-256 mismatch" % name)
     if bad:
-        sys.exit("progress.py: NOLF2_SOURCE=%s does not hold the NOLF Source "
-                 "Code v1.003 libraries (%s):\n  %s" % (
-                     root, SHIPPED_SUMS, "\n  ".join(bad)))
+        sys.exit("progress.py: %s=%s does not hold the shipped libraries "
+                 "(%s):\n  %s" % (cfg.SHIPPED_ENV, root, SHIPPED_SUMS,
+                                  "\n  ".join(bad)))
     return d
 
-# engine binaries not yet started: tracked by .text byte scope (their functions
-# have no symbols, and d3d/server use little inter-function padding so a carved
-# count is only approximate — bytes are the exact, honest scope measure).
-ENGINE = [
-    ("lithtech.exe", REFERENCE + "/lithtech.exe"),
-    ("d3d.ren",      REFERENCE + "/d3d.ren"),
-    ("server.dll",   REFERENCE + "/server.dll"),
-]
 
-# The game DLLs, built from Monolith's source release (src/game/, Final
-# Release: build/build.sh all final) and scored against the Game of the Year
-# copies in NOLFGOTY.REZ: (label, shipped image, our objects' directory, the
-# lithshared libraries it links, which are ours too -- as StdLith.lib in
-# server.dll).
-GAME = [
-    # CShell links RegMgr_Debug, the Debug build of regmgr.lib, where the
-    # others link the Release one: so did the Game of the Year CShell.dll
-    # (build/libs.sh, build_regmgr_debug).
-    ("CShell.dll", REFERENCE + "/CShell.dll", "src/game/ClientShellDLL/Final_Release",
-     ["StdLith", "CryptMgr", "ltguimgr_LT2", "MFCStub", "ButeMgrNoMFC",
-      "GameSpyClientMgr", "RegMgr_Debug", "LithFontMgr_LT2"]),
-    ("Object.lto", REFERENCE + "/Object.lto", "src/game/ObjectDLL/Final_Release",
-     ["StdLith", "CryptMgr", "MFCStub", "ButeMgrNoMFC", "GameSpyMgr", "RegMgr"]),
-]
-# CRes.dll: string tables, dialogs, bitmaps and text, and nothing but the
-# CRT's DLL entry code -- so its resources are what is scored.
-GAME_RES = ("CRes.dll", REFERENCE + "/CRes.dll", "src/game/ClientRes/Release/CRes.dll")
-GAME_LABELS = {g[0] for g in GAME} | {GAME_RES[0]}
+# ---------------------------------------------------------------------------
+# The regions of an image (progress/targets.py: app, middleware, encrypted)
 
-# Monolith's own code within each image. Everything above these ranges is the
-# statically linked CRT (and MFC in NOLF.exe's case) — real code in the binary,
-# but supplied by the toolchain, so it is NOT a reconstruction target. Counting
-# it would understate progress as badly as counting only what we attempted
-# would overstate it. Functions outside the range are recorded as "crt" and
-# excluded from the totals.
-#   NOLF.exe    : app region ends where the static CRT/MFC begins.
-#   server.dll  : app region ends where libcmt.lib begins (_ftol); one
-#                 Monolith island sits above it (APP_ISLANDS).
-APP_REGION = {
-    # NOLF.exe: Monolith's own code runs 0x401000 .. 0x409ed2 (the last app
-    # function is CDibPal::InitRes at 0x409e70).  From 0x409ee0 on it is the
-    # statically linked MFC (AfxGetMainWnd, the multi-monitor stubs, CArchive
-    # operators) and then the CRT (_splitpath, strncpy, ...).
-    "NOLF.exe":   (0x401000, 0x409ed2),
-    # server.dll: the static CRT (libcmt.lib) begins at _ftol, 0x1003e0f0.
-    # Evidence: every libcmt.lib member was searched for in .text (masked by
-    # its own relocations, asm labels included); the lowest real hit is
-    # __ftol at 0x1003e0f0, followed densely by _free, _malloc, _strcmp,
-    # _memset, _strlen, ... Nothing between the old cut (0x10037b47, "last
-    # function referencing a Class::Method error tag") and 0x1003e0f0 is
-    # CRT; it is, in link order:
-    #   ..0x1003a54f  engine TUs (unaligned /O1 code): CMoArray templates
-    #                 byte-identical from worldbsp/collection.obj, the
-    #                 BaseNew/BaseDelete pair at 0x10038329/0x10038366,
-    #                 wt_VisibilityTraversal at 0x10038e77
-    #   0x1003a550..  rezmgr.lib (16-aligned): rezmgr/rezmgr2/rezdir/
-    #                 rezhash/rezfile/rezemu objects match 45+ functions
-    #   0x1003d170..  StdLith.lib: struct_bank, l_allocator, stringholder,
-    #                 dynarray, helpers, goodlinklist all match exactly
-    # See also APP_ISLANDS for the one Monolith block linked after the CRT.
-    "server.dll": (0x10001000, 0x1003e0f0),
-    # lithtech.exe and d3d.ren are placed by a rigorous oracle rather than by
-    # eye: the static CRT is the same library in every image built with this
-    # toolchain, so it is byte-identical across them, and server.dll's
-    # non-app region is already established. Taking each server.dll function
-    # above 0x10037b47 (the server cut as it then stood -- since corrected to
-    # 0x1003e0f0, so part of that sample was really rezmgr.lib/StdLith.lib,
-    # which are also prebuilt and identical across images; the cut below is
-    # still _ftol, as in server.dll) that is at least 32 bytes long and searching the other
-    # image's .text for those exact bytes finds 71 of them in lithtech.exe and
-    # 38 in d3d.ren — and in both cases they cluster into a dense tail.
-    #
-    # lithtech.exe's tail begins at _ftol (0x4928c0), with strncpy, _stricmp,
-    # _findfirst, _vsnprintf and the CRT entry point following it. Nothing
-    # Monolith wrote is identified above it: the highest error-tag literal
-    # names a function at 0x48b820 and the highest function any of our objects
-    # matches is a collection template at 0x4915c0. There are a few CRT hits
-    # below the cut, interleaved with that template — the boundary is left
-    # under them deliberately, because counting a little of the CRT against us
-    # errs in the honest direction.
-    #
-    # d3d.ren's tail begins with the generic thunk run at 0x1007faa0, above a
-    # stretch of int3 padding. Those thunks are the twenty-three functions the
-    # engine objects "match" in d3d.ren by coincidence, which the project has
-    # always refused to count; the boundary now says so in the denominator too.
-    "lithtech.exe": (0x401000, 0x4928bf),
-    "d3d.ren":      (0x10001000, 0x1007fa91),
-    # The game DLLs link like server.dll: Monolith's objects, then the
-    # lithshared libraries (StdLith, CryptMgr, ltguimgr_LT2, MFCStub,
-    # ButeMgrNoMFC, the GameSpy library, RegMgr), then the static CRT, which
-    # begins with libcimt.lib (the iostream classes) and goes on into
-    # libcmt.lib. Found by taking every function of 24+ bytes in our own
-    # linked image from the libraries and the CRT (our .map says which),
-    # masking our relocations, and searching the retail .text for it: each
-    # group's unique hits form one run, in our link order. libcimt's first
-    # function is the same 43-byte function in both images (ifstream's,
-    # just below ifstream::close, the group's first unique hit):
-    #   CShell.dll: libcimt 0x100edab0 (close at 0x100edbd3), libcmt from
-    #     0x100efd1b (??_M, our first libcmt function) to _findenv
-    #     0x100fd769; above the libraries, ButeMgrNoMFC ends at
-    #     ??3zSLink 0x100eb600 and GameSpyClientMgr is at 0x100eb6d0.
-    #   Object.lto: libcimt 0x10141db0 (close at 0x10141ed3), libcmt from
-    #     __cfltcvt_init 0x1014412f to __decomp 0x1015030e; RegMgr, the
-    #     last library, ends at 0x10141d70 + 50 bytes.
-    # The GameSpy library stays in the region: the retail one is the
-    # GameSpy SDK, which src/lithshared/gamespy/ stands in for and will not
-    # match, so those functions are honestly "todo".
-    "CShell.dll":   (0x10001000, 0x100edab0),
-    "Object.lto":   (0x10001000, 0x10141db0),
-}
+def _in(ranges, a):
+    return any(lo <= a < hi for lo, hi in ranges or ())
 
 
-# Monolith code that the linker placed ABOVE the start of the static CRT,
-# because its object was pulled from a library only after libcmt members had
-# been. Scored like the app region; everything else above APP_REGION is CRT.
-#   server.dll 0x1004bb20..0x1004bdcf: Lith.lib (src/lithshared/lith, built
-#     by build/libs.sh lith): basehash.obj 0x1004bb20..0x1004bcfa, then
-#     baselist.obj (CBaseList::InsertFirst/Delete 0x1004bd00/0x1004bd30) and
-#     virtlist.obj (CVirtBaseList::InsertFirst/Delete 0x1004bd60/0x1004bd90),
-#     all 13 byte-identical. The basehash iterator/bin code is what rezmgr
-#     calls (CRezDir::GetNextSubDir 0x1003aca0 calls 0x1004bb20). /GX code
-#     using __ehvec_ctor with rezmgr's bin dtor 0x1003b460 and the engine's
-#     0x1000d25d/0x10028ace allocator pair; its twin sits after lithtech.exe's
-#     CRT too (0x4a03d0..), byte-identical, so it is a prebuilt Monolith lib.
-#     It is bracketed by CRT: an IAT jump thunk at 0x1004bb10 below it and
-#     _strupr, __ehvec_ctor/dtor, __ArrayUnwind from 0x1004bdd0 on.
-#   Deliberately NOT included: 0x1004c070..end, the C++ EH unwind funclets
-#   and __ehhandler stubs (.text$x) of Monolith functions -- compiler-
-#   generated, 2-5 unmasked bytes each, not separately reconstructable.
-#   lithtech.exe 0x004a03d0..0x004a061f: the same library's basehash.obj
-#     (CBaseHashItem::Next 0x4a03d0 .. CBaseHash::GetFirstInBin 0x4a0590)
-#     and virtlist.obj (CVirtBaseList::InsertFirst 0x4a05b0, ::Delete
-#     0x4a05e0), byte-identical to server.dll 0x1004bb20..0x1004bdc3 and
-#     matched by src/lithshared/out/Lith.lib. Bracketed by CRT the same way:
-#     an IAT jump thunk at 0x4a03be below it, __ehvec_ctor at 0x4a0620
-#     above. (baselist.obj was pulled earlier here, into the app region at
-#     0x0048de30..0x0048df0f.)
-#   CShell.dll 0x100fd930..0x1010086f: LithFontMgr_LT2.lib, linked after
-#     the CRT exactly as in our CShell.dll (our map: LithFontMgr_LT2 between
-#     LIBCMT and __strupr). Its 29 unique hits run 0x100fda40 (LithFont's
-#     constructor) .. 0x10100760 (LithBitmapFont::ClipFont, 250 bytes);
-#     below it an import thunk (jmp [0x101080dc] at 0x100fd920, then int3
-#     padding), above it, after a 4-byte nop-padded accessor at 0x10100860,
-#     libcmt's __strupr at 0x10100870 (the same bytes as ours).
-#   Object.lto 0x101503e0..0x101503ff: MFCStub's CRect::CRect(l, t, r, b)
-#     (32 bytes, ret 0x10), linked after the CRT as in our Object.lto: an
-#     import thunk at 0x101503d0 below it, CRT code from 0x10150400.
-#   d3d.ren 0x1007faa0..0x1007fb1f: StdLith's l_allocator.cpp -- LAlloc's
-#     three virtuals (0x1007fae0 Alloc, 0x1007faf0 Free, 0x1007fb00 the
-#     scalar deleting destructor; vtable 0x100881b8) and g_DefAlloc's VC6
-#     initialiser thunks (0x1007faa0 `call 0x1007fab0; jmp 0x1007fac0`,
-#     the vtable store, the atexit registration, the atexit destructor).
-#     Monolith's code: its Alloc and Free call the renderer's own
-#     DefStdlithAlloc/DefStdlithFree (0x10021ce0/0x10021cb0), and
-#     src/engine/d3d/w12_7fae0.cpp is all seven, byte-identical (cl 8447,
-#     as StdLith). It opens the tail above APP_REGION; StdLith.lib's
-#     struct_bank.obj follows at 0x1007fb20 (sb_Init), which d3d.ren does
-#     not score (StdLith's own row does).
-APP_ISLANDS = {
-    "server.dll": [(0x1004bb20, 0x1004bdd0)],
-    "lithtech.exe": [(0x004a03d0, 0x004a0620)],
-    "CShell.dll": [(0x100fd930, 0x10100870)],
-    "Object.lto": [(0x101503e0, 0x10150400)],
-    "d3d.ren": [(0x1007faa0, 0x1007fb20)],
-}
+def region(tgt, a):
+    """What address a of a shipped image is: "app" (counted), or the status
+    of a row there that is not: "encrypted", "middleware", "crt"."""
+    if _in(tgt.get("encrypted"), a):
+        return "encrypted"
+    if _in(tgt.get("middleware"), a):
+        return "middleware"
+    if _in(tgt.get("app"), a):
+        return "app"
+    return "crt"
 
 
-# Third-party middleware linked INSIDE an app region: real code in the
-# binary, but not Monolith's and not a reconstruction target, so -- like the
-# CRT above the region -- its functions are listed ("middleware") and not
-# counted. The game DLLs link the GameSpy library between ButeMgrNoMFC and
-# the CRT/RegMgr: Monolith's thin CGameSpy* wrapper over the GameSpy SDK
-# (the "C Engine" server list in CShell, the query responder in Object),
-# shipped prebuilt; src/lithshared/gamespy/ stands in for it from the
-# headers alone and is deliberately not byte-matched (the master server it
-# talked to is gone). Evidence for the ranges: the WSOCK32 imports, the
-# master.gamespy.com and \gamename\%s\... strings and every caller of the
-# block lie in it, and nothing else in the image calls into it except
-# through the wrapper.
-#   CShell.dll 0x100eb650..0x100edab0: CGameSpyClientMgr::Init (strcpy of
-#     the game name and key into +8/+0x88) right after ButeMgrNoMFC's
-#     zSLink::freecache, through the SDK's hash table/array helpers, to
-#     libcimt's first function at 0x100edab0 (APP_REGION's end).
-#   Object.lto 0x10140950..0x10141b30: CGameSpyMgr::Init (7 arguments,
-#     this+0x107c) right after StdLith's MoArray_FindElementMemcmp, to the
-#     end of the last function's switch table; RegMgr's CRegMgr::Init
-#     starts at 0x10141b30.
-MIDDLEWARE = {
-    "CShell.dll": [(0x100eb650, 0x100edab0)],
-    "Object.lto": [(0x10140950, 0x10141b30)],
-}
+def in_app(tgt, a):
+    """True when address a is the image's own code: counted."""
+    return region(tgt, a) == "app"
 
 
-def in_middleware(label, a):
-    return any(l <= a < h for l, h in MIDDLEWARE.get(label, ()))
+# ---------------------------------------------------------------------------
+# Our side: the build's image, its map, and what its link read
+
+def ci_path(path):
+    """`path` (relative to the repository, / or \\ separated) as it is on
+    disk, matching each component without regard to case, as the Windows
+    tools that wrote it did; None if there is no such file."""
+    parts = [p for p in re.split(r"[\\/]+", path) if p not in ("", ".")]
+    cur = REPO if not os.path.isabs(path) else "/"
+    out = []
+    for p in parts:
+        if p == "..":
+            cur = os.path.dirname(cur)
+            out = out[:-1] if out and out[-1] != ".." else out + [".."]
+            continue
+        try:
+            names = os.listdir(cur)
+        except OSError:
+            return None
+        hit = p if p in names else next(
+            (n for n in names if n.lower() == p.lower()), None)
+        if hit is None:
+            return None
+        cur = os.path.join(cur, hit)
+        out.append(hit)
+    return os.path.relpath(cur, REPO)
 
 
-def in_app(label, a, lo, hi):
-    """True when address a is Monolith code (APP_REGION or an island, less
-    MIDDLEWARE)."""
-    if in_middleware(label, a):
-        return False
-    if lo <= a < hi:
-        return True
-    return any(l <= a < h for l, h in APP_ISLANDS.get(label, ()))
+def built_image(tgt):
+    """Our build of a target (a path relative to the repository), or None."""
+    pat = tgt.get("built")
+    if not pat:
+        return None
+    hits = sorted(glob.glob(os.path.join(REPO, pat), recursive=True))
+    if not hits:
+        return None
+    if len(hits) > 1:
+        print("progress.py: %s: %d builds match %s, scoring %s" % (
+            tgt["label"], len(hits), pat, os.path.relpath(hits[0], REPO)),
+            file=sys.stderr)
+    return os.path.relpath(hits[0], REPO)
 
 
-# Where a prebuilt library linked into an image actually sits, when that has
-# been established from evidence. A match for one of the library's functions
-# outside its range is refused outright -- the library is linked as one
-# block, so a hit elsewhere is the engine's own copy of the same bytes (a
-# template instance, a 16-byte free wrapper) or a coincidence, never the
-# library -- and its unanchorable functions claim "small" addresses by shape
-# only inside it. The anchored-span rule in rows_for_image is the fallback
-# for libraries not listed here; it is not enough on its own when one stray
-# anchor stretches the span over engine code.
-#   lithtech.exe StdLith.lib 0x490b50..0x4919df: every StdLith function with
-#     a unique hit lands in one run, in link order struct_bank (sb_Init
-#     0x490b50 .. sb_AllocateNewStructPage 0x490c20, ends 0x490c7e), helpers
-#     ($E2/$E1 initializer thunks 0x490c80/0x490c90 -- `jmp` / `mov ecx,
-#     &g_Helpers; jmp ??0CHelpers` -- then CHelpers::CHelpers 0x490ca0 ..
-#     ExtractNames 0x490e50), stringholder (CStringHolder ctor 0x490f60 ..
-#     ClearStrings 0x491270, its CMoArray<SBank> instances 0x4912d0..0x491739),
-#     l_allocator ($E thunks 0x491740..0x49177b constructing the default
-#     LAlloc global 0x4b4e88 with vtable 0x4a3c54, ~LAlloc 0x491780,
-#     LAlloc::Alloc/Free 0x491790/0x4917a0 .. LAllocSimpleBlock::Clear
-#     0x491940), dynarray (MoArray_FindElementMemcmp 0x491950) and
-#     goodlinklist (GLinkedList_FindElementMemcmp 0x491990, ends 0x4919d1).
-#     The same objects in the same order as server.dll 0x1003d170..0x1003e090,
-#     byte-identical bar relocations (sb_Term2 0x490bd0 = 0x1003d1f0). Below
-#     it, 0x490b40 is a 4-byte engine accessor after an engine function's
-#     `ret`; above it, 0x4919e0 is a thiscall string copy matching no member
-#     of either our or the shipped StdLith.lib (server.dll has the CRT's
-#     fpinit straight after goodlinklist). Without the range, DefStdlithFree's
-#     16 bytes credit the engine's own free wrapper at 0x436510, StdLith's
-#     $E thunks take the engine's startup/atexit thunks 0x436880/0x4368b0,
-#     and CAbstractIO::Open's 8 bytes (`mov eax,1; ret 8`) claim the tail of
-#     0x4919e0 as a function at 0x491a10.
-LIB_RANGE = {
-    "lithtech.exe": {"StdLith.lib": (0x00490b50, 0x004919e0)},
-}
+def link_inputs(image):
+    """The objects and libraries of ours the link of `image` read, from its
+    response file (<image>.rsp, one argument a line) and the directory the
+    link ran in (`cd <dir> &&` in <image>.cmd): every .obj and .lib that
+    resolves to a file in the repository, in command-line order. A bare
+    library name is looked for in the link's directory and its /libpath:s;
+    the toolchain's own libraries (kernel32.lib, msvcrt.lib, ...) resolve
+    to nothing here and are left out. None if there is no response file."""
+    rsp = image + ".rsp"
+    if not os.path.exists(os.path.join(REPO, rsp)):
+        return None
+    cwd = os.path.dirname(image)
+    cmd = image + ".cmd"
+    if os.path.exists(os.path.join(REPO, cmd)):
+        m = re.match(r"\s*cd\s+(\S+)\s*&&", open(os.path.join(REPO, cmd)).read())
+        if m:
+            cwd = m.group(1)
+    args = []
+    for line in open(os.path.join(REPO, rsp), errors="replace"):
+        args += [a.strip('"') for a in line.split()]
+    libpaths = [cwd] + [os.path.join(cwd, a.split(":", 1)[1]) for a in args
+                        if a.lower().startswith("/libpath:")]
+    out = []
+    for a in args:
+        if a.startswith("/") or not a.lower().endswith((".obj", ".lib")):
+            continue
+        cands = [os.path.join(cwd, a)] if re.search(r"[\\/]", a) else \
+            [os.path.join(d, a) for d in libpaths]
+        for c in cands:
+            p = ci_path(c.replace("\\", "/"))
+            if p and p not in out:
+                out.append(p)
+                break
+    return out
+
+
+def our_map(image):
+    """Our link's .map beside the image (any case), or None."""
+    return ci_path(os.path.splitext(image)[0] + ".map")
+
+
+def _module(lib, member):
+    """The module name a function of ours is keyed by: an object's file name,
+    or `lib(member)` for a library member -- the map names it `lib:member`."""
+    return "%s(%s)" % (lib, member) if lib else member
+
+
+def _our_layout(mapfile):
+    """{(module, symbol): address} of the code in our linked image, from its
+    .map (module lower-cased), or None when there is no map. Symbols the
+    map lists twice (a static name in two objects) are told apart by their
+    module."""
+    if not mapfile or not os.path.exists(os.path.join(REPO, mapfile)):
+        return None
+    out = {}
+    for line in open(os.path.join(REPO, mapfile), errors="replace"):
+        p = line.split()
+        if len(p) < 4 or not p[0].startswith("0001:") or \
+                not re.fullmatch(r"[0-9a-fA-F]{8}", p[2]):
+            continue
+        lib, _, mem = p[-1].rpartition(":")
+        out.setdefault((_module(lib, mem).lower(), p[1]), int(p[2], 16))
+    return out
 
 
 def load_lib(path):
@@ -414,7 +287,8 @@ def load_lib(path):
 
 
 def rows_for_lib(label, ours_path, libdir):
-    theirs = load_lib(os.path.join(libdir, SHIPPED_AS.get(label, label + ".lib")))
+    theirs = load_lib(os.path.join(libdir, cfg.SHIPPED_AS.get(
+        label, os.path.basename(cfg.SHIPPED_LIB).format(label))))
     ours = load_lib(os.path.join(REPO, ours_path)) if os.path.exists(
         os.path.join(REPO, ours_path)) else {}
     rows = []
@@ -429,7 +303,40 @@ def rows_for_lib(label, ours_path, libdir):
     return rows
 
 
-def _enum_with_sizes(path, label=None):
+# ---------------------------------------------------------------------------
+# The shipped side: the image's functions
+
+# Trailing alignment encodings: VC6 pads with 0x90/0xCC, icl with
+# multi-byte lea / mov nops.
+PADS = [
+    bytes.fromhex("8dbc2700000000"),
+    bytes.fromhex("8db42600000000"),
+    bytes.fromhex("8db600000000"),
+    bytes.fromhex("8dbf00000000"),     # lea 0x0(%edi),%edi (6-byte form)
+    bytes.fromhex("8d742600"),
+    bytes.fromhex("8d7600"),
+    bytes.fromhex("8bf6"),
+    bytes.fromhex("8bff"),
+    b"\x90",
+    b"\xcc",
+]
+
+
+def strip_pad(b):
+    """`b` without its trailing alignment padding (any of PADS)."""
+    b = bytes(b)
+    moved = True
+    while moved and b:
+        moved = False
+        for pad in PADS:
+            if b.endswith(pad):
+                b = b[:-len(pad)]
+                moved = True
+                break
+    return b
+
+
+def _enum_with_sizes(path, label):
     img = EnumImage(path)
     starts, _src = enumerate_functions(img)
     # Proven starts the enumerator misses (progress/extent-splits.csv): a row
@@ -459,7 +366,7 @@ def _enum_with_sizes(path, label=None):
         lo, hi = a - img.tlo, min(end - img.tlo, len(img.text))
         while hi > lo and img.text[hi - 1] in (0x90, 0xCC):
             hi -= 1
-        sizes[a] = hi - lo
+        sizes[a] = max(hi - lo, 0)
     if phantom:
         starts = [a for a in starts if a not in phantom]
     return img, starts, sizes
@@ -493,43 +400,19 @@ def _extent_splits():
     return out
 
 
-# progress/<prefix>-screen-exclude.csv records rows of ONE image, named by
-# the file's prefix.
-# They used to be read by ADDRESS ALONE, from every file, for every image --
-# harmless while the only two files were lithtech.exe's (0x004xxxxx) and
-# server.dll's, but d3d.ren shares server.dll's 0x10000000 base, so a d3d
-# row would have dropped or relabelled whatever server.dll function sits at
-# the same address. A file whose prefix is in this table applies only to its
-# image; any other file (none today) keeps the old apply-everywhere reading.
-_EXCLUDE_IMAGE = {
-    "lithtech": "lithtech.exe",
-    "server":   "server.dll",
-    "d3d":      "d3d.ren",
-    "cshell":   "CShell.dll",
-    "object":   "Object.lto",
-}
-
-
 def _exclude_files(label):
-    """The screen-exclude files whose rows apply to image `label`."""
-    out = []
-    for f in sorted(glob.glob(DATA + "/*-screen-exclude.csv")):
-        prefix = os.path.basename(f)[:-len("-screen-exclude.csv")]
-        img = _EXCLUDE_IMAGE.get(prefix)
-        if label in GAME_LABELS:
-            # only the game DLL's own file: the engine files' addresses
-            # overlap the game DLLs' 0x10000000 range by coincidence
-            if img == label:
-                out.append(f)
-        elif img is None or label is None or img == label:
-            out.append(f)
-    return out
+    """progress/<stem>-screen-exclude.csv: the rows of image `label` (by its
+    stem, any case) examined by hand. A file applies to its own image only:
+    the images share address ranges (every DLL is based at 0x10000000)."""
+    stem = BY_LABEL[label]["stem"].lower()
+    return [f for f in sorted(glob.glob(DATA + "/*-screen-exclude.csv"))
+            if os.path.basename(f)[:-len("-screen-exclude.csv")].lower() == stem]
 
 
 _REASONS = {}
 
 
-def _phantom_reasons(label=None):
+def _phantom_reasons(label):
     if label in _REASONS:
         return _REASONS[label]
     out = {}
@@ -545,51 +428,6 @@ def _phantom_reasons(label=None):
         except OSError:
             pass
     _REASONS[label] = out
-    return out
-
-
-LINKED = {   # our whole-exe link, used as a second, unmasked oracle
-    "NOLF.exe": "src/engine/launcher/Release/NOLF.exe",
-}
-
-# Our own link of each image: its .map says where each of our functions went,
-# which is what tells "written but not placed" (in our image, no shipped
-# address) from code our linker drops too (not in our image either), and
-# what the join in _rows_for_image places functions by.
-OUR_MAP = {
-    "NOLF.exe":     "src/engine/launcher/Release/NOLF.map",
-    "server.dll":   "src/engine/server/Release/server.map",
-    "lithtech.exe": "src/engine/lithtech/Release/lithtech.map",
-    "d3d.ren":      "src/engine/d3d/Release/d3d.map",
-    "CShell.dll":   "src/game/ClientShellDLL/Final_Release/CShell.map",
-    "Object.lto":   "src/game/ObjectDLL/Final_Release/Object.map",
-}
-
-
-# Translation units of ours that exist only to make the compiler emit
-# functions for the oracle to compare (sdkforce.cpp takes the address of
-# every SDK inline, so ALL of them are out of line in our link, whether or
-# not the shipped image has them so). Their functions are reported as
-# "driver": not shipped code, so neither placed nor missing.
-DRIVER_OBJS = {"sdkforce.obj"}
-
-
-def _our_layout(label):
-    """{(object, symbol): address} of the code in our linked image, from its
-    .map (object lower-cased, as an object file's basename), or None when
-    there is no map. Symbols the map lists twice (a static name in two
-    objects) are told apart by their object."""
-    m = OUR_MAP.get(label)
-    if not m or not os.path.exists(os.path.join(REPO, m)):
-        return None
-    out = {}
-    for line in open(os.path.join(REPO, m), errors="replace"):
-        p = line.split()
-        if len(p) < 4 or not p[0].startswith("0001:") or \
-                not re.fullmatch(r"[0-9a-fA-F]{8}", p[2]):
-            continue
-        obj = p[-1].split(":")[-1].lower()
-        out.setdefault((obj, p[1]), int(p[2], 16))
     return out
 
 
@@ -627,34 +465,33 @@ def _align(ours, theirs):
 _REMAINDER_STARTS = {}
 
 
-def rows_for_image(label, exe_path, objs):
+def rows_for_image(tgt, objs, mapfile, linked=None):
     """Score one image, then once more with the remainders of short matches.
 
     A row's size is reported as the length of what matched there, so when a
     SHORT function of ours matches at a start whose enumerated extent also
     holds more code -- icl's 14-byte stack-realign stub in front of a large
-    body (0x1004b720: 14 of 11,204 bytes), or a register-entry stub whose
-    caller's body follows (0x10024024: 108 of 5,672) -- the rest of the
-    extent dropped out of funcs and bytes_total entirely: 28 KB of d3d.ren
-    had silently left the denominator that way, and the body behind a stub
-    had no row to pair with even when we had written it. The code behind
-    such a match is its own function (the match ended in a ret or a tail
-    jump), so its first non-padding byte becomes a start, and the image is
-    scored again with those starts added.
+    body, or a register-entry stub whose caller's body follows -- the rest
+    of the extent dropped out of funcs and bytes_total entirely, and the
+    body behind a stub had no row to pair with even when we had written it.
+    The code behind such a match is its own function (the match ended in a
+    ret or a tail jump), so its first non-padding byte becomes a start, and
+    the image is scored again with those starts added.
     """
-    rows = _rows_for_image(label, exe_path, objs)
-    extra = _remainders(label, exe_path, rows)
+    label = tgt["label"]
+    rows = _rows_for_image(tgt, objs, mapfile, linked)
+    extra = _remainders(tgt, rows)
     if extra:
         _REMAINDER_STARTS[label] = extra
         # the second pass records its own pairs: drop the first pass's
         NEAR_PAIRS[:] = [r for r in NEAR_PAIRS if r[0] != label]
-        rows = _rows_for_image(label, exe_path, objs)
+        rows = _rows_for_image(tgt, objs, mapfile, linked)
     return rows
 
 
-def _remainders(label, exe_path, rows):
-    p = os.path.join(REPO, exe_path)
-    img, starts, sizes = _enum_with_sizes(p, label)
+def _remainders(tgt, rows):
+    label = tgt["label"]
+    img, starts, sizes = _enum_with_sizes(os.path.join(REPO, tgt["shipped"]), label)
     have = set(starts)
     text, tlo = img.text, img.tlo
     out = set()
@@ -681,48 +518,30 @@ def _remainders(label, exe_path, rows):
     return out
 
 
-# Trailing alignment encodings (tools/d3dcheck.py's PADS): VC6 pads with
-# 0x90/0xCC, icl with multi-byte lea / mov nops.
-PADS = [
-    bytes.fromhex("8dbc2700000000"),
-    bytes.fromhex("8db42600000000"),
-    bytes.fromhex("8db600000000"),
-    bytes.fromhex("8dbf00000000"),     # lea 0x0(%edi),%edi (6-byte form)
-    bytes.fromhex("8d742600"),
-    bytes.fromhex("8d7600"),
-    bytes.fromhex("8bf6"),
-    bytes.fromhex("8bff"),
-    b"\x90",
-    b"\xcc",
-]
+def _own_addr(tgt, n, funcs=None):
+    """The shipped address a symbol of ours names: `sub_<addr>` (the naming
+    convention for a reconstruction of an unnamed function), or a name the
+    target's own_symbols (full symbol) or own_names (a substring of the
+    symbol's leaf name) maps. None if it names none. Only ever a
+    preference: a placement there still needs the bytes to agree.
 
-
-def _own_addr(label, n, funcs=None):
-    """The shipped address a symbol of ours names: `sub_<addr>` (the d3d
-    convention), or for d3d.ren an engine name tools/d3dcheck.py's NAMED
-    table maps (d3d_IsInOptimized2D -> 0x10034c60), or a template member its
-    SYMBOLS table maps by full name. None if it names none.
-    Only ever a preference: a placement there still needs the bytes to
-    agree.
-
-    d3d.ren, given our functions: icl's /Qip register entry `X$` (and the
-    `X$$1` body behind a 14-byte stack-realigning entry) sits the stack
-    entry X's length above the address X names, exactly as d3dcheck.py
-    places it.  Without that, `sub_100124a0$` preferred 0x100124a0 -- the
-    4-byte stack entry, already matched -- and an 8 KB body whose first 38
-    bytes are the shipped 0x100124a4's lost the ranking to unrelated
-    functions of similar length agreeing on 9% of their bytes."""
-    m = re.search(r"sub_(1[0-9a-f]{7})", n)
+    An icl target, given our functions: icl's /Qip register entry `X$` (and
+    the `X$$1` body behind a 14-byte stack-realigning entry) sits the stack
+    entry X's length above the address X names. Without that, `sub_X$`
+    preferred X -- the 4-byte stack entry, already matched -- and a large
+    body whose opening bytes are the shipped X+4's lost the ranking to
+    unrelated functions of similar length."""
+    m = re.search(r"sub_([0-9a-f]{6,8})\b", n)
     a = int(m.group(1), 16) if m else None
-    if a is None and label == "d3d.ren":
-        a = D3D_SYMBOLS.get(n.split(":", 1)[-1])
-    if a is None and label == "d3d.ren":
+    if a is None and tgt.get("own_symbols"):
+        a = tgt["own_symbols"].get(n.split(":", 1)[-1])
+    if a is None and tgt.get("own_names"):
         leaf = re.sub(r"^\?", "", n.split(":", 1)[-1]).split("@")[0]
-        for k, v in sorted(D3D_NAMED.items(), key=lambda kv: -len(kv[0])):
+        for k, v in sorted(tgt["own_names"].items(), key=lambda kv: -len(kv[0])):
             if k in leaf:
                 a = v
                 break
-    if a is not None and label == "d3d.ren" and funcs is not None:
+    if a is not None and tgt.get("icl") and funcs is not None:
         mod, sym = n.split(":", 1) if ":" in n else ("", n)
         leaf = re.sub(r"^\?", "", sym).split("@")[0]
         for tail in ("$$1", "$"):
@@ -735,92 +554,97 @@ def _own_addr(label, n, funcs=None):
     return a
 
 
-def _rows_for_image(label, exe_path, objs):
+def _load_objs(objs, icl=False):
+    """Our functions: {module:symbol: (code, mask)}, the ones from a library
+    scored on its own (LIBS), and, for icl, each padded function's bare body.
+
+    Key by module as well as symbol: compiler-generated names are numbered
+    per object, so `_$E192` exists in more than one of ours and a bare-symbol
+    dict silently drops all but the last -- which loses whole initializer
+    groups from the count. A library member's module is `lib(member)`, as
+    the map names it."""
+    funcs, unpadded, from_lib = {}, {}, set()
+    scored_libs = {l.lower() for l, _p in LIBS}
+
+    def add(mod, data, lib_scored):
+        for k, v in parse_obj_masked(data).items():
+            # instantiation drivers exist only to make VC6 emit template
+            # COMDATs; they are ours, not Monolith's, and must neither score
+            # nor pair
+            if "ForceInstantiation" in k:
+                continue
+            # ??_H / ??_I are the vector constructor and destructor
+            # iterators VC6 emits per object as a by-product of `new T[n]`
+            # and `delete [] p`. With exceptions off it expands the loop
+            # inline and never references them, so the linker drops them --
+            # they are the compiler's code either way, not reconstructed
+            # source, and scoring them counts a phantom against us.
+            if k.startswith("??_H") or k.startswith("??_I"):
+                continue
+            key = "%s:%s" % (mod, k)
+            if key in funcs:
+                print("progress.py: %s is in two of the link's inputs; "
+                      "scoring the first" % key, file=sys.stderr)
+                continue
+            # icl pads a COMDAT with multi-byte lea-nops, not 0x90/0xCC, and
+            # parse_obj_masked only strips the latter; the leftover pad then
+            # has to match whatever the shipped image has after the function,
+            # so an identical function could never be found. Keep the bare
+            # body too.
+            if icl:
+                code, mask = v
+                body = strip_pad(code)
+                if body != code:
+                    unpadded[key] = (body, {i for i in mask if i < len(body)})
+            funcs[key] = v
+            if lib_scored:
+                from_lib.add(key)
+
+    for o in objs:
+        q = os.path.join(REPO, o)
+        if o.lower().endswith(".lib"):
+            stem = os.path.splitext(os.path.basename(o))[0]
+            with tempfile.TemporaryDirectory() as td:
+                extract(q, td)
+                for m in sorted(glob.glob(td + "/*")):
+                    add(_module(stem, os.path.basename(m)),
+                        open(m, "rb").read(), stem.lower() in scored_libs)
+        else:
+            add(os.path.basename(o), open(q, "rb").read(), False)
+    return funcs, unpadded, from_lib
+
+
+def _rows_for_image(tgt, objs, mapfile, linked_path):
     """A PE image under reconstruction (exe or dll, no symbols).
 
-    Denominator = every enumerated function inside the image's app region
-    (see APP_REGION); functions outside it are the static CRT/MFC and are
-    emitted as status "crt" so they stay visible but do not count.
-    identical = an exematch hit for one of our objects.
+    Denominator = every enumerated function inside the image's own code
+    (`app`); functions elsewhere are emitted with the status of their
+    region (crt, middleware, encrypted) so they stay visible but do not
+    count. identical = an exematch hit for one of our objects.
     """
-    p = os.path.join(REPO, exe_path)
+    label = tgt["label"]
+    icl = bool(tgt.get("icl"))
+    p = os.path.join(REPO, tgt["shipped"])
     pe = Pe(p)
     tva, tvs, trp = pe.secs[".text"]
     text = pe.d[trp : trp + tvs]
     img, starts, sizes = _enum_with_sizes(p, label)
 
-    # Key by module as well as symbol: compiler-generated names are numbered
-    # per object, so `_$E192` exists in more than one of ours and a bare-symbol
-    # dict silently drops all but the last — which loses whole initializer
-    # groups from the count.
-    funcs = {}
-    unpadded = {}      # d3d symbols with icl lea-nop padding: the bare body
-    from_lib = set()   # symbols pulled in from an already-scored .lib
-    for o in objs:
-        q = os.path.join(REPO, o)
-        mod = os.path.basename(o)
-        if o.lower().endswith(".lib"):
-            with tempfile.TemporaryDirectory() as td:
-                extract(q, td)
-                for m in sorted(glob.glob(td + "/*")):
-                    for k, v in parse_obj_masked(open(m, "rb").read()).items():
-                        key = "%s:%s" % (mod, k)
-                        # a .lib is many objects under ONE module name, and
-                        # compiler-generated names repeat across them:
-                        # StdLith's helpers.obj and l_allocator.obj both
-                        # have `_$E1`/`_$E2`, and the later member silently
-                        # replaced the earlier, so helpers' g_Helpers
-                        # initializer (server 0x1003dd80, lithtech
-                        # 0x490c90) could never claim its address. Name a
-                        # repeat by its member too.
-                        if key in funcs:
-                            key = "%s:%s@%s" % (mod, k, os.path.basename(m))
-                        funcs[key] = v
-                        from_lib.add(key)
-        else:
-            for k, v in parse_obj_masked(open(q, "rb").read()).items():
-                # instantiation drivers exist only to make VC6 emit template
-                # COMDATs (packet.cpp); they are ours, not Monolith's, and
-                # must neither score nor pair
-                if "ForceInstantiation" in k:
-                    continue
-                # ??_H / ??_I are the vector constructor and destructor
-                # iterators VC6 emits per object as a by-product of `new T[n]`
-                # and `delete [] p`. With exceptions off it expands the loop
-                # inline and never references them, so the linker drops them —
-                # they are the compiler's code either way, not reconstructed
-                # source, and scoring them counts a phantom against us.
-                if k.startswith("??_H") or k.startswith("??_I"):
-                    continue
-                # icl (d3d.ren) pads a COMDAT with multi-byte lea-nops, not
-                # 0x90/0xCC, and parse_obj_masked only strips the latter; the
-                # leftover pad then has to match whatever the shipped image has
-                # after the function, so an identical function could never be
-                # found and scored "near". Strip the same set d3dcheck.py does.
-                if "src/engine/d3d/" in o.replace("\\", "/"):
-                    code, mask = v
-                    body = strip_pad(code)
-                    if body != code:
-                        unpadded["%s:%s" % (mod, k)] = (
-                            body, {i for i in mask if i < len(body)})
-                funcs["%s:%s" % (mod, k)] = v
+    funcs, unpadded, from_lib = _load_objs(objs, icl)
 
-    # Several of our functions compile to identical code (CCard::GetName and
-    # CPreview::GetName; DoDetailDialog and DoCustomizeDialog; the three
-    # CDib::Init overloads), and the shipped linker folded some of those into
-    # one address while emitting others separately. Assign greedily so each of
-    # our functions claims a distinct shipped address rather than all of them
-    # crediting the first hit.
+    # Several of our functions compile to identical code, and the shipped
+    # linker folded some of those into one address while emitting others
+    # separately. Assign greedily so each of our functions claims a distinct
+    # shipped address rather than all of them crediting the first hit.
     #
-    # A library function with more than one hit (Lith.lib's CBaseList::Delete
-    # has the same bytes as an engine list's Remove at 0x00442c90 in
-    # lithtech.exe) takes the fresh hit nearest the addresses its library's
-    # single-hit functions anchored: a library is linked as a block, so its
-    # own copy is the one beside its siblings, not the first one in .text.
+    # A library function with more than one hit takes the fresh hit nearest
+    # the addresses its library's single-hit functions anchored: a library
+    # is linked as a block, so its own copy is the one beside its siblings,
+    # not the first one in .text.
     matched = {}
     tiny = {}          # our functions with too few unmasked bytes to anchor
     lib_hits = {}
-    lib_range = LIB_RANGE.get(label, {})
+    lib_range = tgt.get("lib_range", {})
     for n, (code, mask) in funcs.items():
         if n in from_lib and len(code) - len(mask) >= 8:
             lib_hits[n] = list(find(text, tva, code, mask))
@@ -834,16 +658,13 @@ def _rows_for_image(label, exe_path, objs):
         if len(h) == 1:
             anchors.setdefault(n.split(":", 1)[0], []).append(h[0])
     placed = set()
-    # A generic shape (a d3d.ren thiscall thunk recurs at 19 addresses)
-    # otherwise claims the FIRST free hit and leaves the address it was
-    # written for unscored, or a same-shape neighbour takes it first. A symbol
-    # named for its address (`sub_<addr>`, the d3d convention) whose bytes
-    # match AT that address is placed there before anything else.
-    # (d3d.ren: also a name tools/d3dcheck.py's NAMED table maps -- the
-    # engine-named getters d3d_IsIn3D and d3d_IsInOptimized2D are the same
-    # six bytes, and by first-fit each was credited at the other's address.)
+    # A generic shape (a thiscall thunk can recur at 19 addresses) otherwise
+    # claims the FIRST free hit and leaves the address it was written for
+    # unscored, or a same-shape neighbour takes it first. A symbol named for
+    # its address (`sub_<addr>`) whose bytes match AT that address is placed
+    # there before anything else.
     for n, (code, mask) in sorted(funcs.items()):
-        a = _own_addr(label, n, funcs)
+        a = _own_addr(tgt, n, funcs)
         if a is None or n in from_lib or len(code) - len(mask) < 8:
             continue
         off = a - tva
@@ -862,10 +683,9 @@ def _rows_for_image(label, exe_path, objs):
             continue
         hits = lib_hits[n] if n in lib_hits else list(find(text, tva, code, mask))
         if not hits and n in unpadded:
-            # icl pads a COMDAT with multi-byte lea-nops, not 0x90/0xCC, and
-            # parse_obj_masked strips only those two; where the shipped image
-            # has different bytes after the function the padded body is
-            # found nowhere. Try the body without it.
+            # icl pads a COMDAT with multi-byte lea-nops; where the shipped
+            # image has different bytes after the function the padded body
+            # is found nowhere. Try the body without it.
             code, mask = unpadded[n]
             if len(code) - len(mask) >= 8:
                 hits = list(find(text, tva, code, mask))
@@ -875,8 +695,6 @@ def _rows_for_image(label, exe_path, objs):
         # A hit that is not an enumerated function start is a byte-run
         # inside some other function (a short body's masked shape recurring
         # in a neighbour's tail): only take it when nothing better exists.
-        # input_GetInputMgr's 13 bytes otherwise claim 0x00408b9e, the else
-        # arm of 0x00408b80, and leave its own 0x00439fb0 unscored.
         if len(fresh) > 1:
             at_start = [h for h in fresh if h in start_set]
             if at_start:
@@ -888,13 +706,11 @@ def _rows_for_image(label, exe_path, objs):
         matched[at] = len(code)
         PLACED_SYMS[(label, at)] = n
 
-    # A library linked into an engine image is one contiguous block of it, so
-    # a library function's hit strictly inside another matched function is a
-    # coincidence (StdLith's 8-byte CAbstractIO::Open "matches" the middle of
-    # rezmgr2's CRezDirX720::RemoveRezInternal in server.dll). Drop those,
-    # and let the library's unanchorable functions claim addresses by shape
-    # only inside the span its anchored functions occupy -- outside it,
-    # StdLith's $E initializer thunks otherwise claim the engine's own.
+    # A library linked into an image is one contiguous block of it, so a
+    # library function's hit strictly inside another matched function is a
+    # coincidence. Drop those, and let the library's unanchorable functions
+    # claim addresses by shape only inside the span its anchored functions
+    # occupy.
     lib_span = {}
     for at in [a for a in matched if PLACED_SYMS.get((label, a)) in from_lib]:
         if any(b < at < b + m for b, m in matched.items() if b != at):
@@ -904,9 +720,8 @@ def _rows_for_image(label, exe_path, objs):
         mod, sym = PLACED_SYMS[(label, at)].split(":", 1)
         if "?$" in sym or sym.startswith(("??_G", "??_D")):
             # template instances, deleting dtors and the iostream classes'
-            # vbase dtors (ButeMgr's ??_Dstrstream matches the game objects'
-            # copy at CShell 0x10085de0) are emitted by every object that
-            # uses them and fold anywhere; they place nothing
+            # vbase dtors are emitted by every object that uses them and fold
+            # anywhere; they place nothing
             continue
         l0, h0 = lib_span.get(mod, (at, at))
         lib_span[mod] = (min(l0, at), max(h0, at + matched[at]))
@@ -914,14 +729,13 @@ def _rows_for_image(label, exe_path, objs):
         mod = n.split(":", 1)[0]
         if mod not in lib_span and mod not in lib_range:
             del tiny[n]
-    # In a game DLL a library's block also takes in the unmatched addresses
-    # around its anchored span, up to the nearest function matched from
-    # anything else (or the end of .text): a library's first or last
-    # function can be one too short to anchor (CryptMgr's 3-byte
-    # ??0CCryptMgr ahead of its SetKey, LithBitmapFont::IsChromaKeyed after
-    # its ClipFont), and the span alone leaves it no address to claim.
+    # With lib_block, a library's block also takes in the unmatched
+    # addresses around its anchored span, up to the nearest function matched
+    # from anything else (or the end of .text): a library's first or last
+    # function can be one too short to anchor, and the span alone leaves it
+    # no address to claim.
     lib_block = dict(lib_span)
-    if label in GAME_LABELS:
+    if tgt.get("lib_block"):
         def foreign(a, mod):
             return (PLACED_SYMS.get((label, a)) or "").split(":", 1)[0] != mod
         order = sorted(matched)
@@ -931,19 +745,34 @@ def _rows_for_image(label, exe_path, objs):
             lib_block[mod] = (max(below) if below else tva,
                               min(above) if above else tva + len(text))
 
-    # Second oracle: our own whole-exe link. exematch has to mask relocation
-    # bytes because it compares an unlinked .obj, which leaves the global
-    # initializer COMDATs — two unmasked opcodes each — unverifiable. In a
-    # linked image those relocations are resolved, so a function built purely
-    # from relative displacements can be compared byte for byte with nothing
-    # masked at all. That is a stronger claim than the masked match, not a
-    # weaker one; it just only applies to functions with no absolute operands.
-    linked = None
-    lp = os.path.join(REPO, LINKED.get(label, ""))
-    if LINKED.get(label) and os.path.exists(lp):
-        linked = EnumImage(lp).text
+    # A function of ours matched where the enumeration has no start is a
+    # start it missed (a function reached only through a thunk or a table
+    # it cannot see: the incremental link's jump table, an initializer
+    # called through atexit): the row it lies in ends there. Left whole, the
+    # row would count the matched bytes a second time, as unwritten, and
+    # be too long for the function that really starts there to place.
+    for m in sorted(matched):
+        if m in start_set:
+            continue
+        i = bisect.bisect_right(starts, m) - 1
+        if i < 0:
+            continue
+        a = starts[i]
+        if a < m < a + sizes.get(a, 0) and a not in matched:
+            hi = m - tva
+            while hi > a - tva and text[hi - 1] in (0x90, 0xCC):
+                hi -= 1
+            sizes[a] = hi - (a - tva)
 
-    lo, hi = APP_REGION.get(label, (img.tlo, img.thi))
+    # Second oracle (linked_oracle): our own whole-image link. exematch has
+    # to mask relocation bytes because it compares an unlinked .obj, which
+    # leaves the global initializer COMDATs -- two unmasked opcodes each --
+    # unverifiable. In a linked image those relocations are resolved, so a
+    # function built purely from relative displacements can be compared
+    # byte for byte with nothing masked at all.
+    linked = None
+    if linked_path and os.path.exists(os.path.join(REPO, linked_path)):
+        linked = EnumImage(os.path.join(REPO, linked_path)).text
 
     # Enumeration finds some starts that are not functions: exception-handler
     # funclets and jump islands inside a function we have already matched, and
@@ -951,21 +780,15 @@ def _rows_for_image(label, exe_path, objs):
     # inside a matched function's span is one of those, not a target.
     inside = set()
     for a, n in matched.items():
-        for b in starts:
-            if a < b < a + n:
-                inside.add(b)
+        i = bisect.bisect_right(starts, a)
+        while i < len(starts) and starts[i] < a + n:
+            inside.add(starts[i])
+            i += 1
     starts = [a for a in starts if a not in inside]
 
-    # Global-initializer COMDATs ($E thunks, the ??__E constructors and the
-    # atexit registrations) are almost entirely relocation bytes: a `call
-    # rel32; jmp rel32` pair leaves two unmasked opcodes, which anchors
-    # nowhere. They cannot be verified by this oracle even when the source is
-    # certainly right. Claim them by shape instead — each of our unanchorable
-    # functions takes one distinct shipped address whose bytes agree outside
-    # the mask — and score them "small": reconstructed, not verified.
     if linked is not None:
         for a in starts:
-            if a in matched or not in_app(label, a, lo, hi):
+            if a in matched or not in_app(tgt, a):
                 continue
             n = sizes.get(a, 0)
             if n < 1:
@@ -974,25 +797,30 @@ def _rows_for_image(label, exe_path, objs):
             if b and b in linked:
                 matched[a] = n
 
+    # Global-initializer COMDATs ($E thunks, the ??__E constructors and the
+    # atexit registrations) are almost entirely relocation bytes: a `call
+    # rel32; jmp rel32` pair leaves two unmasked opcodes, which anchors
+    # nowhere. They cannot be verified by this oracle even when the source is
+    # certainly right. Claim them by shape instead -- each of our unanchorable
+    # functions takes one distinct shipped address whose bytes agree outside
+    # the mask -- and score them "small": reconstructed, not verified.
     small = set()
     placed_small = set()
 
     def own_first(n):
-        """d3d.ren: a symbol named for its address (`sub_<addr>`) tries that
-        address first, as the exact-match placement above does -- a 6-byte
-        `mov <g>,%eax ; ret` or a 1-byte `ret` fits every other one of its
-        shape, and taking the first in address order steals a sibling's."""
-        a0 = _own_addr(label, n, funcs) if label == "d3d.ren" else None
-        if a0 is not None and a0 in starts:
+        """A symbol named for its address tries that address first, as the
+        exact-match placement above does -- a 6-byte `mov <g>,%eax ; ret` or
+        a 1-byte `ret` fits every other one of its shape, and taking the
+        first in address order steals a sibling's."""
+        a0 = _own_addr(tgt, n, funcs)
+        if a0 is not None and a0 in start_set:
             return [a0] + [a for a in starts if a != a0]
         return starts
 
     # Relocation-free functions first: those bytes are the whole function, so
     # a shape match is exact, while one with a relocation (`mov eax, <addr>;
     # ret`) fits every sibling of its shape. In name order the second kind
-    # could take the address of the first: Object.lto's 6-byte attribute-name
-    # stubs (`mov eax, "SeeEnemyDistance"; ret` beside `mov eax, 1000; ret`)
-    # took each other's addresses and left 0x10073760 unwritten.
+    # could take the address of the first.
     for n, (code, mask) in sorted(tiny.items(),
                                   key=lambda kv: (len(kv[1][1]) > 0, kv[0])):
         # a COMDAT is padded out to alignment; the function is what precedes it
@@ -1000,7 +828,7 @@ def _rows_for_image(label, exe_path, objs):
         while end > 0 and code[end - 1] in (0x90, 0xCC):
             end -= 1
         for a in own_first(n):
-            if a in matched or a in small or not in_app(label, a, lo, hi):
+            if a in matched or a in small or not in_app(tgt, a):
                 continue
             if n in from_lib:
                 mod = n.split(":", 1)[0]
@@ -1016,19 +844,19 @@ def _rows_for_image(label, exe_path, objs):
                 SMALL_SYMS[(label, a)] = n
                 break
 
-    # d3d.ren is icl's, which pads with multi-byte lea-nops (d3dcheck.PADS)
-    # as well as 0x90: a 1-byte `ret` followed by `90 8d b4 26 ..` keeps a
-    # 16-byte extent once only 0x90/0xCC are stripped, so the same-length
-    # test above can never pass for it. A second pass, for the tiny d3d
-    # functions the first one left unplaced only, compares the bodies with
-    # that padding stripped on both sides.
-    if label == "d3d.ren":
+    # icl pads with multi-byte lea-nops as well as 0x90: a 1-byte `ret`
+    # followed by `90 8d b4 26 ..` keeps a 16-byte extent once only
+    # 0x90/0xCC are stripped, so the same-length test above can never pass
+    # for it. A second pass, for the tiny functions the first one left
+    # unplaced only, compares the bodies with that padding stripped on both
+    # sides.
+    if icl:
         for n, (code, mask) in sorted(tiny.items()):
             if n in placed_small or n in from_lib:
                 continue
             end = len(strip_pad(bytes(code)))
             for a in own_first(n):
-                if a in matched or a in small or not in_app(label, a, lo, hi):
+                if a in matched or a in small or not in_app(tgt, a):
                     continue
                 off = a - tva
                 body = strip_pad(bytes(text[off:off + sizes.get(a, 0)]))
@@ -1064,89 +892,84 @@ def _rows_for_image(label, exe_path, objs):
     paired = {}
     occurs = {}        # symbol -> its bytes occur somewhere in the image
     rejected = 0
-    # A library function in a game DLL whose bytes are found nowhere is one
-    # of the few its own library's score has as near (zErrHandler::set_ef,
-    # LithBitmapFont::FindOffset and Draw_Method_Timed): the shipped .lib's
-    # copy is what the image links, so pair it the same way, but only inside
-    # its library's block and only if our own link has it.
+    # A function of a separately scored library whose bytes are found
+    # nowhere is one its own library's score has as near: the shipped
+    # .lib's copy is what the image links, so pair it the same way, but
+    # only inside its library's block and only if our own link has it.
     lib_near_ok = set()
-    if label in GAME_LABELS:
-        layout_syms = {sym for (_o, sym) in (_our_layout(label) or {})}
+    if tgt.get("lib_block"):
+        layout_syms = {sym for (_o, sym) in (_our_layout(mapfile) or {})}
         lib_near_ok = {n for n in funcs if n in from_lib and
                        n.split(":", 1)[0] in lib_block and
-                       re.sub(r"@[^@]+\.obj$", "", n.split(":", 1)[1])
-                       in layout_syms}
-    if not from_lib is None:
-        for n, (code, mask) in sorted(funcs.items()):
-            if len(code) - len(mask) < 8 or \
-                    (n in from_lib and n not in lib_near_ok):
+                       n.split(":", 1)[1] in layout_syms}
+    for n, (code, mask) in sorted(funcs.items()):
+        if len(code) - len(mask) < 8 or \
+                (n in from_lib and n not in lib_near_ok):
+            continue
+        occurs[n] = bool(list(find(text, tva, code, mask))) or bool(
+            n in unpadded and list(find(text, tva, *unpadded[n])))
+        if occurs[n]:
+            continue
+        end = len(code)
+        while end > 0 and code[end - 1] in (0x90, 0xCC):
+            end -= 1
+        best, best_rank, best_ok = None, 0.0, False
+        # A symbol named for its address is tried THERE first, as own_first
+        # does for the exact and small placements -- a large function whose
+        # bytes differ mostly by register choice can agree with its own
+        # address on fewer bytes than with an unrelated one.
+        a0 = _own_addr(tgt, n, funcs)
+        cand = starts
+        if a0 is not None and a0 in start_set:
+            cand = [a0] + [a for a in starts if a != a0]
+        blk = lib_block.get(n.split(":", 1)[0]) if n in from_lib else None
+        for a in cand:
+            if a in matched or a in paired or not in_app(tgt, a):
                 continue
-            occurs[n] = bool(list(find(text, tva, code, mask))) or bool(
-                n in unpadded and list(find(text, tva, *unpadded[n])))
-            if occurs[n]:
+            if blk and not blk[0] <= a < blk[1]:
                 continue
-            end = len(code)
-            while end > 0 and code[end - 1] in (0x90, 0xCC):
-                end -= 1
-            best, best_rank, best_ok = None, 0.0, False
-            # d3d.ren: a symbol named for its address is tried THERE first,
-            # as own_first does for the exact and small placements -- a 5.8 KB
-            # clipper whose bytes differ mostly by register choice agrees with
-            # its own address on ~12% of them and with an unrelated big
-            # function on 16%, and the ranking below paired it with neither.
-            a0 = _own_addr(label, n, funcs) if label == "d3d.ren" else None
-            cand = starts
-            if a0 is not None and a0 in start_set:
-                cand = [a0] + [a for a in starts if a != a0]
-            blk = lib_block.get(n.split(":", 1)[0]) if n in from_lib else None
-            for a in cand:
-                if a in matched or a in paired or not in_app(label, a, lo, hi):
-                    continue
-                if blk and not blk[0] <= a < blk[1]:
-                    continue
-                m = sizes.get(a, 0)
-                if not m or abs(m - end) > 0.15 * max(m, end):
-                    continue
-                off, k = a - tva, min(m, end)
-                pfx = 0
-                while pfx < k and (pfx in mask or text[off + pfx] == code[pfx]):
-                    pfx += 1
-                same = sum(1 for i in range(k)
-                           if i not in mask and text[off + i] == code[i])
-                den = sum(1 for i in range(k) if i not in mask) or 1
-                agree = same / den
-                rank = max(agree, pfx / max(k, 1))
-                if rank > best_rank:
-                    # either a shared 16-byte opening — far more than two
-                    # unrelated functions with similar prologues manage — or
-                    # most of the body agreeing, with the length lining up too.
-                    # Both then have to survive the epilogue and have enough
-                    # unmasked bytes for the ratio above to have meant
-                    # anything: a dozen agreeing bytes out of a dozen is a
-                    # calling convention, not a function.
-                    ok = (pfx >= 16 or agree >= 0.5) and den >= 12
-                    # The shipped row's extent runs to the next start, so on
-                    # d3d.ren it still carries icl's multi-byte lea/mov nop
-                    # padding (`8b f6`, `8d 76 00` ...): `tail` then saw no
-                    # `ret` and a correct body could never pair (0x10077680,
-                    # 0x10078910). Strip that padding first, as `code` is.
-                    m_end = off + m
-                    if label == "d3d.ren":
-                        m_end = off + len(strip_pad(text[off:off + m]))
-                    ours, theirs = tail(code, 0, end), tail(text, off, m_end)
-                    if ok and ours is not None and ours != theirs:
-                        ok = False
-                        rejected += 1
-                    best, best_rank, best_ok = a, rank, ok
-                if a == a0:
-                    ok0 = (pfx >= 16 or agree >= 0.5) and den >= 12
-                    o0, t0 = tail(code, 0, end), tail(text, off, off + m)
-                    if ok0 and (o0 is None or o0 == t0):
-                        best, best_rank, best_ok = a, rank, True
-                        break
-            if best is not None and best_ok:
-                paired[best] = n
-                NEAR_PAIRS.append((label, best, sizes.get(best, 0), n, end))
+            m = sizes.get(a, 0)
+            if not m or abs(m - end) > 0.15 * max(m, end):
+                continue
+            off, k = a - tva, min(m, end)
+            pfx = 0
+            while pfx < k and (pfx in mask or text[off + pfx] == code[pfx]):
+                pfx += 1
+            same = sum(1 for i in range(k)
+                       if i not in mask and text[off + i] == code[i])
+            den = sum(1 for i in range(k) if i not in mask) or 1
+            agree = same / den
+            rank = max(agree, pfx / max(k, 1))
+            if rank > best_rank:
+                # either a shared 16-byte opening -- far more than two
+                # unrelated functions with similar prologues manage -- or
+                # most of the body agreeing, with the length lining up too.
+                # Both then have to survive the epilogue and have enough
+                # unmasked bytes for the ratio above to have meant
+                # anything: a dozen agreeing bytes out of a dozen is a
+                # calling convention, not a function.
+                ok = (pfx >= 16 or agree >= 0.5) and den >= 12
+                # The shipped row's extent runs to the next start, so in an
+                # icl image it still carries the multi-byte nop padding:
+                # `tail` would see no `ret`. Strip that padding first, as
+                # `code` is.
+                m_end = off + m
+                if icl:
+                    m_end = off + len(strip_pad(text[off:off + m]))
+                ours, theirs = tail(code, 0, end), tail(text, off, m_end)
+                if ok and ours is not None and ours != theirs:
+                    ok = False
+                    rejected += 1
+                best, best_rank, best_ok = a, rank, ok
+            if a == a0:
+                ok0 = (pfx >= 16 or agree >= 0.5) and den >= 12
+                o0, t0 = tail(code, 0, end), tail(text, off, off + m)
+                if ok0 and (o0 is None or o0 == t0):
+                    best, best_rank, best_ok = a, rank, True
+                    break
+        if best is not None and best_ok:
+            paired[best] = n
+            NEAR_PAIRS.append((label, best, sizes.get(best, 0), n, end))
     if rejected:
         print(f"  {label}: {rejected} candidate pairing(s) rejected on "
               f"argument-pop mismatch", file=sys.stderr)
@@ -1165,7 +988,7 @@ def _rows_for_image(label, exe_path, objs):
     # unpaired shipped ones in order, by size (_align: within a factor of
     # two). A function placed this way is "near": written and placed, not
     # yet identical.
-    layout = _our_layout(label)
+    layout = _our_layout(mapfile)
     ours_at = {}       # symbol -> our address
     if layout:
         for n in funcs:
@@ -1185,6 +1008,7 @@ def _rows_for_image(label, exe_path, objs):
     for a, n in paired.items():
         placed_at[n] = a
     our_placed = {ours_at[n] for n in placed_at if n in ours_at}
+
     # An inline function from a header is a COMDAT in every object that
     # includes it, and every copy is the same function: the linker keeps one.
     # Placing any copy places them all. Not so the names the compiler makes
@@ -1197,11 +1021,13 @@ def _rows_for_image(label, exe_path, objs):
 
     placed_names = {fname(n) for n in placed_at if ":" in n}
 
+    def is_driver(n):
+        return n.split(":", 1)[0].lower() in DRIVER_OBJS
+
     def unplaced_sym(n):
         """Ours, linked into our image, and placed nowhere in the shipped
         one (nor folded, in our own link, onto a function that is)."""
-        if n in from_lib or n in placed_at or n not in ours_at or \
-                n.split(":", 1)[0].lower() in DRIVER_OBJS:
+        if n in from_lib or n in placed_at or n not in ours_at or is_driver(n):
             return False
         if fname(n) in placed_names or ours_at[n] in our_placed:
             return False
@@ -1214,22 +1040,24 @@ def _rows_for_image(label, exe_path, objs):
         end = len(code)
         while end > 0 and code[end - 1] in (0x90, 0xCC):
             end -= 1
-        return len(strip_pad(bytes(code[:end]))) if label == "d3d.ren" else end
+        return len(strip_pad(bytes(code[:end]))) if icl else end
 
     def chain_of(anchors):
         """The longest run of (ours, shipped) anchors, in our order, whose
         shipped addresses rise too."""
-        import bisect
         anchors = sorted(anchors)
         idx, prev = [], [-1] * len(anchors)
+        tails = []
         for k, (_o, r) in enumerate(anchors):
-            j = bisect.bisect_left([anchors[i][1] for i in idx], r)
+            j = bisect.bisect_left(tails, r)
             if j > 0:
                 prev[k] = idx[j - 1]
             if j == len(idx):
                 idx.append(k)
+                tails.append(r)
             else:
                 idx[j] = k
+                tails[j] = r
         out, k = [], idx[-1] if idx else -1
         while k >= 0:
             out.append(anchors[k])
@@ -1237,8 +1065,10 @@ def _rows_for_image(label, exe_path, objs):
         return out[::-1]
 
     if ours_at:
-        import bisect
-        free = {a for a in starts if in_app(label, a, lo, hi)
+        app = [r for r in tgt.get("app", ())]
+        lo = min(r[0] for r in app) if app else img.tlo
+        hi = max(r[1] for r in app) if app else img.thi
+        free = {a for a in starts if in_app(tgt, a)
                 and a not in matched and a not in paired
                 and a not in small and sizes.get(a, 0) > 0}
         joined = {"name": 0, "object": 0, "image": 0}
@@ -1249,11 +1079,9 @@ def _rows_for_image(label, exe_path, objs):
             placed_names.add(fname(n))
             # ... and every other name at its address in our own link, as
             # for the placements above: icl's /Qip `X$$1` is a second label
-            # at X's own offset (both at 0 of one COMDAT, a zero-length
-            # "function"), so once X is joined by name (big1ef30's
-            # sub_1001ef30, big4b720's sub_1004b720, d3dqip2's
-            # sub_1003ad30) its $$1 is that same placed function, not a
-            # surplus one -- and must not take a free address of its own.
+            # at X's own offset, so once X is joined its $$1 is that same
+            # placed function, not a surplus one -- and must not take a free
+            # address of its own.
             if n in ours_at:
                 our_placed.add(ours_at[n])
             free.discard(a)
@@ -1262,17 +1090,13 @@ def _rows_for_image(label, exe_path, objs):
             joined[how] += 1
 
         # 1. By name: a function named for the shipped address it was
-        # written as (`sub_<addr>`, d3d.ren's convention) is that function,
-        # however differently it compiled -- a partial rebuild of an 11 KB
-        # function can be half its size.
+        # written as (`sub_<addr>`) is that function, however differently it
+        # compiled -- a partial rebuild of a large function can be half its
+        # size.
         for n in sorted(funcs):
             if not unplaced_sym(n):
                 continue
-            if label == "d3d.ren":
-                a = _own_addr(label, n, funcs)
-            else:
-                m = re.search(r"\bsub_([0-9a-f]{6,8})\b", n)
-                a = int(m.group(1), 16) if m else None
+            a = _own_addr(tgt, n, funcs)
             if a in free:
                 place(n, a, "name")
 
@@ -1298,11 +1122,9 @@ def _rows_for_image(label, exe_path, objs):
         # is placed at, whose nearest placed neighbours (below or above) are
         # functions of object X, is one of X's -- the linker lays an
         # object's functions out together. Our own order within an object
-        # need not follow the shipped one (a reconstructed file is not laid
-        # out in Monolith's order: our commonphysics.obj's functions run in
-        # another order than the shipped ones), so X's unplaced functions
-        # are matched to those shipped ones by size, closest first, within
-        # a factor of two.
+        # need not follow the shipped one, so X's unplaced functions are
+        # matched to those shipped ones by size, closest first, within a
+        # factor of two.
         import math
         owner = sorted((a, n.split(":", 1)[0]) for n, a in placed_at.items()
                        if ":" in n)
@@ -1310,12 +1132,12 @@ def _rows_for_image(label, exe_path, objs):
         cand = {}
         for a in sorted(free):
             i = bisect.bisect_left(owner_r, a)
-            objs = set()
+            objs_near = set()
             if i:
-                objs.add(owner[i - 1][1])
+                objs_near.add(owner[i - 1][1])
             if i < len(owner):
-                objs.add(owner[i][1])
-            for obj in objs:
+                objs_near.add(owner[i][1])
+            for obj in objs_near:
                 cand.setdefault(obj, []).append(a)
         for obj, ws in sorted(cand.items()):
             us = [n for _o, n in mine_now(
@@ -1344,7 +1166,7 @@ def _rows_for_image(label, exe_path, objs):
                   f"link order", file=sys.stderr)
 
     rows = []
-    # Functions we wrote source for that did NOT match: instruction-equivalent
+    # Functions we wrote that did NOT match: instruction-equivalent
     # near-matches, or code simply not linked into this image. Keyed by symbol
     # since we have no address for them.
     claimed = set(paired.values())
@@ -1366,15 +1188,10 @@ def _rows_for_image(label, exe_path, objs):
         mine_by_shape = {}
         seen = set()
         for n, (code, mask) in funcs.items():
-            # a scoring driver's own short functions (sdkforce.cpp's
-            # pointer-to-member globals each get a 5-byte `_$E` initializer
-            # thunk and its body) are not shipped code: counted here they
-            # inflated the surplus of their shape, and the excess was then
-            # reported against whichever real object's functions of that
-            # shape sorted last (worldsim.obj's `_$E` thunks).
+            # a scoring driver's own short functions are not shipped code:
+            # counted here they would inflate the surplus of their shape
             if len(code) - len(mask) >= 8 or n in from_lib or \
-                    n not in ours_at or fname(n) in seen or \
-                    n.split(":", 1)[0].lower() in DRIVER_OBJS:
+                    n not in ours_at or fname(n) in seen or is_driver(n):
                 continue
             seen.add(fname(n))
             mine_by_shape.setdefault(shape(code, mask), []).append(n)
@@ -1383,11 +1200,11 @@ def _rows_for_image(label, exe_path, objs):
             by_len.setdefault(len(key[0]), []).append(key)
         theirs_count = dict.fromkeys(mine_by_shape, 0)
         for a in starts:
-            if not in_app(label, a, lo, hi):
+            if not in_app(tgt, a):
                 continue
             off = a - tva
             body = text[off:off + sizes.get(a, 0)]
-            body = strip_pad(bytes(body)) if label == "d3d.ren" else \
+            body = strip_pad(bytes(body)) if icl else \
                 bytes(body).rstrip(b"\x90\xcc")
             for key in by_len.get(len(body), ()):
                 b, m = key
@@ -1400,8 +1217,7 @@ def _rows_for_image(label, exe_path, objs):
             short_over[key] = max(0, n_ours - theirs_count[key])
 
     for n, (code, mask) in sorted(funcs.items()):
-        if n.split(":", 1)[0].lower() in DRIVER_OBJS and n not in claimed \
-                and n not in placed_at:
+        if is_driver(n) and n not in claimed and n not in placed_at:
             rows.append((label, n, len(code), "driver"))
             continue
         if ours_at and len(code) - len(mask) < 8 and n not in from_lib \
@@ -1432,32 +1248,33 @@ def _rows_for_image(label, exe_path, objs):
                 n in unpadded and list(find(text, tva, *unpadded[n]))):
             # UNPLACED, not "near". This function's bytes occur NOWHERE in
             # the image, so it is not a shipped function missed by a little
-            # -- it is usually code this image never links. lithtech.exe
-            # compiles 44 of the server's translation units, so every
-            # server-only function lands here. Counting these as shipped
-            # functions inflated the denominator by 1548 rows and made four
-            # FINISHED libraries read 87-98% when they are at 100%: their
-            # entire "near" column was this. Reported in its own column and
+            # -- it is usually code this image never links (a library
+            # member the link did not pull). Reported in its own column and
             # excluded from funcs/bytes_total -- as "unlinked" when our own
             # link leaves it out too (or there is no map to say).
             rows.append((label, n, len(code),
                          "unlinked" if ours_at else "unplaced"))
+    touched = _touched_index(tgt)
     for a in sorted(set(starts) | set(matched)):
         size = matched.get(a, sizes.get(a, 0))
-        if in_middleware(label, a):
-            rows.append((label, "sub_%x" % a, size, "middleware"))
+        if not size:
+            # a start whose extent is all padding: not a function
+            continue
+        where = region(tgt, a)
+        if where in ("encrypted", "middleware"):
+            rows.append((label, "sub_%x" % a, size, where))
         elif a in matched:
             rows.append((label, "sub_%x" % a, size, "identical"))
         elif a in paired:
             rows.append((label, "sub_%x" % a, size, "near"))
         elif a in small:
             rows.append((label, "sub_%x" % a, size, "small"))
-        elif in_app(label, a, lo, hi):
+        elif where == "app":
             # SPLIT: "todo" now means nobody has looked at it. An address we
             # have evidence of working on -- written and unplaceable, decoded,
             # or recorded as not-work -- is "attempted" and counted apart.
             rows.append((label, "sub_%x" % a, size,
-                         "attempted" if a in _touched_index(label) else "todo"))
+                         "attempted" if a in touched else "todo"))
         else:
             rows.append((label, "sub_%x" % a, size, "crt"))
     return rows
@@ -1470,6 +1287,8 @@ def _resources(path):
     nsec = struct.unpack_from("<H", d, pe + 6)[0]
     optsz = struct.unpack_from("<H", d, pe + 20)[0]
     rva = struct.unpack_from("<I", d, pe + 24 + 96 + 2 * 8)[0]
+    if not rva:
+        return {}
     secs = []
     for i in range(nsec):
         s = pe + 24 + optsz + i * 40
@@ -1507,12 +1326,13 @@ def _resources(path):
     return walk(base, ())
 
 
-def rows_for_resources(label, shipped, ours):
+def rows_for_resources(tgt, ours):
     """A resource-only image: one row per shipped resource, `type/name/lang`,
     sized by its data. identical = our resource has the same bytes; near =
     we have it, but its bytes differ; todo = we have none by that key."""
-    theirs = _resources(shipped)
-    mine = _resources(ours) if os.path.exists(ours) else {}
+    label = tgt["label"]
+    theirs = _resources(os.path.join(REPO, tgt["shipped"]))
+    mine = _resources(os.path.join(REPO, ours)) if ours else {}
     rows = []
     for key in sorted(theirs, key=str):
         data = theirs[key]
@@ -1526,56 +1346,24 @@ def rows_for_resources(label, shipped, ours):
     return rows
 
 
-def calltarget_starts(path):
-    """Function starts for a symbol-less PE: call rel32 targets + exports.
-
-    More accurate than padding-carve for binaries with no inter-function
-    padding (server.dll, d3d.ren). Returns (sorted starts, text_lo, text_hi).
-    """
-    d = open(path, "rb").read()
-    pe = struct.unpack_from("<I", d, 0x3C)[0]
-    nsec = struct.unpack_from("<H", d, pe + 6)[0]
-    optsz = struct.unpack_from("<H", d, pe + 20)[0]
-    base = struct.unpack_from("<I", d, pe + 24 + 28)[0]
-    so = pe + 24 + optsz
-    tlo = thi = trp = 0
-    for i in range(nsec):
-        s = so + i * 40
-        name = d[s : s + 8].rstrip(b"\0").decode("latin-1")
-        vs, va, rs, rp = struct.unpack_from("<IIII", d, s + 8)
-        if name == ".text":
-            tlo, thi, trp = base + va, base + va + vs, rp
-    text = d[trp : trp + (thi - tlo)]
-    starts = set()
-    for off in range(len(text) - 5):
-        if text[off] == 0xE8:
-            rel = struct.unpack_from("<i", text, off + 1)[0]
-            tgt = tlo + off + 5 + rel
-            if tlo <= tgt < thi:
-                starts.add(tgt)
-    return sorted(starts), tlo, thi
-
-
-def rows_for_engine(label, path):
-    """Unstarted engine binary: full function enumeration (tools/enumfuncs.py).
-
-    Same enumerator as the started binaries, so the denominators are directly
-    comparable: call targets + data pointers (vtables) + exports + code after a
-    ret that nothing references. Padding-carving is NOT used — it works on
-    lithtech.exe but fails on server.dll/d3d.ren, which have almost no
-    inter-function padding.
-    """
-    img = EnumImage(os.path.join(REPO, path))
-    starts, _src = enumerate_functions(img)
+def rows_for_unbuilt(tgt):
+    """A binary with no build of ours yet: the same enumeration as the built
+    ones, so the denominators are directly comparable -- call targets + data
+    pointers (vtables) + exports + code after a ret that nothing references
+    -- with every function of its own code `todo` (or `attempted`, where
+    there is evidence of work on it) and the rest in its region's status."""
+    label = tgt["label"]
+    img, starts, sizes = _enum_with_sizes(os.path.join(REPO, tgt["shipped"]), label)
+    touched = _touched_index(tgt)
     rows = []
-    for i, a in enumerate(starts):
-        end = starts[i + 1] if i + 1 < len(starts) else img.thi
-        lo, hi = a - img.tlo, min(end - img.tlo, len(img.text))
-        while hi > lo and img.text[hi - 1] in (0x90, 0xCC):
-            hi -= 1
-        rows.append((label, "sub_%x" % a, hi - lo, "todo"))
+    for a in starts:
+        if not sizes.get(a):
+            continue            # all padding: not a function
+        where = region(tgt, a)
+        if where == "app":
+            where = "attempted" if a in touched else "todo"
+        rows.append((label, "sub_%x" % a, sizes.get(a, 0), where))
     return rows
-
 
 
 # ---------------------------------------------------------------------------
@@ -1583,26 +1371,23 @@ def rows_for_engine(label, path):
 # worked on? `todo` only ever meant "no exact match and no successful
 # pairing", so a function we have written whose bytes drifted past the
 # pairing tolerance was counted identically to code nobody has ever looked
-# at. Measured across the three engine images, ~85% of `todo` is the former
-# -- which made the scoreboard's red bar a picture of imperfection rather
-# than of remaining effort.
+# at.
 #
 # Evidence accepted, cheapest first: the address is cited anywhere in our
-# sources, or the decoded map places a symbol there, or a screen-exclude
-# row records it as not-work.
+# sources (CITED_SRC), or a decoded map places a symbol there, or a
+# screen-exclude row records it as not-work.
 _TOUCHED = {}
 
 _PHANTOM = {}
 
 
-def _phantom_index(label=None):
+def _phantom_index(label):
     """Addresses PROVEN not to be functions, to be dropped from the count.
 
-    The enumeration is wrong in both directions. Now that the remaining
-    work is small, the error matters: a row that is an
-    operand byte, an interior jump target, alignment padding or an ASCII
-    accident is not code, and leaving it in the denominator makes 100%
-    unreachable BY CONSTRUCTION rather than by any fact about the source.
+    The enumeration is wrong in both directions. A row that is an operand
+    byte, an interior jump target, alignment padding or an ASCII accident is
+    not code, and leaving it in the denominator makes 100% unreachable BY
+    CONSTRUCTION rather than by any fact about the source.
 
     Only rows whose screen-exclude reason opens with an explicit NOT A
     FUNCTION / NOT GAME CODE marker are dropped. "Already written" rows are
@@ -1641,10 +1426,10 @@ def _cited_addrs():
     if _CITED is not None:
         return _CITED
     blob = []
-    for base in ("src/engine", "src/lithshared"):
-        for root, _, fs in os.walk(base):
+    for base in cfg.CITED_SRC:
+        for root, _, fs in os.walk(os.path.join(REPO, base)):
             for f in fs:
-                if f.endswith((".cpp", ".h")) and "NAMEMAP" not in f:
+                if f.endswith((".cpp", ".h", ".c")) and "NAMEMAP" not in f:
                     try:
                         blob.append(open(os.path.join(root, f),
                                          errors="ignore").read())
@@ -1655,20 +1440,19 @@ def _cited_addrs():
     return _CITED
 
 
-def _touched_index(label=None):
+def _touched_index(tgt):
+    label = tgt["label"]
     if label in _TOUCHED:
         return _TOUCHED[label]
-    # The game DLLs are built from Monolith's own source, which cites no
-    # retail address; the addresses src/engine/ cites are the engine
-    # images', and server.dll's and d3d.ren's share the game DLLs' range
-    # (0x10000000+), so counting them here would mark game functions
-    # "attempted" by coincidence.
-    if label in GAME_LABELS:
+    # Only an image whose addresses our sources cite: the DLLs all share the
+    # 0x10000000 range, so an address cited for one would mark another's
+    # functions "attempted" by coincidence.
+    if not tgt.get("cites"):
         _TOUCHED[label] = set()
         return _TOUCHED[label]
     addrs = set(_cited_addrs())
-    for extra in glob.glob(DATA + "/*-decoded-map.csv") + \
-                 _exclude_files(label):
+    for extra in glob.glob(DATA + "/%s-decoded-map.csv" % tgt["stem"]) + \
+            _exclude_files(label):
         try:
             for r in csv.DictReader(open(extra)):
                 a = (r.get("addr") or "").strip().lower()
@@ -1687,94 +1471,64 @@ def _touched_index(label=None):
     return out
 
 
+def score_target(tgt):
+    """(rows, our build or None) for one target."""
+    ours = built_image(tgt)
+    if tgt["kind"] == "resources":
+        return rows_for_resources(tgt, ours), ours
+    if not ours:
+        return rows_for_unbuilt(tgt), None
+    objs = link_inputs(ours)
+    if objs is None:
+        objs = sorted({os.path.relpath(p, REPO) for g in tgt.get("objs", ())
+                       for p in glob.glob(os.path.join(REPO, g), recursive=True)})
+    skip = {s.lower() for s in tgt.get("third_party", ())}
+    objs = [o for o in objs if os.path.basename(o).lower() not in skip]
+    if not objs:
+        sys.exit("progress.py: %s: %s has no link response file (%s.rsp) and "
+                 "the target lists no objs" % (tgt["label"], ours, ours))
+    linked = ours if tgt.get("linked_oracle") else None
+    return rows_for_image(tgt, objs, our_map(ours), linked), ours
+
+
 def main():
     os.chdir(REPO)
 
     # A missing reference image would silently drop its target from the
     # totals; refuse instead.
-    missing = [n for n in ("NOLF.exe", "lithtech.exe", "server.dll", "d3d.ren",
-                           "CShell.dll", "Object.lto", "CRes.dll")
-               if not os.path.exists(os.path.join(REFERENCE, n))]
+    missing = [t["shipped"] for t in TARGETS if not os.path.exists(t["shipped"])]
     if missing:
-        sys.exit("progress.py: %s missing from %s/ -- run `make progress`, or "
-                 "tools/retailextract.py reference <retaildir> %s"
-                 % (", ".join(missing), REFERENCE, REFERENCE))
+        sys.exit("progress.py: %s missing -- run build/reference.sh "
+                 "(`make progress` does)" % ", ".join(missing))
     # ... and so would a missing build: every function would read "todo".
-    unbuilt = [d for d in ("src/engine/launcher", "src/engine/server",
-                           "src/engine/lithtech", "src/engine/d3d")
-               if not glob.glob(d + "/Release/*.obj")] + \
-              [g[2] for g in GAME if not glob.glob(g[2] + "/*.obj")] + \
-              [GAME_RES[2]] * (not os.path.exists(GAME_RES[2])) + \
-              [p for _l, p in LIBS if not os.path.exists(p)]
+    unbuilt = [t["built"] for t in TARGETS
+               if t.get("built") and not t.get("optional") and not built_image(t)]
     if unbuilt:
-        sys.exit("progress.py: no build output in %s -- run `make` first"
+        sys.exit("progress.py: no build output %s -- run `make` first"
                  % ", ".join(unbuilt))
 
     libdir = shipped_lib_dir()
     all_rows = []
-    if libdir:
-        for label, ours in LIBS:
-            all_rows += rows_for_lib(label, ours, libdir)
-    else:
-        print("progress.py: NOLF2_SOURCE not set -- the %d lithshared libraries "
-              "are not scored (see progress/README.md)" % len(LIBS),
-              file=sys.stderr)
+    started = set()
+    if LIBS:
+        if libdir:
+            for label, ours in LIBS:
+                all_rows += rows_for_lib(label, ours, libdir)
+                started.add(label)
+        else:
+            print("progress.py: %s not set -- the %d shipped libraries are not "
+                  "scored (see progress/README.md)" % (cfg.SHIPPED_ENV, len(LIBS)),
+                  file=sys.stderr)
 
-    # every reconstructed launcher TU (stdafx.obj is empty -- not real
-    # reconstruction)
-    exe_objs = sorted(
-        p for p in glob.glob("src/engine/launcher/Release/*.obj")
-        if os.path.basename(p) != "stdafx.obj"
-    )
-    # RegMgr is linked into NOLF.exe from our own reconstructed lithshared lib,
-    # so its functions in the exe are ours too
-    exe_objs.append("src/lithshared/out/RegMgr.lib")
-    all_rows += rows_for_image("NOLF.exe", REFERENCE + "/NOLF.exe", exe_objs)
-
-    started = ({label for label, _ in LIBS} if libdir else set()) | {"NOLF.exe"}
-
-    STARTED_ENGINE = {
-        # StdLith.lib is linked into server.dll whole (0x1003d170..0x1003e0ef,
-        # see APP_REGION); like RegMgr.lib in NOLF.exe, its functions there
-        # are ours, from our reconstructed lib.
-        "server.dll": (REFERENCE + "/server.dll",
-                       sorted(glob.glob("src/engine/server/Release/*.obj"))
-                       + ["src/lithshared/out/StdLith.lib",
-                          # Lith.lib (basehash/baselist/virtlist): the
-                          # APP_ISLANDS block above the CRT
-                          "src/lithshared/out/Lith.lib"]),
-        # The server's sources compiled a second time, with lithtech.exe's
-        # own compiler revision and flags (build/engine.sh), plus its own TUs.
-        "lithtech.exe": (REFERENCE + "/lithtech.exe",
-                         sorted(glob.glob("src/engine/lithtech/Release/*.obj"))
-                         # the same prebuilt Lith.lib as server.dll: its
-                         # APP_ISLANDS block plus baselist at 0x0048de30
-                         + ["src/lithshared/out/Lith.lib",
-                            # StdLith.lib, confined to its block by LIB_RANGE
-                            "src/lithshared/out/StdLith.lib"]),
-        # Renderer-specific source only (icl 4.0; build/engine.sh).
-        "d3d.ren": (REFERENCE + "/d3d.ren",
-                    sorted(glob.glob("src/engine/d3d/Release/*.obj"))),
-    }
-    for label, path in ENGINE:
-        se = STARTED_ENGINE.get(label)
-        objs = [o for o in (se[1] if se else []) if os.path.exists(o)]
-        if se and objs:
-            all_rows += rows_for_image(label, se[0], objs)
-            started.add(label)
-        elif os.path.exists(path):
-            all_rows += rows_for_engine(label, path)
-
-    # the game DLLs: our objects plus the lithshared libraries each links
-    for label, path, objdir, libs in GAME:
-        objs = sorted(glob.glob(objdir + "/*.obj")) + \
-            ["src/lithshared/out/%s.lib" % l for l in libs
-             if os.path.exists("src/lithshared/out/%s.lib" % l)]
-        all_rows += rows_for_image(label, path, objs)
-        started.add(label)
-    # scored, but not "started": resource data is not code, so it stays out
-    # of the total (and the README lists it below it)
-    all_rows += rows_for_resources(*GAME_RES)
+    for tgt in TARGETS:
+        rows, ours = score_target(tgt)
+        all_rows += rows
+        if ours:
+            started.add(tgt["label"])
+        else:
+            print("progress.py: %s: no build of ours (%s), scored as unwritten"
+                  % (tgt["label"], tgt.get("built") or "no source yet"),
+                  file=sys.stderr)
 
     # --todo[=<target>] (or --attempted, --near, --small): the rows of one
     # status. The table gives a number and the number alone is not a
@@ -1824,23 +1578,26 @@ def main():
         for r in sorted(all_rows, key=lambda r: (r[0], r[1])):
             w.writerow(r)
 
-    # aggregate
-    targets = {}
+    # aggregate: every target has an entry, rows or not (an empty resource
+    # directory)
+    def blank():
+        return {"identical": 0, "near": 0, "todo": 0, "attempted": 0,
+                "small": 0, "crt": 0, "crt_bytes": 0,
+                "middleware": 0, "middleware_bytes": 0,
+                "encrypted": 0, "encrypted_bytes": 0,
+                "unplaced": 0, "unplaced_bytes": 0,
+                "unlinked": 0, "unlinked_bytes": 0,
+                "driver": 0, "driver_bytes": 0,
+                "unwritten": 0, "unwritten_bytes": 0,
+                "bytes_identical": 0, "bytes_total": 0,
+                "funcs": 0}
+    targets = {t["label"]: blank() for t in TARGETS}
     for label, name, size, status in all_rows:
-        t = targets.setdefault(label, {"identical": 0, "near": 0, "todo": 0,
-                                       "attempted": 0,
-                                       "small": 0, "crt": 0, "crt_bytes": 0,
-                                       "middleware": 0, "middleware_bytes": 0,
-                                       "unplaced": 0, "unplaced_bytes": 0,
-                                       "unlinked": 0, "unlinked_bytes": 0,
-                                       "driver": 0, "driver_bytes": 0,
-                                       "unwritten": 0, "unwritten_bytes": 0,
-                                       "bytes_identical": 0, "bytes_total": 0,
-                                       "funcs": 0})
+        t = targets.setdefault(label, blank())
         t[status] += 1
-        if status in ("crt", "middleware"):  # not Monolith's: visible,
-            t[status + "_bytes"] += size        # not a target
-            continue
+        if status in ("crt", "middleware", "encrypted"):  # not Monolith's,
+            t[status + "_bytes"] += size                   # or not readable:
+            continue                                       # visible, not a target
         if status in ("unplaced", "unlinked", "driver"):  # ours, no shipped
             t[status + "_bytes"] += size        # address: not a shipped
             continue                            # function, not a denominator
@@ -1852,18 +1609,21 @@ def main():
         if status == "identical":
             t["bytes_identical"] += size
 
+    kinds = {t["label"]: t["kind"] for t in TARGETS}
+    kinds.update({label: "lib" for label, _p in LIBS})
     for label, t in targets.items():
         t["started"] = label in started
+        t["kind"] = kinds.get(label, "image")
 
-    summary = {"libraries_scored": bool(libdir), "targets": targets}
-    # "started" total = the reconstruction scoreboard (precise function metric)
+    summary = {"libraries_scored": not LIBS or bool(libdir), "targets": targets}
+    # the total: code, every binary (resources are data, and left out)
     tot = {"identical": 0, "near": 0, "todo": 0, "attempted": 0,
            "small": 0, "funcs": 0,
            "unplaced": 0, "unplaced_bytes": 0,
            "unwritten": 0, "unwritten_bytes": 0,
            "bytes_identical": 0, "bytes_total": 0}
     for label, t in targets.items():
-        if t["started"]:
+        if t["kind"] != "resources":
             for k in tot:
                 tot[k] += t[k]
     summary["total"] = tot
@@ -1877,36 +1637,29 @@ def main():
           f"{'funcs':>6} {'unwr':>5} {'unpl':>5} {'bytes id':>10} "
           f"{'bytes tot':>10}  {'%':>5}")
     print("-" * 105)
-    order = ([l for l, _ in LIBS] if libdir else []) + ["NOLF.exe"] + \
-            [l for l, _ in ENGINE if l in targets and targets[l]["started"]] + \
-            [g[0] for g in GAME]
-    for label in order:
-        if label not in targets:
-            continue
-        t = targets[label]
+
+    def line(label, t, note=""):
         pct = 100 * t["bytes_identical"] / max(t["bytes_total"], 1)
         print(f"{label:<18} {t['identical']:>6} {t['near']:>5} {t['small']:>6} "
               f"{t.get('attempted', 0):>6} {t['todo']:>5} "
               f"{t['funcs']:>6} {t['unwritten']:>5} {t['unplaced']:>5} "
               f"{t['bytes_identical']:>10} "
-              f"{t['bytes_total']:>10}  {pct:>4.1f}%")
-    r = targets.get(GAME_RES[0])
-    if r:
-        pct = 100 * r["bytes_identical"] / max(r["bytes_total"], 1)
-        print(f"{GAME_RES[0]:<18} {r['identical']:>6} {r['near']:>5} "
-              f"{r['small']:>6} {r.get('attempted', 0):>6} {r['todo']:>5} "
-              f"{r['funcs']:>6} {r['unwritten']:>5} {r['unplaced']:>5} "
-              f"{r['bytes_identical']:>10} {r['bytes_total']:>10}  {pct:>4.1f}%"
-              "  (resources, not code: not in ALL)")
+              f"{t['bytes_total']:>10}  {pct:>4.1f}%{note}")
+
+    order = ([l for l, _ in LIBS] if libdir else []) + \
+        [t["label"] for t in TARGETS if t["kind"] != "resources"]
+    for label in order:
+        line(label, targets[label],
+             "" if targets[label]["started"] else "  (no build yet)")
+    for t in TARGETS:
+        if t["kind"] == "resources":
+            line(t["label"], targets[t["label"]],
+                 "  (resources, not code: not in ALL)")
     print("-" * 105)
-    pct = 100 * tot["bytes_identical"] / max(tot["bytes_total"], 1)
-    print(f"{'ALL':<18} {tot['identical']:>6} {tot['near']:>5} "
-          f"{tot['small']:>6} {tot.get('attempted', 0):>6} {tot['todo']:>5} "
-          f"{tot['funcs']:>6} "
-          f"{tot['unwritten']:>5} {tot['unplaced']:>5} "
-          f"{tot['bytes_identical']:>10} {tot['bytes_total']:>10}  {pct:>4.1f}%")
-    if not libdir:
-        print("(the lithshared libraries are not included: NOLF2_SOURCE is not set)")
+    line("ALL", tot)
+    if LIBS and not libdir:
+        print("(the shipped libraries are not included: %s is not set)"
+              % cfg.SHIPPED_ENV)
     print(f"wrote {OUT}/functions.csv, {OUT}/summary.json")
 
 

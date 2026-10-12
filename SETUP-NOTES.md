@@ -68,11 +68,10 @@ Separately, a rare Wine compiler crash under parallel load (`C1001` /
   game DLLs.
 - **Launcher (`NOLF2.exe`):** builds (DirectX 8.1 SDK, `toolchains/dxsdk-8.1`)
   but `build/all.sh` does not put it in the game directory yet.
-- **`make progress`:** the scorer is nolfsrc's and full of NOLF specifics, so
-  for now it says it is not adapted. `build/reference.sh` already extracts the
-  retail 1.3 binaries and their function tables. The engine is about 11,000
-  functions in `Lithtech.exe`, plus about 3,600 in `server.dll` and 5,200 in
-  `ServerDir.dll`.
+- **`make progress`:** adapted to NOLF2: `progress/targets.py` lists each
+  binary, its code range and what is left out (the C runtime, D3DX, WONAPI,
+  SecuROM's encrypted pages); see `progress/README.md`. The engine binaries
+  score 0% until they have source.
 - **`ServerDir.dll`:** builds from the Jupiter SDK's source
   (`src/Game/Libs/ServerDir/ServerDir.dsw`, `build/jupiter.sh`), but the
   game still gets the retail one.
