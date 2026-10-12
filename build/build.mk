@@ -20,7 +20,8 @@
 #
 # Targets: all (the default: the projects below); a project by its workspace
 # name (ClientShellDLL, Object, ClientFxDLL, ClientRes, ServerRes, Launcher,
-# ServerApp, ServerDir, and the libraries they depend on); any single output.
+# ServerApp, ServerDir, ltmsg, and the libraries they depend on); any single
+# output.
 #
 # The compilers see the tree's src/ as drive S: and toolchains/ as T:, so
 # they see the same paths wherever the tree is: VC6's output for NOLF's game
@@ -71,6 +72,11 @@ PROJECTS_WANTED := ClientShellDLL Object ClientFxDLL ClientRes ServerRes ServerA
 # CServerDir_Titan, which tools/jupitersrc.py copies into src/Game/Libs/ from
 # rez/ (build/all.sh does, first).
 SERVERDIR_WANTED := ServerDir
+
+# ltmsg.dll, the engine's message strings, which Monolith's release lacks:
+# src/Engine/ltmsg/ltmsg.dsw (written for this project) builds it from a
+# reconstructed resource script.
+LTMSG_WANTED := ltmsg
 
 # ---------------------------------------------------------------------------
 # Wine and the toolchains
@@ -207,8 +213,14 @@ $(error tools/dsp2mk.py failed: $(file <$(DEPDIR)/dsp2mk-serverdir.log))
 endif
 include $(DEPDIR)/serverdir.mk
 
+DSP_OK := $(shell python3 tools/dsp2mk.py src/Engine/ltmsg/ltmsg.dsw Final $(DEPDIR)/ltmsg.mk $(LTMSG_WANTED) 2>$(DEPDIR)/dsp2mk-ltmsg.log && echo ok)
+ifneq ($(DSP_OK),ok)
+$(error tools/dsp2mk.py failed: $(file <$(DEPDIR)/dsp2mk-ltmsg.log))
+endif
+include $(DEPDIR)/ltmsg.mk
+
 .PHONY: all game
-all game: $(PROJECTS_WANTED) $(SERVERDIR_WANTED)
+all game: $(PROJECTS_WANTED) $(SERVERDIR_WANTED) $(LTMSG_WANTED)
 
 # ---------------------------------------------------------------------------
 # The rules all compiles and tools share
