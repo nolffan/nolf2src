@@ -36,12 +36,13 @@ files (the Sierra updater, web links) are not copied.
 (MFC42.DLL, MFC42U.DLL, MSVCP60.DLL, Msvcrt.dll), which the engine and the
 launcher import.
 
-`retailengine` copies the engine -- Lithtech.exe, server.dll, ServerDir.dll,
-snddrv.dll and ltmsg.dll -- out of the retail game, because there is no
-source for it yet: Monolith's release has the game, the launcher and the
-dedicated server, not the engine. They are marked RETAIL in the manifest and
-in the audit, so they are easy to find and to replace as the engine is
-reconstructed.
+`retailengine` copies the engine -- Lithtech.exe, server.dll, ServerDir.dll
+and snddrv.dll -- out of the retail game, because there is no source for it
+yet: Monolith's release has the game, the launcher and the dedicated server,
+not the engine. They are marked RETAIL in the manifest and in the audit, so
+they are easy to find and to replace as the engine is reconstructed.
+ltmsg.dll, the engine's message strings, is built (src/Engine/ltmsg/,
+identical to the retail one apart from its timestamp), so it is not copied.
 
 `reference` copies the retail engine images, launcher and dedicated server,
 and the 1.3 game DLLs out of Update_v1x3.rez, to a reference directory
@@ -79,13 +80,18 @@ RETAIL_COPIES = [("autoexec.cfg", "autoexec.cfg.retail"), ("Profiles/Default.prf
 THIRD_PARTY_NAMES = {"binkw32.dll", "mfc42.dll", "mfc42u.dll", "msvcp60.dll", "msvcrt.dll"}
 
 # RETAIL ENGINE: no source yet (see the docstring).
-RETAIL_ENGINE = ["Lithtech.exe", "server.dll", "ServerDir.dll", "snddrv.dll", "ltmsg.dll"]
+RETAIL_ENGINE = ["Lithtech.exe", "server.dll", "ServerDir.dll", "snddrv.dll"]
+
+# Engine binaries built from our source (src/Engine/), identical to the
+# retail ones apart from their timestamps: build/all.sh assembles ours, and
+# `reference` still copies the retail ones to compare against.
+BUILT_ENGINE = ["ltmsg.dll"]
 
 # The retail images the checks compare against (`reference`), and the 1.3
 # game DLLs, which the retail game holds only inside Update_v1x3.rez (the
 # copies 1.3 runs, last in its rez stack, and what Monolith's source release
 # builds), under the names our build gives them.
-REFERENCE = RETAIL_ENGINE + ["NOLF2.exe", "NOLF2Srv.exe"]
+REFERENCE = RETAIL_ENGINE + BUILT_ENGINE + ["NOLF2.exe", "NOLF2Srv.exe"]
 REFERENCE_REZ = "Update_v1x3.rez"
 REFERENCE_GAME = [("CSHELL.dll", "CShell.dll"), ("OBJECT.lto", "Object.lto"),
                   ("CLIENTFX.fxd", "ClientFx.fxd"), ("CRES.dll", "CRes.dll"),

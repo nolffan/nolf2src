@@ -16335,3 +16335,8 @@ ServerDir.dll	sub_10016c90
 ServerDir.dll	sub_10016d00
 ServerDir.dll	sub_10016d40
 ServerDir.dll	sub_100178a0
+ltmsg.dll	rsrc:6/1/1033
+ltmsg.dll	rsrc:6/2/1033
+ltmsg.dll	rsrc:6/3/1033
+ltmsg.dll	rsrc:6/5/1033
+ltmsg.dll	rsrc:6/6/1033

@@ -33,7 +33,7 @@ README.md for the current state.
   The new part is `tools/dsp2mk.py`, which reads Monolith's workspace and
   project files (Final configuration) and generates the build rules, compile
   for compile.
-- **Output folders:** the game folder is audited (6 built, 5 retail engine
+- **Output folders:** the game folder is audited (7 built, 4 retail engine
   files, 5 third-party, none unaccounted for), and tarballs leave out saves
   and player profiles.
 
