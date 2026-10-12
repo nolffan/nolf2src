@@ -12,7 +12,9 @@
 # --init`): the compilers, toolchains/ (toolchains/README.md), and rez/, which
 # fetches the redump images of the European discs from archive.org and
 # installs the game from them with the 1.3 update (rez/README.md; `make
-# retail`, which every build runs first, does it once). Every step runs in a
+# retail`, which every build runs first, does it once), and the LithTech
+# Jupiter SDK, whose source ServerDir.dll is built from (`make sdk`, the same
+# way: build/jupiter.sh). Every step runs in a
 # throwaway container of the image docker/Dockerfile describes, with this
 # checkout mounted at /repo, as you.
 
@@ -29,7 +31,7 @@ DOCKER_RUN = docker run --rm --init --name $(CONTAINER) \
 TOOLCHAIN_FILES = toolchains/msvc-6.00-8966/BIN/cl.exe toolchains/msvc-6.00-9782/Common/MSDev98/Bin/RC.EXE \
 	toolchains/dxsdk-8.1/include/d3d8.h
 
-.PHONY: all game debug modern modern-debug image retail check-rez check-toolchain test progress progress-update shell clean distclean help
+.PHONY: all game debug modern modern-debug image retail sdk check-rez check-toolchain test progress progress-update shell clean distclean help
 
 all: game
 
@@ -45,6 +47,8 @@ help:
 	@echo "make progress-update  record the score in progress/ and README.md"
 	@echo "make retail     fetch the two disc images and install the retail game and its"
 	@echo "                1.3 update from them (rez/, once; every build runs it), and check it"
+	@echo "make sdk        fetch the LithTech Jupiter SDK and extract its source (rez/, once;"
+	@echo "                every build runs it), and check it"
 	@echo "make shell      a shell in the build container (build/*.sh, tools/ work there)"
 	@echo "make image      (re)build the docker image $(IMAGE)"
 	@echo "make clean      remove out/ and every build output in the source tree"
@@ -53,10 +57,10 @@ help:
 	@echo "Variables: TEST_LEVELS=\"$(TEST_LEVELS)\", JOBS=<n> (parallel compiles; default one per CPU)"
 	@echo "           COMPLETE=1, COVERED=1, ACCEPT_LOSSES=1 (progress/README.md)"
 
-game: check-toolchain retail
+game: check-toolchain retail sdk
 	$(DOCKER_RUN) bash build/all.sh
 
-debug modern modern-debug: check-toolchain retail
+debug modern modern-debug: check-toolchain retail sdk
 	$(DOCKER_RUN) bash build/variant.sh $@
 
 image:
@@ -68,6 +72,11 @@ image:
 # by rez/ the first time, checked against rez/games.sha256 every time.
 retail: check-rez image
 	@$(DOCKER_RUN) bash -c 'source build/retail.sh && retail_install && retail_verify'
+
+# The Jupiter SDK (build/jupiter.sh): fetched and installed by rez/ the first
+# time, checked against rez/sdk.sha256 every time.
+sdk: check-rez image
+	@$(DOCKER_RUN) bash -c 'source build/jupiter.sh && jupiter_install && jupiter_verify'
 
 check-rez:
 	@[ -f rez/install-games.sh ] || { echo "error: rez/ is empty -- the disc images and their installer are the rez/ submodule: run git submodule update --init (see rez/README.md)" >&2; exit 1; }

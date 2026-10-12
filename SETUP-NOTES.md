@@ -73,6 +73,9 @@ Separately, a rare Wine compiler crash under parallel load (`C1001` /
   retail 1.3 binaries and their function tables. The engine is about 11,000
   functions in `Lithtech.exe`, plus about 3,600 in `server.dll` and 5,200 in
   `ServerDir.dll`.
+- **`ServerDir.dll`:** builds from the Jupiter SDK's source
+  (`src/Game/Libs/ServerDir/ServerDir.dsw`, `build/jupiter.sh`), but the
+  game still gets the retail one.
 - **DirectX SDK version:** 8.1 is a guess; if the launcher's or game DLLs'
   remaining differences point at the headers, try 8.0 (archive.org `dx8sdk`).
 

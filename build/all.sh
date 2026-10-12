@@ -28,6 +28,11 @@
 #                         Isolated in this one step, and marked RETAIL in
 #                         the manifest and the audit, so they are easy to
 #                         replace as the engine is reconstructed.
+#   2c. Jupiter SDK source  WONAPI and CServerDir_Titan, which ServerDir.dll
+#                         is built from and Monolith's release lacks: from
+#                         the LithTech Jupiter SDK, as rez/ fetches it
+#                         (build/jupiter.sh; `make` fetches it once), into
+#                         src/Game/Libs/ (tools/jupitersrc.py; not committed).
 #   3. compile            every project of Monolith's workspace the game
 #                         needs, by build/build.mk, all at once (one job per
 #                         CPU; NOLF2SRC_JOBS=<n> to change it) and only what
@@ -35,7 +40,10 @@
 #                         from nothing): the libraries, CShell.dll,
 #                         Object.lto, ClientFx.fxd, CRes.dll, SRes.dll and
 #                         the dedicated server NOLF2Srv.exe, Final
-#                         configuration.
+#                         configuration; and ServerDir.dll
+#                         (src/Game/Libs/ServerDir/ServerDir.dsw), built
+#                         but not yet put in the game: step 2b's retail one
+#                         is, until the built one is shown to work.
 #   4. assemble           the built binaries into out/nolf2-legacy-release/: the
 #                         game DLLs in the custom/ rez directory, last in the
 #                         rez stack (nolf2cmds.txt), the dedicated server
@@ -59,9 +67,11 @@ export WINEDEBUG=-all
 
 cd "$REPO"
 source build/retail.sh
+source build/jupiter.sh
 OUT="${NOLF2_GAME_OUT:-out/nolf2-legacy-release}"
 RETAIL="$(retail_dir)"
 retail_verify
+jupiter_verify
 T0=$(date +%s)
 step() { echo; echo "######## $* ($(( $(date +%s) - T0 ))s)"; }
 B=src/Game/built/Final
@@ -91,11 +101,18 @@ python3 tools/retailextract.py thirdparty "$RETAIL" "$OUT"
 step "2b. RETAIL ENGINE from $RETAIL (no source yet)"
 python3 tools/retailextract.py retailengine "$RETAIL" "$OUT"
 
+step "2c. Jupiter SDK source: WONAPI, CServerDir_Titan -> src/Game/Libs/"
+python3 tools/jupitersrc.py "$(jupiter_source)" src
+
 step "3. compile: Monolith's workspace (build/compile.sh: build/build.mk, ${NOLF2SRC_JOBS:-$(nproc)} jobs)"
 bash build/compile.sh all
 for ((i = 0; i < ${#BUILT[@]}; i += 2)); do
     [ -f "${BUILT[i]}" ] || { echo "error: ${BUILT[i]} was not built" >&2; exit 1; }
 done
+# (built, not assembled: see step 2b)
+SERVERDIR=src/Game/built/Final/libs/ServerDir/ServerDir.dll
+[ -f "$SERVERDIR" ] || { echo "error: $SERVERDIR was not built" >&2; exit 1; }
+echo "   $SERVERDIR built (not in the game yet: the retail one is)"
 
 step "4. assemble: the built binaries -> $OUT"
 for ((i = 0; i < ${#BUILT[@]}; i += 2)); do

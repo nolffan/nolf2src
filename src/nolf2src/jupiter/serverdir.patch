@@ -1,0 +1,821 @@
+ServerDir: the Jupiter SDK's CServerDir_Titan (2002) brought to the 1.3
+interface (src/Game/Libs/ServerDir/IServerDir.h): the 1.3 requests and peer
+info, const char* strings, startup info, region, bit-stream messages
+(ILTMessage_Read / ILTMessage_Write) and the factory's parameters, which
+replace the game's g_pLTBase / g_pCommonLT. What 1.3 adds and is not yet
+reconstructed is marked NOLF2SRC in the code.
+
+Applied by tools/jupitersrc.py to the SDK's files (LF line endings), from
+the SDK's source root.
+
+--- a/Game/Libs/ServerDir/CServerDir_Titan.h
++++ b/Game/Libs/ServerDir/CServerDir_Titan.h
+@@ -1,10 +1,14 @@
+ //////////////////////////////////////////////////////////////////////////////
+ // Titan-specific server directory interface implementation
++//
++// NOLF2SRC: the SDK's (2002) implementation, brought to the 1.3 interface
++// (src/nolf2src/jupiter/). Comments marked NOLF2SRC say where.
+ 
+ #ifndef __CSERVERDIR_TITAN_H__
+ #define __CSERVERDIR_TITAN_H__
+ 
+ #include "iserverdir.h"
++#include "iserverdir_titan.h"
+ 
+ #include <deque>
+ #include <vector>
+@@ -74,7 +78,7 @@
+ 	friend CSDTitan_RequestEntry_Validate_Server;
+ 
+ public:
+-	CServerDirectory_Titan();
++	CServerDirectory_Titan(bool bClientSide, ILTCSBase &ltCSBase, HMODULE hResourceModule);
+ 	virtual ~CServerDirectory_Titan();
+ 
+ 	//////////////////////////////////////////////////////////////////////////////
+@@ -102,19 +106,25 @@
+ 
+ 	virtual ERequest GetLastRequest() const;
+ 	virtual ERequestResult GetLastRequestResult() const;
+-	virtual std::string GetLastRequestResultString() const;
++	virtual const char* GetLastRequestResultString() const;
+ 
+ 	//////////////////////////////////////////////////////////////////////////////
+ 	// Status
+ 
+ 	virtual EStatus GetCurStatus() const;
+-	virtual std::string GetCurStatusString() const;
++	virtual const char* GetCurStatusString() const;
++
++	//////////////////////////////////////////////////////////////////////////////
++	// Startup - service specific.
++
++	virtual void SetStartupInfo( ILTMessage_Read &cMsg );
++	virtual void GetStartupInfo( ILTMessage_Write &cMsg );
+ 
+ 	//////////////////////////////////////////////////////////////////////////////
+ 	// Game name
+ 
+ 	virtual void SetGameName(const char *pName);
+-	virtual std::string GetGameName() const;
++	virtual const char* GetGameName() const;
+ 	
+ 	//////////////////////////////////////////////////////////////////////////////
+ 	// CD Keys
+@@ -127,14 +137,16 @@
+ 	// Game Version
+ 
+ 	virtual void SetVersion(const char *pVersion);
++	virtual void SetRegion(const char *pRegion);
+ 	virtual bool IsVersionValid() const;
+ 	virtual bool IsVersionNewest() const;
++	virtual bool IsPatchAvailable() const;
+ 
+ 	//////////////////////////////////////////////////////////////////////////////
+ 	// Message of the Day
+ 
+ 	virtual bool IsMOTDNew(EMOTD eMOTD) const;
+-	virtual std::string GetMOTD(EMOTD eMOTD) const;
++	virtual char const* GetMOTD(EMOTD eMOTD) const;
+ 
+ 	//////////////////////////////////////////////////////////////////////////////
+ 	// Active peer info
+@@ -143,9 +155,9 @@
+ 	virtual bool GetActivePeer(std::string *pAddr, bool *pLocal) const;
+ 	virtual bool RemoveActivePeer();
+ 
+-	virtual bool SetActivePeerInfo(EPeerInfo eInfoType, ILTMessage &cMsg);
++	virtual bool SetActivePeerInfo(EPeerInfo eInfoType, ILTMessage_Read &cMsg);
+ 	virtual bool HasActivePeerInfo(EPeerInfo eInfoType) const;
+-	virtual bool GetActivePeerInfo(EPeerInfo eInfoType, ILTMessage *pMsg) const;
++	virtual bool GetActivePeerInfo(EPeerInfo eInfoType, ILTMessage_Write *pMsg) const;
+ 
+ 	//////////////////////////////////////////////////////////////////////////////
+ 	// Server listing
+@@ -156,8 +168,8 @@
+ 	//////////////////////////////////////////////////////////////////////////////
+ 	// Net message handling
+ 
+-	virtual bool HandleNetMessage(ILTMessage &cStr, const char *pSender, uint16 nPort);
+-	virtual bool SetNetHeader(ILTMessage &cStr);
++	virtual bool HandleNetMessage(ILTMessage_Read &cStr, const char *pSender, uint16 nPort);
++	virtual bool SetNetHeader(ILTMessage_Read &cStr);
+ 
+ // Internal types
+ private:
+@@ -219,7 +231,12 @@
+ 	void SetCurStatusString(const char *pMessage);
+ 
+ 	// Create a message with the standard header already inserted
+-	ILTMessage *CreateMessage();
++	ILTMessage_Write *CreateMessage();
++
++	// NOLF2SRC: the engine interface the factory was given (the SDK's
++	// static library used the game's g_pLTBase / g_pCommonLT); one per
++	// directory, as a client and a server can share the DLL
++	ILTCSBase *GetLTBase() const { return m_pLTBase; }
+ 
+ // Internal functions
+ private:
+@@ -255,9 +272,21 @@
+ 	uint32 StartRenderThread_Run();
+ 
+ 	// Handle a network message
+-	bool HandleNetMsg_DetailInfo_Query(ILTMessage &cMsg, IPAddr &cAddr);
+-	bool HandleNetMsg_PeerAuth_Client(ILTMessage &cMsg, IPAddr &cAddr);
++	bool HandleNetMsg_DetailInfo_Query(ILTMessage_Read &cMsg, IPAddr &cAddr);
++	bool HandleNetMsg_PeerAuth_Client(ILTMessage_Read &cMsg, IPAddr &cAddr);
+ private:
++	// NOLF2SRC: the factory's parameters. Only the engine interface is
++	// used; bClientSide and the resource module (the error strings) are
++	// kept for what is not yet reconstructed.
++	ILTCSBase *m_pLTBase;
++	bool m_bClientSide;
++	HMODULE m_hResourceModule;
++
++	// NOLF2SRC: the 1.3 interface's startup info and region, kept but not
++	// yet used (not yet reconstructed)
++	StartupInfo_Titan m_cStartupInfo;
++	std::string m_sRegion;
++
+ 	CWinSync_Event m_cShutdownEvent;
+ 
+ 	WONAPICore m_cWONAPICore;
+@@ -295,6 +324,8 @@
+ 	// Message headers
+ 	CWinSync_CS m_cMsgHeaderCS;
+ 	std::vector<uint8> m_cMsgHeader;
++	// NOLF2SRC: 1.3 messages are bit streams: the header's length in bits
++	uint32 m_nMsgHeaderBits;
+ 
+ 	// Critical section for managing the processing state
+ 	CWinSync_CS m_cStateCS;
+@@ -350,7 +381,7 @@
+ 	// Cancel the request
+ 	virtual void Cancel() {}
+ 	// Notification that a message was received
+-	virtual bool OnMessage(ILTMessage &cMsg, const IPAddr &cSource) { return false; }
++	virtual bool OnMessage(ILTMessage_Read &cMsg, const IPAddr &cSource) { return false; }
+ protected:
+ 	// Call this function to indicate to the directory that this request has finished
+ 	// processing.
+@@ -431,7 +462,7 @@
+ public:
+ 	CSDTitan_RequestEntry_Version(CServerDirectory_Titan *pDir);
+ 
+-	virtual IServerDirectory::ERequest GetRequest() const { return IServerDirectory::eRequest_Version; }
++	virtual IServerDirectory::ERequest GetRequest() const { return IServerDirectory::eRequest_Validate_Version; }
+ 
+ protected:
+ 	virtual void OnCompletion();
+@@ -522,13 +553,13 @@
+ public:
+ 	CSDTitan_RequestEntry_MsgOp(CServerDirectory_Titan *pDir);
+ 
+-	virtual bool OnMessage(ILTMessage &cMsg, const IPAddr &cSource);
++	virtual bool OnMessage(ILTMessage_Read &cMsg, const IPAddr &cSource);
+ 	virtual void Cancel();
+ 	virtual void Reset();
+ protected:
+ 	virtual bool WaitForMessage(uint32 nTimeout);
+ private:
+-	virtual bool HandleMessage(ILTMessage &cMsg) { return true; }
++	virtual bool HandleMessage(ILTMessage_Read &cMsg) { return true; }
+ 
+ protected:
+ 	CWinSync_Event m_cCancelEvent, m_cCancelReadyEvent;
+@@ -545,7 +576,7 @@
+ 	virtual void Start();
+ 
+ private:
+-	virtual bool HandleMessage(ILTMessage &cMsg);
++	virtual bool HandleMessage(ILTMessage_Read &cMsg);
+ };
+ 
+ class CSDTitan_RequestEntry_Validate_Client : public CSDTitan_RequestEntry_MsgOp
+@@ -555,7 +586,7 @@
+ 
+ 	virtual void Start();
+ private:
+-	virtual bool HandleMessage(ILTMessage &cMsg);
++	virtual bool HandleMessage(ILTMessage_Read &cMsg);
+ };
+ 
+ class CSDTitan_RequestEntry_Validate_Server : public CSDTitan_RequestEntry
+--- a/Game/Libs/ServerDir/CServerDir_Titan.cpp
++++ b/Game/Libs/ServerDir/CServerDir_Titan.cpp
+@@ -1,5 +1,8 @@
+ //////////////////////////////////////////////////////////////////////////////
+ // CServerDir_Titan implementation
++//
++// NOLF2SRC: the SDK's (2002) implementation, brought to the 1.3 interface
++// (src/nolf2src/jupiter/). Comments marked NOLF2SRC say where.
+ 
+ #include "stdafx.h"
+ 
+@@ -12,10 +15,9 @@
+ #include "iltcsbase.h"
+ #include "iltcommon.h"
+ 
+-// External variables defined by the game...
+-
+-extern ILTCSBase *g_pLTBase;
+-extern ILTCommon *g_pCommonLT;
++// NOLF2SRC: no engine interface defined by the game (the SDK's static
++// library used the game's): each directory has the one its factory was
++// given (CServerDirectory_Titan::GetLTBase)
+ 
+ // Defines...
+ 
+@@ -262,7 +264,7 @@
+ 	m_pAddServiceOp->SetName(Make_wstring(pDir->GetGameName()));
+ 	m_pAddServiceOp->SetDisplayName(Make_wstring(sCurInfo.m_sName.c_str()));
+ 	m_pAddServiceOp->AddDataObject(TITAN_SUMMARY_DATATYPE, new ByteBuffer(sCurInfo.m_cSummary.begin(), sCurInfo.m_cSummary.size()));
+-	m_pAddServiceOp->SetPath(Make_wstring("/" + pDir->GetGameName()));
++	m_pAddServiceOp->SetPath(Make_wstring(std::string("/") + pDir->GetGameName()));
+ 	m_pAddServiceOp->SetLifespan(TITAN_GAMESERVER_TIMEOUT);
+ }
+ 
+@@ -321,7 +323,7 @@
+ 	const CServerDirectory_Titan::SPeerData sCurInfo = pDir->GetLocalPeerInfo();
+ 	m_pRemoveServiceOp->SetNetAddr(sCurInfo.m_cAddr);
+ 	m_pRemoveServiceOp->SetName(Make_wstring(GetDir()->GetGameName()));
+-	m_pRemoveServiceOp->SetPath(Make_wstring("/" + pDir->GetGameName()));
++	m_pRemoveServiceOp->SetPath(Make_wstring(std::string("/") + pDir->GetGameName()));
+ }
+ 
+ void CSDTitan_RequestEntry_Remove_Server::Reset()
+@@ -348,7 +350,7 @@
+ 		DIR_GF_ADDDOTYPE |
+ 		DIR_GF_ADDDODATA |
+ 		DIR_GF_SERVADDNETADDR);
+-	m_pGetDirOp->SetPath(Make_wstring("/" + pDir->GetGameName()));
++	m_pGetDirOp->SetPath(Make_wstring(std::string("/") + pDir->GetGameName()));
+ 	m_pGetDirOp->AddDataType(TITAN_SUMMARY_DATATYPE);
+ }
+ 
+@@ -414,7 +416,7 @@
+ {
+ }
+ 
+-bool CSDTitan_RequestEntry_MsgOp::OnMessage(ILTMessage &cMsg, const IPAddr &cSource) 
++bool CSDTitan_RequestEntry_MsgOp::OnMessage(ILTMessage_Read &cMsg, const IPAddr &cSource) 
+ { 
+ 	// If we're not waiting for a message, jump out
+ 	if (!m_cIsWaiting.IsSet())
+@@ -486,10 +488,10 @@
+ void CSDTitan_RequestEntry_Peer_Details::Start()
+ {
+ 	// Send the detail query
+-	ILTMessage *pMsg = GetDir()->CreateMessage();
+-	pMsg->WriteByte(eSDTitan_Msg_DetailInfo_Query);
+-	g_pLTBase->SendTo(*pMsg, m_cDestination.GetHostString().c_str(), m_cDestination.GetPort());
+-	pMsg->Release();
++	ILTMessage_Write *pMsg = GetDir()->CreateMessage();
++	pMsg->Writeuint8(eSDTitan_Msg_DetailInfo_Query);
++	GetDir()->GetLTBase()->SendTo(CLTMsgRef_Read(pMsg->Read()), m_cDestination.GetHostString().c_str(), m_cDestination.GetPort());
++	pMsg->DecRef();
+ 
+ 	// Wait for a response
+ 	if (!WaitForMessage(INFINITE))
+@@ -499,12 +501,12 @@
+ 	Finish(IServerDirectory::eRequestResult_Success, "Server details queried successfully");
+ }
+ 
+-bool CSDTitan_RequestEntry_Peer_Details::HandleMessage(ILTMessage &cMsg)
++bool CSDTitan_RequestEntry_Peer_Details::HandleMessage(ILTMessage_Read &cMsg)
+ {
+ 	// Make sure we're getting what we expect
+-	if (cMsg.ReadByte() != eSDTitan_Msg_DetailInfo_Response)
++	if (cMsg.Readuint8() != eSDTitan_Msg_DetailInfo_Response)
+ 	{
+-		cMsg.Seek(cMsg.Tell() - 1);
++		cMsg.Seek(-8);
+ 		return false;
+ 	}
+ 
+@@ -518,9 +520,9 @@
+ 		// Stuff the information in there
+ 		CServerDirectory_Titan::SPeerData &sActivePeer = GetDir()->GetActivePeerInfo();
+ 		sActivePeer.m_bHasDetails = true;
+-		uint32 nLength = cMsg.ReadDWord();
++		uint32 nLength = cMsg.Readuint32();
+ 		sActivePeer.m_cDetails.resize(nLength);
+-		cMsg.ReadRawFL(sActivePeer.m_cDetails.begin(), nLength);
++		cMsg.ReadData(sActivePeer.m_cDetails.begin(), nLength * 8);
+ 
+ 		// Restore the active peer
+ 		GetDir()->SetActivePeerIndex(nOldActivePeerIndex);
+@@ -547,28 +549,28 @@
+ 	aMessageBuf = cPeerAuth.Start(GetDir()->GetAuthContext()->GetPeerData(), AUTH_TYPE_PERSISTENT, 4);
+ 
+ 	// Send off the initial message
+-	ILTMessage *pMsg = GetDir()->CreateMessage();
+-	pMsg->WriteByte(eSDTitan_Msg_PeerAuth_Client);
+-	pMsg->WriteRaw(aMessageBuf->data(), aMessageBuf->length());
+-	g_pLTBase->SendTo(*pMsg, m_cDestination.GetHostString().c_str(), m_cDestination.GetPort());
+-	pMsg->Release();
++	ILTMessage_Write *pMsg = GetDir()->CreateMessage();
++	pMsg->Writeuint8(eSDTitan_Msg_PeerAuth_Client);
++	pMsg->WriteData(aMessageBuf->data(), aMessageBuf->length() * 8);
++	GetDir()->GetLTBase()->SendTo(CLTMsgRef_Read(pMsg->Read()), m_cDestination.GetHostString().c_str(), m_cDestination.GetPort());
++	pMsg->DecRef();
+ 
+ 	// It is now up to fate
+ }
+ 
+-bool CSDTitan_RequestEntry_Validate_Client::HandleMessage(ILTMessage &cMsg)
++bool CSDTitan_RequestEntry_Validate_Client::HandleMessage(ILTMessage_Read &cMsg)
+ {
+ 	// Make sure we're getting what we expect
+-	if (cMsg.ReadByte() != eSDTitan_Msg_PeerAuth_Server)
++	if (cMsg.Readuint8() != eSDTitan_Msg_PeerAuth_Server)
+ 	{
+-		cMsg.Seek(cMsg.Tell() - 1);
++		cMsg.Seek(-8);
+ 		return false;
+ 	}
+ 
+ 	// Dump the message into a buffer
+ 	char aTempBuff[1024];
+-	uint32 nLength = LTMIN(sizeof(aTempBuff), cMsg.Length() - cMsg.Tell());
+-	cMsg.ReadRawFL(aTempBuff, nLength);
++	uint32 nLength = LTMIN(sizeof(aTempBuff), cMsg.TellEnd() / 8);
++	cMsg.ReadData(aTempBuff, nLength * 8);
+ 
+ 	// Pass the buffer through the authentication stuff
+ 	ByteBufferPtr aResultBuffer;
+@@ -596,10 +598,10 @@
+ 	// Send a response if necessary
+ 	if (aResultBuffer.get())
+ 	{
+-		ILTMessage *pResponseMsg = GetDir()->CreateMessage();
+-		pResponseMsg->WriteRaw(aResultBuffer->data(), aResultBuffer->length());
+-		g_pLTBase->SendTo(*pResponseMsg, m_cDestination.GetHostString().c_str(), m_cDestination.GetPort());
+-		pResponseMsg->Release();
++		ILTMessage_Write *pResponseMsg = GetDir()->CreateMessage();
++		pResponseMsg->WriteData(aResultBuffer->data(), aResultBuffer->length() * 8);
++		GetDir()->GetLTBase()->SendTo(CLTMsgRef_Read(pResponseMsg->Read()), m_cDestination.GetHostString().c_str(), m_cDestination.GetPort());
++		pResponseMsg->DecRef();
+ 	}
+ 	else if (nResult == WS_Success)
+ 	{
+@@ -651,7 +653,11 @@
+ // CServerDirectory_Titan IServerDirectory implementation
+ 
+ 
+-CServerDirectory_Titan::CServerDirectory_Titan() :
++CServerDirectory_Titan::CServerDirectory_Titan(bool bClientSide, ILTCSBase &ltCSBase, HMODULE hResourceModule) :
++	m_pLTBase(&ltCSBase),
++	m_bClientSide(bClientSide),
++	m_hResourceModule(hResourceModule),
++	m_nMsgHeaderBits(0),
+ 	m_pDirServerList(new ServerContext),
+ 	m_pAuthContext(new AuthContext),
+ 	m_bIsAuthContextValid(false),
+@@ -679,6 +685,8 @@
+ 	m_aPeerInfo.resize(1);
+ 	m_aPeerInfo.front().m_cAddr = IPAddr::GetLocalAddr();
+ 	m_aPeerInfo.front().m_cAddr.SetThePort(TITAN_GAMESERVER_DEFAULTPORT);
++	// NOLF2SRC: SPeerData's constructor cannot reach the engine any more
++	m_aPeerInfo.front().m_fCreationTime = m_pLTBase->GetTime();
+ 
+ 	// Create the start request thread
+ 	uint32 nThreadID;
+@@ -970,10 +978,10 @@
+ 	return m_eLastRequestResult;
+ }
+ 
+-std::string CServerDirectory_Titan::GetLastRequestResultString() const
++const char* CServerDirectory_Titan::GetLastRequestResultString() const
+ {
+ 	CWinSync_CSAuto cProtection(m_cStateCS);
+-	return m_sLastRequestResultString;
++	return m_sLastRequestResultString.c_str();
+ }
+ 
+ 
+@@ -984,10 +992,26 @@
+ 	return m_eCurStatus;
+ }
+ 
+-std::string CServerDirectory_Titan::GetCurStatusString() const
++const char* CServerDirectory_Titan::GetCurStatusString() const
+ {
+ 	CWinSync_CSAuto cProtection(m_cStateCS);
+-	return m_sCurStatusString;
++	return m_sCurStatusString.c_str();
++}
++
++// NOLF2SRC: not yet reconstructed. The game passes a StartupInfo_Titan
++// (IServerDir_Titan.h: its GameSpy name and secret key) by address, as a
++// uint32; it is kept, and not used.
++void CServerDirectory_Titan::SetStartupInfo( ILTMessage_Read &cMsg )
++{
++	StartupInfo_Titan *pStartupInfo = (StartupInfo_Titan *)cMsg.Readuint32();
++	if (pStartupInfo)
++		m_cStartupInfo = *pStartupInfo;
++}
++
++// NOLF2SRC: not yet reconstructed (the kept startup info, by address)
++void CServerDirectory_Titan::GetStartupInfo( ILTMessage_Write &cMsg )
++{
++	cMsg.Writeuint32((uint32)&m_cStartupInfo);
+ }
+ 
+ void CServerDirectory_Titan::SetGameName(const char *pName)
+@@ -1002,10 +1026,10 @@
+ 	m_cAuthContextCS.Leave();
+ }
+ 
+-std::string CServerDirectory_Titan::GetGameName() const
++const char* CServerDirectory_Titan::GetGameName() const
+ {
+ 	CWinSync_CSAuto cProtection(m_cGameNameCS);
+-	return m_sGameName;
++	return m_sGameName.c_str();
+ }
+ 
+ 
+@@ -1047,6 +1071,12 @@
+ 	m_sCurVersion = pVersion;
+ }
+ 
++// NOLF2SRC: not yet reconstructed (kept, not used)
++void CServerDirectory_Titan::SetRegion(const char *pRegion)
++{
++	m_sRegion = pRegion;
++}
++
+ bool CServerDirectory_Titan::IsVersionValid() const
+ {
+ 	CWinSync_CSAuto cProtection(m_cVersionCS);
+@@ -1063,6 +1093,12 @@
+ 	return m_pVersionOp->VersionIsLatest(m_sCurVersion);
+ }
+ 
++// NOLF2SRC: not yet reconstructed: never a patch
++bool CServerDirectory_Titan::IsPatchAvailable() const
++{
++	return false;
++}
++
+ 
+ 
+ bool CServerDirectory_Titan::IsMOTDNew(EMOTD eMOTD) const
+@@ -1071,10 +1107,10 @@
+ 	return m_aMOTD[eMOTD].m_bNew;
+ }
+ 
+-std::string CServerDirectory_Titan::GetMOTD(EMOTD eMOTD) const
++char const* CServerDirectory_Titan::GetMOTD(EMOTD eMOTD) const
+ {
+ 	CWinSync_CSAuto cProtection(m_cMOTDCS);
+-	return m_aMOTD[eMOTD].m_sMessage;
++	return m_aMOTD[eMOTD].m_sMessage.c_str();
+ }
+ 
+ 
+@@ -1109,6 +1145,7 @@
+ 	// Didn't find it..  Add a new one
+ 	m_aPeerInfo.push_back();
+ 	m_aPeerInfo.back().m_cAddr.Set(pAddr);
++	m_aPeerInfo.back().m_fCreationTime = m_pLTBase->GetTime();
+ 	m_nActivePeerIndex = m_aPeerInfo.size() - 1;
+ 
+ 	return true;
+@@ -1156,9 +1193,9 @@
+ }
+ 
+ 
+-bool CServerDirectory_Titan::SetActivePeerInfo(EPeerInfo eInfoType, ILTMessage &cMsg)
++bool CServerDirectory_Titan::SetActivePeerInfo(EPeerInfo eInfoType, ILTMessage_Read &cMsg)
+ {
+-	cMsg.ResetPos();
++	cMsg.SeekTo(0);
+ 
+ 	CWinSync_CSAuto cProtection(m_cPeerCS);
+ 
+@@ -1168,42 +1205,43 @@
+ 	{
+ 		case ePeerInfo_Port :
+ 		{
+-			uint16 nNewPort;
+-			if (cMsg.ReadWordFL(nNewPort) != LT_OK)
++			if (cMsg.TellEnd() < 16)
+ 				return false;
++			uint16 nNewPort = cMsg.Readuint16();
+ 			cActivePeer.m_cAddr.SetThePort((unsigned short)nNewPort);
+ 			break;
+ 		}
+ 		case ePeerInfo_Name : 
+ 		{
+ 			char aNameBuff[MAX_PACKET_LEN];
+-			if (cMsg.ReadStringFL(aNameBuff, MAX_PACKET_LEN) != LT_OK)
++			if (cMsg.EOM())
+ 				return false;
++			cMsg.ReadString(aNameBuff, MAX_PACKET_LEN);
+ 			cActivePeer.m_sName = aNameBuff;
+ 			cActivePeer.m_bHasName = true;
+ 			break;
+ 		}
+ 		case ePeerInfo_Summary : 
+ 		{
+-			uint32 nLength = cMsg.Length();
++			uint32 nLength = (cMsg.Size() + 7) / 8;
+ 			cActivePeer.m_cSummary.resize(nLength);
+-			cMsg.ReadRawFL(cActivePeer.m_cSummary.begin(), nLength);
++			cMsg.ReadData(cActivePeer.m_cSummary.begin(), cMsg.Size());
+ 			cActivePeer.m_bHasSummary = true;
+ 			break;
+ 		}
+ 		case ePeerInfo_Details : 
+ 		{
+-			uint32 nLength = cMsg.Length();
++			uint32 nLength = (cMsg.Size() + 7) / 8;
+ 			cActivePeer.m_cDetails.resize(nLength);
+-			cMsg.ReadRawFL(cActivePeer.m_cDetails.begin(), nLength);
++			cMsg.ReadData(cActivePeer.m_cDetails.begin(), cMsg.Size());
+ 			cActivePeer.m_bHasDetails = true;
+ 			break;
+ 		}
+ 		case ePeerInfo_Validated :
+ 		{
+-			uint8 nIsValidated;
+-			if (cMsg.ReadByteFL(nIsValidated) != LT_OK)
++			if (cMsg.TellEnd() < 8)
+ 				return false;
++			uint8 nIsValidated = cMsg.Readuint8();
+ 			if (nIsValidated)
+ 				cActivePeer.m_eValidation = SPeerData::eValidationState_Complete;
+ 			else
+@@ -1212,10 +1250,17 @@
+ 		}
+ 		case ePeerInfo_Age :
+ 		{
+-			float fNewAge;
+-			if (cMsg.ReadFloatFL(fNewAge) != LT_OK)
++			if (cMsg.TellEnd() < 32)
+ 				return false;
+-			cActivePeer.m_fCreationTime = g_pLTBase->GetTime() - fNewAge;
++			float fNewAge = cMsg.Readfloat();
++			cActivePeer.m_fCreationTime = m_pLTBase->GetTime() - fNewAge;
++			break;
++		}
++		case ePeerInfo_Service :
++		{
++			// NOLF2SRC: not yet reconstructed. The game passes a
++			// PeerInfo_Service_Titan (IServerDir_Titan.h) by address, as a
++			// uint32; it is not used.
+ 			break;
+ 		}
+ 		default :
+@@ -1223,7 +1268,7 @@
+ 			return false;
+ 	}
+ 
+-	cMsg.ResetPos();
++	cMsg.SeekTo(0);
+ 
+ 	return true;
+ }
+@@ -1246,17 +1291,21 @@
+ 			return cActivePeer.m_bHasSummary;
+ 		case ePeerInfo_Details : 
+ 			return cActivePeer.m_bHasDetails;
++		// NOLF2SRC: not yet reconstructed (no service info, no pings)
++		case ePeerInfo_Service :
++		case ePeerInfo_Ping :
++			return false;
+ 	}
+ 
+ 	return false;
+ }
+ 
+-bool CServerDirectory_Titan::GetActivePeerInfo(EPeerInfo eInfoType, ILTMessage *pMsg) const
++bool CServerDirectory_Titan::GetActivePeerInfo(EPeerInfo eInfoType, ILTMessage_Write *pMsg) const
+ {
+ 	if (!pMsg)
+ 		return false;
+ 
+-	pMsg->ResetPos();
++	pMsg->Reset();
+ 
+ 	CWinSync_CSAuto cProtection(m_cPeerCS);
+ 
+@@ -1266,7 +1315,7 @@
+ 	{
+ 		case ePeerInfo_Port : 
+ 		{
+-			pMsg->WriteWord((uint16)cActivePeer.m_cAddr.GetPort());
++			pMsg->Writeuint16((uint16)cActivePeer.m_cAddr.GetPort());
+ 			break;
+ 		}
+ 		case ePeerInfo_Name : 
+@@ -1276,30 +1325,30 @@
+ 		}		
+ 		case ePeerInfo_Summary : 
+ 		{
+-			pMsg->WriteRaw(cActivePeer.m_cSummary.begin(), cActivePeer.m_cSummary.size());
++			pMsg->WriteData(cActivePeer.m_cSummary.begin(), cActivePeer.m_cSummary.size() * 8);
+ 			break;
+ 		}		
+ 		case ePeerInfo_Details : 
+ 		{
+-			pMsg->WriteRaw(cActivePeer.m_cDetails.begin(), cActivePeer.m_cDetails.size());
++			pMsg->WriteData(cActivePeer.m_cDetails.begin(), cActivePeer.m_cDetails.size() * 8);
+ 			break;
+ 		}
+ 		case ePeerInfo_Validated :
+ 		{
+-			pMsg->WriteByte((cActivePeer.m_eValidation == SPeerData::eValidationState_Complete) ? 1 : 0);
++			pMsg->Writeuint8((cActivePeer.m_eValidation == SPeerData::eValidationState_Complete) ? 1 : 0);
+ 			break;
+ 		}
+ 		case ePeerInfo_Age :
+ 		{
+-			pMsg->WriteFloat(g_pLTBase->GetTime() - cActivePeer.m_fCreationTime);
++			pMsg->Writefloat(m_pLTBase->GetTime() - cActivePeer.m_fCreationTime);
+ 			break;
+ 		}
++		// NOLF2SRC: ePeerInfo_Service and ePeerInfo_Ping are not yet
++		// reconstructed
+ 		default : 
+ 			return false;
+ 	}
+ 
+-	pMsg->ResetPos();
+-
+ 	return true;
+ }
+ 
+@@ -1334,23 +1383,23 @@
+ }
+ 
+ 
+-bool CServerDirectory_Titan::HandleNetMessage(ILTMessage &cStr, const char *pSender, uint16 nPort)
++bool CServerDirectory_Titan::HandleNetMessage(ILTMessage_Read &cStr, const char *pSender, uint16 nPort)
+ {
+ 	// Make sure we're at the right position in the message..
+-	m_cMsgHeaderCS.Enter();
+-		uint32 nHeaderSize = m_cMsgHeader.size();
+-	m_cMsgHeaderCS.Leave();
+-	if (cStr.Seek(nHeaderSize) != LT_OK)
+-		return false;
++	// NOLF2SRC: the 1.3 game hands over the message from just past its
++	// header (a sub-message starting after the message ID: CGameServerShell,
++	// CClientMultiplayerMgr), where the SDK's game passed the whole message
++	uint32 nHeaderSize = 0;
++	cStr.SeekTo(nHeaderSize);
+ 
+ 	// Who sent you?
+ 	IPAddr cSenderAddr(pSender, nPort);
+ 
+ 	// Read in the message ID
+-	uint8 nMsgID = cStr.ReadByte();
++	uint8 nMsgID = cStr.Readuint8();
+ 
+ 	// Un-read that byte
+-	cStr.Seek(nHeaderSize);
++	cStr.SeekTo(nHeaderSize);
+ 
+ 	// Handle messages we're going to handle by ourselves
+ 	switch (nMsgID)
+@@ -1373,18 +1422,19 @@
+ 	return pActiveRequest->OnMessage(cStr, cSenderAddr);
+ }
+ 
+-bool CServerDirectory_Titan::SetNetHeader(ILTMessage &cStr)
++bool CServerDirectory_Titan::SetNetHeader(ILTMessage_Read &cStr)
+ {
+ 	// Find out how big the message is...
+-	uint32 nMsgSize = cStr.Length();
++	uint32 nMsgSize = (cStr.Size() + 7) / 8;
+ 
+ 	// Read the header
+ 	CWinSync_CSAuto cProtection(m_cMsgHeaderCS);
+ 	m_cMsgHeader.resize(nMsgSize);
++	m_nMsgHeaderBits = cStr.Size();
+ 	if (nMsgSize)
+-		cStr.ReadRawFL(m_cMsgHeader.begin(), nMsgSize);
++		cStr.ReadData(m_cMsgHeader.begin(), m_nMsgHeaderBits);
+ 
+-	cStr.ResetPos();
++	cStr.SeekTo(0);
+ 	
+ 	return true;
+ }
+@@ -1531,13 +1581,16 @@
+ 	m_sCurStatusString = pMessage;
+ }
+ 
+-ILTMessage *CServerDirectory_Titan::CreateMessage()
++ILTMessage_Write *CServerDirectory_Titan::CreateMessage()
+ {
+-	ILTMessage *pResult;
+-	g_pCommonLT->CreateMessage(pResult);
++	ILTMessage_Write *pResult;
++	m_pLTBase->Common()->CreateMessage(pResult);
++	// NOLF2SRC: 1.3 messages are reference counted (the caller's DecRef
++	// frees it)
++	pResult->IncRef();
+ 
+ 	m_cMsgHeaderCS.Enter();
+-		pResult->WriteRaw(m_cMsgHeader.begin(), m_cMsgHeader.size());
++		pResult->WriteData(m_cMsgHeader.begin(), m_nMsgHeaderBits);
+ 	m_cMsgHeaderCS.Leave();
+ 
+ 	return pResult;
+@@ -1635,7 +1688,7 @@
+ 		case eRequest_Nothing : return new CSDTitan_RequestEntry(this);
+ 		case eRequest_Pause : return new CSDTitan_RequestEntry_Pause(this);
+ 		case eRequest_MOTD : return new CSDTitan_RequestEntry_MOTD(this);
+-		case eRequest_Version : return new CSDTitan_RequestEntry_Version(this);
++		case eRequest_Validate_Version : return new CSDTitan_RequestEntry_Version(this);
+ 		case eRequest_Validate_CDKey : return new CSDTitan_RequestEntry_Validate_CDKey(this);
+ 		case eRequest_Publish_Server : return new CSDTitan_RequestEntry_Publish_Server(this);
+ 		case eRequest_Remove_Server : return new CSDTitan_RequestEntry_Remove_Server(this);
+@@ -1646,6 +1699,8 @@
+ 		// Non-detail peer requests are a noop in this system
+ 		case eRequest_Peer_Name : 
+ 		case eRequest_Peer_Summary : return new CSDTitan_RequestEntry_Noop(this, eNewRequest);
++		// NOLF2SRC: not yet reconstructed: updating the pings does nothing
++		case eRequest_Update_Pings : return new CSDTitan_RequestEntry_Noop(this, eNewRequest);
+ 		default : ASSERT(!"Unimplemented request entry encountered");
+ 	}
+ 
+@@ -1767,28 +1822,30 @@
+ 	return 0;
+ }
+ 
+-bool CServerDirectory_Titan::HandleNetMsg_DetailInfo_Query(ILTMessage &cMsg, IPAddr &cAddr)
++bool CServerDirectory_Titan::HandleNetMsg_DetailInfo_Query(ILTMessage_Read &cMsg, IPAddr &cAddr)
+ {
+ 	// Fill out the response
+-	ILTMessage *pResponse = CreateMessage();
++	ILTMessage_Write *pResponse = CreateMessage();
+ 	m_cPeerCS.Enter();
+ 	SPeerData::TRawData &cDetails = m_aPeerInfo.front().m_cDetails;
+-	pResponse->WriteDWord(cDetails.size());
+-	pResponse->WriteRaw(cDetails.begin(), cDetails.size());
++	pResponse->Writeuint32(cDetails.size());
++	pResponse->WriteData(cDetails.begin(), cDetails.size() * 8);
+ 	m_cPeerCS.Leave();
+ 
+ 	// Send it off
+-	g_pLTBase->SendTo(*pResponse, cAddr.GetHostString().c_str(), cAddr.GetPort());
++	m_pLTBase->SendTo(CLTMsgRef_Read(pResponse->Read()), cAddr.GetHostString().c_str(), cAddr.GetPort());
++	// NOLF2SRC: released (the SDK's never was)
++	pResponse->DecRef();
+ 
+ 	return true;
+ }
+ 
+-bool CServerDirectory_Titan::HandleNetMsg_PeerAuth_Client(ILTMessage &cMsg, IPAddr &cAddr)
++bool CServerDirectory_Titan::HandleNetMsg_PeerAuth_Client(ILTMessage_Read &cMsg, IPAddr &cAddr)
+ {
+ 	// Dump the message into a buffer
+ 	char aTempBuff[1024];
+-	uint32 nLength = LTMIN(sizeof(aTempBuff), cMsg.Length() - cMsg.Tell());
+-	cMsg.ReadRawFL(aTempBuff, nLength);
++	uint32 nLength = LTMIN(sizeof(aTempBuff), cMsg.TellEnd() / 8);
++	cMsg.ReadData(aTempBuff, nLength * 8);
+ 
+ 	// Pass the buffer through the authentication stuff
+ 	ByteBufferPtr aResultBuffer;
+@@ -1827,10 +1884,10 @@
+ 	// Send a response if necessary
+ 	if (aResultBuffer.get())
+ 	{
+-		ILTMessage *pResponseMsg = CreateMessage();
+-		pResponseMsg->WriteRaw(aResultBuffer->data(), aResultBuffer->length());
+-		g_pLTBase->SendTo(*pResponseMsg, cAddr.GetHostString().c_str(), cAddr.GetPort());
+-		pResponseMsg->Release();
++		ILTMessage_Write *pResponseMsg = CreateMessage();
++		pResponseMsg->WriteData(aResultBuffer->data(), aResultBuffer->length() * 8);
++		m_pLTBase->SendTo(CLTMsgRef_Read(pResponseMsg->Read()), cAddr.GetHostString().c_str(), cAddr.GetPort());
++		pResponseMsg->DecRef();
+ 	}
+ 
+ 	return true;
+@@ -1844,14 +1901,16 @@
+ 	m_bHasName(false),
+ 	m_bHasSummary(false),
+ 	m_bHasDetails(false),
+-	m_fCreationTime(g_pLTBase->GetTime())
++	// NOLF2SRC: set where a peer is added (no engine interface here)
++	m_fCreationTime(0.0f)
+ {
+ }
+ 
+ // Factory for CServerDirectory_Titan objects
+ 
+-IServerDirectory *Factory_Create_IServerDirectory_Titan()
++// NOLF2SRC: the 1.3 factory (IServerDir.h)
++SERVERDIR_API IServerDirectory *Factory_Create_IServerDirectory_Titan( bool bClientSide, ILTCSBase& ltCSBase, HMODULE hResourceModule )
+ {
+-	return new CServerDirectory_Titan;
++	return new CServerDirectory_Titan(bClientSide, ltCSBase, hResourceModule);
+ }
+ 

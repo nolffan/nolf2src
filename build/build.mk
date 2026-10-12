@@ -20,7 +20,7 @@
 #
 # Targets: all (the default: the projects below); a project by its workspace
 # name (ClientShellDLL, Object, ClientFxDLL, ClientRes, ServerRes, Launcher,
-# ServerApp, and the libraries they depend on); any single output.
+# ServerApp, ServerDir, and the libraries they depend on); any single output.
 #
 # The compilers see the tree's src/ as drive S: and toolchains/ as T:, so
 # they see the same paths wherever the tree is: VC6's output for NOLF's game
@@ -64,6 +64,13 @@ NOLF2SRC_RCFLAGS ?=
 # The projects the game is built from (and, through the workspace, every
 # library they depend on), and the launcher (Launcher, NOLF2.exe).
 PROJECTS_WANTED := ClientShellDLL Object ClientFxDLL ClientRes ServerRes ServerApp Launcher
+
+# ServerDir.dll, of which Monolith's release has only the headers and the
+# import library: src/Game/Libs/ServerDir/ServerDir.dsw (written for this
+# project) builds it from the LithTech Jupiter SDK's source -- WONAPI and
+# CServerDir_Titan, which tools/jupitersrc.py copies into src/Game/Libs/ from
+# rez/ (build/all.sh does, first).
+SERVERDIR_WANTED := ServerDir
 
 # ---------------------------------------------------------------------------
 # Wine and the toolchains
@@ -191,8 +198,17 @@ $(error tools/dsp2mk.py failed: $(file <$(DEPDIR)/dsp2mk.log))
 endif
 include $(DEPDIR)/projects.mk
 
+ifeq ($(wildcard $(ROOT)/src/Game/Libs/WONAPI/WONAPI.dsp),)
+$(error src/Game/Libs/WONAPI/ is missing -- the Jupiter SDK's source is put there by tools/jupitersrc.py (build/all.sh runs it))
+endif
+DSP_OK := $(shell python3 tools/dsp2mk.py src/Game/Libs/ServerDir/ServerDir.dsw Final $(DEPDIR)/serverdir.mk $(SERVERDIR_WANTED) 2>$(DEPDIR)/dsp2mk-serverdir.log && echo ok)
+ifneq ($(DSP_OK),ok)
+$(error tools/dsp2mk.py failed: $(file <$(DEPDIR)/dsp2mk-serverdir.log))
+endif
+include $(DEPDIR)/serverdir.mk
+
 .PHONY: all game
-all game: $(PROJECTS_WANTED)
+all game: $(PROJECTS_WANTED) $(SERVERDIR_WANTED)
 
 # ---------------------------------------------------------------------------
 # The rules all compiles and tools share
