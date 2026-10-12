@@ -1,0 +1,131 @@
+#!/usr/bin/env bash
+# THE build: a runnable No One Lives Forever 2 in out/nolf2-legacy-release/,
+# with the game compiled from Monolith's source release and the data taken
+# from the retail game.
+#
+#   make                    (on the host: builds the docker image, installs
+#                            and checks the retail game, runs this in a
+#                            container)
+#   build/all.sh            (inside the build container, e.g. `make shell`)
+#
+# Needs: the toolchain (toolchains/, see toolchains/README.md), Wine (the
+# build container has it), and the retail game, NOLF2 (Europe) with the
+# English 1.3 update, as the rez/ submodule installs it
+# (rez/games/nolf2-eu-1.3/, build/retail.sh). It only reads that directory.
+#
+# The steps, in order:
+#   1. resources          the game's data from the retail game: the .rez
+#                         archives (with the retail game DLLs inside them
+#                         zeroed), the movies, the shipped autoexec.cfg and
+#                         default profile. No binary.
+#   2. third-party runtime  Bink (binkw32.dll) and the Microsoft C++ and MFC
+#                         runtime DLLs, from the retail game: licensed
+#                         binaries with no source.
+#   2b. RETAIL ENGINE     Lithtech.exe, server.dll, ServerDir.dll, snddrv.dll,
+#                         ltmsg.dll from the retail game: there is no source
+#                         for the engine yet (Monolith's release has the
+#                         game, the launcher and the dedicated server).
+#                         Isolated in this one step, and marked RETAIL in
+#                         the manifest and the audit, so they are easy to
+#                         replace as the engine is reconstructed.
+#   3. compile            every project of Monolith's workspace the game
+#                         needs, by build/build.mk, all at once (one job per
+#                         CPU; NOLF2SRC_JOBS=<n> to change it) and only what
+#                         changed since the last build (`make clean` starts
+#                         from nothing): the libraries, CShell.dll,
+#                         Object.lto, ClientFx.fxd, CRes.dll, SRes.dll and
+#                         the dedicated server NOLF2Srv.exe, Final
+#                         configuration.
+#   4. assemble           the built binaries into out/nolf2-legacy-release/: the
+#                         game DLLs in the custom/ rez directory, last in the
+#                         rez stack (nolf2cmds.txt), the dedicated server
+#                         beside the engine.
+#   5. audit              every PE file in out/nolf2-legacy-release/ listed with
+#                         its origin; the build fails if any is unaccounted
+#                         for or if a .rez archive still holds one.
+#   6. package            out/nolf2-legacy-release.tar.gz: the game directory as
+#                         one file (unpack, then ./run.sh -- see its header;
+#                         Wine needed there).
+set -e
+REPO="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+
+# Wine and the toolchain live in the build container: on the host, use make.
+if ! command -v wine >/dev/null 2>&1; then
+    echo "error: no wine here -- run \`make\` from the repository root (it runs this" >&2
+    echo "       script in the build container), or run it inside \`make shell\`." >&2
+    exit 1
+fi
+export WINEDEBUG=-all
+
+cd "$REPO"
+source build/retail.sh
+OUT="${NOLF2_GAME_OUT:-out/nolf2-legacy-release}"
+RETAIL="$(retail_dir)"
+retail_verify
+T0=$(date +%s)
+step() { echo; echo "######## $* ($(( $(date +%s) - T0 ))s)"; }
+B=src/Game/built/Final
+BUILT=(
+    "$B/ClientShellDLL/TO2/CShell.dll"  custom/cshell.dll
+    "$B/ObjectDll/TO2/Object.lto"       custom/object.lto
+    "$B/ClientFxDll/ClientFx.fxd"       custom/clientfx.fxd
+    "$B/ClientRes/TO2/CRes.dll"         custom/cres.dll
+    "$B/ServerRes/TO2/SRes.dll"         custom/sres.dll
+    "$B/ServerApp/NOLF2Srv.exe"         NOLF2Srv.exe
+)
+
+step "1. resources: game data from $RETAIL -> $OUT"
+python3 tools/retailextract.py resources "$RETAIL" "$OUT"
+# autoexec.cfg and the default profile start as the shipped ones (the game
+# rewrites them); a rebuild keeps the player's.
+[ -f "$OUT/autoexec.cfg" ] || cp "$OUT/autoexec.cfg.retail" "$OUT/autoexec.cfg"
+mkdir -p "$OUT/Save" "$OUT/custom" "$OUT/Profiles"
+[ -f "$OUT/Profiles/Default.prf" ] || cp "$OUT/Default.prf.retail" "$OUT/Profiles/Default.prf"
+bash build/nolf2cmds.sh > "$OUT/nolf2cmds.txt"
+cp build/game-scripts/run.sh "$OUT/"
+chmod +x "$OUT/run.sh"
+
+step "2. THIRD-PARTY RUNTIME: Bink and the Microsoft runtime from $RETAIL"
+python3 tools/retailextract.py thirdparty "$RETAIL" "$OUT"
+
+step "2b. RETAIL ENGINE from $RETAIL (no source yet)"
+python3 tools/retailextract.py retailengine "$RETAIL" "$OUT"
+
+step "3. compile: Monolith's workspace (build/compile.sh: build/build.mk, ${NOLF2SRC_JOBS:-$(nproc)} jobs)"
+bash build/compile.sh all
+for ((i = 0; i < ${#BUILT[@]}; i += 2)); do
+    [ -f "${BUILT[i]}" ] || { echo "error: ${BUILT[i]} was not built" >&2; exit 1; }
+done
+
+step "4. assemble: the built binaries -> $OUT"
+for ((i = 0; i < ${#BUILT[@]}; i += 2)); do
+    cp "${BUILT[i]}" "$OUT/${BUILT[i+1]}"
+    printf 'built %s\t%s\n' "${BUILT[i]}" "${BUILT[i+1]}" >> "$OUT/MANIFEST.txt"
+    echo "   ${BUILT[i+1]}  <-  ${BUILT[i]}"
+done
+# one row per file: the manifest is rewritten by the next step's tool
+python3 - "$OUT/MANIFEST.txt" <<'PY'
+import sys
+p = sys.argv[1]
+rows = {}
+for line in open(p).read().splitlines():
+    if "\t" in line and not line.startswith("#"):
+        origin, path = line.split("\t", 1)
+        rows[path] = origin
+with open(p, "w") as f:
+    f.write("# origin<TAB>path, one row per file build/all.sh put here\n")
+    for path in sorted(rows, key=str.lower):
+        f.write(f"{rows[path]}\t{path}\n")
+PY
+
+step "5. audit: every PE file in $OUT"
+python3 tools/retailextract.py audit "$OUT"
+
+# (NOLF2_PACKAGE=0 skips it: build/variant.sh packages its game directory
+# itself)
+if [ "${NOLF2_PACKAGE:-1}" = 1 ]; then
+    step "6. package: $OUT -> $OUT.tar.gz"
+    bash "$REPO/build/package.sh" "$OUT"
+fi
+
+step "done: $OUT ($(( $(date +%s) - T0 ))s) -- play it with $OUT/run.sh"

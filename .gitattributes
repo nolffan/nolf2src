@@ -1,0 +1,5 @@
+# Every text file in this tree uses LF line endings, except these: they are
+# embedded byte for byte in CRes.dll (TEXT resources CREDITS and INTRO, read
+# by the game at run time) and keep the CRLF endings they shipped with.
+src/Game/ClientRes/TO2/Lang/*/credits.txt -text
+src/Game/ClientRes/TO2/Lang/*/intro.txt -text

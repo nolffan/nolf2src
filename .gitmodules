@@ -1,0 +1,6 @@
+[submodule "rez"]
+	path = rez
+	url = git@github.com:nolffan/rez.git
+[submodule "toolchains"]
+	path = toolchains
+	url = git@github.com:nolffan/toolchains.git

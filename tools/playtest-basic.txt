@@ -1,0 +1,80 @@
+# playtest-basic.txt -- the standard input script for tools/playtest.sh
+# (PLAYTEST_SCRIPT=tools/playtest-basic.txt). Skips the opening cinematic,
+# then exercises the basics of play: look, move, strafe, jump, duck, fire,
+# weapon switching, the menu, quicksave and quickload. About 75s after the
+# window appears (plus load time and the cinematic skip). Keys are NOLF's
+# defaults (game/defctrls.cfg).
+window 180
+wait 15
+shot loaded
+skipcine 90
+shot play
+# look around with the mouse
+turn 200 0
+wait 0.5
+shot turn-right
+turn -400 0
+wait 0.5
+shot turn-left
+turn 200 60
+turn 0 -60
+# walk, strafe, back up, keyboard turn
+hold w 2
+shot forward
+hold a 1
+hold d 1
+shot strafe
+hold s 1
+hold Left 0.5
+hold Right 0.5
+shot moved
+# jump and duck
+key space
+wait 0.2
+shot jump
+wait 1
+down c
+wait 1
+shot duck
+up c
+wait 1
+# fire (mouse button 1, then the F key), reload
+click 1 0.3
+wait 0.2
+shot fire
+wait 1
+hold f 0.3
+wait 1
+key r
+wait 2
+# switch weapons: next weapon, slots 1 and 2, back to 1
+key Shift_L
+wait 2
+shot nextweapon
+key 2
+wait 2
+shot weapon2
+key 1
+wait 2
+shot weapon1
+# the in-game menu
+key Escape
+wait 2
+shot menu
+key Escape
+wait 2
+shot resumed
+# quicksave, move away, quickload
+key F6
+wait 4
+shot quicksaved
+hold s 1.5
+turn 300 0
+wait 0.5
+shot moved-away
+key F9
+wait 10
+shot quickloaded
+hold w 1
+wait 2
+shot final
