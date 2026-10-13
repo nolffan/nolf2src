@@ -2802,7 +2802,21 @@ void CPlayerMgr::UpdateCameraZoom()
 
 	if (fOldFovX != fovX)
 	{
+#ifdef NOLF2SRC_MODERN
+		// MODERN.md M-G23: the zoomed view keeps the normal view's shape.
+		// Retail scaled the vertical angle with the horizontal one (fovY =
+		// fovX * FovY / FovX), but a view's shape is the ratio of the
+		// angles' tangents, not of the angles: a zoomed-in view came out
+		// about 7% flatter than the normal one. Keep that ratio.
+		{
+			float fNormalX = DEG2RAD(g_vtFOVXNormal.GetFloat());
+			float fNormalY = DEG2RAD(g_vtFOVYNormal.GetFloat());
+			float fShape = (float)tan(fNormalX / 2.0f) / (float)tan(fNormalY / 2.0f);
+			fovY = 2.0f * (float)atan((float)tan(fovX / 2.0f) / fShape);
+		}
+#else
 		fovY = (fovX * DEG2RAD(g_vtFOVYNormal.GetFloat())) / DEG2RAD(g_vtFOVXNormal.GetFloat());
+#endif
 
 		SetCameraFOV(fovX, fovY);
 

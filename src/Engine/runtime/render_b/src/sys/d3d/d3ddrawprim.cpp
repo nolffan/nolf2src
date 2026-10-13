@@ -361,6 +361,22 @@ void CD3DDrawPrim::SetTransformMode(LPDIRECT3DDEVICE8 pDevice)
 			fFOV = r_GetParameterValueFloat(hVar);
 		if ((hVar = r_GetParameter("PVModelAspect")) != NULL)
 			fAspect = r_GetParameterValueFloat(hVar);
+#ifdef NOLF2SRC_MODERN
+		// MODERN.md M-E9: the player-view effects' aspect (PVModelAspect,
+		// which the game never sets) is the one they were made with at
+		// 4:3; on a wider screen they would stretch with it. Widen it by
+		// the screen's shape over 4:3, as the models' own projection
+		// (d3d_SetReallyClose) takes the screen's shape.
+		{
+			D3DVIEWPORT8 Viewport;
+			if (SUCCEEDED(PD3DDEVICE->GetViewport(&Viewport)) && Viewport.Height > 0)
+			{
+				float fWiden = ((float)Viewport.Width / (float)Viewport.Height) / (4.0f / 3.0f);
+				if (fWiden > 1.0f)
+					fAspect *= fWiden;
+			}
+		}
+#endif
 		if ((hVar = r_GetParameter("reallyclose_near")) != NULL)
 			fNear = r_GetParameterValueFloat(hVar);
 		if ((hVar = r_GetParameter("reallyclose_far")) != NULL)
