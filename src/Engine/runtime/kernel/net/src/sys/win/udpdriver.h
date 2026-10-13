@@ -19,7 +19,7 @@
 #endif
 
 #include "syslthread.h"
-#include "sysudpthread.h"
+#include "winsync.h"
 
 #include "listqueue.h"
 #include "staticfifo.h"
@@ -299,7 +299,7 @@ private:
 	CPacketQueue m_cIncomingQueue;
 
 	// Only one thread updating at a time, please...
-	LCriticalSection m_cUpdateCS;
+	CWinSync_CS m_cUpdateCS;
 
 	bool m_bPauseGuaranteed;
 	CPacketQueue m_cOutgoingGuaranteedQueue;
@@ -522,7 +522,7 @@ public:
 
     virtual bool Init();
 
-    void Term2(bool bFullShutdown, bool bShutdownSocket);
+    void Term2(bool bFullShutdown);
     virtual void Term();
 
     
@@ -545,28 +545,28 @@ public:
 
     virtual LTRESULT GetHasPassword(bool *bHasPassword) 
 	{ 
-		CSAccess cCS(&m_cCS_SessionData); 
+		CWinSync_CSAuto cCS(m_cCS_SessionData); 
 		*bHasPassword = m_bPassword; 
 		return LT_OK; 
 	}
 	
     virtual LTRESULT SetHasPassword(bool bHasPassword)  
 	{ 
-		CSAccess cCS(&m_cCS_SessionData); 
+		CWinSync_CSAuto cCS(m_cCS_SessionData); 
 		m_bPassword = bHasPassword; 
 		return LT_OK; 
 	}
 
     virtual LTRESULT GetGameType(uint8 *nGameType) 
 	{ 
-		CSAccess cCS(&m_cCS_SessionData); 
+		CWinSync_CSAuto cCS(m_cCS_SessionData); 
 		*nGameType = m_nGameType; 
 		return LT_OK; 
 	}
 	
     virtual LTRESULT SetGameType(uint8 nGameType)  
 	{ 
-		CSAccess cCS(&m_cCS_SessionData); 
+		CWinSync_CSAuto cCS(m_cCS_SessionData); 
 		m_nGameType = nGameType; 
 		return LT_OK; 
 	}
@@ -579,7 +579,7 @@ public:
     virtual LTRESULT JoinSession(NetSession *pSession);
 
     virtual bool GetLocalIpAddress(char* sBuffer, uint32 dwBufferSize, uint16 &hostPort);
-    LTRESULT ReallyJoinSession( bool bOpenNewSocket, sockaddr_in *addr);
+    LTRESULT ReallyJoinSession(sockaddr_in *addr);
     virtual LTRESULT ConnectTCP( const char* sAddress );
     virtual LTRESULT SendTcpIp(const CPacket_Read &cMsg, const char *sAddr, uint32 port);
 
@@ -587,7 +587,6 @@ public:
 	virtual LTRESULT GetPingStatus(uint32 nPingID, uint32 *pStatus, uint32 *pLatency);
 	virtual LTRESULT RemovePing(uint32 nPingID);
 
-	virtual LTRESULT CUDPDriver::OpenSocket( SOCKET* phSocket );
 
 	virtual void UpdateGUID(LTGUID &cGUID);
 	
@@ -625,31 +624,12 @@ private:
 	// Threading support
 	void StartThread_Listen();
 	void StopThread_Listen();
-	static uint32 ThreadBootstrap_Listen(void* pUserData);
+	static unsigned long _stdcall ThreadBootstrap_Listen(void *pUserData);
 	uint32 Thread_Listen();
-	CLTThread m_cListenThread;
-	CLTThreadEvent m_cEvent_Thread_Listen_Ready;
-	CLTThreadEvent m_hEvent_Thread_Listen_Shutdown;
-	CLTThreadEvent m_hEvent_Thread_Listen_Pause;
-	CLTThreadEvent m_hEvent_Thread_Listen_Paused;
+	HANDLE m_hThread_Listen;
+	CWinSync_Event m_cEvent_Thread_Listen_Ready;
+	CWinSync_Event m_hEvent_Thread_Listen_Shutdown;
 
-
-/*
-	// Threading support
-	void StartThread_Listen();
-	void StopThread_Listen();
-	
-//	static unsigned long _stdcall ThreadBootstrap_Listen(void *pUserData);
-
-	uint32 ThreadBootstrap_Listen(void *pUserData)
-
-
-	uint32 Thread_Listen();
-	
-//	HANDLE m_hThread_Listen;
-//	CWinSync_Event m_cEvent_Thread_Listen_Ready;
-//	CWinSync_Event m_hEvent_Thread_Listen_Shutdown;
-*/
 
 
 private:
@@ -663,7 +643,7 @@ private:
 		sockaddr_in m_cSender;
 	};
 	
-	LCriticalSection m_cCS_UnknownMessages;
+	CWinSync_CS m_cCS_UnknownMessages;
 	std::deque<CUnknownMessage> m_cUnknownMessages;
 
 	void FlushUnknownMessageQueue();
@@ -675,7 +655,7 @@ private:
 		EDisconnectReason m_eReason;
 	};
 	
-	LCriticalSection m_cCS_DisconnectQueue;
+	CWinSync_CS m_cCS_DisconnectQueue;
 	
 	std::deque<CDisconnectRequest> m_cDisconnectQueue;
 
@@ -687,7 +667,7 @@ private:
 		CUDPConn *m_pConnection;
 	};
 	
-	LCriticalSection m_cCS_ConnectQueue;
+	CWinSync_CS m_cCS_ConnectQueue;
 	
 	std::deque<CConnectRequest> m_cConnectQueue;
 
@@ -708,11 +688,11 @@ private:
 		uint32 m_nStatus;
 	};
 	typedef std::map<uint32, CPingRequest> TPingMap;
-	LCriticalSection m_cCS_ActivePings;
+	CWinSync_CS m_cCS_ActivePings;
 	TPingMap m_cActivePings;
 
 	// Misc. data
-	LCriticalSection m_cCS_GUID;
+	CWinSync_CS m_cCS_GUID;
 	LTGUID m_cGUID;
 	
 public:
@@ -729,7 +709,7 @@ public:
 
     SOCKET m_Socket;
 
-	LCriticalSection m_cCS_SessionData;
+	CWinSync_CS m_cCS_SessionData;
 	
     bool m_bHosting;
     uint32 m_nMaxConnections; // Max remote connections if we're the host.
@@ -739,11 +719,11 @@ public:
 
 	bool IsHosting() 
 	{ 
-		CSAccess cCS(&m_cCS_SessionData); 
+		CWinSync_CSAuto cCS(m_cCS_SessionData); 
 		return m_bHosting; 
 	}
 
-	LCriticalSection m_cCS_Connections;
+	CWinSync_CS m_cCS_Connections;
     CMultiLinkList<CUDPConn*> m_Connections;
 
     bool m_bWSAInitted;
