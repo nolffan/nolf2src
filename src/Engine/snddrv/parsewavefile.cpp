@@ -1,6 +1,7 @@
 // parsewavefile.cpp: finds the format and data chunks of a RIFF WAVE file
 // image in memory (retail 0x10001150).
 
+#include "stdafx.h"
 #include "s_dx8.h"
 
 #define CHUNK_ID_RIFF			0x46464952

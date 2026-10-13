@@ -27,17 +27,16 @@ CFG=snddrv - Win32 Final
 # flags are the ones the retail code shows: /O2 with /Ob2 (initializers
 # expanded in place, no jump thunks; functions laid out as auto-inlining
 # defers them), /GX (the C++ exception frames of the constructors and
-# destructors), no precompiled header (every object carries its own copy of
-# the math constants' initializers). /YX (Developer Studio's default
-# automatic precompiled header) is what puts each object's header
-# initializers after its functions, as retail has them.
-# Begin Project
-# PROP AllowPerConfigDependencies 0
-# PROP Scc_ProjName ""
-# PROP Scc_LocalPath ""
-CPP=cl.exe
-MTL=midl.exe
-RSC=rc.exe
+# destructors). The objects are what a clean build with Developer Studio's
+# automatic precompiled header (/YX) makes, which decides where each
+# object's header initializers go: parsewavefile.cpp, compiled first, makes
+# the header (stdafx.h, s_dx8.h) and gets its initializers after its code;
+# s_dx8.cpp cannot use that one and makes its own, which puts its
+# initializers among the EAX functions; counter.cpp and stdafx.cpp use none
+# (counter.obj has its initializers first, in source order). /YX depends on
+# what the previous compile left, so each of the two is spelled here as the
+# /Yc it amounts to, with a header of its own: the same objects, from any
+# starting state.
 
 !IF  "$(CFG)" == "snddrv - Win32 Final"
 
@@ -52,8 +51,8 @@ RSC=rc.exe
 # PROP Intermediate_Dir "..\built\Final\snddrv"
 # PROP Ignore_Export_Lib 0
 # PROP Target_Dir ""
-# ADD BASE CPP /nologo /MD /W3 /GX /O2 /D "WIN32" /D "NDEBUG" /D "_WINDOWS" /D "_MBCS" /D "_USRDLL" /D "_FINAL" /YX /FD /c
-# ADD CPP /nologo /MD /W3 /GX /O2 /Ob2 /I "." /I "..\..\libs\STLPORT-4.0\STLPORT" /I "..\sdk\inc" /D "WIN32" /D "NDEBUG" /D "_WINDOWS" /D "_MBCS" /D "_USRDLL" /D "_FINAL" /YX /FD /c
+# ADD BASE CPP /nologo /MD /W3 /GX /O2 /D "WIN32" /D "NDEBUG" /D "_WINDOWS" /D "_MBCS" /D "_USRDLL" /D "_FINAL" /FD /c
+# ADD CPP /nologo /MD /W3 /GX /O2 /Ob2 /I "." /I "..\..\libs\STLPORT-4.0\STLPORT" /I "..\sdk\inc" /D "WIN32" /D "NDEBUG" /D "_WINDOWS" /D "_MBCS" /D "_USRDLL" /D "_FINAL" /FD /c
 # ADD BASE MTL /nologo /D "NDEBUG" /mktyplib203 /win32
 # ADD MTL /nologo /D "NDEBUG" /mktyplib203 /win32
 # ADD BASE RSC /l 0x409 /d "NDEBUG"
@@ -79,10 +78,12 @@ SOURCE=.\counter.cpp
 # Begin Source File
 
 SOURCE=.\parsewavefile.cpp
+# ADD CPP /Yc"s_dx8.h" /Fp"..\built\Final\snddrv\parsewavefile.pch"
 # End Source File
 # Begin Source File
 
 SOURCE=.\s_dx8.cpp
+# ADD CPP /Yc"counter.h" /Fp"..\built\Final\snddrv\s_dx8.pch"
 # End Source File
 # Begin Source File
 

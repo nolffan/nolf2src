@@ -1,0 +1,10 @@
+image,addr,reason
+snddrv.dll,0x10001cb0,I3DObject::~I3DObject: jump target of the exception funclets at 0x1000a6c3, 0x1000a6e3 and 0x1000aa0e; enumerated inside 0x10001c60
+snddrv.dll,0x10004ae0,SDriverEnumInfo's member destructor (an STLport vector's): called by the funclet at 0x1000a97b; enumerated inside Startup 0x10004900 (ends with ret at 0x10004adc)
+snddrv.dll,0x100081e0,ILTSoundSys::~ILTSoundSys (stores the abstract vtable 0x1000b334): jump target of the funclets at 0x1000a733 and 0x1000a7b3; enumerated inside CloseStream 0x100080e0
+snddrv.dll,0x100082f0,CWinSync_CS::~CWinSync_CS (DeleteCriticalSection): jump target of the constructor's and destructor's funclets (0x1000a75c ...); enumerated inside StartStream 0x10008210
+snddrv.dll,0x10008460,CWinSync_CSAuto::~CWinSync_CSAuto (LeaveCriticalSection): jump target of funclets 0x1000a703 ...; enumerated inside ResetStream 0x100083e0
+snddrv.dll,0x10008570,CWinSync_Event::~CWinSync_Event (CloseHandle): jump target of funclets 0x1000a76a ...; enumerated inside SetStreamVolume 0x10008470
+snddrv.dll,0x10008ce0,an empty destructor (a bare ret; CountAdder::~CountAdder among others the linker folds into one): jump target of funclets 0x1000a70b ...; enumerated inside DecompressASI 0x10008a10
+snddrv.dll,0x10008e80,an STLport vector destructor: jump target of funclets 0x1000a83b ...; enumerated inside 0x10008e70
+snddrv.dll,0x10009be0,_Node_Alloc_Lock's destructor: jump target of funclets 0x1000acc3 and 0x1000ace3; enumerated inside __node_alloc::deallocate 0x10009aa0

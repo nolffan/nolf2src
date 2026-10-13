@@ -15,6 +15,7 @@ for them, through build.mk's `compile` and `tool` macros:
   every .c/.cpp   cl (or the compiler in the make variable CL_<project>,
                   where build.mk sets one) <the project's ADD CPP, with the file's own ADD CPP
                   and SUBTRACT CPP applied, less /FD> /Fp"<intdir>\\<project>.pch"
+                  (unless the file names its own /Fp)
                   /Fo"<intdir>\\" <source>, in the project's directory
   every .rc       rc <ADD RSC> /fo"<intdir>\\<name>.res" <source>
   custom builds   a source's custom build step (flex, bison) as its
@@ -304,7 +305,7 @@ def main():
                 flags = apply_cpp(cflags, sf.add_cpp, sf.sub_cpp)
                 pch = any(f[:3] in ("/Yc", "/Yu", "/YX") for f in flags)
                 cmd = [f for f in flags]
-                if pch:
+                if pch and not any(f[:3] == "/Fp" for f in cmd):
                     cmd.append(f"/Fp{intdir}\\{name}.pch")
                 cmd += [f"/Fo{intdir}\\", "/c"]
                 base = os.path.splitext(ntpath.basename(src))[0]
