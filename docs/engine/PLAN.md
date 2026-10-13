@@ -56,6 +56,7 @@ Background, in this directory:
 | 7 | `boot`: the built `Lithtech.exe` in the game under Wine: to the menu, then a level; snddrv/ServerDir/ltmsg built ones in | 3–6 | done: every engine binary in the game is built (no retail engine left); `make test` plays from the main menu into C01S01 with sound (null ALSA device); `make modern` builds and runs the same |
 | 8 | `modern`: the modern build of the engine (FFmpeg Bink, fixes) | 7 | done: no RAD binary in the modern build (Bink on FFmpeg; NOLF2 has no Miles); the launcher installed in both builds; Hor+, widescreen modes, the launcher's server name (`MODERN.md`) |
 | 9 | `match`: byte-matching passes per module, ratcheted by `make progress` | 3–6 | ongoing |
+| 9b | `rendermatch`: render_a/render_b structures and file formats against retail, the renderer in the game, byte matching | 6, 7 | done: layouts and loaders fixed (below); Lithtech.exe 5,509 -> 5,792 identical |
 | 10 | `release`: public archives built by GitHub Actions, as nolfsrc does (its commits "Install scripts that copy the game's data out of the player's discs", "Package each game directory as a -private and a -public archive", "Build switches for CI: NOLF_ARCHIVES and IMAGE_BUILD", "CI: build the four public archives on GitHub Actions", "CI: check the release build for byte regressions", "CI: upload each archive unzipped") | 7, 8 and everything ported | todo |
 
 ## Notes per package
@@ -670,3 +671,69 @@ then `PLAYTEST_MAP=modern`), windowed mode at any size (M-E2, render_a),
 raw mouse input (M-E3), high-frame-rate checks before a default
 `MaxFPS` (M-E4), drawing the console (M-E5), Internet play without the
 WON servers (M-E6), an FOV option (M-G4).
+
+### 9b. rendermatch
+
+**Structures and file formats** (each fix in its commit, with the retail
+address that shows it):
+- `SharedTexture` (`world/de_world.h`) is 0x68 bytes: type at 0x18, two
+  linked textures (env map/detail, bump map), no effect shader ID;
+  `r_LoadSystemTexture` (kernel `render.cpp`) parses NOLF2's five texture
+  commands with no argument checks. No `m_nEffectShaderID` in the sprite,
+  particle system, polygrid and volume effect objects (`de_objects.h`).
+  These were the client package's suspect layouts. `ModelInstance`'s size
+  was not looked at.
+- Model pieces: a vertex stream with basis vectors carries **3** floats
+  more in NOLF2's files (`GetVertexFlags_and_Size`, `d3d_utils.h`), not
+  Jupiter's 6, so skeletal, rigid and vertex-animated pieces with them
+  were misread. All three loaders now match, as does
+  `CD3D_RenderBlock::Load` (world render blocks, 3,052 bytes).
+- Behaviour taken back to retail: polygrids use the generic dims and a
+  particle system's dims are scale x radius (the object handler table);
+  particle batches fill whole vertices per particle (no per-frame base
+  setup); screen glow does not clear its textures afterwards;
+  `MipMapBias` is an int console variable. `CDIModelDrawable`'s
+  constructor assigns in its body (`model/model.h`, one line, for the
+  constructor order retail inlines).
+
+**Flags.** `D3DRender.dsp` is `/O2 /Ob2` (with `/GX`, kept): +176
+identical functions on its own, unplaced 2,188 -> 1,230
+(`progress/COMPILERS.md`).
+
+**In the game.** The built exe plays C01S01, C02S01, C04S01, C06S01,
+C07S01, C12S01 and CP_C03S01 (640x480 Xvfb, `+DisableSound 1`);
+textures, lightmaps, models, sprites, smoke particles, the HUD all look
+right, and no renderer message but retail's WATERFALL2.LTB one. A
+reference: the 1.3 MP demo's engine (`out/mpdemo/Lithtech.exe`, from
+`demoimports.py extract`) runs the demo's own `Game.rez`
+(`-rez Game.rez +runworld Worlds\RetailMultiplayer\CP_C03S01`), whose
+CP_C03S01 is the same file as retail's; our exe runs retail's. The spawn
+point differs, so only a qualitative comparison was made (it matches). The
+demo engine cannot run retail's cshell.dll (it asks for IClientShell
+version 5, retail's is 4; patching the number crashes it) and ours cannot
+run the demo's.
+
+**Score.** Lithtech.exe 5,509 -> 5,792 identical (+152 KB), unplaced
+2,190 -> 1,227, unwritten 85 -> 60; server.dll 2,399 -> 2,410 (the
+SharedTexture/object layouts). `make progress` passes.
+
+**Left.**
+- The template instances of `CRenderShader_Base` (13 each): `Lock`,
+  `Flush`, `vector<CRenderBlockData>::push_back`/`_M_insert_overflow`,
+  the Lightmap `SortSections` differ from retail only in exception-state
+  numbering (retail sets no state for the default allocator temporary of
+  some vectors, ours does). Not found why; not a source difference that
+  was found (an explicit instantiation of `allocator<uint32>` and a
+  user-declared destructor on `CRenderBlockData` did not change it).
+- `d3d_DrawPolyGrid` is one register choice away (two `movsbl` swapped in
+  the inlined `GenerateBasisSpace`), but the function table splits it at
+  0x547d55, so the scorer cannot count it anyway.
+- Register-allocation nears: the drawprim `DrawPrim` overloads,
+  `SetTransformMode`, `CD3DRenderStyle::SetDefaults`/`Load_LTBData`,
+  `d3d_BlitToScreen3D_Old` (a rect copied to the stack where retail reads
+  it in place).
+- Scorer pairings inside the renderer are often wrong for template
+  instances (same name, different instance): judge with `exematch` on the
+  object and `callseq.py`, not the near list.
+- `MODERN.md`'s windowed mode at any size (render_a, behind
+  `NOLF2SRC_MODERN`) was not done.
