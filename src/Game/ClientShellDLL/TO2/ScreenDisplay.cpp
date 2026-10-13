@@ -211,7 +211,7 @@ LTBOOL CScreenDisplay::Build()
 	pBar->SetScale(g_pInterfaceResMgr->GetXRatio());
 	AddControl(pBar);
 #ifdef NOLF2SRC_MODERN
-	// MODERN.md M-G28, M-G29, M-G4, M-E4: windowed, running in the
+	// MODERN.md M-G40, M-G41, M-G4, M-E4: windowed, running in the
 	// background, the field of view, the frame rate limit
 	AddToggle(IDS_MODERN_WINDOWED,IDS_HELP_MODERN_WINDOWED,kGap,&m_bModernWindowed);
 	AddToggle(IDS_MODERN_BACKGROUND,IDS_HELP_MODERN_BACKGROUND,kGap,&m_bModernRunInBackground);
@@ -479,7 +479,7 @@ void CScreenDisplay::OnFocus(LTBOOL bFocus)
 
 		m_nGamma = ConvertToSlider(gamma);
 #ifdef NOLF2SRC_MODERN
-		ModernReadOptions();	// MODERN.md M-G28, M-G29, M-G4, M-E4
+		ModernReadOptions();	// MODERN.md M-G40, M-G41, M-G4, M-E4
 #endif
 
 		
@@ -534,7 +534,7 @@ void CScreenDisplay::OnFocus(LTBOOL bFocus)
 	
 			pProfile->ApplyDisplay();
 #ifdef NOLF2SRC_MODERN
-			ModernApplyOptions();	// MODERN.md M-G28, M-G29, M-G4, M-E4
+			ModernApplyOptions();	// MODERN.md M-G40, M-G41, M-G4, M-E4
 #endif
 					
 			//display settings can affect performance sttings so update them here...
@@ -739,7 +739,7 @@ void CScreenDisplay::ConfirmHardwareCursor(LTBOOL bReturn)
 
 
 #ifdef NOLF2SRC_MODERN
-// MODERN.md M-G28, M-G29, M-G4, M-E4: the modern options' current values
+// MODERN.md M-G40, M-G41, M-G4, M-E4: the modern options' current values
 void CScreenDisplay::ModernReadOptions()
 {
 	m_bModernWindowed = (GetConsoleInt("Windowed",0) != 0);

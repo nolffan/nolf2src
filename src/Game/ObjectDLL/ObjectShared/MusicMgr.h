@@ -68,7 +68,7 @@ class CMusicMgr
 
 		void DoMood(Mood eMood);
 #ifdef NOLF2SRC_MODERN
-		// MODERN.md M-G18: a mood kept up for fTime seconds
+		// MODERN.md M-G30: a mood kept up for fTime seconds
 		void DoMoodFor(Mood eMood, LTFLOAT fTime);
 #endif
 

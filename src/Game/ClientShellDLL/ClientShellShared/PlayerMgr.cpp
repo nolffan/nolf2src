@@ -2803,7 +2803,7 @@ void CPlayerMgr::UpdateCameraZoom()
 	if (fOldFovX != fovX)
 	{
 #ifdef NOLF2SRC_MODERN
-		// MODERN.md M-G23: the zoomed view keeps the normal view's shape.
+		// MODERN.md M-G35: the zoomed view keeps the normal view's shape.
 		// Retail scaled the vertical angle with the horizontal one (fovY =
 		// fovX * FovY / FovX), but a view's shape is the ratio of the
 		// angles' tangents, not of the angles: a zoomed-in view came out

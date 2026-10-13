@@ -31,7 +31,7 @@ CHUDDisplayMeter*	g_pDisplayMeter = LTNULL;
 CHUDScores*			g_pScores = LTNULL;
 #ifdef NOLF2SRC_MODERN
 
-// MODERN.md M-G32: the frame rate, at the top of the screen, averaged over
+// MODERN.md M-G44: the frame rate, at the top of the screen, averaged over
 // the last 30 frames, while ShowFramerate is set (a console variable; 0
 // unless set).
 namespace
@@ -192,7 +192,7 @@ void CHUDMgr::Term()
 
 	m_itemArray.clear();
 #ifdef NOLF2SRC_MODERN
-	ModernTermFramerate();	// MODERN.md M-G32
+	ModernTermFramerate();	// MODERN.md M-G44
 #endif
 
 	g_pHUDMgr = LTNULL;
@@ -240,7 +240,7 @@ void CHUDMgr::Render()
 		iter++;
 	}
 #ifdef NOLF2SRC_MODERN
-	ModernRenderFramerate();	// MODERN.md M-G32
+	ModernRenderFramerate();	// MODERN.md M-G44
 #endif
 	
 }

@@ -308,7 +308,7 @@ bool CSnowFX::UpdateAirspaces( void )
 	if( !m_bEnabled )
 	{
 #ifdef NOLF2SRC_MODERN
-		// MODERN.md M-G7: Deactivate() erases the airspace from this set,
+		// MODERN.md M-G19: Deactivate() erases the airspace from this set,
 		// which the retail loop was iterating (a freed tree node). Take
 		// the first one until none is left.
 		while( !activeAirspaces.empty() )
@@ -341,7 +341,7 @@ bool CSnowFX::UpdateAirspaces( void )
 	{
 		// camera is farther away than the max draw distance for this volume, so kill all the airspaces
 #ifdef NOLF2SRC_MODERN
-		// M-G7: as above
+		// M-G19: as above
 		while( !activeAirspaces.empty() )
 		{
 			CSnowFXAirspace* pAirspace = *activeAirspaces.begin();

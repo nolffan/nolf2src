@@ -272,7 +272,7 @@ void CMusicMgr::DoMood(Mood eMood)
 }
 #ifdef NOLF2SRC_MODERN
 
-// MODERN.md M-G18: music moods at high frame rates. Update() takes one
+// MODERN.md M-G30: music moods at high frame rates. Update() takes one
 // frame's time off every mood each server frame; DoMood() puts one frame's
 // time back each time a caller asks for the mood. The AIs ask from their
 // own update, which runs at most every c_fUpdateDelta (100 times a second),

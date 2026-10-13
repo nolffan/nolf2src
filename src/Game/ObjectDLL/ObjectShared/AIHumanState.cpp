@@ -3608,7 +3608,7 @@ void CAIHumanStateCheckBody::Update()
 		pChecker = g_pAICentralKnowledgeMgr->GetKnowledgeTarget( kCK_CheckingBody, pAI );
 	}
 #ifdef NOLF2SRC_MODERN
-	// MODERN.md M-G11: the body may be gone (removed, faded out) or no
+	// MODERN.md M-G23: the body may be gone (removed, faded out) or no
 	// longer a body or an AI; retail went on with pChecker never set.
 	else
 	{

@@ -354,7 +354,7 @@ static LTVector FindConstrainedVector(const LTVector& vTarget, float fWidth, flo
 	//we now have the ellipse Y, lets find the X of the ellipse
 	float fXSignScale = (vTarget.x < 0.0f) ? -1.0f : 1.0f;
 #ifdef NOLF2SRC_MODERN
-	// MODERN.md M-G13: rounding can put fEllipseY a hair outside the
+	// MODERN.md M-G25: rounding can put fEllipseY a hair outside the
 	// ellipse, and the root of the negative number is NaN, which went on
 	// into the node's rotation. Clamp at the edge, as the root above does.
 	float fEllipseX = fXSignScale * (float)sqrt(LTMAX(0.0f, 1.0f - Sqr(fEllipseY / fHeight)) * Sqr(fWidth));

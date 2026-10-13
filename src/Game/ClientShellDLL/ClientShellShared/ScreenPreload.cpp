@@ -362,7 +362,7 @@ void CScreenPreload::FirstUpdate( )
 	// we need to do it now.
 	m_eValidatingCDKeyState = kValidatingCDKeyState_None;
 #ifdef NOLF2SRC_MODERN
-	// MODERN.md M-G5: no CD-key check before joining. The key was checked
+	// MODERN.md M-G17: no CD-key check before joining. The key was checked
 	// with Sierra's WON authentication servers, which are gone, so every
 	// join that was not started from the LAN screen -- an Internet join,
 	// and a +join from the command line even to a server on the LAN --

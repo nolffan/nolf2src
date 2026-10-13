@@ -4443,7 +4443,7 @@ LRESULT CALLBACK HookedWindowProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lP
 		HANDLE_MSG(hWnd, WM_CHAR, CGameClientShell::OnChar);
 		HANDLE_MSG(hWnd, WM_SETCURSOR, OnSetCursor);
 #ifdef NOLF2SRC_MODERN
-		// MODERN.md M-G31: the mouse wheel in the menus moves the selection
+		// MODERN.md M-G43: the mouse wheel in the menus moves the selection
 		// (up, down) as the arrow keys do, and so scrolls a list that has
 		// it; in play the wheel is the engine's (it can be bound to actions)
 		case 0x020A:	// WM_MOUSEWHEEL
@@ -4562,7 +4562,7 @@ BOOL SetWindowSize(uint32 nWidth, uint32 nHeight)
 	else
 	{
 #ifdef NOLF2SRC_MODERN
-		// MODERN.md M-G30: the engine has placed the window for the mode
+		// MODERN.md M-G42: the engine has placed the window for the mode
 		// (a framed window whose inside is the mode's size, or a borderless
 		// one over the desktop); retail resized it whole to the mode here,
 		// which cut the frame's width off the picture

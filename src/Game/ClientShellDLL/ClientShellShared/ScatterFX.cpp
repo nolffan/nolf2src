@@ -297,7 +297,7 @@ bool CScatterFX::UpdateSubVolumes( void )
 	if( !m_bEnabled )
 	{
 #ifdef NOLF2SRC_MODERN
-		// MODERN.md M-G8: Deactivate() erases the subvolume from this set,
+		// MODERN.md M-G20: Deactivate() erases the subvolume from this set,
 		// which the retail loop was iterating (a freed tree node). Take
 		// the first one until none is left.
 		while( !activeSubVolumes.empty() )
@@ -325,7 +325,7 @@ bool CScatterFX::UpdateSubVolumes( void )
 	{
 		// camera is farther away than the max draw distance for this volume, so kill all the subvolumes
 #ifdef NOLF2SRC_MODERN
-		// M-G8: as above
+		// M-G20: as above
 		while( !activeSubVolumes.empty() )
 		{
 			CScatterFXSubVolume* pSubVolume = *activeSubVolumes.begin();

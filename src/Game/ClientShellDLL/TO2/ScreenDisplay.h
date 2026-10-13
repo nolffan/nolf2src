@@ -96,7 +96,7 @@ private:
 	CLTGUISlider					*m_pGamma;
 	CLTGUICycleCtrl					*m_pHardwareCursor;
 #ifdef NOLF2SRC_MODERN
-	// MODERN.md M-G28, M-G29, M-G4, M-E4: the modern build's display options
+	// MODERN.md M-G40, M-G41, M-G4, M-E4: the modern build's display options
 	LTBOOL							m_bModernWindowed;
 	LTBOOL							m_bModernRunInBackground;
 	int								m_nModernFovY;

@@ -352,7 +352,7 @@ void    CScreenMulti::OnFocus(LTBOOL bFocus)
 			
 
 #ifdef NOLF2SRC_MODERN
-			// M-G5: no CD key
+			// M-G17: no CD key
 			m_pCDKeyCtrl->Show(LTFALSE);
 #else
 			m_pCDKeyCtrl->Show(LTTRUE);
@@ -766,7 +766,7 @@ void CScreenMulti::RequestValidate()
 {
 	IServerDirectory *pServerDir = g_pClientMultiplayerMgr->GetServerDir();
 #ifdef NOLF2SRC_MODERN
-	// MODERN.md M-G5: no CD key. It was checked with Sierra's WON servers,
+	// MODERN.md M-G17: no CD key. It was checked with Sierra's WON servers,
 	// which are gone; go on to the messages of the day.
 	m_pCDKeyCtrl->Show(LTFALSE);
 	RequestMOTD();

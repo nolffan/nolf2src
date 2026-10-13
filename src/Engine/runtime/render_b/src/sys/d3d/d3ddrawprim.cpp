@@ -362,7 +362,7 @@ void CD3DDrawPrim::SetTransformMode(LPDIRECT3DDEVICE8 pDevice)
 		if ((hVar = r_GetParameter("PVModelAspect")) != NULL)
 			fAspect = r_GetParameterValueFloat(hVar);
 #ifdef NOLF2SRC_MODERN
-		// MODERN.md M-E9: the player-view effects' aspect (PVModelAspect,
+		// MODERN.md M-E15: the player-view effects' aspect (PVModelAspect,
 		// which the game never sets) is the one they were made with at
 		// 4:3; on a wider screen they would stretch with it. Widen it by
 		// the screen's shape over 4:3, as the models' own projection

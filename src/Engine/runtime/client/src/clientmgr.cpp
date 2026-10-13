@@ -729,7 +729,7 @@ void cm_HandleMaxFPS(uint32 frameTicks)
 // MODERN.md M-E4: the frame limiter. MaxFPS limits the frame rate only
 // outside the final build (cm_HandleMaxFPS above), so the game has always
 // run as fast as it could. Parts of NOLF2 go wrong at high frame rates
-// (the music above 100, M-G18; the Modernizer saw cutscene timing go
+// (the music above 100, M-G30; the Modernizer saw cutscene timing go
 // wrong), so the modern build limits it: to MaxFPS (60 unless set; 0 is
 // no limit; at most 1000). Each frame waits until 1/MaxFPS has passed
 // since the last one ended, sleeping while more than two milliseconds are

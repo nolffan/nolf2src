@@ -159,7 +159,7 @@ void CAIBrain::GetDodgeStatus(DodgeStatus* peDodgeStatus, Direction* peDirection
 					return;
 				}
 #ifdef NOLF2SRC_MODERN
-				// MODERN.md M-G10: a forced dodge that drew a block chose
+				// MODERN.md M-G22: a forced dodge that drew a block chose
 				// nothing, and the checks below read fCheckDistance unset.
 				// Shuffle, the smallest step out of the way.
 				else

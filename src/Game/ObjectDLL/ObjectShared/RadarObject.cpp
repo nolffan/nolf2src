@@ -213,7 +213,7 @@ void RadarObject::ReadProps( ObjectCreateStruct *pOCS )
 	// Get the Radar Type record...
 
 #ifdef NOLF2SRC_MODERN
-	// MODERN.md M-G15: retail left pType unset when the object has no
+	// MODERN.md M-G27: retail left pType unset when the object has no
 	// Type, and then read a radar type through the stray pointer.
 	RADARTYPE *pType = LTNULL;
 #else

@@ -622,7 +622,7 @@ void CActivateTypeHandler::OnLinkBroken( LTObjRefNotifier *pRef, HOBJECT hObj )
 		if( pRef == &(*iter) )
 		{
 #ifdef NOLF2SRC_MODERN
-			// MODERN.md M-G6: the retail code below read the element through
+			// MODERN.md M-G18: the retail code below read the element through
 			// the iterator it had just erased (a freed list node). Take the
 			// object first, then erase.
 			HOBJECT hInherited = *iter;
