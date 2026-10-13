@@ -528,6 +528,9 @@ void Bombable::HandleStoppedMsg( const CParsedMsg &cMsg )
 		// Make sure we can try and defuse it again...
 
 		g_pCommonLT->SetObjectFlags( m_hObject, OFT_User, USRFLG_CAN_ACTIVATE, USRFLG_CAN_ACTIVATE );
+
+		// RETAIL: reconstructed from the retail 1.3 Object.lto (0x101d4640)
+		m_bCanDeactivate = true;
 	}
 	else
 	{
