@@ -143,8 +143,8 @@ void CWorldServerBSP::Term() {
     //term the shared data.
     world_bsp_shared->Term();
 
-	// Terminate the world tree.
-	world_tree.Term();
+	// nolf2src: Jupiter terminates world_tree here too; retail leaves it
+	// to the next load and the destructor, which both terminate it.
 }
 
 bool CWorldServerBSP::IsLoaded() {
