@@ -798,13 +798,38 @@ client's wrong function names.
   and the snow rate change how the shipped effects look.
 
 **Score.** `tools/releasesrc.py diff` is empty and `make game` recompiles
-nothing for these commits. `make progress` in this worktree FAILS on six
-`ServerDir.dll` functions (0x10003cc0, 0x100043a0, 0x100044a0,
-0x10008850, 0x10010060, 0x10010120), and did before any change here: the
-first `make game` of the worktree (only the Makefile changed) built that
-`ServerDir.dll`, and nothing here touches ServerDir. Its source is the
-same as the main checkout's, but the main checkout's object was compiled
-(14:16) before that source was last rewritten (15:27, by some tree's
-`jupitersrc.py`): the recorded six were matched from an older source. A
-fresh ServerDir build anywhere will likely show the same; it wants
-looking at with `jupitersrc.py` and the two patches.
+nothing for the fixes. `make progress` passes.
+
+**ServerDir.dll was not reproducible** (six recorded functions, 0x10003cc0,
+0x100043a0, 0x100044a0, 0x10008850, 0x10010060, 0x10010120, lost by every
+fresh build). Two causes, both fixed:
+- **The /YX precompiled header.** ServerDir compiles with `/YX` (automatic
+  precompiled header), one compile after another in the .dsp's order:
+  `CServerDir_Titan.cpp` first, which writes a header of everything it
+  includes, then `stdafx.cpp`, which finds that inconsistent with its own
+  and rewrites it with `stdafx.h` alone. A later rebuild of
+  `CServerDir_Titan.cpp` alone (its source changed; the main checkout's
+  14:15 rebuild) uses stdafx's header, and compiles differently: 377,910
+  bytes against 375,182, eight more of its functions retail's
+  (`tools/exematch.py`). The recorded score is from such a rebuild. The
+  same source compiled in the two orders, by hand, gives exactly the two
+  objects. `tools/dsp2mk.py` (`YX_FIRST`) now compiles ServerDir's
+  `stdafx.cpp` first, so every build makes the retail-matching object.
+  (The main checkout's `make game` did not rebuild the object because the
+  release tree's copy of the source had not changed since 14:15 -- the
+  15:27 time is `jupitersrc.py` rewriting `src/` with the same text, and
+  the release tree keeps the time of the last real change. No dependency
+  is missing.)
+- **Anonymous-namespace numbers.** VC6 names an anonymous namespace
+  `?%<source><number>` with a number drawn afresh on every compile (the
+  same file compiled twice gets two numbers, 7 to 10 digits; not the time,
+  the path or the text). WONAPI has three (`CDKey.cpp`, `CRC.cpp`,
+  `QueueSocket.cpp`), in symbol names and, for `QueueSocket.cpp`, in an
+  RTTI type name in a COMDAT data section, so the length moves code and
+  data. `tools/anonns.py` rewrites them, for the libraries `build.mk`'s
+  `PINNED_LIBS` names (WONAPI only: other projects' anonymous namespaces
+  have not moved a recorded function), to the numbers of the WONAPI.lib the
+  score was recorded on; the pinned objects are then those objects byte
+  for byte, but for the time stamp and the COMDAT checksums. Whether the
+  length alone moves any of the six was not separated from the first
+  cause; with both fixed, fresh WONAPI and ServerDir objects score 207.

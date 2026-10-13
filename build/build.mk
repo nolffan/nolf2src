@@ -177,8 +177,14 @@ $(call tool,$(1),$(4) $(filter-out %/Built %/built,$(wildcard $(dir $(4))*)) | w
 endef
 
 # $(call library,<lib>,<project dir>,<flags>,<objects>,<objects as the project dir sees them>)
+# A library PINNED_LIBS names has its objects' anonymous-namespace numbers,
+# which VC6 draws afresh on every compile, pinned first (tools/anonns.py):
+# their length moves ServerDir.dll's layout, and a scored build has to be
+# reproducible.
+PINNED_LIBS := src/Game/built/Release/libs/WonAPI/WONAPI.lib
 define library
 $(call tool,$(1),$(4) | wine-drives,\
+    $(if $(filter $(1),$(PINNED_LIBS)),python3 $(ROOT)/tools/anonns.py $(4:%=$(ROOT)/%) && )\
     cd $(2) && { printf '%s\n' $(call q,$(3) $(subst /,\,$(5))) > $(1:%=$(ROOT)/%).rsp; } && \
     $(ENV_GAME) $(WINE) $(LIBEXE) '@$(call ws,$(ROOT)/$(1)).rsp')
 endef
