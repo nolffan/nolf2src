@@ -494,7 +494,6 @@ LTRESULT CSoundMgr::Init(InitSoundInfo &soundInit)
 
     m_dwCurTime = g_pSoundSys->MsCount();
 
-	g_pSoundSys->CommitDeferred();
 
     m_dwCommitTime = 0;
     m_bCommitChanges = false;
@@ -1534,9 +1533,6 @@ LTRESULT CSoundMgr::Update()
 
 	m_SoundUpdatePacket = CPacket_Read(cNewSoundUpdatePacket);
 
-	// commit any deferred settings
-
-	g_pSoundSys->CommitDeferred();
 
     // Update the timer
     m_dwCurTime = dwCurTime;

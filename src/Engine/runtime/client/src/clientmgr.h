@@ -342,16 +342,6 @@ class CClientMgr {
         // before calling any client shell functions that could throw exceptions.  If the
         // shell throws an exception that says it wants the shell shutdown, it'll know which one to shutdown.
         CClientShell            *m_pCurShell;
-
-		// Pointer to shell which has been 'flagged' as destroyed but not yet deallocated.
-		// Required because shells can be deleted and new shells set up while m_pCurShell
-		// is still on the call stack.
-		CClientShell            *m_pOldShell;
-		
-		// Turn if the clientshell is being updated, otherwise false.  Used for determining
-		// strategy when handling EndShell.
-		bool					m_bInCurShellUpdate;
-
         
         int                     m_LastErrorCode;
         uint32                  m_ExceptionFlags;   // Flags from the last exception thrown.
