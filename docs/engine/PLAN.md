@@ -58,6 +58,7 @@ Background, in this directory:
 | 9 | `match`: byte-matching passes per module, ratcheted by `make progress` | 3–6 | ongoing |
 | 9b | `rendermatch`: render_a/render_b structures and file formats against retail, the renderer in the game, byte matching | 6, 7 | done: layouts and loaders fixed (below); Lithtech.exe 5,509 -> 5,792 identical |
 | 10 | `release`: public archives built by GitHub Actions, as nolfsrc does (its commits "Install scripts that copy the game's data out of the player's discs", "Package each game directory as a -private and a -public archive", "Build switches for CI: NOLF_ARCHIVES and IMAGE_BUILD", "CI: build the four public archives on GitHub Actions", "CI: check the release build for byte regressions", "CI: upload each archive unzipped") | 7, 8 and everything ported | todo |
+| 11 | `bugs`: the variants (debug, modern, modern-debug) checked to build the whole game, engine included, and to play; `RETAIL_BUGS.md`; the safe fixes in the modern build | 7, 8 | done: every variant builds every binary with its define and passes the playtest; 48 entries listed, 23 of them fixed in the modern build (three only on one side: see the notes) (M-G5..M-G16, M-L3, M-E7..M-E12) |
 
 ## Notes per package
 
@@ -737,3 +738,73 @@ SharedTexture/object layouts). `make progress` passes.
   object and `callseq.py`, not the near list.
 - `MODERN.md`'s windowed mode at any size (render_a, behind
   `NOLF2SRC_MODERN`) was not done.
+
+### 11. bugs
+
+**Variants.** `make debug`, `make modern` and `make modern-debug` build
+every binary of the game, the engine included (`Lithtech.exe`,
+`server.dll`, `SndDrv.dll`, `ServerDir.dll`, `ltmsg.dll`, the launcher and
+the dedicated server): build.mk puts `NOLF2SRC_CFLAGS` on every compile, so
+each engine object's command line has `/D NOLF2SRC_DEBUG /Z7 /Oy-` or
+`/D NOLF2SRC_MODERN` (checked in the `.obj.cmd` files of
+`out/build-<variant>/`), and the debug variants put a `.pdb` beside every
+binary. Nothing needed fixing. `make test TEST_GAME=out/<variant>` (new)
+plays a variant's game directory (`out/play/test-<name>/`); all three pass
+`playtest-newgame.txt`, and `tools/srvtest.sh` hosts CP_c01s01 with the
+modern `NOLF2Srv.exe` and `server.dll`.
+
+**`releasesrc.py`** now ignores directives inside `/* */` comments:
+`ltdirectmusic_impl.cpp` keeps a commented-out `#else`/`#endif`, which the
+stripper took for an unmatched `#endif` once the file had a variant block.
+Also: the editing tool drops trailing whitespace on the lines it touches,
+and retail files have plenty; `tools/releasesrc.py diff` (run in the
+checkout: it uses the current directory) catches it, run it after every
+edit.
+
+**`RETAIL_BUGS.md`** (48 entries) came from the porting notes, from
+nolfsrc's list looked for bug by bug in NOLF2's game and engine code, and
+from reading the multiplayer, gameplay and engine code for the same kinds
+of mistake. Engine entries were checked with `tools/exematch.py` against
+`out/reference/` (it runs on the host, read only): each names a function
+byte-identical to retail at its address. NOLF2's engine fixed or rewrote
+most of NOLF1's server.dll bugs (the list ends with them); the game code
+carried more over, and NOLF2's multiplayer adds remote holes of its own
+(chat overflows, debug messages obeyed from any client, the handshake not
+enforced).
+
+**Fixed in the modern build**: 23 entries (`MODERN.md` M-G5..M-G16,
+M-L3, M-E7..M-E12), each tested with `make modern` and the playtest. Three
+only on one side: names and chat as formats and the chat overflow are
+fixed on the server (which also cleans what it relays, so clients behind a
+modern server are safe) but not in the client's own code, and only the
+client's wrong function names.
+
+**Left, by owner.**
+- The server package (`server/`, `shared/`, `world/`, `model/`,
+  `kernel/net`, `kernel/io`): `CLTServer::CPrint` formats its line twice
+  (pass it on through `"%s"`), `ReadHStringAsString`'s seek,
+  `ReadHString`'s terminator, `WriteMessage`'s 16-bit size,
+  `OnHelloPacket`, `cb_LoadModule`'s double free, the world loader's
+  vertex count, `ILTModel::GetNodeName`'s bound, `trk_ScanToKeyFrame`,
+  `LTObject::Clear`, the codec, `CGenLTStream::WriteStream`, the property
+  guard, the server's wrong function names.
+- `CShell.dll` (being byte-matched): the particle and line systems at high
+  frame rates, the client's chat and kill-message printing, the server
+  list's `=`, the lip-sync reader, the camera clamp, the particle colour
+  range.
+- Not done here: the handshake and password (`KickClient` on a wrong
+  password, refusing messages before the handshake) want a two-machine
+  test; `CP_DAMAGE` from clients needs a design; the sprite-system timing
+  and the snow rate change how the shipped effects look.
+
+**Score.** `tools/releasesrc.py diff` is empty and `make game` recompiles
+nothing for these commits. `make progress` in this worktree FAILS on six
+`ServerDir.dll` functions (0x10003cc0, 0x100043a0, 0x100044a0,
+0x10008850, 0x10010060, 0x10010120), and did before any change here: the
+first `make game` of the worktree (only the Makefile changed) built that
+`ServerDir.dll`, and nothing here touches ServerDir. Its source is the
+same as the main checkout's, but the main checkout's object was compiled
+(14:16) before that source was last rewritten (15:27, by some tree's
+`jupitersrc.py`): the recorded six were matched from an older source. A
+fresh ServerDir build anywhere will likely show the same; it wants
+looking at with `jupitersrc.py` and the two patches.
