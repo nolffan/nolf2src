@@ -267,43 +267,8 @@ void ModelDraw::SetupModelLight(ModelInstance* pInstance, const ModelHookData& H
 	//setup our light list information
 	uint32 nMaxLights = LTMIN((uint32)g_CV_MaxModelLights, MAX_LIGHTS_SUPPORTED_BY_D3D);
 
-	LTVector vInstancePosition;
-
-	// Should we skip the root node and use it's first child node
-	// for lighting consideration?
-	if(g_CV_ModelLightingSkipRootNode)
-	{
-		// Index of the root node (should be 0)
-		uint32 iRootNode = pInstance->NodeGetRootIndex();
-		
-		// How many children nodes does it have?
-		uint32 iRootNodeNumKids = pInstance->NodeGetNumChildren( iRootNode );
-		
-		// Is there atleast one?
-		if(iRootNodeNumKids > 0)
-		{
-		    // Just get the first one.
-			// This assumes the the first child-node translates with the rest
-			// of the mesh.
-			uint32 iNode = pInstance->NodeGetChild( iRootNode, 0 );
-			LTransform tf;
-			pInstance->GetNodeTransform( iNode, tf, true );
-		
-			// Set our calculation position to the node's position
-			vInstancePosition = tf.m_Pos;
-		}
-		else
-		{
-		    // If the root node doesn't have any children,
-			// fall back to the root node's position.
-			vInstancePosition = pInstance->GetPos();
-		}
-	}
-	else // No? Then just use the root node position
-	{
-		//figure out the world position of this instance
-		vInstancePosition = pInstance->GetPos();
-	}
+	//figure out the world position of this instance
+	LTVector vInstancePosition = pInstance->GetPos();
 
 	LightList.ClearList();
 	LightList.SetMaxLights(nMaxLights);
@@ -371,7 +336,7 @@ void ModelDraw::SetupModelLight(ModelInstance* pInstance, const ModelHookData& H
 	}
 
 	// Ambient lighting
-	if(g_have_world && g_CV_ModelApplyAmbient)
+	if(g_have_world)
 	{
 		LTRGBColor ambientColor;
 		w_DoLightLookup(world_bsp_shared->LightTable(), &vInstancePosition, &ambientColor);
@@ -597,12 +562,6 @@ void ModelDraw::QueueModel(ModelInstance *pInstance)
 		NModelDebug::DrawModelBox(pInstance); 
 	}
 
-#if(MODEL_OBB)
-	if( g_CV_ModelDebug_DrawOBBS )
-	{
-		NModelDebug::DrawModelOBBS(pInstance);
-	}
-#endif
 	
 	if(g_CV_ModelDebug_DrawSkeleton)
 	{
@@ -612,14 +571,6 @@ void ModelDraw::QueueModel(ModelInstance *pInstance)
 		//however, if we draw the model, it will cover it up, so we need to bail before anything
 		//is queued up
 		return;
-	}
-
-	if(g_CV_ModelDebug_DrawVertexNormals)
-	{
-		NModelDebug::DrawModelVertexNormals(pInstance);
-
-		// we don't want to bail as in the model skeleton, because we need to see where the actual
-		// verts are in context, otherwise the normals are just floating lines....
 	}
 
 	//if we are an attachment, now is the time to steal the light list from our parent

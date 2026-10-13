@@ -31,7 +31,7 @@ void CDeviceLightList::ClearLights()
 //gets a light for writing to from the list. This does not do a copy due to the large
 //size of the light structure and instead returns the light that can be used to put in.
 //This returns NULL if no room is available
-D3DLIGHT9* CDeviceLightList::AddNewLight()
+D3DLIGHT8* CDeviceLightList::AddNewLight()
 {
 	if(m_nNumLights >= MAX_LIGHTS_SUPPORTED_BY_D3D)
 		return NULL;

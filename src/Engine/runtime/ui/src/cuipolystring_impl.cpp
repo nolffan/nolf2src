@@ -506,10 +506,6 @@ CUI_RESULTTYPE CUIPolyString_Impl::ApplyFont(
 		// handle chars that shouldn't be subtracted (newlines, tabs, etc.)
 		switch (cidx) {
 			
-			case 10:
-				draw = false;
-				break;
-
 			case 32:
 				drawblank = true;
 				break;

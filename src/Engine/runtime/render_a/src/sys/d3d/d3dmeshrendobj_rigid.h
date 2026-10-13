@@ -31,10 +31,8 @@ public:
 	void					Reset();				// Resets back to initial conditions (doesn't try to free anything)...
 	void					FreeAll();				// Frees all the member vars and resets afterwards...
 
-	void					BeginRender(D3DMATRIX& pD3DTransforms, CD3DRenderStyle* pRenderStyle, uint32 iRenderPass);
-	void					Render(ModelInstance *pInstance, D3DMATRIX& WorldTransform, CD3DRenderStyle* pRenderStyle, uint32 iRenderPass);
-	void					BeginRenderWithEffect(D3DMATRIX& pD3DTransforms, CD3DRenderStyle* pRenderStyle, uint32 iRenderPass);
-	void					RenderWithEffect(ModelInstance *pInstance, D3DMATRIX& WorldTransform, CD3DRenderStyle* pRenderStyle, uint32 iRenderPass);
+	void					BeginRender(CD3DRenderStyle* pRenderStyle, uint32 iRenderPass);
+	void					Render(D3DMATRIX& WorldTransform, CD3DRenderStyle* pRenderStyle, uint32 iRenderPass);
 	void					EndRender();
 
 	bool					Load(ILTStream& File, LTB_Header& LTBHeader);
@@ -68,9 +66,6 @@ private:
 	uint32						m_iPolyCount;
 	uint32						m_VertStreamFlags[4];
 	bool							m_bNonFixPipeData;		// Our mesh has non fixed function pipe data (we need to use a shader, or nothing)...
-
-	bool							m_bSWVertProcessing;		// Created for SW Vert Processing...
-	bool							m_bSWVSBuffers;         // no vertex shader support so switch to software buffer for shaders
 
 	// Sys mem copies of our data...
 	uint8*					m_pVertData[4];

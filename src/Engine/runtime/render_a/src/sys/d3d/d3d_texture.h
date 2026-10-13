@@ -6,9 +6,9 @@
 
 class PFormat;
 
-#ifndef __D3D9_H__
-#include <d3d9.h>
-#define __D3D9_H__
+#ifndef __D3D8_H__
+#include <d3d8.h>
+#define __D3D8_H__
 #endif
 
 #ifndef __D3D_UTILS_H__
@@ -103,11 +103,11 @@ public:
 bool d3d_SetTexture(SharedTexture* pTexture, uint32 nStage, ERendererFrameStats eMemType);
 
 // Call to set a D3D texture 
-bool d3d_SetTextureDirect(LPDIRECT3DBASETEXTURE9 pTexture, uint32 nStage);
+bool d3d_SetTextureDirect(LPDIRECT3DBASETEXTURE8 pTexture, uint32 nStage);
 
 // Call to set a D3D texture. This version will do memory tracking to the specified memory
 // type.
-bool d3d_SetTextureDirect(LPDIRECT3DBASETEXTURE9 pTexture, uint32 nStage, CTrackedTextureMem& TexMem, ERendererFrameStats eMemType);
+bool d3d_SetTextureDirect(LPDIRECT3DBASETEXTURE8 pTexture, uint32 nStage, CTrackedTextureMem& TexMem, ERendererFrameStats eMemType);
 
 // Call this to disable texturing..
 bool d3d_DisableTexture(uint32 iStage); 
@@ -151,8 +151,8 @@ public:
 public:
 	union 
 	{
-		LPDIRECT3DTEXTURE9		m_pD3DTexture;		// The D3D Texture (Note: Stores any mipmaps as well)...
-		LPDIRECT3DCUBETEXTURE9	m_pD3DCubeTexture; 
+		LPDIRECT3DTEXTURE8		m_pD3DTexture;		// The D3D Texture (Note: Stores any mipmaps as well)...
+		LPDIRECT3DCUBETEXTURE8	m_pD3DCubeTexture; 
 	};
 
 	uint16				m_BaseWidth;

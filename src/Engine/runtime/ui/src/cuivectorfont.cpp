@@ -26,7 +26,6 @@
 #include "ltsysoptim.h"
 #endif
 
-#include "LTFontParams.h"
 
 #include "iltclient.h"
 #include "interface_helpers.h"
@@ -140,7 +139,7 @@ class InstalledFontFace
 		}
 
 		// Intialize the font face, from optional font file.
-		bool Init( char const* pszFontFile, char const* pszFontFace, int nHeight, LTFontParams *fontParams);
+		bool Init( char const* pszFontFile, char const* pszFontFace, int nHeight );
 		void Term( );
 
 		HFONT			GetHFont( ) { return m_hFont; }
@@ -173,7 +172,7 @@ class InstalledFontFace
 //
 // ----------------------------------------------------------------------- //
 
-bool InstalledFontFace::Init( char const* pszFontFile, char const* pszFontFace, int nHeight, LTFontParams *fontParams )
+bool InstalledFontFace::Init( char const* pszFontFile, char const* pszFontFace, int nHeight )
 {
 	// Check inputs.
 	if( !pszFontFace || !pszFontFace[0] )
@@ -214,28 +213,12 @@ bool InstalledFontFace::Init( char const* pszFontFile, char const* pszFontFace, 
 	memset( &logFont, 0, sizeof( logFont ));
 	logFont.lfHeight = nHeight;
 	
-	if(fontParams)
-	{
-		DEBUG_PRINT( 1, ("InstalledFontFace::Init Using User Defined Font Params!" ));
-		logFont.lfWeight = fontParams->Weight;
-		logFont.lfCharSet = fontParams->CharSet;
-		logFont.lfOutPrecision = fontParams->OutPrecision;
-		logFont.lfClipPrecision = fontParams->ClipPrecision;
-		logFont.lfQuality = fontParams->Quality;
-		logFont.lfPitchAndFamily = fontParams->PitchAndFamily;
-		logFont.lfItalic = fontParams->Italic;
-		logFont.lfUnderline = fontParams->Underline;
-		logFont.lfStrikeOut = fontParams->StrikeOut;
-	}
-	else
-	{
-		logFont.lfWeight = FW_NORMAL;
-		logFont.lfCharSet = ANSI_CHARSET;
-		logFont.lfOutPrecision = OUT_TT_PRECIS;
-		logFont.lfClipPrecision = CLIP_DEFAULT_PRECIS;
-		logFont.lfQuality = ANTIALIASED_QUALITY;
-		logFont.lfPitchAndFamily = DEFAULT_PITCH;
-	}
+	logFont.lfWeight = FW_NORMAL;
+	logFont.lfCharSet = ANSI_CHARSET;
+	logFont.lfOutPrecision = OUT_TT_PRECIS;
+	logFont.lfClipPrecision = CLIP_DEFAULT_PRECIS;
+	logFont.lfQuality = ANTIALIASED_QUALITY;
+	logFont.lfPitchAndFamily = DEFAULT_PITCH;
 	strncpy( logFont.lfFaceName, pszFontFace, LF_FACESIZE );
 	logFont.lfFaceName[LF_FACESIZE - 1] = 0;
 
@@ -310,8 +293,7 @@ bool CUIVectorFont::Init(
 		char const* pszFontFace,
 		uint32 pointSize,
 		uint8  asciiStart,
-		uint8  asciiEnd,
-		LTFontParams* fontParams
+		uint8  asciiEnd
 		)
 {
 	char szChars[256];
@@ -322,7 +304,7 @@ bool CUIVectorFont::Init(
 	}
 	szChars[i - asciiStart] = 0;
 
-	bool bOk = Init( pszFontFile, pszFontFace, pointSize, szChars, fontParams);
+	bool bOk = Init( pszFontFile, pszFontFace, pointSize, szChars );
 
 	return bOk;
 }
@@ -332,8 +314,7 @@ bool CUIVectorFont::Init(
 bool CUIVectorFont::Init(char const* pszFontFile,
 						 char const* pszFontFace,
 						 uint32 pointSize,
-						 char const* pszCharacters,
-						 LTFontParams* fontParams
+						 char const* pszCharacters
 						 )
 {
 	// Check inputs.
@@ -347,7 +328,7 @@ bool CUIVectorFont::Init(char const* pszFontFile,
 	m_Proportional 		= true;
 
 	InstalledFontFace installedFontFace;
-	if( !installedFontFace.Init( pszFontFile, pszFontFace, pointSize, fontParams ))
+	if( !installedFontFace.Init( pszFontFile, pszFontFace, pointSize ))
 		return false;
 
 	// when the font is created, this can be
@@ -580,7 +561,7 @@ static void CopyGlyphBitmapToPixelData( BITMAPINFO const& bmi, uint8 const* pDib
 		uint16* pDestPos = ( uint16* )( pPixelData + (( y + nDestYOffset ) * nPixelDataPitch ));
 
 		// Copy this row.
-		for( int x = 0; x < static_cast<int>(glyphMetrics.gmBlackBoxX); x++ )
+		for( int x = 0; x < glyphMetrics.gmBlackBoxX; x++ )
 		{
 			// The source is 24 bits.  Just take r and use it as the alpha value.
 			uint32 nVal = MulDiv( pSrcPos[0], 15, 255 );
@@ -631,21 +612,13 @@ static void WritePixelDataBitmap( uint8* pPixelData, SIZE& sizeTexture, char con
 
 		for( int x = 0; x < sizeTexture.cx; x++ )
 		{
-			if ( pSrcPos[0] == 0x00F0 )
-			{
-				pDestPos[0] = 0x83E0;
-			}
-			else
-			{
+			// Get the alpha value and scale it into 5 bits.
+			uint32 nVal = (( pSrcPos[0] & 0xF000 ) >> 12 );
 
-				// Get the alpha value and scale it into 5 bits.
-				uint32 nVal = (( pSrcPos[0] & 0xF000 ) >> 12 );
+			nVal = MulDiv( nVal, 0x1F, 0x0F );
 
-				nVal = MulDiv( nVal, 0x1F, 0x0F );
-
-				// Set the rgb values to the alpha value.
-				pDestPos[0] = ( uint16 )(( nVal ) | ( nVal << 5 ) | ( nVal << 10 ));
-			}
+			// Set the rgb values to the alpha value.
+			pDestPos[0] = ( uint16 )(( nVal ) | ( nVal << 5 ) | ( nVal << 10 ));
 			pDestPos++;
 			pSrcPos++;
 		}
@@ -654,116 +627,6 @@ static void WritePixelDataBitmap( uint8* pPixelData, SIZE& sizeTexture, char con
 	WriteBmp( pszFilename, bmi, pDibBits );
 
 	delete[] pDibBits;
-}
-
-
-
-// ----------------------------------------------------------------------- //
-//
-//  ROUTINE:	WritePixelDataTGA
-//
-//  PURPOSE:	Writes pixel data texture to a TGA file.  For texture bitmaps
-//
-//	pPixelData -	pixel data bits sixteen bit ARGB pixels. 
-//
-//	sizeTexture -	size of pixel data.
-//
-//	pszFilename -	Filename to use.
-//
-// ----------------------------------------------------------------------- //
-
-static void WritePixelDataTGA( uint8* pPixelData, SIZE& sizeTexture, char const* pszFilename )
-{
-
-	// I don't like to do this but ...
-	// TGA header.
-#pragma pack(1)
-    class TGAHeader
-    {
-    public:
-        uint8   m_IDLength;
-        uint8   m_ColorMapType;
-        uint8   m_ImageType;
-        uint16  m_CMapStart;
-        uint16  m_CMapLength;
-        uint8   m_CMapDepth;
-        uint16  m_XOffset;
-        uint16  m_YOffset;
-        uint16  m_Width;
-        uint16  m_Height;
-        uint8   m_PixelDepth;
-        uint8   m_ImageDescriptor;
-    };
-#pragma pack()
-
-
-	TGAHeader hdr;
-
-	int nPixelDataPitch = WIDTHBYTES( 16, sizeTexture.cx );
-	int nBitmapPitch = WIDTHBYTES( 16, sizeTexture.cx );
-
-
-	// Save the bitmap.
-	FILE* fp = fopen( pszFilename, "wb");
-	if (!fp)
-	{
-		return;
-	}
-
-
-	// Fill in TGA header.
-	memset(&hdr, 0, sizeof(hdr));
-	hdr.m_Width = (WORD)sizeTexture.cx;
-	hdr.m_Height = (WORD)sizeTexture.cy;
-	hdr.m_PixelDepth = 32;
-	hdr.m_ImageType = 2;
-	hdr.m_ImageDescriptor = (1<<5);  // says image is flipped origin 0,1
- 
-	fwrite(&hdr, sizeof(hdr), 1, fp);
-
-	for( int y = 0; y < sizeTexture.cy; y++ )
-	{
-		uint16 const* pSrcPos = ( uint16* )( pPixelData + y * nPixelDataPitch );
-		uint32 Dest;
-
-		for( int x = 0; x < sizeTexture.cx; x++ )
-		{
-			// Special for green dot 
-			if ( pSrcPos[0] == 0x00F0 )
-			{
-				Dest = 0x0000FF00;
-			}
-			else
-			{
-
-				// Get the alpha value and scale it into 5 bits.
-				uint32 nVal = (( pSrcPos[0] & 0xF000 ) >> 12 );
-
-				nVal = MulDiv( nVal, 0xFF, 0x0F );
-				
-				if ( nVal )
-				{
-					Dest = (nVal << 24 ) | 0x00FFFFFF;
-				}
-				else
-				{
-					Dest = 0;  // no pixel here 
-				}
-
-			}
-
-			// write out the pixel
-
-			fwrite ( &Dest , sizeof(Dest), 1, fp );
-
-
-			pSrcPos++;
-		}
-	}
-
-	fclose(fp);
-
-
 }
 
 
@@ -1108,73 +971,6 @@ bool CUIVectorFont::CreateFontTextureAndTable( InstalledFontFace& installedFontF
 
 
 
-		// See if we should write green dots for inputing a bitmap.
-		bool bGreenDot = false;
-		HCONSOLEVAR hConVar2 = ilt_client->GetConsoleVar( "GreenDot" );
-		if( hConVar2 )
-		{
-			bGreenDot = (( int )ilt_client->GetVarValueFloat( hConVar2 ) != 0 );
-		}
-
-
-		// See if we should write out a TGA font
-		bool bWriteFontTGA = false;
-		HCONSOLEVAR hConVar3 = ilt_client->GetConsoleVar( "WriteFontTGA" );
-		if( hConVar3 )
-		{
-			bWriteFontTGA = (( int )ilt_client->GetVarValueFloat( hConVar3 ) != 0 );
-		}
-
-
-
-		// Do they want to see green dots ?
-		if ( (bWriteFontBitmap || bWriteFontTGA) && bGreenDot )
-		{
-
-
-			// Iterate over the characters.
-			for( int nGlyph = 0; nGlyph < nLen; nGlyph++ )
-			{
-				uint32 w;
-				uint32 x;
-				uint32 y;
-
-				// Get this character's width.
-				char nChar = pszChars[nGlyph];
-
-				// Fill in the font character map if we have one.
-				if( m_pFontMap )
-				{
-					m_pFontMap[( uint8 )nChar ] = nGlyph;
-				}
-
-				// Char width.
-				w = m_pFontTable[ nGlyph * 3 ];
-
-				// X Offset.
-				x = m_pFontTable[ nGlyph * 3 + 1];
-
-				// Y Offset.
-				y = m_pFontTable[ nGlyph * 3 + 2];
-
-				y += sizeMaxGlyphSize.cy + kCharSpacing - 1;
-				x += w - 1;
-
-				uint8 * pPixel = pPixelData + ( y * nPixelDataPitch ) + ( x * 2);
-
-				uint16* pData = ( uint16* )pPixel;
-				uint16* pPixelDataEnd = ( uint16* )( pPixelData + nPixelDataSize );
-
-				if ( pData < pPixelDataEnd )
-				{
-						*pData = 0x00F0;    // Set green pixel ( pixel format is ARGB ) 
-				}
-
-			}	
-		}
-
-
-
 		// Write BMP
 		if ( bWriteFontBitmap )
 		{
@@ -1187,17 +983,6 @@ bool CUIVectorFont::CreateFontTextureAndTable( InstalledFontFace& installedFontF
 		}
 
 
-
-		// Write TGA
-		if ( bWriteFontTGA )
-		{
-			char szTextFace[_MAX_PATH];
-			GetTextFace( hDC, sizeof( szTextFace ), szTextFace );
-			char szFileName[_MAX_PATH];
-			sprintf( szFileName, "Font_%s.tga", szTextFace );
-
-			WritePixelDataTGA( pPixelData, sizeTexture, szFileName );
-		}
 
 		
 	}  // end if bOk

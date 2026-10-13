@@ -19,25 +19,19 @@ extern void d3d_DrawSprite(const ViewParams &Params, LTObject *pObj);
 
 void d3d_DrawSkyObjects(const ViewParams& SkyParams)
 {
-/* JJH - this viewport was calculated assuming a screen resolution render target.
-		 second camera viewports need different settings, so this was
-		 causing the skybox to draw incorrectly in alternate cameras.
-		 if you uncomment this, make sure to also uncomment the setviewport at
-		 the end.
-
 	//preserve our old viewport
-	D3DVIEWPORT9 cOldViewport;
+	D3DVIEWPORT8 cOldViewport;
 	PD3DDEVICE->GetViewport(&cOldViewport);
 
 	//setup our new viewport that matches our sky dimensions
-	D3DVIEWPORT9 cViewPort;
+	D3DVIEWPORT8 cViewPort;
 	cViewPort.X			= SkyParams.m_Rect.left;
 	cViewPort.Y			= SkyParams.m_Rect.top;
 	cViewPort.Width		= SkyParams.m_Rect.right - SkyParams.m_Rect.left;
 	cViewPort.Height	= SkyParams.m_Rect.bottom - SkyParams.m_Rect.top;
 	cViewPort.MinZ		= 0.0f;
 	cViewPort.MaxZ		= 1.0f;
-	PD3DDEVICE->SetViewport(&cViewPort);*/
+	PD3DDEVICE->SetViewport(&cViewPort);
 	
 	//disable reading/writing to the Z buffer
 	StateSet ssZWrite(D3DRS_ZWRITEENABLE, FALSE);
@@ -113,6 +107,6 @@ void d3d_DrawSkyObjects(const ViewParams& SkyParams)
 	// Unset translucent stuff.
 	d3d_UnsetTranslucentObjectStates(FALSE);
 
-//	PD3DDEVICE->SetViewport(&cOldViewport);
+	PD3DDEVICE->SetViewport(&cOldViewport);
 }
 

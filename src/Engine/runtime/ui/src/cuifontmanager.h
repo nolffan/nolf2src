@@ -19,7 +19,6 @@
 #include "iltfontmanager.h"
 #endif
 
-class LTFontParams;
 
 
 class CUIFontManager : public ILTFontManager
@@ -56,14 +55,12 @@ class CUIFontManager : public ILTFontManager
 							char const* pszFontFace,
 							uint32 pointSize,
 							uint8  asciiStart,
-							uint8  asciiEnd,
-							LTFontParams* fontParams = NULL); 
+							uint8  asciiEnd);
 		
 		CUIFont* CreateFont(char const* pszFontFile, 
 							char const* pszFontFace,
 					  		uint32 pointSize,
-					  		char*  pCharacters,
-							LTFontParams* fontParams = NULL);
+					  		char*  pCharacters);
 
 
 		// font destruction function

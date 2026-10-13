@@ -3,7 +3,7 @@
 #define __D3D_SURFACE_H__
 
 #ifndef __D3D_H__
-#include <d3d9.h>
+#include <d3d8.h>
 #define __D3D_H__
 #endif
 
@@ -35,7 +35,7 @@ struct SurfaceTile
 	//the pixels that map into the image for each coordinate
 	LTRect					m_SrcImageRect;
 
-	LPDIRECT3DTEXTURE9		m_pTexture;
+	LPDIRECT3DTEXTURE8		m_pTexture;
 };
 
 struct SurfaceTiles

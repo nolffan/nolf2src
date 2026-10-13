@@ -56,7 +56,7 @@ void d3d_SetReallyClose(CReallyCloseData* pData)
 	PD3DDEVICE->GetViewport(&pData->m_OldViewport);
 
 	// view port min-max Z change for pv model.
-	D3DVIEWPORT9 ViewportData;
+	D3DVIEWPORT8 ViewportData;
 	ViewportData.X		= pData->m_OldViewport.X;
 	ViewportData.Y		= pData->m_OldViewport.Y;
 	ViewportData.Width	= pData->m_OldViewport.Width;
@@ -174,11 +174,11 @@ void d3d_SetBumpMapTransform(uint32 nStage, float fTextureScale)
 
 
 //  Convert each vector member (-1.0 to 1.0) to (0 to 255) and saves the result in a DWORD. 
-DWORD d3d_VectorToRGB(LTVector * vector)
+DWORD d3d_VectorToRGB(LTVector * pVector)
 {
-	DWORD dwR = (DWORD)(127 * vector->x + 128);
-	DWORD dwG = (DWORD)(127 * vector->y + 128);
-	DWORD dwB = (DWORD)(127 * vector->z + 128);
+	DWORD dwR = (DWORD)(127 * pVector->x + 128);
+	DWORD dwG = (DWORD)(127 * pVector->y + 128);
+	DWORD dwB = (DWORD)(127 * pVector->z + 128);
 
 return (DWORD)(0xff000000 + (dwR << 16) + (dwG << 8) + dwB);
 }

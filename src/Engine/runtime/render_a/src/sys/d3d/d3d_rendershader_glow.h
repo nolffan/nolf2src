@@ -16,7 +16,7 @@ class CRenderShader_Glow
 public:
 
 	//indicates that a new shader is being started
-	static bool	BeginNewShader(uint32 nFVF, uint32 nVertSize, IDirect3DIndexBuffer9* pIB, IDirect3DVertexBuffer9* pVB);
+	static bool	BeginNewShader(uint32 nFVF, uint32 nVertSize, IDirect3DIndexBuffer8* pIB, IDirect3DVertexBuffer8* pVB);
 
 	//draw the section with black except for where the passed in texture has alpha values in which case
 	//it will modulate the texture by that value

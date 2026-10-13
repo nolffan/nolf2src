@@ -20,7 +20,7 @@ public:
 	//gets a light for writing to from the list. This does not do a copy due to the large
 	//size of the light structure and instead returns the light that can be used to put in.
 	//This returns NULL if no room is available
-	D3DLIGHT9*	AddNewLight();
+	D3DLIGHT8*	AddNewLight();
 
 	//Installs the light list into the device
 	void			InstallLightList() const;
@@ -37,7 +37,7 @@ public:
 
 private:
 
-	D3DLIGHT9	m_Lights[MAX_LIGHTS_SUPPORTED_BY_D3D];
+	D3DLIGHT8	m_Lights[MAX_LIGHTS_SUPPORTED_BY_D3D];
 	uint32		m_nAmbient;
 	uint32		m_nNumLights;
 };

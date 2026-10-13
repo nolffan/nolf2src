@@ -20,7 +20,6 @@
 #endif
 
 class InstalledFontFace;
-class LTFontParams;
 
 class CUIVectorFont : public CUIFont_Impl
 {
@@ -38,15 +37,13 @@ class CUIVectorFont : public CUIFont_Impl
 					char const* pszFontFace,
 					uint32 pointSize,
 					uint8  asciiStart,
-					uint8  asciiEnd, 
-					LTFontParams* fontParams = NULL);
+					uint8  asciiEnd);
 	
 		// create a proportional font from TTF, and string
 		bool Init( char const* pszFontFile,
 					char const* pszFontFace,
 					uint32 pointSize,
-					char const* pszCharacters,
-					LTFontParams* fontParams = NULL);
+					char const* pszCharacters);
 	
 		
 		void Term( );

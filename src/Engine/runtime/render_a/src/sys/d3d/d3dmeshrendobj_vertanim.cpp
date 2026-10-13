@@ -10,20 +10,8 @@
 #include "d3d_device.h"
 #include "d3d_texture.h"
 #include "d3d_renderstatemgr.h"
-#include "ltvertexshadermgr.h"
-#include "ltpixelshadermgr.h"
 #include "de_objects.h"
-#include "ltshaderdevicestateimp.h"
 #include "rendererconsolevars.h"
-#include "LTEffectImpl.h"
-#include "lteffectshadermgr.h"
-
-
-//IClientShell game client shell object.
-#include "iclientshell.h"
-static IClientShell *i_client_shell;
-define_holder(IClientShell, i_client_shell);
-
 
 
 CD3DVAMesh::CD3DVAMesh()
@@ -49,21 +37,6 @@ void CD3DVAMesh::Reset()
 	m_iDupMapListCount	= 0;
 	m_pDupMapList		= NULL;
 	m_pIndexData		= NULL;
-	m_bSWVertProcessing	= ((g_Device.GetDeviceCaps()->DevCaps & D3DDEVCAPS_HWTRANSFORMANDLIGHT) == 0) ? true : false;
-
-
-	m_bSWVSBuffers = false;
-
-	// Use software processing for shaders ? 
-	if ( g_Device.GetDeviceCaps()->VertexShaderVersion < D3DVS_VERSION(1,1) )
-		m_bSWVSBuffers = true;
-
-
-	// in case software has been forced 
-	if ( g_CV_ForceSWVertProcess )
-		m_bSWVertProcessing = true;
-
-
 	m_bNonFixPipeData	= false;
 
 	for (uint32 i = 0; i < 4; ++i) m_pVertData[i] = NULL;
@@ -137,23 +110,24 @@ bool CD3DVAMesh::Load(ILTStream& File, LTB_Header& LTBHeader)
 void CD3DVAMesh::ReCreateObject()
 {
 	// Create our VB...
-	for (uint32 i=0;i<4;++i)
+	uint32 i;
+	for (i=0;i<4;++i)
 	{
 		if (!m_VertStreamFlags[i])
 			continue;
-		if (!m_VBController.CreateStream(i,m_iVertCount,m_VertStreamFlags[i],eNO_WORLD_BLENDS,false,true,m_bSWVertProcessing))
+		if (!m_VBController.CreateStream(i,m_iVertCount,m_VertStreamFlags[i],eNO_WORLD_BLENDS,false,true,false))
 		{
 			FreeAll(); return;
 		}
 	}
-	if (!m_VBController.CreateIndexBuffer(m_iPolyCount*3,false,true,m_bSWVertProcessing))
+	if (!m_VBController.CreateIndexBuffer(m_iPolyCount*3,false,true,false))
 	{
 		FreeAll();
 		return;
 	}
 
 	// Read in our Verts...
-	for (int i=0;i<4;++i)
+	for (i=0;i<4;++i)
 	{
 		if (!m_VertStreamFlags[i])
 			continue;
@@ -209,7 +183,8 @@ void CD3DVAMesh::UpdateVA(Model* pModel, AnimTimeRef* pAnimTimeRef)
 	uint8* pVertData		= (uint8*)m_VBController.getVertexData(0);
 	uint32 Vertex_Size		= m_VBController.getVertexSize(0);
 	//uint32 NormalOffset		= m_VBController.getXYZSize();
-	for (int i = 0; i < (int)m_iUnDupVertCount ; ++i)
+	int i;
+	for (i = 0; i < (int)m_iUnDupVertCount ; ++i)
 	{
 		const float *prv_val = pDefVerts[0]->getValue(i);
 		const float *cur_val = pDefVerts[1]->getValue(i);
@@ -225,7 +200,7 @@ void CD3DVAMesh::UpdateVA(Model* pModel, AnimTimeRef* pAnimTimeRef)
 
 	// Copy the DupVerts...
 	pVertData		= (uint8*)m_VBController.getVertexData(0);
-	for (int i = 0;i < (int)m_iDupMapListCount; ++i)
+	for (i = 0;i < (int)m_iDupMapListCount; ++i)
 	{
 		D3DVECTOR* pDstVert = (D3DVECTOR*)(pVertData + ((uint32)m_pDupMapList[i].iDstVert * Vertex_Size));
 		D3DVECTOR* pSrcVert = (D3DVECTOR*)(pVertData + ((uint32)m_pDupMapList[i].iSrcVert * Vertex_Size));
@@ -239,149 +214,26 @@ void CD3DVAMesh::UpdateVA(Model* pModel, AnimTimeRef* pAnimTimeRef)
 	}
 }
 
-void CD3DVAMesh::Render(ModelInstance *pInstance, D3DMATRIX& WorldTransform, CD3DRenderStyle* pRenderStyle, uint32 iRenderPass)
+void CD3DVAMesh::Render(D3DMATRIX& WorldTransform, CD3DRenderStyle* pRenderStyle, uint32 iRenderPass)
 {
-	RSD3DOptions rsD3DOptions;
-	pRenderStyle->GetDirect3D_Options(&rsD3DOptions);
-
-	// If this pass has a vertex shader, use it.
-	RSD3DRenderPass *pPass = pRenderStyle->GetRenderPass_D3DOptions(iRenderPass);
-	if (NULL != pPass &&
-	    pPass->bUseVertexShader &&
-		pPass->VertexShaderID != LTVertexShader::VERTEXSHADER_INVALID)
-	{
-		if ( m_bSWVSBuffers && !m_bSWVertProcessing )
-		{
-			m_bSWVertProcessing = true;
-			FreeDeviceObjects();
-			ReCreateObject();
-		}
-
-		// Store the pointer to the actual shader during rendering.
-		m_pVertexShader = LTVertexShaderMgr::GetSingleton().GetVertexShader(pPass->VertexShaderID);
-		if (m_pVertexShader != NULL)
-		{
-			// Install the shader.
-			if (!LTVertexShaderMgr::GetSingleton().InstallVertexShader(m_pVertexShader))
-			{
-				m_pVertexShader = NULL;
-				return;
-			}
-		}
-	}
-	else if (!rsD3DOptions.bUseEffectShader)		
-	{
-		if (!m_VBController.getVertexFormat(0) || m_bNonFixPipeData)
-		{
-			// This is a non fixed function pipe VB - bail out...
-			return;
-		}
-		else if(FAILED(g_RenderStateMgr.SetVertexShader(m_VBController.getVertexFormat(0))))
-		{
-			return;
-		}
-	}
-
-	// If this pass has a pixel shader, use it.
-	if (NULL != pPass &&
-	    pPass->bUsePixelShader &&
-		pPass->PixelShaderID != LTPixelShader::PIXELSHADER_INVALID)
-	{
-		// Store the pointer to the actual shader during rendering.
-		m_pPixelShader = LTPixelShaderMgr::GetSingleton().GetPixelShader(pPass->PixelShaderID);
-		if (m_pPixelShader != NULL)
-		{
-			// Install the shader.
-			if (!LTPixelShaderMgr::GetSingleton().InstallPixelShader(m_pPixelShader))
-			{
-				m_pPixelShader = NULL;
-				return;
-			}
-		}
-	}
-
-	// We need software processing 
-	if(m_bSWVertProcessing)
-	{
-		PD3DDEVICE->SetSoftwareVertexProcessing(TRUE);
-	}
-
-
 	g_RenderStateMgr.SetTransform(D3DTS_WORLDMATRIX(0), &WorldTransform);
 
-
+	if (!m_VBController.getVertexFormat(0) || m_bNonFixPipeData)
+	{
+		// This is a non fixed function pipe VB - bail out...
+		return;
+	}
+	else if(FAILED(g_RenderStateMgr.SetVertexShader(m_VBController.getVertexFormat(0))))
+	{
+		return;
+	}
 
 	m_VBController.SetStreamSources();
 
-	// Set the vertex shader constants.
-	if (m_pVertexShader != NULL)
-	{
-		// Let the client set some constants.
-		if (NULL != i_client_shell)
-		{
-			i_client_shell->OnVertexShaderSetConstants(m_pVertexShader, iRenderPass, pRenderStyle, pInstance,
-													   LTShaderDeviceStateImp::GetSingleton());
-		}
-
-		// Send the constants to the video card.
-		LTVertexShaderMgr::GetSingleton().SetVertexShaderConstants(m_pVertexShader);
-	}
-
-	// Set the pixel shader constants.
-	if (m_pPixelShader != NULL)
-	{
-		// Let the client set some constants.
-		if (NULL != i_client_shell)
-		{
-			i_client_shell->OnPixelShaderSetConstants(m_pPixelShader, iRenderPass, pRenderStyle, pInstance,
-													  LTShaderDeviceStateImp::GetSingleton());
-		}
-
-		// Send the constants to the video card.
-		LTPixelShaderMgr::GetSingleton().SetPixelShaderConstants(m_pPixelShader);
-	}
-
-	if(rsD3DOptions.bUseEffectShader)
-	{
-		LTEffectImpl* _pEffect = (LTEffectImpl*)LTEffectShaderMgr::GetSingleton().GetEffectShader(rsD3DOptions.EffectShaderID);
-		ID3DXEffect* pEffect = _pEffect->GetEffect();
-
-		if(pEffect)
-		{
-			i_client_shell->OnEffectShaderSetParams((LTEffectShader*)_pEffect, pRenderStyle, pInstance, LTShaderDeviceStateImp::GetSingleton());
-			pEffect->CommitChanges();
-		}
-	}
-
 	m_VBController.Render(0,0,m_iVertCount,m_iPolyCount);
 
-
-	if ( m_bSWVertProcessing )
-	{
-		// If we are running with hardware then turn back on hardware processing
-		if ( (g_Device.GetDeviceCaps()->DevCaps & D3DDEVCAPS_HWTRANSFORMANDLIGHT) )
-		{
-		
-			PD3DDEVICE->SetSoftwareVertexProcessing(FALSE);
-		}
-	}
-
-	PD3DDEVICE->SetStreamSource(0, 0, 0, 0);
-	PD3DDEVICE->SetIndices(0);
-
-	// Uninstall the vertex shader.
-	if (NULL != m_pVertexShader)
-	{
-		LTVertexShaderMgr::GetSingleton().UninstallVertexShader();
-		m_pVertexShader = NULL;
-	}
-
-	// Uninstall the pixel shader.
-	if (NULL != m_pPixelShader)
-	{
-		LTPixelShaderMgr::GetSingleton().UninstallPixelShader();
-		m_pPixelShader = NULL;
-	}
+	PD3DDEVICE->SetStreamSource(0, 0, 0);
+	PD3DDEVICE->SetIndices(0, 0);
 }
 
 void CD3DVAMesh::CalcUsedNodes( Model *pModel )

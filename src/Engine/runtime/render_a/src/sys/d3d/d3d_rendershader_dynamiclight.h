@@ -89,8 +89,8 @@ private:
 	ELightingMethod m_eLightingMethod;
 
 	// Lighting textures
-	IDirect3DTexture9 *m_pTextureXY;
-	IDirect3DTexture9 *m_pTextureZ;
+	IDirect3DTexture8 *m_pTextureXY;
+	IDirect3DTexture8 *m_pTextureZ;
 
 	// State restoration stuff
 	bool m_bStatesSaved;
@@ -129,11 +129,11 @@ private:
 		eRS_NumStates 
 	};
 	DWORD m_aSavedStates[eRS_NumStates];
-	IDirect3DIndexBuffer9 *m_pSavedIB;
+	IDirect3DIndexBuffer8 *m_pSavedIB;
 	uint32 m_nSavedIBBase;
 
 	// The temporary index buffer
-	IDirect3DIndexBuffer9 *m_pTempIB;
+	IDirect3DIndexBuffer8 *m_pTempIB;
 	uint32 m_nTempIBIndex;
 	// Number of triangles the temporary index buffer can handle
 	enum { k_nTempIBTris = 4096 };

@@ -7,8 +7,6 @@
 #include "FixedPoint.h"
 #include "de_mainworld.h"
 #include "rendererframestats.h"
-#include "rendertargetmgr.h"
-#include "rendertarget.h"
 
 //------------------------------------------------------------------
 //------------------------------------------------------------------
@@ -439,36 +437,6 @@ bool d3d_InitFrame(ViewParams* pParams, SceneDesc *pDesc)
 	SetFrameStat(eFS_DrawPrimTexMemory, nFS_DrawPrimTexMemory);
 
 	g_Device.SetDefaultRenderStates();
-
-	HRENDERTARGET hRenderTarget = CRenderTargetMgr::GetSingleton().GetCurrentRenderTargetHandle();
-	if(hRenderTarget != INVALID_RENDER_TARGET)
-	{
-		CRenderTarget *pRenderTarget = CRenderTargetMgr::GetSingleton().GetRenderTarget(hRenderTarget);
-
-		if(pRenderTarget)
-		{
-			uint32 nWidth = 0;
-			uint32 nHeight = 0;
-			RenderTargetParams params = pRenderTarget->GetRenderTargetParams();
-		
-			int x1 = 0;
-			int x2 = params.Width;
-			int y1 = 0;
-			int y2 = params.Height;
-
-			// Setup the viewport...
-			g_Device.SetupViewport(x1, x2, y1, y2, 0.1f, 1.0f);
-
-			// Note: since the numbers are truncated when converted to integers, it takes a little
-			// off the right and bottom to make sure it never exceeds those.
-			return d3d_InitFrustum(pParams, 
-				pDesc->m_xFov, pDesc->m_yFov, 
-				NEARZ, g_CV_FarZ, 
-				(float)x1, (float)y1, 
-				(float)x2 - 0.1f, (float)y2 - 0.1f, 
-				&pDesc->m_Pos, &pDesc->m_Rotation, ViewParams::eRenderMode_Normal);
-		}
-	}
 
 	// Setup the viewport...
 	g_Device.SetupViewport(pDesc->m_Rect.left,pDesc->m_Rect.right,pDesc->m_Rect.top,pDesc->m_Rect.bottom,0.1f,1.0f);

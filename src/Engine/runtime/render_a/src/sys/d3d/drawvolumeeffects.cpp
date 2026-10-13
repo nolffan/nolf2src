@@ -1,10 +1,5 @@
 #include "precompile.h"
 
-//IClientShell game client shell object.
-#include "iclientshell.h"
-static IClientShell *i_client_shell;
-define_holder(IClientShell, i_client_shell);
-
 #include "d3d_draw.h"
 #include "3d_ops.h"
 #include "d3d_texture.h"
@@ -17,9 +12,6 @@ define_holder(IClientShell, i_client_shell);
 #include "relevantlightlist.h"
 #include "rendererframestats.h"
 
-#include "LTEffectImpl.h"
-#include "lteffectshadermgr.h"
-#include "ltshaderdevicestateimp.h"
 #include "rendererconsolevars.h"
 
 //IWorldClientBSP holder
@@ -83,10 +75,10 @@ struct DynamicParticleLightingData
 #define DYNAMICPARTICLE_QUADIBSIZE  (DYNAMICPARTICLE_NUMQUADS*6)
 
 // the vertex buffer for dynamic particles
-static IDirect3DVertexBuffer9* g_pDynamicParticleVB = NULL;
+static IDirect3DVertexBuffer8* g_pDynamicParticleVB = NULL;
 
 // the index buffer for dynamic particle quads
-static IDirect3DIndexBuffer9* g_pDynamicParticleQuadIB = NULL;
+static IDirect3DIndexBuffer8* g_pDynamicParticleQuadIB = NULL;
 
 // the lighting sample array for dynamic particles
 static DynamicParticleLightingData* g_pDynamicParticleLighting = NULL;
@@ -133,7 +125,7 @@ static void DrawDynamicParticles(const ViewParams& Params, LTVolumeEffect* pEffe
 		uint16* curIndex;
 		uint16 baseVert;
 
-		if( FAILED( g_pDynamicParticleQuadIB->Lock( 0, 0, (void **)&ibData, 0 ) ) )
+		if( FAILED( g_pDynamicParticleQuadIB->Lock( 0, 0, (BYTE**)&ibData, 0 ) ) )
 		{
 			g_pDynamicParticleQuadIB->Release();
 			g_pDynamicParticleQuadIB = NULL;
@@ -179,8 +171,8 @@ static void DrawDynamicParticles(const ViewParams& Params, LTVolumeEffect* pEffe
 	StateSet ssCull( D3DRS_CULLMODE, D3DCULL_NONE );
 
 	// clamp the texture instead of wrapping
-	SamplerStateSet ssWrapModeU0(0, D3DSAMP_ADDRESSU, D3DTADDRESS_CLAMP);
-	SamplerStateSet ssWrapModeV0(0, D3DSAMP_ADDRESSV, D3DTADDRESS_CLAMP);
+	StageStateSet ssWrapModeU0(0, D3DTSS_ADDRESSU, D3DTADDRESS_CLAMP);
+	StageStateSet ssWrapModeV0(0, D3DTSS_ADDRESSV, D3DTADDRESS_CLAMP);
 
 	// the following are used for color saturation
 	StageStateSet tss0( 0, D3DTSS_COLORARG1, D3DTA_TEXTURE );
@@ -206,7 +198,7 @@ static void DrawDynamicParticles(const ViewParams& Params, LTVolumeEffect* pEffe
 		if( (vbRemainingVerts < 100) || !g_nDynamicParticlesDrawn )
 		{
 			// if there are only a few verts left unfilled, or this is the first lock of a frame, start up a new vertex buffer
-			if( FAILED( g_pDynamicParticleVB->Lock( 0, 0, (void **)&vbData, D3DLOCK_DISCARD ) ) )
+			if( FAILED( g_pDynamicParticleVB->Lock( 0, 0, (BYTE**)&vbData, D3DLOCK_DISCARD ) ) )
 				return;
 			g_nDynamicParticleVBIndex = 0;
 			vbRemainingVerts = DYNAMICPARTICLE_VBSIZE;
@@ -214,7 +206,7 @@ static void DrawDynamicParticles(const ViewParams& Params, LTVolumeEffect* pEffe
 		else
 		{
 			// otherwise grab the unused portion of the current vertex buffer
-			if( FAILED( g_pDynamicParticleVB->Lock( g_nDynamicParticleVBIndex*DPVertSize, vbRemainingVerts*DPVertSize, (void **)&vbData, D3DLOCK_NOOVERWRITE ) ) )
+			if( FAILED( g_pDynamicParticleVB->Lock( g_nDynamicParticleVBIndex*DPVertSize, vbRemainingVerts*DPVertSize, (BYTE**)&vbData, D3DLOCK_NOOVERWRITE ) ) )
 				return;
 		}
 
@@ -237,35 +229,16 @@ static void DrawDynamicParticles(const ViewParams& Params, LTVolumeEffect* pEffe
 		if( first )
 		{
 			first = false;
-			if( FAILED( PD3DDEVICE->SetStreamSource( 0, g_pDynamicParticleVB, 0, DPVertSize ) ) )
+			if( FAILED( PD3DDEVICE->SetStreamSource( 0, g_pDynamicParticleVB, DPVertSize ) ) )
 				return;
-			if( FAILED( PD3DDEVICE->SetVertexShader(NULL) ) )
-				return;
-			if( FAILED( PD3DDEVICE->SetFVF( DYNAMICPARTICLE_FVF ) ) )
+			if( FAILED( PD3DDEVICE->SetVertexShader( DYNAMICPARTICLE_FVF ) ) )
 				return;
 			if( renderQuads )
-				if( FAILED( PD3DDEVICE->SetIndices( g_pDynamicParticleQuadIB) ) )
+				if( FAILED( PD3DDEVICE->SetIndices( g_pDynamicParticleQuadIB, 0) ) )
 					return;
 			if( !pEffect->m_DPTexture || !d3d_SetTexture( pEffect->m_DPTexture, 0, eFS_VolumeEffectTexMemory ) )
 			{
 				d3d_DisableTexture( 0 );
-			}
-			else
-			{
-				//if it passed and we have an Associated Effect, we need to upload the texture to the effect
-				LTEffectImpl* pEffectShader = (LTEffectImpl*)LTEffectShaderMgr::GetSingleton().GetEffectShader(pEffect->m_nEffectShaderID);
-				if(pEffectShader)
-				{
-					ID3DXEffect* pD3DEffect = pEffectShader->GetEffect();
-					if(pD3DEffect)
-					{
-						if(pEffect->m_DPTexture)
-						{				
-							RTexture* pRTexture = (RTexture*)pEffect->m_DPTexture->m_pRenderData;
-							pD3DEffect->SetTexture("texture0", pRTexture->m_pD3DTexture);
-						}
-					}
-				}
 			}
 		}
 
@@ -281,44 +254,9 @@ static void DrawDynamicParticles(const ViewParams& Params, LTVolumeEffect* pEffe
 				return;
 			}
 
-			LTEffectImpl* pEffectShader = (LTEffectImpl*)LTEffectShaderMgr::GetSingleton().GetEffectShader(pEffect->m_nEffectShaderID);
-			if(pEffectShader)
+			if(FAILED( PD3DDEVICE->DrawPrimitive( D3DPT_TRIANGLELIST, g_nDynamicParticleVBIndex, numTris ) ))
 			{
-				ID3DXEffect* pD3DEffect = pEffectShader->GetEffect();
-				if(pD3DEffect)
-				{
-					bool bFailed = false;
-
-					i_client_shell->OnEffectShaderSetParams(pEffectShader, NULL, NULL, LTShaderDeviceStateImp::GetSingleton());
-
-					UINT nPasses = 0;
-					pD3DEffect->Begin(&nPasses, 0);
-
-					for(UINT i = 0; i < nPasses; ++i)
-					{
-						pD3DEffect->BeginPass(i);
-
-						if(FAILED( PD3DDEVICE->DrawPrimitive( D3DPT_TRIANGLELIST, g_nDynamicParticleVBIndex, numTris ) ))
-						{
-							bFailed = true;
-						}
-
-						pD3DEffect->EndPass();
-					}
-
-					pD3DEffect->End();
-
-					if(bFailed)
-					{
-						return;
-					}
-				}
-			}	
-			else
-			{	if(FAILED( PD3DDEVICE->DrawPrimitive( D3DPT_TRIANGLELIST, g_nDynamicParticleVBIndex, numTris ) ))
-				{
-					return;
-				}
+				return;
 			}
 
 
@@ -333,46 +271,10 @@ static void DrawDynamicParticles(const ViewParams& Params, LTVolumeEffect* pEffe
 			{
 				return;
 			}
-			
-			LTEffectImpl* pEffectShader = (LTEffectImpl*)LTEffectShaderMgr::GetSingleton().GetEffectShader(pEffect->m_nEffectShaderID);
-			if(pEffectShader)			
+
+			if(FAILED( PD3DDEVICE->DrawIndexedPrimitive( D3DPT_TRIANGLELIST, g_nDynamicParticleVBIndex, curFilled, (g_nDynamicParticleVBIndex/4)*6, numTris ) ) )
 			{
-				ID3DXEffect* pD3DEffect = pEffectShader->GetEffect();
-				if(pD3DEffect)
-				{
-					bool bFailed = false;
-
-					i_client_shell->OnEffectShaderSetParams(pEffectShader, NULL, NULL, LTShaderDeviceStateImp::GetSingleton());
-
-					UINT nPasses = 0;
-					pD3DEffect->Begin(&nPasses, 0);
-
-					for(UINT i = 0; i < nPasses; ++i)
-					{
-						pD3DEffect->BeginPass(i);
-
-						if(FAILED( PD3DDEVICE->DrawIndexedPrimitive( D3DPT_TRIANGLELIST, 0, g_nDynamicParticleVBIndex, curFilled, (g_nDynamicParticleVBIndex/4)*6, numTris ) ) )
-						{
-							bFailed = true;
-						}
-
-						pD3DEffect->EndPass();
-					}
-
-					pD3DEffect->End();
-
-					if(bFailed)
-					{
-						return;
-					}
-				}
-			}
-			else
-			{			
-				if(FAILED( PD3DDEVICE->DrawIndexedPrimitive( D3DPT_TRIANGLELIST, 0, g_nDynamicParticleVBIndex, curFilled, (g_nDynamicParticleVBIndex/4)*6, numTris ) ) )
-				{
-					return;
-				}
+				return;
 			}
 
 			IncFrameStat(eFS_VolumeEffectTriangles, numTris);
@@ -387,8 +289,8 @@ static void DrawDynamicParticles(const ViewParams& Params, LTVolumeEffect* pEffe
 	d3d_DisableTexture(0);
 
 	// Don't leak the VB or IB either
-	PD3DDEVICE->SetStreamSource(0, 0, 0, 0);
-	PD3DDEVICE->SetIndices(0);
+	PD3DDEVICE->SetStreamSource(0, 0, 0);
+	PD3DDEVICE->SetIndices(0, 0);
 }
 
 

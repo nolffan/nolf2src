@@ -23,9 +23,10 @@ CFG=ltmem - Win32 Final
 # nolf2src: ltmem.lib, the LithTech memory library the engine's modules and
 # Monolith's game DLLs link (TO2.dsw names it as a dependency; the source
 # release does not have it). Written for this project from what the sound
-# driver links of it (ltmem.cpp). A static library project's flags (the C
-# runtime not imported: its calls go through import thunks), with /Ob2 as
-# the driver's own.
+# driver links of it (ltmem.cpp) and what the engine adds (ltmemstats.cpp,
+# the "mem" console command). A static library project's flags (the C
+# runtime not imported: its calls go through import thunks, in the sound
+# driver and in Lithtech.exe alike), with /Ob2 as the driver's own.
 # Begin Project
 # PROP AllowPerConfigDependencies 0
 # PROP Scc_ProjName ""
@@ -64,6 +65,10 @@ LIB32=link.exe -lib
 # Begin Source File
 
 SOURCE=.\ltmem.cpp
+# End Source File
+# Begin Source File
+
+SOURCE=.\ltmemstats.cpp
 # End Source File
 # End Group
 # End Target

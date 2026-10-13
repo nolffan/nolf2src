@@ -154,11 +154,8 @@ bool CTextureScriptInstance::Evaluate(bool bForce)
 	}
 
 	//update our other info for dirty detection
-	if( m_bFirstUpdate || (m_nOldFrameCode != g_CurFrameCode) )
-	{
 	m_fOldTime			= fTime;
 	m_nOldFrameCode		= g_CurFrameCode;
-	}
 	m_bFirstUpdate		= false;
 
 	//success
@@ -259,15 +256,8 @@ bool CTextureScriptInstance::Install(uint32 nNumChannels, ...)
 			{
 				//found a match, so lets go ahead and update it
 				D3D_CALL(PD3DDEVICE->SetTextureStageState(nChannel, D3DTSS_TEXTURETRANSFORMFLAGS, nTTF));
+				D3D_CALL(PD3DDEVICE->SetTextureStageState(nChannel, D3DTSS_TEXCOORDINDEX, nInput | nChannel));
 				D3D_CALL(PD3DDEVICE->SetTransform((D3DTRANSFORMSTATETYPE)(D3DTS_TEXTURE0 + nChannel), &mMat));
-				if( (nInput == D3DTSS_TCI_PASSTHRU) && (pStage->m_eChannel == TSChannel_DualTexture || pStage->m_eChannel == TSChannel_Detail) )
-				{
-					D3D_CALL(PD3DDEVICE->SetTextureStageState(nChannel, D3DTSS_TEXCOORDINDEX, nInput|1));
-				}
-				else
-				{
-					D3D_CALL(PD3DDEVICE->SetTextureStageState(nChannel, D3DTSS_TEXCOORDINDEX, nInput));
-				}
 			}
 		}
 	}

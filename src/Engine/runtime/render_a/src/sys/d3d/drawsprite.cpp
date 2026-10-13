@@ -1,10 +1,5 @@
 #include "precompile.h"
 
-//IClientShell game client shell object.
-#include "iclientshell.h"
-static IClientShell *i_client_shell;
-define_holder(IClientShell, i_client_shell);
-
 #include "de_objects.h"
 #include "3d_ops.h"
 #include "common_draw.h"
@@ -18,9 +13,6 @@ define_holder(IClientShell, i_client_shell);
 #include "renderstruct.h"
 #include "counter.h"
 
-#include "LTEffectImpl.h"
-#include "lteffectshadermgr.h"
-#include "ltshaderdevicestateimp.h"
 #include "rendererconsolevars.h"
 
 //------------------------------------------------------------------
@@ -338,39 +330,8 @@ static void d3d_DrawRotatableSprite(const ViewParams& Params, SpriteInstance *pI
 		}
 	}
 	
-	LTEffectImpl* pEffect = (LTEffectImpl*)LTEffectShaderMgr::GetSingleton().GetEffectShader(pInstance->m_nEffectShaderID);
-	if(pEffect)
-	{
-		pEffect->UploadVertexDeclaration();
-
-		ID3DXEffect* pD3DEffect = pEffect->GetEffect();
-		if(pD3DEffect)
-		{
-			RTexture* pTexture = (RTexture*)pShared->m_pRenderData;
-			pD3DEffect->SetTexture("texture0", pTexture->m_pD3DTexture);
-
-			i_client_shell->OnEffectShaderSetParams(pEffect, NULL, NULL, LTShaderDeviceStateImp::GetSingleton());
-
-			UINT nPasses = 0;
-			pD3DEffect->Begin(&nPasses, 0);
-
-			for(int i = 0; i < nPasses; ++i)
-			{
-				pD3DEffect->BeginPass(i);
-				D3D_CALL(PD3DDEVICE->DrawPrimitiveUP(D3DPT_TRIANGLEFAN, nPoints-2, pPoints, sizeof(CSpriteVertex)));
-				pD3DEffect->EndPass();
-			}
-
-			pD3DEffect->End();
-		}
-
-	}
-	else
-	{	
-		D3D_CALL(PD3DDEVICE->SetVertexShader(NULL));
-		D3D_CALL(PD3DDEVICE->SetFVF(SPRITEVERTEX_FORMAT));
-		D3D_CALL(PD3DDEVICE->DrawPrimitiveUP(D3DPT_TRIANGLEFAN, nPoints-2, pPoints, sizeof(CSpriteVertex)));
-	}
+	D3D_CALL(PD3DDEVICE->SetVertexShader(SPRITEVERTEX_FORMAT));
+	D3D_CALL(PD3DDEVICE->DrawPrimitiveUP(D3DPT_TRIANGLEFAN, nPoints-2, pPoints, sizeof(CSpriteVertex)));
 
 	d3d_DisableTexture(0);
 }
@@ -467,39 +428,8 @@ static void d3d_DrawSprite(const ViewParams& Params, SpriteInstance *pInstance, 
 	}
 
 	//Render our lovely verts
-	LTEffectImpl* pEffect = (LTEffectImpl*)LTEffectShaderMgr::GetSingleton().GetEffectShader(pInstance->m_nEffectShaderID);
-	if(pEffect)
-	{
-		pEffect->UploadVertexDeclaration();
-
-		ID3DXEffect* pD3DEffect = pEffect->GetEffect();
-		if(pD3DEffect)
-		{
-			RTexture* pTexture = (RTexture*)pShared->m_pRenderData;
-			pD3DEffect->SetTexture("texture0", pTexture->m_pD3DTexture);
-
-			i_client_shell->OnEffectShaderSetParams(pEffect, NULL, NULL, LTShaderDeviceStateImp::GetSingleton());
-
-			UINT nPasses = 0;
-			pD3DEffect->Begin(&nPasses, 0);
-
-			for(int i = 0; i < nPasses; ++i)
-			{
-				pD3DEffect->BeginPass(i);
-				D3D_CALL(PD3DDEVICE->DrawPrimitiveUP(D3DPT_TRIANGLEFAN, 2, SpriteVerts, sizeof(CSpriteVertex)));
-				pD3DEffect->EndPass();
-			}
-
-			pD3DEffect->End();
-		}
-
-	}
-	else
-	{	
-		D3D_CALL(PD3DDEVICE->SetVertexShader(NULL));
-		D3D_CALL(PD3DDEVICE->SetFVF(SPRITEVERTEX_FORMAT));
-		D3D_CALL(PD3DDEVICE->DrawPrimitiveUP(D3DPT_TRIANGLEFAN, 2, SpriteVerts, sizeof(CSpriteVertex)));
-	}
+	D3D_CALL(PD3DDEVICE->SetVertexShader(SPRITEVERTEX_FORMAT));
+	D3D_CALL(PD3DDEVICE->DrawPrimitiveUP(D3DPT_TRIANGLEFAN, 2, SpriteVerts, sizeof(CSpriteVertex)));
 
 	d3d_DisableTexture(0);
 }
@@ -532,8 +462,8 @@ void d3d_DrawSprite(const ViewParams& Params, LTObject *pObj)
 		StateSet ssCullMode(D3DRS_CULLMODE, D3DCULL_NONE);
 
 		//clamp the texture coordinates so that we don't have to worry about wrap around
-		SamplerStateSet ssWrapModeU0(0, D3DSAMP_ADDRESSU, D3DTADDRESS_CLAMP);
-		SamplerStateSet ssWrapModeV0(0, D3DSAMP_ADDRESSV, D3DTADDRESS_CLAMP);
+		StageStateSet ssWrapModeU0(0, D3DTSS_ADDRESSU, D3DTADDRESS_CLAMP);
+		StageStateSet ssWrapModeV0(0, D3DTSS_ADDRESSV, D3DTADDRESS_CLAMP);
 
 		CSpriteMultiplySS ssMultiply;
 

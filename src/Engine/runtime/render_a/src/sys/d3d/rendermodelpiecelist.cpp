@@ -1,10 +1,5 @@
 #include "precompile.h"
 
-//IClientShell game client shell object.
-#include "iclientshell.h"
-static IClientShell *i_client_shell;
-define_holder(IClientShell, i_client_shell);
-
 #include "setupmodel.h"
 #include "d3dmeshrendobj_rigid.h"
 #include "d3dmeshrendobj_skel.h"
@@ -16,9 +11,6 @@ define_holder(IClientShell, i_client_shell);
 #include "devicelightlist.h"
 #include "renderstylemap.h"
 #include "rendererframestats.h"
-#include "LTEffectImpl.h"
-#include "lteffectshadermgr.h"
-#include "ltshaderdevicestateimp.h"
 #include "rendererconsolevars.h"
 #include <algorithm>
 
@@ -30,7 +22,7 @@ define_holder(IClientShell, i_client_shell);
 
 //given a renderable model piece, this will look at the type and determine the appropriate
 //means of starting its rendering block
-static void BeginRenderableModelPiece(CDIModelDrawable* pRPiece, DDMatrix* pTransforms, CD3DRenderStyle* pRenderStyle, uint32 nCurrPass, bool bEffect=false)
+static void BeginRenderableModelPiece(CDIModelDrawable* pRPiece, CD3DRenderStyle* pRenderStyle, uint32 nCurrPass)
 {
 	//we shouldn't ever have a NULL piece in here
 	assert(pRPiece);
@@ -39,18 +31,10 @@ static void BeginRenderableModelPiece(CDIModelDrawable* pRPiece, DDMatrix* pTran
 	switch (pRPiece->GetType())
 	{
 	case CRenderObject::eSkelMesh :
-		((CD3DSkelMesh*)pRPiece)->BeginRender(pTransforms, pRenderStyle, nCurrPass);		
+		((CD3DSkelMesh*)pRPiece)->BeginRender(pRenderStyle, nCurrPass);		
 		break;
 	case CRenderObject::eRigidMesh :
-		{		
-			if(bEffect)
-			{
-				((CD3DRigidMesh*)pRPiece)->BeginRenderWithEffect(pTransforms[((CD3DRigidMesh*)pRPiece)->GetBoneEffector()], pRenderStyle, nCurrPass);
-			}else
-			{
-				((CD3DRigidMesh*)pRPiece)->BeginRender(pTransforms[((CD3DRigidMesh*)pRPiece)->GetBoneEffector()], pRenderStyle, nCurrPass);
-			}
-		}
+		((CD3DRigidMesh*)pRPiece)->BeginRender(pRenderStyle, nCurrPass);
 		break;
 	case CRenderObject::eVAMesh :
 		break;
@@ -63,8 +47,7 @@ static void RenderModelPiece( CDIModelDrawable* pRPiece,
 							  ModelInstance*    pInstance,
 							  DDMatrix*			pTransforms,
 							  CD3DRenderStyle*  pRenderStyle,
-							  uint32            nCurrPass,
-							  bool				bEffect=false)
+							  uint32            nCurrPass)
 {
 	//all parameters should be valid
 	assert(pRPiece);
@@ -76,20 +59,13 @@ static void RenderModelPiece( CDIModelDrawable* pRPiece,
 	{
 	case CRenderObject::eSkelMesh :
 		{
-			((CD3DSkelMesh*)pRPiece)->Render(pInstance, pTransforms, pRenderStyle, nCurrPass);
+			((CD3DSkelMesh*)pRPiece)->Render(pTransforms, pRenderStyle, nCurrPass);
 			IncFrameStat(eFS_ModelRender_NumSkeletalPieces, 1);
 		}
 		break;
 	case CRenderObject::eRigidMesh :
 		{
-			if(bEffect)
-			{
-				((CD3DRigidMesh*)pRPiece)->RenderWithEffect(pInstance, pTransforms[((CD3DRigidMesh*)pRPiece)->GetBoneEffector()], pRenderStyle, nCurrPass);
-			}
-			else
-			{
-				((CD3DRigidMesh*)pRPiece)->Render(pInstance, pTransforms[((CD3DRigidMesh*)pRPiece)->GetBoneEffector()], pRenderStyle, nCurrPass);
-			}
+			((CD3DRigidMesh*)pRPiece)->Render(pTransforms[((CD3DRigidMesh*)pRPiece)->GetBoneEffector()], pRenderStyle, nCurrPass);
 			IncFrameStat(eFS_ModelRender_NumRigidPieces, 1);
 		}
 		break;
@@ -102,7 +78,7 @@ static void RenderModelPiece( CDIModelDrawable* pRPiece,
 			{
 				DDMatrix mD3DTrans;
 				Convert_DItoDD(mTrans, mD3DTrans);
-				((CD3DVAMesh*)pRPiece)->Render(pInstance, mD3DTrans, pRenderStyle, nCurrPass);
+				((CD3DVAMesh*)pRPiece)->Render(mD3DTrans, pRenderStyle, nCurrPass);
 				IncFrameStat(eFS_ModelRender_NumVertexAnimatedPieces, 1);
 			}
 		}
@@ -387,11 +363,11 @@ void CRenderModelPieceList::RenderPieceList(float fAlpha)
 	CDeviceLightList*		pPrevLightList		= NULL;
 	bool					bPrevPieceScaled	= false;
 
-	LPDIRECT3DBASETEXTURE9	PrevTextureList[MAX_PIECE_TEXTURES];
+	LPDIRECT3DBASETEXTURE8	PrevTextureList[MAX_PIECE_TEXTURES];
 
-	//save the depth bias so we can restore it later
-	DWORD					nOldDepthBias;
-	PD3DDEVICE->GetRenderState(D3DRS_DEPTHBIAS, &nOldDepthBias);
+	//save the z bias so we can restore it later
+	DWORD					nOldZBias;
+	PD3DDEVICE->GetRenderState(D3DRS_ZBIAS, &nOldZBias);
 
 	//clear out the texture list
 	memset(PrevTextureList, 0, sizeof(PrevTextureList));
@@ -432,165 +408,14 @@ void CRenderModelPieceList::RenderPieceList(float fAlpha)
 			}
 		}
 
-		RSD3DOptions rsD3DOptions;
-		pCurrRenderStyle->GetDirect3D_Options(&rsD3DOptions);
-		if(rsD3DOptions.bUseEffectShader)
-		{
-			//TODO
-			bool bModifiedReallyCloseEnvMap = false;
-
-			//setup all the texture and render style information
-			//g_RenderStateMgr.SetRenderStyleStates(pCurrRenderStyle, nCurrPass);
-			//g_RenderStateMgr.SetRenderStyleTextures(pCurrRenderStyle, nCurrPass, m_cPieceList[nStartPiece].m_TextureList);
-
-			//keep track of stats
-			IncFrameStat(eFS_ModelRender_RenderStyleSets, 1);
-			IncFrameStat(eFS_ModelRender_TextureSets, 1);
-
-			//update our texture list information since the render style set them
-			memcpy(PrevTextureList, m_cPieceList[nStartPiece].m_TextureList, sizeof(PrevTextureList));
-
-			//now we need to render each piece of this pass
-			for(uint32 nRSPiece = nStartPiece; nRSPiece < nCurrPiece; nRSPiece++)
-			{
-				//cache the current piece
-				SQueuedPiece& Piece = m_cPieceList[nRSPiece];
-
-				//handle environment mapping on the PV
-				bModifiedReallyCloseEnvMap = HandleReallyCloseEnvMapPanning(Piece.m_pInstance, pCurrRenderStyle, 0, bModifiedReallyCloseEnvMap);
-
-				//see if we have crossed any boundaries. If we have we need to change the appropriate part				
-				if(memcmp(PrevTextureList, Piece.m_TextureList, sizeof(PrevTextureList)))
-				{
-					//need to swap textures
-					g_RenderStateMgr.SetRenderStyleTextures(pCurrRenderStyle, 0, Piece.m_TextureList);
-					memcpy(PrevTextureList, Piece.m_TextureList, sizeof(PrevTextureList));
-					IncFrameStat(eFS_ModelRender_TextureSets, 1);
-				}
-
-				if(!pPrevLightList || !pPrevLightList->IsSameAs(Piece.m_pLightList))
-				{
-					Piece.m_pLightList->InstallLightList();
-					pPrevLightList = Piece.m_pLightList;
-					IncFrameStat(eFS_ModelRender_LightingSets, 1);
-				}
-
-				if(bInReallyClose != Piece.m_bReallyClose)
-				{
-					d3d_SetReallyClose(&ReallyCloseData);
-					bInReallyClose = Piece.m_bReallyClose;
-					IncFrameStat(eFS_ModelRender_ReallyCloseSets, 1);
-				}
-
-				if(pPrevRPiece != Piece.m_pRenderPiece)
-				{
-					//end the old one
-					EndRenderableModelPiece(pPrevRPiece);
-
-					for (uint32 iTexStage = 0; iTexStage < 4; ++iTexStage)
-					{
-						d3d_SetTexture(NULL, iTexStage, eFS_ModelTexMemory);
-					}
-
-					//begin the new one
-					BeginRenderableModelPiece(Piece.m_pRenderPiece, Piece.m_pTransforms, pCurrRenderStyle, -1, true);
-
-					//save the new one
-					pPrevRPiece = Piece.m_pRenderPiece;
-				}
-
-				//we also need to determine whether or not we need to scale the normals of this piece
-				bool bPieceScaled = Piece.m_pInstance->IsScaled();
-				if(bPieceScaled != bPrevPieceScaled)
-				{
-					PD3DDEVICE->SetRenderState(D3DRS_NORMALIZENORMALS, bPieceScaled ? TRUE : FALSE); 
-					bPrevPieceScaled = bPieceScaled;
-
-					IncFrameStat(eFS_ModelRender_ScaleSets, 1);
-				}
-
-				LTEffectImpl* _pEffect = (LTEffectImpl*)LTEffectShaderMgr::GetSingleton().GetEffectShader(rsD3DOptions.EffectShaderID);
-				ID3DXEffect* pEffect = _pEffect->GetEffect();
-
-				if(pEffect)
-				{	
-					// Send our vertex declaration to DirectX.
-					_pEffect->UploadVertexDeclaration();
-
-					// Set our textures!
-					for (uint32 iTexStage = 0; iTexStage < 4; ++iTexStage)
-					{
-						if(Piece.m_TextureList[iTexStage])
-						{		
-							d3d_SetTexture(Piece.m_TextureList[iTexStage], iTexStage, eFS_ModelTexMemory);
-
-							RTexture* pRTexture = (RTexture*)(Piece.m_TextureList[iTexStage])->m_pRenderData;
-							if(pRTexture)
-							{
-								char szBuf[16];
-								sprintf(szBuf, "texture%d", iTexStage);
-								HRESULT hr = pEffect->SetTexture(szBuf, pRTexture->m_pD3DTexture); 
-								if(FAILED(hr))
-								{
-									dsi_ConsolePrint("Failed to set texture (%s)", szBuf);
-								}
-							}
-						}
-					}
-					IncFrameStat(eFS_ModelRender_TextureSets, 1);
-
-					//Ask the game for variables...
-					i_client_shell->OnEffectShaderSetParams((LTEffectShader*)_pEffect, pCurrRenderStyle, Piece.m_pInstance, LTShaderDeviceStateImp::GetSingleton());
-
-					UINT cPasses;
-					pEffect->Begin(&cPasses, 0);
-					for(UINT iPass = 0; iPass < cPasses; iPass++)
-					{	
-						pEffect->BeginPass(iPass);
-
-						//					BeginRenderableModelPiece(Piece.m_pRenderPiece, Piece.m_pTransforms, pCurrRenderStyle, -1);
-
-						//ok, we can finally render our piece
-						RenderModelPiece(Piece.m_pRenderPiece, Piece.m_pInstance, Piece.m_pTransforms, pCurrRenderStyle, -1, true);
-
-						//					EndRenderableModelPiece(Piece.m_pRenderPiece);
-
-						pEffect->EndPass();
-					}
-					pEffect->End();
-					//ok, we can finally render our piece
-					//RenderModelPiece(Piece.m_pRenderPiece, Piece.m_pInstance, Piece.m_pTransforms, pCurrRenderStyle, nCurrPass, true);
-				}
-			}
-
-			//we should end any outstanding pieces being rendered so the changing of the pass won't mess them up
-			EndRenderableModelPiece(pPrevRPiece);
-
-			for (uint32 iTexStage = 0; iTexStage < 4; ++iTexStage)
-			{
-				d3d_SetTexture(NULL, iTexStage, eFS_ModelTexMemory);
-			}
-
-			pPrevRPiece = NULL;	
-		}
-		else
 		{		
 			//run through each pass of the current render style
 			for(uint32 nCurrPass = 0; nCurrPass < pCurrRenderStyle->GetRenderPassCount(); nCurrPass++)
 			{
-				/*			if(g_CV_ZBiasModelRSPasses.m_Val)
+				if(g_CV_ZBiasModelRSPasses.m_Val)
 				{
-				if (nCurrPass != 0)
-				{
-				PD3DDEVICE->SetRenderState(D3DRS_SLOPESCALEDEPTHBIAS, F2DW(1.0f));
+					PD3DDEVICE->SetRenderState(D3DRS_ZBIAS, nCurrPass);
 				}
-				else
-				{
-				PD3DDEVICE->SetRenderState(D3DRS_SLOPESCALEDEPTHBIAS, F2DW(0.0f));
-				}
-
-				PD3DDEVICE->SetRenderState(D3DRS_DEPTHBIAS, F2DW(1.0f));
-				}*/
 
 				bool bModifiedReallyCloseEnvMap = false;
 
@@ -642,7 +467,7 @@ void CRenderModelPieceList::RenderPieceList(float fAlpha)
 						//end the old one
 						EndRenderableModelPiece(pPrevRPiece);
 						//begin the new one
-						BeginRenderableModelPiece(Piece.m_pRenderPiece, NULL, pCurrRenderStyle, nCurrPass);
+						BeginRenderableModelPiece(Piece.m_pRenderPiece, pCurrRenderStyle, nCurrPass);
 
 						//save the new one
 						pPrevRPiece = Piece.m_pRenderPiece;
@@ -685,16 +510,7 @@ void CRenderModelPieceList::RenderPieceList(float fAlpha)
 	g_RenderStateMgr.SetTransform(D3DTS_WORLDMATRIX(0),&mIdentity);
 
 	//restore our Z bias
-	/*	if (nOldZBias != 0)
-	{
-	PD3DDEVICE->SetRenderState(D3DRS_SLOPESCALEDEPTHBIAS, F2DW(1.0f));
-	}
-	else
-	{
-	PD3DDEVICE->SetRenderState(D3DRS_SLOPESCALEDEPTHBIAS, F2DW(0.0f));
-	}*/
-
-	PD3DDEVICE->SetRenderState(D3DRS_DEPTHBIAS, nOldDepthBias);
+	PD3DDEVICE->SetRenderState(D3DRS_ZBIAS, nOldZBias);
 
 	// Need to reset every time till the render state mgr handles things...
 	g_Device.SetDefaultRenderStates();		
