@@ -17,6 +17,7 @@ out/reference/<target>-functions.csv, written by build/reference.sh with
 tools/enumfuncs.py --csv).
 
 Usage:
+  tagmap.py <target> [--class Foo] [--undone]
   tagmap.py <image> <functions.csv> [--class Foo] [--undone]
 
   tagmap.py out/reference/lithtech.exe out/reference/lithtech-functions.csv
@@ -33,6 +34,9 @@ import os
 import re
 import struct
 import sys
+
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+import tgt as tgt_mod  # noqa: E402
 
 
 class Image:
@@ -75,20 +79,15 @@ def our_methods(image_path):
     half can: symbols are mangled ?Method@Class@@..., so the leading segment
     is the method name and that is what to look for.
     """
-    rel = {"lithtech.exe": "src/engine/lithtech/Release",
-           "server.dll": "src/engine/server/Release",
-           "d3d.ren": "src/engine/d3d/Release"}
-    target = os.path.basename(image_path)
-    root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-    d = os.path.join(root, rel.get(target, ""))
+    # NOLF2: our objects and libraries are the inputs of our link of the
+    # target (progress/targets.py, the .rsp beside our image: tools/tgt.py)
+    t = tgt_mod.find_or_none(image_path)
     out = set()
-    if not rel.get(target) or not os.path.isdir(d):
+    if not t:
         return out
-    for fn in os.listdir(d):
-        if not fn.endswith(".obj"):
-            continue
+    for fn in tgt_mod.objs(t):
         try:
-            blob = open(os.path.join(d, fn), "rb").read()
+            blob = open(os.path.join(tgt_mod.REPO, fn), "rb").read()
         except OSError:
             continue
         for m in re.finditer(rb"\?([A-Za-z_][A-Za-z0-9_]*)@", blob):
@@ -106,7 +105,8 @@ def todo_addrs(image_path):
     the only key the two tools share -- tagmap works from the shipped image
     and progress.py from our objects, so neither knows the other's symbols.
     """
-    target = os.path.basename(image_path)
+    t = tgt_mod.find_or_none(image_path)
+    target = t["label"] if t else os.path.basename(image_path)
     if target in _TODO_CACHE:
         return _TODO_CACHE[target]
     path = os.path.join(os.path.dirname(os.path.dirname(
@@ -131,6 +131,10 @@ def main():
     args = [a for a in sys.argv[1:] if not a.startswith("--")]
     opts = dict(a.split("=", 1) if "=" in a else (a, True)
                 for a in sys.argv[1:] if a.startswith("--"))
+    if len(args) == 1:
+        t = tgt_mod.find(args[0])
+        args = [os.path.join(tgt_mod.REPO, t["shipped"]),
+                os.path.join(tgt_mod.REPO, tgt_mod.funcs_csv(t))]
     if len(args) != 2:
         sys.exit(__doc__)
     img = Image(args[0])

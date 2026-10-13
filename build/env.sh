@@ -71,3 +71,72 @@ nolf2src_make() {
     make -C "$REPO" -f build/build.mk --no-print-directory -Otarget \
         -j"${NOLF2SRC_JOBS:-$(nproc)}" "$@"
 }
+
+# ---------------------------------------------------------------------------
+# The tools by hand, for the one-object loop and experiments
+# (build/engine.sh, guides/02, guides/10): the compiler, linker, librarian
+# and resource compiler build/build.mk uses, in the same environment --
+# src/ as drive S:, toolchains/ as T:, the DirectX 8.1 SDK first on the
+# INCLUDE and LIB paths, src/nolf2src last -- so a command line copied out of
+# an object's <object>.cmd gives the same object. (A compile's .cmd also
+# starts with `cd <dir> &&`: run it from that directory.) They use their own
+# Wine prefix, out/tools-wine, so they never touch the build's.
+#
+#   run_cl /nologo /O2 /c foo.cpp       cl 12.00.8966 (VC6 SP5), unless
+#                                       CL_REV=<build> names another
+#                                       toolchains/msvc-6.00-<build>
+#   run_link, run_lib, run_rc           link/lib 6.00.8447, RC from SP6
+#   nolf2src_wpath <path>               the Windows path the tools see
+TC="$REPO/toolchains"
+VC8966="$TC/msvc-6.00-8966"
+VC9782="$TC/msvc-6.00-9782"
+DXSDK="$TC/dxsdk-8.1"
+nolf2src_wpath() {
+    local p
+    p="$(realpath -m "$1")"
+    case "$p" in
+        "$REPO/src"|"$REPO/src"/*)      p="s:${p#"$REPO/src"}" ;;
+        "$TC"|"$TC"/*)                  p="t:${p#"$TC"}" ;;
+        *)                              p="z:$p" ;;
+    esac
+    echo "${p//\//\\}"
+}
+nolf2src_tools_env() {   # the prefix, made the first time, with S: and T:
+    export WINEPREFIX="$REPO/out/tools-wine"
+    if [ ! -f "$WINEPREFIX/.ready" ]; then
+        mkdir -p "$WINEPREFIX"
+        wine wineboot -i >/dev/null 2>&1 || true
+        wineserver -w || true
+        touch "$WINEPREFIX/.ready"
+    fi
+    ln -sfn "$REPO/src" "$WINEPREFIX/dosdevices/s:"
+    ln -sfn "$TC" "$WINEPREFIX/dosdevices/t:"
+    export WINEPATH="$(nolf2src_wpath "$VC8966")\\BIN;$(nolf2src_wpath "$VC9782")\\Common\\MSDev98\\Bin"
+    export INCLUDE="$(nolf2src_wpath "$DXSDK")\\include;$(nolf2src_wpath "$VC8966")\\INCLUDE;$(nolf2src_wpath "$VC8966")\\MFC\\INCLUDE;$(nolf2src_wpath "$REPO/src/nolf2src")"
+    export LIB="$(nolf2src_wpath "$DXSDK")\\lib;$(nolf2src_wpath "$VC8966")\\LIB;$(nolf2src_wpath "$VC8966")\\MFC\\LIB"
+}
+nolf2src_cl() {
+    local cl="$VC8966/BIN/cl.exe"
+    if [ -n "${CL_REV:-}" ]; then
+        cl="$TC/msvc-6.00-$CL_REV/BIN/cl.exe"
+        [ -f "$cl" ] || { echo "error: CL_REV=$CL_REV: no $cl" >&2; return 1; }
+    fi
+    echo "$cl"
+}
+# The variant flags go after the command's own (/Oy- must follow the /O2
+# that implies it), but before a /link, after which the line is the linker's.
+run_cl() {
+    local a linked=0 args=() cl
+    cl="$(nolf2src_cl)" || return 1
+    for a in "$@"; do
+        if [ $linked = 0 ] && [ "${a,,}" = "/link" ]; then
+            args+=($NOLF2SRC_CFLAGS); linked=1
+        fi
+        args+=("$a")
+    done
+    [ $linked = 1 ] || args+=($NOLF2SRC_CFLAGS)
+    ( nolf2src_tools_env && wine "$cl" "${args[@]}" )
+}
+run_link() { ( nolf2src_tools_env && wine "$VC8966/BIN/link.exe" $NOLF2SRC_LDFLAGS "$@" ); }
+run_lib()  { ( nolf2src_tools_env && wine "$VC8966/BIN/lib.exe" "$@" ); }
+run_rc()   { ( nolf2src_tools_env && wine "$VC9782/Common/MSDev98/Bin/RC.EXE" $NOLF2SRC_RCFLAGS "$@" ); }

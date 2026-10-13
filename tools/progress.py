@@ -1417,16 +1417,17 @@ def _phantom_index(label):
     return out
 
 
-_CITED = None
+_CITED = {}
 
 
-def _cited_addrs():
-    """Every 0x... cited in our sources: one scan, shared by all images."""
-    global _CITED
-    if _CITED is not None:
-        return _CITED
+def _cited_addrs(bases=None):
+    """Every 0x... cited in these source trees (CITED_SRC by default, or a
+    target's own `cited_src`): one scan per set of trees."""
+    bases = tuple(bases or cfg.CITED_SRC)
+    if bases in _CITED:
+        return _CITED[bases]
     blob = []
-    for base in cfg.CITED_SRC:
+    for base in bases:
         for root, _, fs in os.walk(os.path.join(REPO, base)):
             for f in fs:
                 if f.endswith((".cpp", ".h", ".c")) and "NAMEMAP" not in f:
@@ -1436,8 +1437,8 @@ def _cited_addrs():
                     except OSError:
                         pass
     text = "\n".join(blob)
-    _CITED = set(re.findall(r"0x[0-9a-fA-F]{6,8}", text))
-    return _CITED
+    _CITED[bases] = set(re.findall(r"0x[0-9a-fA-F]{6,8}", text))
+    return _CITED[bases]
 
 
 def _touched_index(tgt):
@@ -1450,7 +1451,7 @@ def _touched_index(tgt):
     if not tgt.get("cites"):
         _TOUCHED[label] = set()
         return _TOUCHED[label]
-    addrs = set(_cited_addrs())
+    addrs = set(_cited_addrs(tgt.get("cited_src")))
     for extra in glob.glob(DATA + "/%s-decoded-map.csv" % tgt["stem"]) + \
             _exclude_files(label):
         try:

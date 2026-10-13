@@ -40,6 +40,15 @@ TARGETS, one dict per shipped binary, in the README's order:
              unplaced
   cites      True when src/ cites this image's addresses in comments: a
              cited address of an unmatched function is `attempted`
+  cited_src  the source trees whose comments cite it (default CITED_SRC):
+             per target, because the DLLs share the 0x10000000 range
+  purecall   the shipped address of the CRT's `_purecall` (every abstract
+             vtable's filler), where tools/vtabcheck.py cannot find its
+             `jmp [IAT]` thunk itself
+
+The reconstruction tools (tools/tgt.py) read the same entries: a tool is
+given a target by label or stem (`Lithtech`, `server`), and its image,
+build, link inputs and regions come from here.
 
 Optional per target, for what NOLF's scoreboard needs and this one does
 not yet: icl (Intel C/C++ padding and /Qip names), linked_oracle (compare
@@ -65,7 +74,8 @@ DATA = "progress"               # the recorded baseline and the evidence
 
 # Every hex address cited in these source trees marks the address
 # `attempted` in a target with `cites` (an address a reconstruction has
-# been written for). None yet: Monolith's source cites no retail address.
+# been written for), unless the target names its own `cited_src` (the
+# engine's do). Monolith's game source cites no retail address.
 CITED_SRC = []
 
 # Libraries scored on their own, symbol by symbol, against prebuilt
@@ -84,10 +94,19 @@ SHIPPED_ENV = None              # the variable that names their directory
 DRIVER_OBJS = set()
 
 TARGETS = [
-    # ---- the engine: no source yet ------------------------------------
+    # ---- the engine ------------------------------------------------------
+    # src/Engine/runtime/winbuild/Engine.dsw (docs/engine/PLAN.md, the
+    # skeleton package), linked through build/build.mk's `binary` macro so
+    # that the .rsp, .cmd and .map the scoreboard reads are beside the
+    # image. Optional until the engine's link is part of `make all`: while
+    # the image does not exist the target scores as all unwritten, as
+    # before. Its sources cite shipped addresses in comments (nolfsrc's
+    # convention): src/Engine/runtime only, so that ServerDir's, snddrv's
+    # and the game's 0x1000.... addresses are never read as server.dll's.
     dict(label="Lithtech.exe", what="the engine", kind="image",
          shipped=REFERENCE + "/Lithtech.exe", stem="Lithtech",
-         built=None, optional=True,
+         built="src/Engine/built/Final/Lithtech/Lithtech.exe", optional=True,
+         cites=True, cited_src=["src/Engine/runtime"],
          # The engine's own code runs from .text's start to the SecuROM
          # pages. 0x565000..0x56a000 (five 4 KB pages) is encrypted on
          # disc: its bytes have the entropy of random data (over 7 bits a
@@ -115,10 +134,21 @@ TARGETS = [
          # pages). The other 12 single hits are D3DX's inline vector and
          # colour operators, compiled into the engine's own objects from
          # d3dx8math.inl: the engine's code, and counted.
-         middleware=[(0x004b2370, 0x004c1240)]),
+         middleware=[(0x004b2370, 0x004c1240)],
+         # our link's D3DX: the DirectX 8.1 SDK's d3dx8.lib, which builds
+         # both blocks. The SDK's import and data libraries (d3d8.lib,
+         # dinput8.lib, dxguid.lib) and the system import libraries add no
+         # code of anyone's to `app` and resolve to nothing in the
+         # repository, so they need no entry.
+         third_party=["d3dx8.lib"],
+         # MSVCRT!_purecall's `jmp [IAT]` thunk, in the encrypted pages:
+         # the demo's thunk, placed by tools/demoimports.py's shift for
+         # 0x5675e0.. (retail = demo - 0x10)
+         purecall=0x00567616),
     dict(label="server.dll", what="the engine's server", kind="image",
          shipped=REFERENCE + "/server.dll", stem="server",
-         built=None, optional=True,
+         built="src/Engine/built/Final/server/server.dll", optional=True,
+         cites=True, cited_src=["src/Engine/runtime"],
          # the import thunks from 0x1004d1d0, then msvcrt.lib's atonexit
          # (__onexit 0x1004d1e2), chkstk, the 64-bit helpers, crtdll,
          # ehvec*, dllmain (0x1004d6dc)
