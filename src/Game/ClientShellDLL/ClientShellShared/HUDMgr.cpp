@@ -29,6 +29,64 @@ CHUDRewardMsgQueue*	g_pRewardMsgs = LTNULL;
 CHUDPaused*			g_pPaused = LTNULL;
 CHUDDisplayMeter*	g_pDisplayMeter = LTNULL;
 CHUDScores*			g_pScores = LTNULL;
+#ifdef NOLF2SRC_MODERN
+
+// MODERN.md M-G44: the frame rate, at the top of the screen, averaged over
+// the last 30 frames, while ShowFramerate is set (a console variable; 0
+// unless set).
+namespace
+{
+	const int					kModernFpsFrames = 30;
+	float						s_afModernFrameTimes[kModernFpsFrames];
+	int							s_nModernFrame = 0;
+	CUIFormattedPolyString*		s_pModernFpsStr = LTNULL;
+}
+
+static void ModernRenderFramerate()
+{
+	s_afModernFrameTimes[s_nModernFrame] = g_pLTClient->GetFrameTime();
+	s_nModernFrame = (s_nModernFrame + 1) % kModernFpsFrames;
+
+	if (GetConsoleInt("ShowFramerate",0) == 0)
+		return;
+
+	float fTotal = 0.0f;
+	for (int i = 0; i < kModernFpsFrames; i++)
+		fTotal += s_afModernFrameTimes[i];
+	float fFps = (fTotal > 0.0f) ? ((float)kModernFpsFrames / fTotal) : 0.0f;
+
+	char szFps[32];
+	sprintf(szFps,"%.0f fps",fFps);
+	if (!s_pModernFpsStr)
+	{
+		s_pModernFpsStr = g_pFontManager->CreateFormattedPolyString(g_pInterfaceResMgr->GetFont(0),szFps);
+		if (!s_pModernFpsStr)
+			return;
+		s_pModernFpsStr->SetAlignmentH(CUI_HALIGN_CENTER);
+	}
+	else
+		s_pModernFpsStr->SetText(szFps);
+
+	s_pModernFpsStr->SetCharScreenHeight((uint8)(12.0f * g_pInterfaceResMgr->GetYRatio()));
+	float x = 320.0f * g_pInterfaceResMgr->GetXRatio() + (float)g_pInterfaceResMgr->GetXOffset();
+	float y = 2.0f * g_pInterfaceResMgr->GetYRatio();
+	s_pModernFpsStr->SetPosition(x + 1.0f, y + 1.0f);
+	s_pModernFpsStr->SetColor(argbBlack);
+	s_pModernFpsStr->Render();
+	s_pModernFpsStr->SetPosition(x, y);
+	s_pModernFpsStr->SetColor(argbWhite);
+	s_pModernFpsStr->Render();
+}
+
+static void ModernTermFramerate()
+{
+	if (s_pModernFpsStr)
+	{
+		g_pFontManager->DestroyPolyString(s_pModernFpsStr);
+		s_pModernFpsStr = LTNULL;
+	}
+}
+#endif
 
 // ----------------------------------------------------------------------- //
 //
@@ -133,6 +191,9 @@ void CHUDMgr::Term()
 	}
 
 	m_itemArray.clear();
+#ifdef NOLF2SRC_MODERN
+	ModernTermFramerate();	// MODERN.md M-G44
+#endif
 
 	g_pHUDMgr = LTNULL;
 }
@@ -178,6 +239,9 @@ void CHUDMgr::Render()
 			(*iter)->Render();
 		iter++;
 	}
+#ifdef NOLF2SRC_MODERN
+	ModernRenderFramerate();	// MODERN.md M-G44
+#endif
 	
 }
 
@@ -190,6 +254,11 @@ void CHUDMgr::QueueUpdate(uint32 nUpdateFlag)
 void CHUDMgr::ScreenDimsChanged()
 {
 	m_UpdateFlags = kHUDAll;
+#ifdef NOLF2SRC_MODERN
+	// MODERN.md M-G2: the items read their places again, for the new
+	// screen's margins (CInterfaceResMgr::GetHUDBaseShift)
+	UpdateLayout();
+#endif
 }
 
 void CHUDMgr::NextLayout()

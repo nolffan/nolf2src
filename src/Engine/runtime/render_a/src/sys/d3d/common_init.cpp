@@ -221,6 +221,59 @@ int d3d_Init(RenderStructInit *pInit)
 	// Finish initializing...
 	AddDebugMessage(0, "Using Direct3D Device %s", pDeviceInfo->strDesc);
 
+#ifdef NOLF2SRC_MODERN
+	// MODERN.md M-G42: the window. Retail sized a window for a framed
+	// window's borders without ever giving it that frame (the engine makes
+	// it captioned only, the game later resizes it whole to the mode, so
+	// the picture lost the frame's width), and left a full-screen window's
+	// style as it was. Windowed at the desktop's size or larger, the game
+	// now gets a borderless window over the whole screen; smaller, a framed
+	// window whose inside is the mode's size, centred; full screen, a bare
+	// window on top. The style is set every time, so a change of mode never
+	// keeps the last one's (the Modernizer's known issue K9).
+	if (g_bRunWindowed || d3d_IsNullRenderOn())
+	{
+		GetWindowRect(GetDesktopWindow(), &screenRect);
+		int nDesktopW = screenRect.right - screenRect.left;
+		int nDesktopH = screenRect.bottom - screenRect.top;
+
+		if ((int)pInit->m_Mode.m_Width >= nDesktopW && (int)pInit->m_Mode.m_Height >= nDesktopH)
+		{
+			SetWindowLong(g_hWnd, GWL_STYLE, WS_POPUP | WS_VISIBLE);
+			SetWindowPos(g_hWnd, HWND_NOTOPMOST, screenRect.left, screenRect.top, nDesktopW, nDesktopH,
+				SWP_FRAMECHANGED | SWP_SHOWWINDOW);
+		}
+		else
+		{
+			DWORD dwStyle = WS_OVERLAPPED | WS_CAPTION | WS_SYSMENU | WS_MINIMIZEBOX | WS_VISIBLE;
+			SetWindowLong(g_hWnd, GWL_STYLE, dwStyle);
+
+			wndRect.left	= (nDesktopW - (int)pInit->m_Mode.m_Width) / 2;
+			wndRect.top		= (nDesktopH - (int)pInit->m_Mode.m_Height) / 2;
+			wndRect.right	= wndRect.left + pInit->m_Mode.m_Width;
+			wndRect.bottom	= wndRect.top + pInit->m_Mode.m_Height;
+			AdjustWindowRect(&wndRect, dwStyle, false);
+			if (wndRect.left < 0)
+			{
+				wndRect.right	-= wndRect.left;
+				wndRect.left	= 0;
+			}
+			if (wndRect.top < 0)
+			{
+				wndRect.bottom	-= wndRect.top;
+				wndRect.top		= 0;
+			}
+
+			SetWindowPos(g_hWnd, HWND_NOTOPMOST, wndRect.left, wndRect.top, wndRect.right-wndRect.left,
+				wndRect.bottom-wndRect.top, SWP_FRAMECHANGED | SWP_SHOWWINDOW);
+		}
+	}
+	else
+	{
+		SetWindowLong(g_hWnd, GWL_STYLE, WS_POPUP | WS_VISIBLE);
+		SetWindowPos(g_hWnd, HWND_TOPMOST, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE | SWP_FRAMECHANGED);
+	}
+#else
 	// Either maximize the window or set its size.
 	if (g_bRunWindowed || d3d_IsNullRenderOn()) 
 	{
@@ -253,6 +306,7 @@ int d3d_Init(RenderStructInit *pInit)
 	{
 		SetWindowPos(g_hWnd, HWND_TOPMOST, 0, 0, 0, 0, SWP_NOMOVE|SWP_NOSIZE); 
 	}
+#endif
 
 	if (!d3d_PostInitializeDevice(pInit,!g_bInStandby)) 
 		return RENDER_ERROR;

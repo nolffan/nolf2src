@@ -71,6 +71,30 @@ public:
 	void				ConvertScreenPos(int &x, int &y);
     LTFLOAT             GetXRatio()                         {return m_fXRatio;}
     LTFLOAT             GetYRatio()                         {return m_fYRatio;}
+#ifdef NOLF2SRC_MODERN
+	// MODERN.md M-G2: the 640x480 page's left edge on the screen (its side
+	// margin, 0 at 4:3 and narrower); the ratios above are then both the
+	// height's
+	int					GetXOffset()						{return m_nXOffset;}
+	// The same for a HUD item at nBaseX on the page: the HUD keeps to the
+	// screen's edges, so an item in the left third of the page stays at the
+	// left edge (no margin), one in the right third moves with the right
+	// edge (both margins), and one in the middle stays centred.
+	int					GetHUDXOffset(int nBaseX)
+	{
+		if (nBaseX < 640/3) return 0;
+		if (nBaseX >= 2*640/3) return 2*m_nXOffset;
+		return m_nXOffset;
+	}
+	// ... and that move in page units, for items placed by a base
+	// position that is scaled to the screen later
+	int					GetHUDBaseShift(int nBaseX)
+	{
+		if (m_fXRatio <= 0.0f) return 0;
+		return (int)((float)GetHUDXOffset(nBaseX) / m_fXRatio + 0.5f);
+	}
+	int					m_nXOffset;
+#endif
 
     uint32              GetScreenWidth();
     uint32              GetScreenHeight();

@@ -307,11 +307,23 @@ bool CSnowFX::UpdateAirspaces( void )
 	// make sure there are no active airspaces if the snow isn't enabled
 	if( !m_bEnabled )
 	{
+#ifdef NOLF2SRC_MODERN
+		// MODERN.md M-G19: Deactivate() erases the airspace from this set,
+		// which the retail loop was iterating (a freed tree node). Take
+		// the first one until none is left.
+		while( !activeAirspaces.empty() )
+		{
+			CSnowFXAirspace* pAirspace = *activeAirspaces.begin();
+			pAirspace->Deactivate();
+			activeAirspaces.erase( pAirspace );
+		}
+#else
 		std::set<CSnowFXAirspace*>::iterator it = activeAirspaces.begin();
 		for( ; it != activeAirspaces.end(); it++ )
 		{
 			(*it)->Deactivate();
 		}
+#endif
 
 		return true;
 	}
@@ -328,11 +340,21 @@ bool CSnowFX::UpdateAirspaces( void )
 	if( cameraDistSq > m_fMaxDrawDistSq )
 	{
 		// camera is farther away than the max draw distance for this volume, so kill all the airspaces
+#ifdef NOLF2SRC_MODERN
+		// M-G19: as above
+		while( !activeAirspaces.empty() )
+		{
+			CSnowFXAirspace* pAirspace = *activeAirspaces.begin();
+			pAirspace->Deactivate();
+			activeAirspaces.erase( pAirspace );
+		}
+#else
 		std::set<CSnowFXAirspace*>::iterator it = activeAirspaces.begin();
 		for( ; it != activeAirspaces.end(); it++ )
 		{
 			(*it)->Deactivate();
 		}
+#endif
 
 		// don't test any of the airspaces directly
 		return true;

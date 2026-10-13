@@ -1332,6 +1332,24 @@ BEGIN
     IDS_MISSING_WORLD       "Unable to load world resources."
 END
 
+#ifdef NOLF2SRC_MODERN
+// MODERN.md: the modern build's own strings
+STRINGTABLE DISCARDABLE
+BEGIN
+    IDS_MODERN_WINDOWED     "Windowed"
+    IDS_HELP_MODERN_WINDOWED "Play in a window instead of full screen. At the desktop's size the window has no frame."
+    IDS_MODERN_BACKGROUND   "Run in background"
+    IDS_HELP_MODERN_BACKGROUND "Windowed: keep the game going when another window has the focus."
+    IDS_MODERN_FOV          "Field of view"
+    IDS_HELP_MODERN_FOV     "The view's height in degrees. A wide screen shows more at the sides."
+    IDS_MODERN_FRAMELIMIT   "Frame rate limit"
+    IDS_HELP_MODERN_FRAMELIMIT "The most frames drawn each second. Parts of the game were made for 60."
+    IDS_MODERN_UNLIMITED    "None"
+    IDS_HELP_MODERN_ANTIALIAS "Smooth the edges of 3D objects, full screen or in a window. More samples take more of the graphics card."
+    IDS_MODERN_CINEMATICS43 "4:3 cinematics"
+    IDS_HELP_MODERN_CINEMATICS43 "On a wide screen, show the cutscenes in 4:3, as they were framed, with black bars at the sides."
+END
+#endif
 #endif    // English (U.S.) resources
 /////////////////////////////////////////////////////////////////////////////
 

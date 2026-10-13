@@ -55,6 +55,14 @@ public:
 
 	virtual void	SetScale(float fScale);
 	virtual float	GetScale()					{return m_fScale;}
+#ifdef NOLF2SRC_MODERN
+	// MODERN.md M-G2: where the 640x480 page starts on the screen. On a
+	// screen wider than 4:3 the page is scaled by the height and centred,
+	// and every control's position moves right by the side margin.
+	static void		SetPageOffset(int nOffsetX)	{s_nPageOffsetX = nOffsetX;}
+	static int		GetPageOffset()				{return s_nPageOffsetX;}
+	static int		s_nPageOffsetX;
+#endif
 
 	
 	// Commonly used input messages

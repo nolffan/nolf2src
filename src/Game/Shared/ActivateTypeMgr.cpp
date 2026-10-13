@@ -621,6 +621,25 @@ void CActivateTypeHandler::OnLinkBroken( LTObjRefNotifier *pRef, HOBJECT hObj )
 	{
 		if( pRef == &(*iter) )
 		{
+#ifdef NOLF2SRC_MODERN
+			// MODERN.md M-G18: the retail code below read the element through
+			// the iterator it had just erased (a freed list node). Take the
+			// object first, then erase.
+			HOBJECT hInherited = *iter;
+			m_lstInheritedObjs.erase( iter );
+
+			if( !m_pBase || !m_pBase->m_hObject || (m_nId == (uint8)ATMGR_INVALID_ID) || !hInherited )
+				return;
+
+			CAutoMessage cModernMsg;
+			cModernMsg.Writeuint8( SFX_ACTIVATEOBJECT_ID );
+			cModernMsg.Writeuint8( ATMGR_INVALID_ID );
+			cModernMsg.Writebool( true );
+			cModernMsg.Writeuint8( ACTIVATETYPE::eOff );
+			g_pLTServer->SetObjectSFXMessage( hInherited, cModernMsg.Read() );
+
+			break;
+#endif
 			// Remove it 
 			m_lstInheritedObjs.erase( iter );
 

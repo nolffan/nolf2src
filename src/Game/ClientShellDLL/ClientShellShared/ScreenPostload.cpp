@@ -333,6 +333,9 @@ void CScreenPostload::OnFocus(LTBOOL bFocus)
 		m_pMissionNameStr->SetText(m_missionname.c_str());
 		m_pMissionNameStr->SetCharScreenHeight(nFontSize);
 		float x = (float)TitlePos.x * g_pInterfaceResMgr->GetXRatio();
+#ifdef NOLF2SRC_MODERN
+		x += (float)g_pInterfaceResMgr->GetXOffset();	// MODERN.md M-G2
+#endif
 		float y = (float)TitlePos.y * g_pInterfaceResMgr->GetYRatio();
 		m_pMissionNameStr->SetPosition(x,y);
 
@@ -347,6 +350,9 @@ void CScreenPostload::OnFocus(LTBOOL bFocus)
 		m_pLevelNameStr->SetText(m_levelname.c_str());
 		m_pLevelNameStr->SetCharScreenHeight(nFontSize);
 		x = (float)LevelPos.x * g_pInterfaceResMgr->GetXRatio();
+#ifdef NOLF2SRC_MODERN
+		x += (float)g_pInterfaceResMgr->GetXOffset();	// MODERN.md M-G2
+#endif
 		y = (float)LevelPos.y * g_pInterfaceResMgr->GetYRatio();
 		m_pLevelNameStr->SetPosition(x,y);
 
@@ -398,6 +404,9 @@ void CScreenPostload::OnFocus(LTBOOL bFocus)
 		m_pBriefingStr->SetColor(BriefingColor);
 		m_pBriefingStr->SetCharScreenHeight(nFontSize);
 		x = (float)BriefingPos.x * g_pInterfaceResMgr->GetXRatio();
+#ifdef NOLF2SRC_MODERN
+		x += (float)g_pInterfaceResMgr->GetXOffset();	// MODERN.md M-G2
+#endif
 		y = (float)BriefingPos.y * g_pInterfaceResMgr->GetYRatio();
 		m_pBriefingStr->SetPosition(x,y);
 		m_pBriefingStr->SetWrapWidth((uint16)(g_pInterfaceResMgr->GetXRatio() * (float)BriefingWidth));
@@ -455,6 +464,9 @@ void CScreenPostload::OnFocus(LTBOOL bFocus)
 			m_pHelpStr->SetColor(HelpColor);
 			m_pHelpStr->SetCharScreenHeight(nFontSize);
 			x = (float)HelpPos.x * g_pInterfaceResMgr->GetXRatio();
+#ifdef NOLF2SRC_MODERN
+			x += (float)g_pInterfaceResMgr->GetXOffset();	// MODERN.md M-G2
+#endif
 			y = (float)HelpPos.y * g_pInterfaceResMgr->GetYRatio();
 			m_pHelpStr->SetPosition(x,y);
 			m_pHelpStr->SetWrapWidth((uint16)(g_pInterfaceResMgr->GetXRatio() * (float)HelpWidth));
@@ -531,6 +543,9 @@ void CScreenPostload::OnFocus(LTBOOL bFocus)
 		m_pContinueStr->SetColor(m_nContinueColor);
 		m_pContinueStr->SetCharScreenHeight(nFontSize);
 		x = (float)ContinuePos.x * g_pInterfaceResMgr->GetXRatio();
+#ifdef NOLF2SRC_MODERN
+		x += (float)g_pInterfaceResMgr->GetXOffset();	// MODERN.md M-G2
+#endif
 		y = (float)ContinuePos.y * g_pInterfaceResMgr->GetYRatio();
 		m_pContinueStr->SetPosition(x,y);
 

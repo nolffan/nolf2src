@@ -109,6 +109,9 @@ void CHUDDamage::UpdateLayout()
 	int nCurrentLayout = GetConsoleInt("HUDLayout",0);
 
 	m_BasePos		= g_pLayoutMgr->GetDamageBasePos(nCurrentLayout);
+#ifdef NOLF2SRC_MODERN
+	m_BasePos.x += g_pInterfaceResMgr->GetHUDBaseShift(m_BasePos.x);	// MODERN.md M-G2
+#endif
 	m_nIconHt		= g_pLayoutMgr->GetDamageIconSize(nCurrentLayout);
 }
 

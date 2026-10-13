@@ -203,6 +203,9 @@ void CCredit::FormatStrings()
 {
 	float x = (float)m_Pos.x * g_pInterfaceResMgr->GetXRatio();
 	float y = (float)m_Pos.y * g_pInterfaceResMgr->GetYRatio();
+#ifdef NOLF2SRC_MODERN
+	x += (float)g_pInterfaceResMgr->GetXOffset();	// MODERN.md M-G2
+#endif
 	FPStringArray::iterator iter = m_Strings.begin();
 	while (iter != m_Strings.end())
 	{

@@ -172,6 +172,23 @@ static bool StartClient(ClientGlob *pGlob)
     return LTTRUE;
 }
 
+#ifdef NOLF2SRC_MODERN
+// MODERN.md M-G41: is the game in a window (the renderer's "windowed"),
+// and should it play on when the window loses the focus
+// (RunInBackground, a console variable; 0 unless set)?
+static bool cl_ModernWindowed()
+{
+    HLTPARAM hParam = r_GetParameter("windowed");
+    return hParam && r_GetParameterValueFloat(hParam) == 1.0f;
+}
+
+static bool cl_ModernRunInBackground()
+{
+    HLTPARAM hParam = r_GetParameter("RunInBackground");
+    return hParam && r_GetParameterValueFloat(hParam) != 0.0f;
+}
+
+#endif
 
 static LRESULT WINAPI MainWndProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam) {
     ClientGlob *pGlob;
@@ -327,6 +344,42 @@ static LRESULT WINAPI MainWndProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM
 
             case WM_ACTIVATEAPP: 
 			{
+#ifdef NOLF2SRC_MODERN
+                // MODERN.md M-G41: in a window the game keeps its renderer
+                // when it loses the focus: retail shut the renderer down
+                // and brought it back (a reload of every texture, and a
+                // black window meanwhile), which only a full-screen device
+                // needs. The game is told, and pauses, unless
+                // RunInBackground is set: then it plays on behind other
+                // windows.
+                if (!g_bNullRender && !g_ClientGlob.m_bDialogUp && cl_ModernWindowed())
+                {
+                    if (wParam)
+                    {
+                        if (g_ClientGlob.m_bLostFocus && !cl_ModernRunInBackground())
+                            i_client_shell->OnEvent(LTEVENT_GAINEDFOCUS, 0);
+
+                        g_pClientMgr->ClearInput();
+                        g_ClientGlob.m_bLostFocus = LTFALSE;
+                        g_ClientGlob.m_bClientActive = LTTRUE;
+
+                        if (ilt_cursor != NULL)
+                            ilt_cursor->RefreshCursor();
+                    }
+                    else if (!g_ClientGlob.m_bLostFocus)
+                    {
+                        g_ClientGlob.m_bLostFocus = LTTRUE;
+                        g_ClientGlob.m_bClientActive = LTFALSE;
+
+                        if (!cl_ModernRunInBackground())
+                            i_client_shell->OnEvent(LTEVENT_LOSTFOCUS, 0);
+
+                        g_pClientMgr->ClearInput();
+                        ClipCursor(LTNULL);
+                    }
+                    return 0;
+                }
+#endif
                 // If a dialog is up, let dsi_PreDialog and dsi_PostDialog handle this stuff. 
                 if (!g_bNullRender) 
 				{

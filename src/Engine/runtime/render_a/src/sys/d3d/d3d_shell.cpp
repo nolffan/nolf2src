@@ -271,6 +271,29 @@ D3DModeInfo* CD3D_Shell::PickDefaultMode(D3DDeviceInfo* pDeviceInfo, uint32 nWid
 		return &(*itMode); 
 	}
 
+#ifdef NOLF2SRC_MODERN
+	// MODERN.md M-E2: a window of any size. Windowed, the back buffer only
+	// has to be in the desktop's format; its size need not be one the
+	// adapter could switch the screen to (retail refused every window size
+	// that is not a display mode: "Can't find an appropriate display
+	// mode!"). Take the first usable mode of the desktop's format, at the
+	// window's size.
+	if (g_bRunWindowed && nWidth > 0 && nHeight > 0)
+	{
+		static D3DModeInfo s_WindowMode;
+		for (vector<D3DModeInfo>::iterator itWin = pDeviceInfo->Modes.begin(); itWin != pDeviceInfo->Modes.end(); ++itWin)
+		{
+			if (itWin->Format != m_DesktopFormat.Format)
+				continue;
+			if ((!g_CV_RefRast && bHWTnL) && !itWin->bHWTnL)
+				continue;
+			s_WindowMode = *itWin;
+			s_WindowMode.Width = nWidth;
+			s_WindowMode.Height = nHeight;
+			return &s_WindowMode;
+		}
+	}
+#endif
 	//no matching device
 	return NULL;
 }

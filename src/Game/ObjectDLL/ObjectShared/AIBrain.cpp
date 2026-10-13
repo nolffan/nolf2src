@@ -158,6 +158,16 @@ void CAIBrain::GetDodgeStatus(DodgeStatus* peDodgeStatus, Direction* peDirection
 					*peDodgeStatus = m_eDodgeStatusLast = eDodgeStatusVector;
 					return;
 				}
+#ifdef NOLF2SRC_MODERN
+				// MODERN.md M-G22: a forced dodge that drew a block chose
+				// nothing, and the checks below read fCheckDistance unset.
+				// Shuffle, the smallest step out of the way.
+				else
+				{
+					*peDodgeAction = eDodgeActionShuffle;
+					fCheckDistance = m_pBrain->fDodgeVectorShuffleDist;
+				}
+#endif
 
 				// Do not roll if there are too many crouchers, and roll will
 				// result in a crouch.  Only crouch if allowed to by brain and weapon type.

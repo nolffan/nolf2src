@@ -137,6 +137,9 @@ void CHUDAir::UpdateLayout()
 	int nCurrentLayout = GetConsoleInt("HUDLayout",0);
 
 	m_BasePos		= g_pLayoutMgr->GetAirBasePos(nCurrentLayout);
+#ifdef NOLF2SRC_MODERN
+	m_BasePos.x += g_pInterfaceResMgr->GetHUDBaseShift(m_BasePos.x);	// MODERN.md M-G2
+#endif
 
 	m_bUseBar		= g_pLayoutMgr->GetUseAirBar(nCurrentLayout);
 	m_BarOffset	= g_pLayoutMgr->GetAirBarOffset(nCurrentLayout);

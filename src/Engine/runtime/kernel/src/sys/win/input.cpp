@@ -894,6 +894,14 @@ static bool input_SetupDeviceFormats( DeviceDef *pDevice )
 	prop.diph.dwObj = 0;
 	prop.diph.dwHow = DIPH_DEVICE;
 	prop.dwData = INPUT_BUFFER_SIZE;
+#ifdef NOLF2SRC_MODERN
+	// MODERN.md M-E3: a mouse of today reports up to 1000 times a second,
+	// two events each (x and y), and the buffer is read once a frame: 64
+	// events overflowed ("Input buffer overflow") and lost motion at low
+	// frame rates.
+	if( pDevice->m_bSysMouse )
+		prop.dwData = 1024;
+#endif
 
 	hResult = pDevice->m_pDevice->SetProperty (DIPROP_BUFFERSIZE, &prop.diph);
 	hResult = pDevice->m_pDevice->GetProperty (DIPROP_BUFFERSIZE, &prop.diph);
@@ -1384,6 +1392,22 @@ bool input_EnableDevice( InputMgr *pMgr, const char *pDeviceName )
 	return true;
 }
 
+#ifdef NOLF2SRC_MODERN
+// MODERN.md M-E3: the mouse's look axes (x and y), whose motion
+// input_ReadInput adds up over a frame. Not the wheel (z), whose bindings
+// are ranges one notch at a time.
+static bool input_IsMouseLookAxis( DeviceDef *pDevice, TriggerObject *pTrigger )
+{
+	if( !pDevice->m_bSysMouse || pTrigger->m_InputType != Input_RelAxis )
+		return false;
+	return stricmp( pTrigger->m_RealName, "##x-axis" ) == 0 ||
+		stricmp( pTrigger->m_RealName, "##y-axis" ) == 0 ||
+		stricmp( pTrigger->m_TriggerName, "X-axis" ) == 0 ||
+		stricmp( pTrigger->m_TriggerName, "Y-axis" ) == 0 ||
+		stricmp( pTrigger->m_TriggerName, "X Axis" ) == 0 ||
+		stricmp( pTrigger->m_TriggerName, "Y Axis" ) == 0;
+}
+#endif
 
 // --------------------------------------------------------------------- //
 // This is the main routine that reads input from all devices and sets
@@ -1437,6 +1461,11 @@ void input_ReadInput( InputMgr *pMgr, BYTE *pActionsOn, float axisOffsets[3] )
 
 			memset (data, 0, sizeof(data));
 			
+#ifdef NOLF2SRC_MODERN
+			// MODERN.md M-E3: the mouse's buffer is read whole, like any
+			// other device's (see below)
+			nEvents = INPUT_BUFFER_SIZE;
+#else
 			if(pDevice->m_bSysMouse)
 			{
 				// This fixes the USB mouse lockups.
@@ -1446,6 +1475,7 @@ void input_ReadInput( InputMgr *pMgr, BYTE *pActionsOn, float axisOffsets[3] )
 			{
 				nEvents = INPUT_BUFFER_SIZE;
 			}
+#endif
 
 			hResult = pDevice->m_pDevice->GetDeviceData( sizeof(DIDEVICEOBJECTDATA), data, &nEvents, 0 );
 			//hResult = pDevice->m_pDevice->GetDeviceState( pDevice->m_StateReadSize, dwStates );
@@ -1511,6 +1541,21 @@ void input_ReadInput( InputMgr *pMgr, BYTE *pActionsOn, float axisOffsets[3] )
 					continue;
 				}
 
+#ifdef NOLF2SRC_MODERN
+				// MODERN.md M-E3: mouse look. Retail took the mouse's events
+				// one at a time, ran every trigger after each, and smoothed
+				// each axis over its last three samples, so an axis with no
+				// new event could add its old motion again until it aged out
+				// (InputRate): the mouse overshot and wobbled. A mouse axis now
+				// adds up all of this frame's motion and hands on exactly that
+				// (the trigger loop below, which then zeroes it).
+				if( input_IsMouseLookAxis( pDevice, pTrigger ) )
+				{
+					pTrigger->m_State += (float)((int32)(data[i].dwData));
+					pTrigger->m_dwUpdateTime = dwTickCount;
+					continue;
+				}
+#endif
 				// Process all the non-buttons...
 				pTrigger->m_dwBaseUpdateTime = pTrigger->m_dwPrevUpdateTime;
 				pTrigger->m_dwPrevUpdateTime = pTrigger->m_dwUpdateTime;
@@ -1538,6 +1583,13 @@ void input_ReadInput( InputMgr *pMgr, BYTE *pActionsOn, float axisOffsets[3] )
 				{
 					float fCurTriggerState = pTrigger->m_State;
 
+#ifdef NOLF2SRC_MODERN
+					// M-E3: a mouse axis: this frame's motion, as it is
+					if( input_IsMouseLookAxis( pDevice, pTrigger ) )
+					{
+					}
+					else
+#endif
 					if( pTrigger->m_InputType != Input_Pov )
 					{
 						fCurTriggerState = (pTrigger->m_BaseState + pTrigger->m_PrevState + pTrigger->m_State) / 3.0f;
@@ -1684,6 +1736,13 @@ void input_ReadInput( InputMgr *pMgr, BYTE *pActionsOn, float axisOffsets[3] )
 				
 				// Clear this..
 				pTrigger->m_bJustWentDown = false;
+#ifdef NOLF2SRC_MODERN
+				// M-E3: a mouse axis's motion is used once
+				if( input_IsMouseLookAxis( pDevice, pTrigger ) )
+				{
+					pTrigger->m_State = pTrigger->m_PrevState = pTrigger->m_BaseState = 0.0f;
+				}
+#endif
 			}
 
 			// Go through any key up events and update the associated triggers

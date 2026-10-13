@@ -273,6 +273,9 @@ protected:
 	LTIntPt			m_nextPos;
 
 	LTFLOAT			m_fLastScale;
+#ifdef NOLF2SRC_MODERN
+	int				m_nLastXOffset;		// MODERN.md M-G2: the page's margin at the last layout
+#endif
     LTBOOL			m_bSelectFXCenter;
 
 	uint16			m_nSelection;

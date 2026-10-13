@@ -110,6 +110,9 @@ void CHUDObjectives::UpdateLayout()
 	int nCurrentLayout = GetConsoleInt("HUDLayout",0);
 
 	m_BasePos		= g_pLayoutMgr->GetObjectiveIconPos(nCurrentLayout);
+#ifdef NOLF2SRC_MODERN
+	m_BasePos.x += g_pInterfaceResMgr->GetHUDBaseShift(m_BasePos.x);	// MODERN.md M-G2
+#endif
 	m_BaseSize		= g_pLayoutMgr->GetObjectiveIconSize(nCurrentLayout);
 
 	m_fBlinkDuration = g_pLayoutMgr->GetObjectiveBlinkDuration(nCurrentLayout);

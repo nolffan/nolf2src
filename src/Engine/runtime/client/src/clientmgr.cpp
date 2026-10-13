@@ -725,6 +725,47 @@ void cm_HandleMaxFPS(uint32 frameTicks)
 
 
 
+#ifdef NOLF2SRC_MODERN
+// MODERN.md M-E4: the frame limiter. MaxFPS limits the frame rate only
+// outside the final build (cm_HandleMaxFPS above), so the game has always
+// run as fast as it could. Parts of NOLF2 go wrong at high frame rates
+// (the music above 100, M-G30; the Modernizer saw cutscene timing go
+// wrong), so the modern build limits it: to MaxFPS (60 unless set; 0 is
+// no limit; at most 1000). Each frame waits until 1/MaxFPS has passed
+// since the last one ended, sleeping while more than two milliseconds are
+// left (the timer runs at 1 ms: timemgr.cpp) and spinning for the rest.
+static void cm_ModernFrameLimit()
+{
+    static CounterFinal s_FrameCounter;
+    static bool s_bCounting = false;
+
+    if (g_CV_MaxFPS <= 0.0f)
+    {
+        s_bCounting = false;
+        return;
+    }
+
+    float fFPS = LTMIN(g_CV_MaxFPS, 1000.0f);
+    float fTicksPerSecond = (float)cnt_NumTicksPerSecond();
+    float fWantedTicks = fTicksPerSecond / fFPS;
+
+    if (s_bCounting)
+    {
+        for (;;)
+        {
+            float fTicks = (float)cnt_EndCounterFinal(s_FrameCounter);
+            if (fTicks >= fWantedTicks)
+                break;
+            if ((fWantedTicks - fTicks) * 1000.0f / fTicksPerSecond > 2.0f)
+                dsi_ClientSleep(1);
+        }
+    }
+
+    cnt_StartCounterFinal(s_FrameCounter);
+    s_bCounting = true;
+}
+
+#endif
 LTRESULT CClientMgr::Update()
 {
     uint16 i;
@@ -897,6 +938,9 @@ LTRESULT CClientMgr::Update()
 
     cm_HandleMaxFPS(frameTicks);                    // Lock framerate if they want.
 
+#endif
+#ifdef NOLF2SRC_MODERN
+    cm_ModernFrameLimit();                          // M-E4
 #endif
 
     GraphicsBenchmarkingUpdate();  // Update the benchmark mgr
@@ -1745,15 +1789,16 @@ void CClientMgr::RemoveClientObject(LTObject *pObj)
 // (RenderCamera, DRAWMODE_NORMAL) drawn over the whole screen wider than
 // 4:3 now keeps the vertical angle and gets a horizontal one that matches
 // its shape -- tan(x/2) grows with the width over 4:3 -- so it sees more at
-// the sides instead. At 4:3 or narrower nothing changes. Not the
-// interface's 3D objects (RenderObjects, DRAWMODE_OBJECTLIST: the menus'
-// and briefings' art), which are laid out with the 2D interface on the
-// 640x480 page stretched to the screen, and must stretch with it. The
+// the sides instead. At 4:3 or narrower nothing changes. The interface's
+// 3D objects (RenderObjects, DRAWMODE_OBJECTLIST: the menus' and
+// briefings' art) widen the same way: they are laid out with the 2D
+// interface, whose 640x480 page the modern game scales by the height and
+// centres (M-G2), so the art keeps its place beside the text. The
 // camera's own angles (GetCameraFOV, which the game's zoom, underwater and
 // damage effects read back) are untouched: only what is drawn widens.
 static float cm_WidescreenFovX(float xFov, int drawMode, const LTRect &rect, uint32 width, uint32 height)
 {
-    if (drawMode != DRAWMODE_NORMAL ||
+    if ((drawMode != DRAWMODE_NORMAL && drawMode != DRAWMODE_OBJECTLIST) ||
         rect.left != 0 || rect.top != 0 || (uint32)rect.right != width ||
         (uint32)rect.bottom != height || height == 0)
         return xFov;

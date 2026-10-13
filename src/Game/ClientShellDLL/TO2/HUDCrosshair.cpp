@@ -117,6 +117,24 @@ void CHUDCrosshair::Render()
 {
 	
 	SetRenderState();
+#ifdef NOLF2SRC_MODERN
+	// MODERN.md M-G34: the scope's and the camera's masks are made for a
+	// 4:3 view; on a wider screen the world showed past their sides. Black
+	// out the margins beside the 4:3 area.
+	if ((g_pInterfaceMgr->IsOverlayActive(OVM_SCOPE) || g_pInterfaceMgr->IsOverlayActive(OVM_CAMERA)) &&
+		g_pInterfaceResMgr->GetXOffset() > 0)
+	{
+		float fMargin = (float)g_pInterfaceResMgr->GetXOffset();
+		float fWidth = (float)g_pInterfaceResMgr->GetScreenWidth();
+		float fHeight = (float)g_pInterfaceResMgr->GetScreenHeight();
+		g_pDrawPrim->SetTexture(LTNULL);
+		g_pDrawPrim->SetRGBA(&m_Poly[2],argbBlack);
+		g_pDrawPrim->SetXYWH(&m_Poly[2],0.0f,0.0f,fMargin,fHeight);
+		g_pDrawPrim->DrawPrim(&m_Poly[2],1);
+		g_pDrawPrim->SetXYWH(&m_Poly[2],fWidth - fMargin,0.0f,fMargin,fHeight);
+		g_pDrawPrim->DrawPrim(&m_Poly[2],1);
+	}
+#endif
 	if (g_pInterfaceMgr->IsOverlayActive(OVM_SCOPE))
 	{
 		if (!g_pPlayerMgr->UsingCamera())
@@ -143,6 +161,9 @@ void CHUDCrosshair::Render()
 
 		float x = 319.0f * g_pInterfaceResMgr->GetXRatio();
 		float y = 239.0f * g_pInterfaceResMgr->GetYRatio();
+#ifdef NOLF2SRC_MODERN
+		x += (float)g_pInterfaceResMgr->GetXOffset();	// MODERN.md M-G2
+#endif
 		float w = 2.0f * g_pInterfaceResMgr->GetXRatio();
 
 		g_pDrawPrim->SetXYWH(&m_Poly[2],x,y,w,w);
@@ -253,6 +274,9 @@ void CHUDCrosshair::Update()
 
 		m_x = (float)m_StrPos.x * m_fScale;
 		m_y = (float)m_StrPos.y * m_fScale;
+#ifdef NOLF2SRC_MODERN
+		m_x += (float)g_pInterfaceResMgr->GetHUDXOffset(m_StrPos.x);	// M-G2
+#endif
 		uint8 nTextSize = (uint8)((float)m_nStrSz * m_fScale);
 		m_pStr->SetCharScreenHeight(nTextSize);
 
@@ -361,6 +385,10 @@ void CHUDCrosshair::RenderScope()
 	float hGap = g_vtScopeLRGap.GetFloat() * g_pInterfaceResMgr->GetXRatio();
 	float vR = g_vtScopeUDRadius.GetFloat() * cx * 2.0f;
 	float vGap = g_vtScopeUDGap.GetFloat() * g_pInterfaceResMgr->GetXRatio();
+#ifdef NOLF2SRC_MODERN
+	// MODERN.md M-G2: sized on the page, centred on the screen
+	cx += (float)g_pInterfaceResMgr->GetXOffset();
+#endif
 
 
 	//left post
@@ -443,6 +471,12 @@ void CHUDCrosshair::UpdateLayout()
 		m_nStrSz = nTmp;
 
 	m_nStrJust = g_pLayoutMgr->GetActivationTextJustify(nCurrentLayout);
+#ifdef NOLF2SRC_MODERN
+	// MODERN.md M-G2: the layout is read again for each screen size
+	// (CHUDMgr::ScreenDimsChanged); place everything again, as a screen of
+	// another width but the same height keeps the scale
+	m_fScale = 0.0f;
+#endif
 
 	uint32 color = g_pLayoutMgr->GetActivationTextColor(nCurrentLayout);
 	if (color > 0)

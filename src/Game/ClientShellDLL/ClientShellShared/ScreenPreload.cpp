@@ -361,7 +361,16 @@ void CScreenPreload::FirstUpdate( )
 	// If we are not joining a lan game and the cdkey hasn't been validated,
 	// we need to do it now.
 	m_eValidatingCDKeyState = kValidatingCDKeyState_None;
+#ifdef NOLF2SRC_MODERN
+	// MODERN.md M-G17: no CD-key check before joining. The key was checked
+	// with Sierra's WON authentication servers, which are gone, so every
+	// join that was not started from the LAN screen -- an Internet join,
+	// and a +join from the command line even to a server on the LAN --
+	// failed with "Invalid CD Key". Servers never check the key.
+	if( false )
+#else
 	if( !g_bLAN && g_pClientMultiplayerMgr->GetStartGameRequest( ).m_Type == STARTGAME_CLIENTTCP )
+#endif
 	{
 		IServerDirectory *pServerDir = g_pClientMultiplayerMgr->GetServerDir();
 		if( !pServerDir || !pServerDir->IsCDKeyValid( ))

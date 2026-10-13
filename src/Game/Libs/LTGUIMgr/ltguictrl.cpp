@@ -62,9 +62,18 @@ LTBOOL CLTGUICtrl::IsOnMe(int x, int y)
 }
 
 
+#ifdef NOLF2SRC_MODERN
+int CLTGUICtrl::s_nPageOffsetX = 0;
+
+#endif
 void CLTGUICtrl::SetScale(float fScale)
 {
+#ifdef NOLF2SRC_MODERN
+	// M-G2: the page's side margin
+	m_pos.x = (int)(fScale * (float)m_basePos.x) + s_nPageOffsetX;
+#else
 	m_pos.x = (int)(fScale * (float)m_basePos.x);
+#endif
 	m_pos.y = (int)(fScale * (float)m_basePos.y);
 	m_fScale = fScale;
 }

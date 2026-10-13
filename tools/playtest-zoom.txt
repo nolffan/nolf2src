@@ -1,0 +1,35 @@
+# playtest-zoom.txt -- for tools/playtest.sh (world "-"): a new game, as
+# playtest-newgame.txt, then the crossbow's scope (ZoomIn, Z) and the
+# in-game menu, for checking the HUD, the scope and the overlays at a screen
+# size (PLAYTEST_RES; MODERN.md M-G2, M-G34). Page coordinates are the
+# menus' 640x480 page (PLAYTEST_MAP).
+window 120
+wait 20
+mclick 130 191
+wait 4
+mclick 120 191
+wait 3
+mclick 360 188
+wait 20
+skipcine 120
+shot play
+turn 300 0
+wait 1
+shot turned
+key z
+wait 2
+shot scope
+key z
+wait 2
+shot scope2
+key x
+wait 2
+key x
+wait 2
+shot unzoomed
+key Escape
+wait 3
+shot menu-ingame
+key Escape
+wait 3
+shot resumed

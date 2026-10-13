@@ -136,6 +136,9 @@ void CHUDCarrying::UpdateLayout()
 		m_BasePos		= LTIntPt(40,360);
 		m_nSize			= 64;
 	}
+#ifdef NOLF2SRC_MODERN
+	m_BasePos.x += g_pInterfaceResMgr->GetHUDBaseShift(m_BasePos.x);	// MODERN.md M-G2
+#endif
 
 }
 

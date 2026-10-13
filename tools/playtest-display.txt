@@ -1,0 +1,24 @@
+# playtest-display.txt -- the modern build's Display options for
+# tools/playtest.sh (world "-"): opens Options > Display, turns Windowed on
+# and leaves the screen (the renderer restarts in a window; at the
+# desktop's size, a borderless one), then opens the screen again
+# (MODERN.md M-G40, M-G42). Page coordinates are the menus' 640x480 page
+# (PLAYTEST_MAP), for the modern build's layout.
+window 120
+wait 20
+mclick 130 308
+wait 3
+mclick 110 189
+wait 3
+shot display
+# Windowed: on
+mclick 130 303
+wait 1
+shot windowed-on
+key Escape
+wait 8
+focus
+shot after
+mclick 110 189
+wait 3
+shot display-again

@@ -40,6 +40,9 @@ CInterfaceResMgr::CInterfaceResMgr()
 
 	m_fXRatio = 1.0f;
 	m_fYRatio = 1.0f;
+#ifdef NOLF2SRC_MODERN
+	m_nXOffset = 0;
+#endif
 
 	m_pMsgText = LTNULL;
 
@@ -340,6 +343,24 @@ void CInterfaceResMgr::ScreenDimsChanged()
 	m_dwScreenWidth = currentMode.m_Width;
 	m_dwScreenHeight = currentMode.m_Height;
 
+#ifdef NOLF2SRC_MODERN
+	// MODERN.md M-G2: menus and HUD at wide resolutions. The interface is
+	// laid out on a 640x480 page; retail stretched it to the screen
+	// (width/640 across, height/480 down), and most controls scale both
+	// ways by the width's ratio, so on a 16:9 screen the menus were
+	// stretched and ran off the bottom. On a screen wider than 4:3 the page
+	// is now scaled by the height alone and centred, with the side margins
+	// left to the 3D scene behind it (the interface camera is widened to
+	// match: M-E1).
+	m_nXOffset = 0;
+	if (currentMode.m_Height > 0 &&
+		currentMode.m_Width * 3 > currentMode.m_Height * 4)
+	{
+		m_fXRatio = m_fYRatio;
+		m_nXOffset = ((int)currentMode.m_Width - (int)(640.0f * m_fYRatio)) / 2;
+	}
+	CLTGUICtrl::SetPageOffset(m_nXOffset);
+#endif
 }
 
 
@@ -473,6 +494,9 @@ void CInterfaceResMgr::ConvertScreenPos(int &x, int &y)
 
 	x = (int)( (LTFLOAT)x * m_fXRatio );
 	y = (int)( (LTFLOAT)y * m_fYRatio );
+#ifdef NOLF2SRC_MODERN
+	x += m_nXOffset;	// M-G2
+#endif
 };
 
 void CInterfaceResMgr::ConvertScreenRect(LTRect &rect)
@@ -484,6 +508,10 @@ void CInterfaceResMgr::ConvertScreenRect(LTRect &rect)
 	rect.right = (int)( (LTFLOAT)rect.right * m_fXRatio );
 	rect.top = (int)( (LTFLOAT)rect.top * m_fYRatio );
 	rect.bottom = (int)( (LTFLOAT)rect.bottom * m_fYRatio );
+#ifdef NOLF2SRC_MODERN
+	rect.left += m_nXOffset;	// M-G2
+	rect.right += m_nXOffset;
+#endif
 
 };
 

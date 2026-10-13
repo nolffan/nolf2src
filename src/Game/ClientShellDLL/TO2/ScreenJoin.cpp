@@ -670,7 +670,14 @@ void CScreenJoin::DisplayCurServerList()
 
 		// Do the mod...
 
+#ifdef NOLF2SRC_MODERN
+		// MODERN.md M-G26: the string itself, not the object (which %s
+		// read correctly only because STLport's string starts with its
+		// buffer pointer)
+		sprintf( aTempBuffer, "%s", iCurServer->m_sModName.c_str() );
+#else
 		sprintf( aTempBuffer, "%s", iCurServer->m_sModName );
+#endif
 		pCtrl->AddColumn( aTempBuffer, kColumnWidth_Mod );
 
 		// Do the ping
@@ -702,8 +709,15 @@ void CScreenJoin::DisplayCurServerList()
 		// Add the server
 		uint16 nCtrlIndex = m_pServerListCtrl->AddControl(pCtrl);
 
+#ifdef NOLF2SRC_MODERN
+		// M-G26: compare, not assign -- retail selected the last server in
+		// the list whenever any but the first had been selected before
+		if (nServerIndex == m_nSelectedServer)
+			nSelected = nCtrlIndex;
+#else
 		if (nServerIndex = m_nSelectedServer)
 			nSelected = nCtrlIndex;
+#endif
 
 	}
 

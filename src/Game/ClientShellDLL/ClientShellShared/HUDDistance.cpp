@@ -197,6 +197,9 @@ void CHUDDistance::UpdateLayout()
 	int nCurrentLayout = GetConsoleInt( "HUDLayout", 0 );
 
 	m_BasePos		= g_pLayoutMgr->GetDistanceIconPos( nCurrentLayout );
+#ifdef NOLF2SRC_MODERN
+	m_BasePos.x += g_pInterfaceResMgr->GetHUDBaseShift(m_BasePos.x);	// MODERN.md M-G2
+#endif
 	m_fBlinkSpeed	= g_pLayoutMgr->GetDistanceIconBlinkSpeed( nCurrentLayout );
 	m_fMaxAlpha  	= g_pLayoutMgr->GetDistanceIconAlpha( nCurrentLayout );
 	m_fFadeOutSpeed = g_pLayoutMgr->GetDistanceIconFadeOutSpeed( nCurrentLayout );
