@@ -378,27 +378,17 @@ void CUIFormattedPolyString_Impl::Parse()
 			// if there's a font table, this means a proportional font, and
 			// a few extra calculations
 			ctw = pFontTable[cidx * 3];
-			m_pLetters[i*2+1]  = ( uint8 )((( float )ctw * sh / cth ) + 0.5f );
+		}
+		else if (bNewline)
+		{
+			ctw = 0.0f;
 		}
 		else
 		{
-			if (bNewline)
-			{
-				m_pLetters[i*2+1]  = (uint8)(0.5f);
-			}
-			else
-			{
-				// Proportial fonts need white space calculation  
-				if (pFontTable)
-				{
-					m_pLetters[i*2+1]  = ( uint8 )((( float )m_CharScreenWidth * sh / cth ) + 0.5f );
-				}
-				else
-				{
-					m_pLetters[i*2+1]  = (uint8)(m_CharScreenWidth);
-				}
-			}
+			ctw = m_CharScreenWidth;
 		}
+
+		m_pLetters[i*2+1]  = ( uint8 )((( float )ctw * sh / cth ) + 0.5f );
 
 		////////////////////////////////////////////////////////////
 		//	get the word breaks -- may only be necessary for 
