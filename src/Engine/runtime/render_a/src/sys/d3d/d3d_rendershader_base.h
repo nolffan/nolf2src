@@ -837,11 +837,12 @@ protected:
 		StageStateSet stateTSS03(0, D3DTSS_ALPHAARG1, D3DTA_TEXTURE);
 		StageStateSet stateTSS04(0, D3DTSS_ALPHAOP, D3DTOP_SELECTARG1);
 		StageStateSet stateTSS05(0, D3DTSS_ALPHAARG2, D3DTA_DIFFUSE);
-		StageStateSet stateTSS16(1, D3DTSS_COLOROP, D3DTOP_DISABLE);
-		StageStateSet stateTSS17(1, D3DTSS_ALPHAOP, D3DTOP_DISABLE);
-
+		// (retail sets the wrap modes before disabling stage 1)
 		StageStateSet stateWrap0(0, D3DTSS_ADDRESSU, D3DTADDRESS_WRAP);
 		StageStateSet stateWrap1(0, D3DTSS_ADDRESSV, D3DTADDRESS_WRAP);
+
+		StageStateSet stateTSS16(1, D3DTSS_COLOROP, D3DTOP_DISABLE);
+		StageStateSet stateTSS17(1, D3DTSS_ALPHAOP, D3DTOP_DISABLE);
 
 		PD3DDEVICE->SetVertexShader(D3DFVF_XYZRHW | D3DFVF_TEX1);
 
@@ -896,11 +897,10 @@ private:
 
 		// Go through the starting points...
 		TRenderBlockPreviewList::iterator iCurPreviewRB = m_aPreviewRenderBlocks.begin();
-		CRenderBlockData rbd;
 		for (; iCurPreviewRB != m_aPreviewRenderBlocks.end(); ++iCurPreviewRB)
 		{
-			// Add a new renderblock
-			m_aRenderBlocks.push_back(rbd);
+			// Add a new renderblock (retail: the default push_back, no local)
+			m_aRenderBlocks.push_back();
 			CRenderBlockData &cRB = m_aRenderBlocks.back();
 
 			// Figure out how many sections are in this block
@@ -962,11 +962,10 @@ private:
 
 		// Put them in order
 		TIndexList::iterator iCurIndex = aSortIndices.begin();
-		CInternalSection is;
 		for (; iCurIndex != aSortIndices.end(); ++iCurIndex)
 		{
-			// Move the section
-			aSortedSections.push_back(is);
+			// Move the section (retail: the default-constructing push_back)
+			aSortedSections.push_back();
 			aSortedSections.back() = m_aSections[iCurIndex->m_nSection];
 
 			// Adjust the RB section index

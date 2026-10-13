@@ -361,10 +361,6 @@ void CClientMgr::TagUsedTextures() {
         nTagCount += TagTexture(pTexture->GetLinkedTexture(eLinkedTex_Detail));
 		nTagCount += TagTexture(pTexture->GetLinkedTexture(eLinkedTex_EnvMap));
 		nTagCount += TagTexture(pTexture->GetLinkedTexture(eLinkedTex_BumpMap));
-		nTagCount += TagTexture(pTexture->GetLinkedTexture(eLinkedTex_EffectTexture1));
-		nTagCount += TagTexture(pTexture->GetLinkedTexture(eLinkedTex_EffectTexture2));
-		nTagCount += TagTexture(pTexture->GetLinkedTexture(eLinkedTex_EffectTexture3));
-		nTagCount += TagTexture(pTexture->GetLinkedTexture(eLinkedTex_EffectTexture4));
     }
 
     // Tag all textures we can't unload.

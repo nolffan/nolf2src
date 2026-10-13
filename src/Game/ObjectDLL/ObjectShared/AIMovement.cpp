@@ -463,7 +463,15 @@ void CAIMovement::AvoidDynamicObstacles(LTVector* pvNewPos, EnumAnimMovement eMo
 
 	if( eMovementType == kAM_Encode_GB )
 	{
+#ifdef NOLF2SRC_MODERN
+		// MODERN.md M-G12: face away from the move, as the path code
+		// below does (vOldPos - vOldDirToDest). Retail faced the AI's
+		// own position: a zero direction, normalised to NaN, which
+		// FacePos then stored as its target rotation.
+		m_pAI->FacePosMoving( vMyPos - vNewVel );
+#else
 		m_pAI->FacePosMoving( m_pAI->GetPosition() );
+#endif
 	}
 	else {
 		m_pAI->FacePosMoving( vNewPos );

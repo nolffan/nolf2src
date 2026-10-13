@@ -404,7 +404,7 @@ void CD3D_Device::SetDefaultRenderStates()
 	D3D_CALL(m_pD3DDevice->SetRenderState(D3DRS_CLIPPING, TRUE));
 
 	// HW Transform & Light...
-	D3D_CALL(m_pD3DDevice->SetRenderState(D3DRS_SOFTWAREVERTEXPROCESSING, ((g_Device.GetDeviceCaps()->DevCaps & D3DDEVCAPS_HWTRANSFORMANDLIGHT) == 0) ? 1 : 0));
+	D3D_CALL(PD3DDEVICE->SetRenderState(D3DRS_SOFTWAREVERTEXPROCESSING, ((g_Device.GetDeviceCaps()->DevCaps & D3DDEVCAPS_HWTRANSFORMANDLIGHT) == 0) ? 1 : 0));
 
 	// Setup Material (for D3D lighting)...
 	D3D_CALL(m_pD3DDevice->SetRenderState(D3DRS_LIGHTING,FALSE));

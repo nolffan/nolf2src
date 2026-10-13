@@ -123,7 +123,13 @@ void CSkills::MultiplayerInit(ILTMessage_Read *pMsg)
 	{
 		m_nLevel[nSkill] = SKL_NOVICE;
 		uint8 nTgtLevel = 1;
+#ifdef NOLF2SRC_MODERN
+		// MODERN.md M-G8: the levels come from the client; none past the
+		// table (retail read the costs, and then the modifiers, past it).
+		while (nTgtLevel < kNumSkillLevels && nTgtLevel <= nLevels[nSkill] && m_nAvailPoints >= g_pSkillsButeMgr->GetCostToUpgrade((eSkill)nSkill,(eSkillLevel)nTgtLevel))
+#else
 		while (nTgtLevel <= nLevels[nSkill] && m_nAvailPoints >= g_pSkillsButeMgr->GetCostToUpgrade((eSkill)nSkill,(eSkillLevel)nTgtLevel))
+#endif
 		{
 			m_nAvailPoints -= g_pSkillsButeMgr->GetCostToUpgrade((eSkill)nSkill,(eSkillLevel)nTgtLevel);
 			m_nLevel[nSkill] = (eSkillLevel)nTgtLevel;

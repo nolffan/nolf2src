@@ -31,14 +31,16 @@ class CInterfaceTimer
 
 		void		Draw();
 
-		void        SetTime(LTFLOAT fTime, bool bPause) { m_fTime = fTime; m_fTimeLeft = m_fTime - g_pLTClient->GetGameTime( ); m_bPause = bPause; }
+		// RETAIL: reconstructed from the retail 1.3 CShell.dll (0x1005c484,
+		// 0x10063f4e): the timer has no m_fTimeLeft, and SetTime only
+		// stores; the source release also kept the time left while paused.
+		void        SetTime(LTFLOAT fTime, bool bPause) { m_fTime = fTime; m_bPause = bPause; }
 		float		GetTime() const { return m_fTime; }
 
 	private:
 
 		// Server game time when timer runs out.
 		float					m_fTime;
-		float					m_fTimeLeft;
 		bool					m_bPause;
 		uint8					m_nTeamId;
 

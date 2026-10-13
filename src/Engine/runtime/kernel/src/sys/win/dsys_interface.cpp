@@ -701,11 +701,22 @@ void dsi_PrintToConsole(const char *pMsg, ...) {
     va_list marker;
 	
     va_start(marker, pMsg);
+#ifdef NOLF2SRC_MODERN
+	// MODERN.md M-E10: a message that filled the buffer had its newline
+	// and terminator written one past the end; an empty one read the
+	// byte before it. Keep room for the newline.
+    LTVSNPrintF(msg, sizeof(msg) - 1, pMsg, marker);
+#else
     LTVSNPrintF(msg, sizeof(msg), pMsg, marker);
+#endif
     va_end(marker);
 	
 	int32 len = strlen(msg);
+#ifdef NOLF2SRC_MODERN
+	if (len == 0 || msg[len-1] != '\n')
+#else
 	if (msg[len-1] != '\n')
+#endif
 	{
 		msg[len] = '\n';
 		msg[len+1] = '\0';

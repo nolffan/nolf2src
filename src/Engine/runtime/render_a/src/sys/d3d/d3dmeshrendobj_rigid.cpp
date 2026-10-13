@@ -28,11 +28,11 @@ void CD3DRigidMesh::CalcUsedNodes( Model *pModel )
 }
 void CD3DRigidMesh::Reset()
 {
+	// (retail's Reset, inlined in FreeAll at 0x51222c, leaves m_bNonFixPipeData)
 	m_VBController.Reset();
 	m_iVertCount		= 0;
 	m_iPolyCount		= 0;
 	m_pIndexData		= NULL;
-	m_bNonFixPipeData	= false;
 	for (uint32 i = 0; i < 4; ++i) m_pVertData[i] = NULL;
 }
 

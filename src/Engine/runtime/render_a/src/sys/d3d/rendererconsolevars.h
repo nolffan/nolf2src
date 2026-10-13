@@ -102,7 +102,7 @@ RCONVAR(g_CV_DisableRenderObjectGroups, "DisableRenderObjectGroups", int, 0);
 //------------------------------
 // Renderer Settings
 RCONVAR(g_CV_VSyncOnFlip, "VSyncOnFlip", int, 1);
-RCONVAR(g_CV_MipMapBias, "MipMapBias", float, 0.0f);
+RCONVAR(g_CV_MipMapBias, "MipMapBias", int, 0);	// an int in NOLF2 (retail d3d_SetTextureDirect, 0x50fd6e: fild)
 RCONVAR(g_CV_Trilinear, "Trilinear", int, 0);
 RCONVAR(g_CV_Anisotropic, "Anisotropic", int, 0);
 RCONVAR(g_CV_RefRast, "RefRast", int, 0);

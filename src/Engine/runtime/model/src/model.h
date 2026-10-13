@@ -674,10 +674,11 @@ class CDIModelDrawable : public CRenderObject
 {
 public :
 
+	// (assigned in the body: retail stores the vtable first, 0x4c2a85)
 	CDIModelDrawable()
-		: m_pUsedNodeList(NULL),
-		  m_UsedNodeListSize(0)
 	{
+		m_pUsedNodeList = NULL;
+		m_UsedNodeListSize = 0;
 	}
 
 	virtual ~CDIModelDrawable()

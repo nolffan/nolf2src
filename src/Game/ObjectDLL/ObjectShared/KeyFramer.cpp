@@ -1567,6 +1567,16 @@ void KeyFramer::UpdateObjects(LTBOOL bInterpolate, LTBOOL bTeleport)
 				vTargetPos += m_vTargetOffset;
 
 				LTVector vDir = vTargetPos - vPos;
+#ifdef NOLF2SRC_MODERN
+				// MODERN.md M-G13: a target at the object's own position
+				// gives no direction: leave the rotation as it is
+				if (vDir.MagSqr() < 1.0e-12f)
+				{
+					i++;
+					pLink = pLink->m_pNext;
+					continue;
+				}
+#endif
 				vDir.Normalize();
 
 				rRot1 = LTRotation(vDir, LTVector(0.0f, 1.0f, 0.0f));
@@ -1576,6 +1586,19 @@ void KeyFramer::UpdateObjects(LTBOOL bInterpolate, LTBOOL bTeleport)
 				// Align the object to the path, if necessary...
 
 				LTVector vDir = vPos - vOldPos;
+#ifdef NOLF2SRC_MODERN
+				// MODERN.md M-G13: an object that did not move this
+				// update (GOTOKEY to the key it is at, two keys at one
+				// place) has no path direction; retail normalised the
+				// zero vector and set a NaN rotation. Keep the rotation.
+				// (Any real move, however slow, still turns it.)
+				if (vDir.MagSqr() < 1.0e-12f)
+				{
+					i++;
+					pLink = pLink->m_pNext;
+					continue;
+				}
+#endif
 				vDir.Normalize();
 
 				if (m_eDirection == KFD_BACKWARD)

@@ -60,50 +60,13 @@ LTVector d3d_GetDims_ParticleSystem(LTObject *pObject)
 {
     LTParticleSystem *pSystem = (LTParticleSystem*)pObject;
 
-	//find the distance to our system radius
-	float fDistToSystemCenter = (pSystem->m_Pos - pSystem->m_SystemCenter).Mag();
-
-	return pSystem->m_Scale * (pSystem->m_SystemRadius + fDistToSystemCenter);
+	// NOLF2 (retail 0x5198f0): the system radius alone, not the distance to
+	// the system's centre too
+	return pSystem->m_Scale * pSystem->m_SystemRadius;
 }
 
-LTVector d3d_GetDims_PolyGrid(LTObject *pObject)
-{
-	//shortcut for most polygrids
-	if(pObject->m_Rotation.IsIdentity())
-		return pObject->m_Dims;
-
-	//determine the orientation vectors
-	LTVector vUp		= pObject->m_Rotation.Up();
-	LTVector vRight		= pObject->m_Rotation.Right();
-	LTVector vForward	= pObject->m_Rotation.Forward();
-
-	//little array to help sign switching
-	static const float knSign[] = {-1.0f, 1.0f};
-
-	LTVector vDims(0, 0, 0);
-
-	//and now run through and generate 8 box points and determine the extents
-	for(uint32 nCurrPt = 0; nCurrPt < 8; nCurrPt++)
-	{
-		//this is a bit ugly, but essentially it just has a sin wave for the sign coefficients
-		//each at a different octave which will thus hit each combination of +1/-1 and create
-		//all possible combinations
-		LTVector vPt =  (vRight		* pObject->m_Dims.x	* knSign[(nCurrPt / 1) % 2]) +
-						(vUp		* pObject->m_Dims.y	* knSign[(nCurrPt / 2) % 2]) +
-						(vForward	* pObject->m_Dims.z	* knSign[(nCurrPt / 4) % 2]);
-		
-		//now make it absolute
-		vPt.x = fabsf(vPt.x);
-		vPt.y = fabsf(vPt.y);
-		vPt.z = fabsf(vPt.z);
-
-		//and update the dims
-		VEC_MAX(vDims, vDims, vPt);		
-	}
-
-	//success
-	return vDims;	
-}
+// NOLF2 has no d3d_GetDims_PolyGrid: polygrids use the generic dims
+// (retail's handler table, 0x5aa530).
 
 ObjectHandler g_ObjectHandlers[NUM_OBJECTTYPES] =
 {
@@ -122,7 +85,7 @@ ObjectHandler g_ObjectHandlers[NUM_OBJECTTYPES] =
 	// OT_PARTICLESYSTEM
 	LTNULL, LTNULL, false, LTNULL, d3d_ProcessParticles, true, d3d_GetDims_ParticleSystem,
 	// OT_POLYGRID
-	LTNULL, d3d_TermPolyGridDraw, false, LTNULL, d3d_ProcessPolyGrid, true, d3d_GetDims_PolyGrid,
+	LTNULL, d3d_TermPolyGridDraw, false, LTNULL, d3d_ProcessPolyGrid, true, d3d_GetDims_Generic,
 	// OT_LINESYSTEM
 	LTNULL, LTNULL, false, LTNULL, d3d_ProcessLineSystem, false, d3d_GetDims_Generic,
 	// OT_CONTAINER (containers drawn like WorldModels)

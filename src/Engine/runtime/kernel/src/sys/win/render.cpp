@@ -119,17 +119,13 @@ LTRESULT r_LoadSystemTexture(SharedTexture *pSharedTexture)
 
 	ConParse parse;
 
+	// NOLF2 (retail 0x465d80) checks no argument counts and knows no DOT3
+	// bumpmaps or effects: five commands, in this order.
+
 	//Normal detail texturing
 	parse.Init(pTextureData->m_Header.m_CommandString);
 	if (parse.ParseFind("DetailTex", LTFALSE, 1)) 
 	{
-
-        //validate the argument count
-        if(parse.m_nArgs < 2)
-        {
-		    RETURN_ERROR_PARAM(1, r_LoadSystemTexture, LT_INVALIDDATA, "DetailTex : parse.m_Args[1]"); 
-        }
-
 		ref.m_FileType = FILE_CLIENTFILE;
 		ref.m_pFilename = parse.m_Args[1];
 		pSharedTexture->SetLinkedTexture(eLinkedTex_Detail, g_pClientMgr->AddSharedTexture(&ref));
@@ -141,13 +137,6 @@ LTRESULT r_LoadSystemTexture(SharedTexture *pSharedTexture)
 	parse.Init(pTextureData->m_Header.m_CommandString);
 	if (parse.ParseFind("EnvMap", LTFALSE, 1)) 
 	{
-
-        //validate the argument count
-        if(parse.m_nArgs < 2)
-        {
-		    RETURN_ERROR_PARAM(1, r_LoadSystemTexture, LT_INVALIDDATA, "EnvMap : parse.m_Args[1]"); 
-        }
-
 		ref.m_FileType = FILE_CLIENTFILE;
 		ref.m_pFilename = parse.m_Args[1];
 		pSharedTexture->SetLinkedTexture(eLinkedTex_EnvMap, g_pClientMgr->AddSharedTexture(&ref));
@@ -159,13 +148,6 @@ LTRESULT r_LoadSystemTexture(SharedTexture *pSharedTexture)
 	parse.Init(pTextureData->m_Header.m_CommandString);
 	if (parse.ParseFind("EnvMapAlpha", LTFALSE, 1)) 
 	{
-
-        //validate the argument count
-        if(parse.m_nArgs < 2)
-        {
-		    RETURN_ERROR_PARAM(1, r_LoadSystemTexture, LT_INVALIDDATA, "EnvMapAlpha : parse.m_Args[1]"); 
-        }
-
 		ref.m_FileType = FILE_CLIENTFILE;
 		ref.m_pFilename = parse.m_Args[1];
 		pSharedTexture->SetLinkedTexture(eLinkedTex_EnvMap, g_pClientMgr->AddSharedTexture(&ref));
@@ -177,17 +159,6 @@ LTRESULT r_LoadSystemTexture(SharedTexture *pSharedTexture)
 	parse.Init(pTextureData->m_Header.m_CommandString);
 	if (parse.ParseFind("EnvBumpMap", LTFALSE, 2)) 
 	{
-        //validate the argument count
-        if(parse.m_nArgs < 3)
-        {
-            if(parse.m_nArgs < 2)
-            {
-		        RETURN_ERROR_PARAM(1, r_LoadSystemTexture, LT_INVALIDDATA, "EnvBumpMap : parse.m_Args[1]"); 
-            }
-
-		    RETURN_ERROR_PARAM(1, r_LoadSystemTexture, LT_INVALIDDATA, "EnvBumpMap : parse.m_Args[2]"); 
-        }
-
 		//handle loading up the environment map first
 		ref.m_FileType = FILE_CLIENTFILE;
 		ref.m_pFilename = parse.m_Args[1];
@@ -207,18 +178,6 @@ LTRESULT r_LoadSystemTexture(SharedTexture *pSharedTexture)
 	parse.Init(pTextureData->m_Header.m_CommandString);
 	if (parse.ParseFind("EnvBumpMapNoFallback", LTFALSE, 2)) 
 	{
-
-        //validate the argument count
-        if(parse.m_nArgs < 3)
-        {
-            if(parse.m_nArgs < 2)
-            {
-		        RETURN_ERROR_PARAM(1, r_LoadSystemTexture, LT_INVALIDDATA, "EnvBumpMapNoFallback : parse.m_Args[1]"); 
-            }
-
-		    RETURN_ERROR_PARAM(1, r_LoadSystemTexture, LT_INVALIDDATA, "EnvBumpMapNoFallback : parse.m_Args[2]"); 
-        }
-
 		//handle loading up the environment map first
 		ref.m_FileType = FILE_CLIENTFILE;
 		ref.m_pFilename = parse.m_Args[1];
@@ -231,113 +190,6 @@ LTRESULT r_LoadSystemTexture(SharedTexture *pSharedTexture)
 
 		//setup the shader type
 		pSharedTexture->m_eTexType = eSharedTexType_EnvBumpMap_NoFallback; 
-		return LT_OK;
-	}
-
-
-	//DOT3 bumpmap texture
-	parse.Init(pTextureData->m_Header.m_CommandString);
-	if (parse.ParseFind("DOT3BumpMap", LTFALSE, 1)) 
-	{
-
-		//validate the argument count
-		if(parse.m_nArgs < 2)
-		{
-			RETURN_ERROR_PARAM(1, r_LoadSystemTexture, LT_INVALIDDATA, "DOT3BumpMap : parse.m_Args[1]"); 
-		}
-
-
-		//now handle loading up the bumpmap
-		ref.m_FileType = FILE_CLIENTFILE;
-		ref.m_pFilename = parse.m_Args[1];
-		pSharedTexture->SetLinkedTexture(eLinkedTex_BumpMap, g_pClientMgr->AddSharedTexture(&ref));
-
-		//setup the shader type
-		pSharedTexture->m_eTexType = eSharedTexType_DOT3BumpMap; 
-		return LT_OK;
-	}
-
-
-
-	//Environment mapping with a DOT3 bumpmap texture but no fallback
-	parse.Init(pTextureData->m_Header.m_CommandString);
-	if (parse.ParseFind("DOT3EnvBumpMap", LTFALSE, 2)) 
-	{
-
-        //validate the argument count
-        if(parse.m_nArgs < 3)
-        {
-            if(parse.m_nArgs < 2)
-            {
-		        RETURN_ERROR_PARAM(1, r_LoadSystemTexture, LT_INVALIDDATA, "DOT3EnvBumpMap : parse.m_Args[1]"); 
-            }
-
-		    RETURN_ERROR_PARAM(1, r_LoadSystemTexture, LT_INVALIDDATA, "DOT3EnvBumpMap : parse.m_Args[2]"); 
-        }
-
-		//handle loading up the environment map first
-		ref.m_FileType = FILE_CLIENTFILE;
-		ref.m_pFilename = parse.m_Args[1];
-		pSharedTexture->SetLinkedTexture(eLinkedTex_EnvMap, g_pClientMgr->AddSharedTexture(&ref));
-
-		//now handle loading up the bumpmap
-		ref.m_FileType = FILE_CLIENTFILE;
-		ref.m_pFilename = parse.m_Args[2];
-		pSharedTexture->SetLinkedTexture(eLinkedTex_BumpMap, g_pClientMgr->AddSharedTexture(&ref));
-
-		//setup the shader type
-		pSharedTexture->m_eTexType = eSharedTexType_DOT3EnvBumpMap; 
-		return LT_OK;
-	}
-
-
-	//Effect File Support
-	parse.Init(pTextureData->m_Header.m_CommandString);
-	if (parse.ParseFind("Effect", LTFALSE, 1)) 
-	{
-		//validate the argument count
-		if(parse.m_nArgs < 2)
-		{
-			RETURN_ERROR_PARAM(1, r_LoadSystemTexture, LT_INVALIDDATA, "Effect : parse.m_Args[1]"); 
-		}
-
-		// Set up our shader ID
-		pSharedTexture->m_nShaderID = (int)atoi(parse.m_Args[1]);
-		pSharedTexture->m_eTexType = eSharedTexType_Effect;
-
-		if(parse.m_nArgs > 2)
-		{
-			ref.m_FileType = FILE_CLIENTFILE;
-			ref.m_pFilename = parse.m_Args[2];
-			pSharedTexture->SetLinkedTexture(eLinkedTex_EffectTexture1, g_pClientMgr->AddSharedTexture(&ref));
-			pSharedTexture->m_eTexType = eSharedTexType_Effect;
-		}
-
-		if(parse.m_nArgs > 3)
-		{
-			ref.m_FileType = FILE_CLIENTFILE;
-			ref.m_pFilename = parse.m_Args[3];
-			pSharedTexture->SetLinkedTexture(eLinkedTex_EffectTexture2, g_pClientMgr->AddSharedTexture(&ref));
-			pSharedTexture->m_eTexType = eSharedTexType_Effect;
-		}
-
-		if(parse.m_nArgs > 4)
-		{
-			ref.m_FileType = FILE_CLIENTFILE;
-			ref.m_pFilename = parse.m_Args[4];
-			pSharedTexture->SetLinkedTexture(eLinkedTex_EffectTexture3, g_pClientMgr->AddSharedTexture(&ref));
-			pSharedTexture->m_eTexType = eSharedTexType_Effect;
-		}
-
-		if(parse.m_nArgs > 5)
-		{
-			ref.m_FileType = FILE_CLIENTFILE;
-			ref.m_pFilename = parse.m_Args[5];
-			pSharedTexture->SetLinkedTexture(eLinkedTex_EffectTexture4, g_pClientMgr->AddSharedTexture(&ref));
-			pSharedTexture->m_eTexType = eSharedTexType_Effect;
-		}
-
-		return LT_OK;
 	}
 
 	//just a normal texture...
