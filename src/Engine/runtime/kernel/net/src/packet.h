@@ -402,11 +402,10 @@ public:
 		  m_nSize(nSize)
 	{
 		// Do some range checking...
-		uint32 nOtherEnd = cOther.m_nSize + cOther.m_nStart;
-		if (m_nStart > nOtherEnd)
+		if (m_nStart > (cOther.m_nStart + cOther.m_nSize))
 		{
+			m_nStart = cOther.m_nStart + cOther.m_nSize;
 			m_nSize = 0;
-			m_nStart = nOtherEnd;
 		}
 
 		m_nSize = LTMIN(m_nSize, cOther.m_nSize - (m_nStart - cOther.m_nStart));
