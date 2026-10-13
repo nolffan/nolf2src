@@ -56,6 +56,7 @@ Background, in this directory:
 | 7 | `boot`: the built `Lithtech.exe` in the game under Wine: to the menu, then a level; snddrv/ServerDir/ltmsg built ones in | 3–6 | done: every engine binary in the game is built (no retail engine left); `make test` plays from the main menu into C01S01 with sound (null ALSA device); `make modern` builds and runs the same |
 | 8 | `modern`: the modern build of the engine (FFmpeg Bink, fixes) | 7 | done: no RAD binary in the modern build (Bink on FFmpeg; NOLF2 has no Miles); the launcher installed in both builds; Hor+, widescreen modes, the launcher's server name (`MODERN.md`) |
 | 9 | `match`: byte-matching passes per module, ratcheted by `make progress` | 3–6 | ongoing |
+| 9a | `net`: multiplayer with the built engine (dedicated server and client over UDP); kernel/net and the server-side modules matched | 3, 7 | done: our Lithtech.exe joins our NOLF2Srv.exe/server.dll (and retail's server.dll) over loopback, `tools/mptest.sh`; server.dll +102, Lithtech.exe +104 identical |
 | 10 | `release`: public archives built by GitHub Actions, as nolfsrc does (its commits "Install scripts that copy the game's data out of the player's discs", "Package each game directory as a -private and a -public archive", "Build switches for CI: NOLF_ARCHIVES and IMAGE_BUILD", "CI: build the four public archives on GitHub Actions", "CI: check the release build for byte regressions", "CI: upload each archive unzipped") | 7, 8 and everything ported | todo |
 
 ## Notes per package
@@ -670,3 +671,93 @@ then `PLAYTEST_MAP=modern`), windowed mode at any size (M-E2, render_a),
 raw mouse input (M-E3), high-frame-rate checks before a default
 `MaxFPS` (M-E4), drawing the console (M-E5), Internet play without the
 WON servers (M-E6), an FOV option (M-G4).
+
+### 9a. net
+
+Done. **Multiplayer works** with the built engine: `tools/mptest.sh`
+starts NOLF2Srv.exe with a `server.dll` (ours by default;
+`out/reference/server.dll` is the protocol's control) hosting the first
+co-op level, and our `Lithtech.exe` joins it over UDP loopback through
+the LAN menus (xdotool), both under one Xvfb in the build container. It
+prints JOINED when the server keeps the client and the client enters the
+world. The command line's `+join` does not work here, because it asks
+WON's servers to check the CD key first. The server needs the 1.3
+update's rez registered as its installer does it (`UpdateNum`,
+`UpdateCommandLine0`). Without it the server's attribute files are 1.0's,
+and the handshake's CRC checks kick the client.
+
+**Protocol.** Two differences from Jupiter had to go:
+- Every unconnected packet carries NOLF2's token 0x01337F10, not
+  Jupiter's 0x9919D9C7. With Jupiter's, our client could not find or join
+  a retail server.
+- The 2002 UDP driver locks with `CWinSync_CS`, not `LCriticalSection`.
+  That shifted every field of `CUDPConn` and `CUDPDriver`.
+
+The driver also gets back its 2002 listen thread, `ReallyJoinSession`,
+`SendPing` and the one-argument `Term2`. Packets are copied bit by bit
+(`WriteData`/`ReadData`); Jupiter's raw-copy helpers are gone.
+
+**The game's handshake** (cshell's notes, 9c) derives its key and mask
+from the player GUID and a rotated constant in retail. Our CShell and
+Object.lto still use the source release's fixed values. Our client and
+our server agree, so mptest passes, whichever `server.dll` is used. A
+retail Object.lto, or a retail client, would not agree with them. The
+fix is in the game code, not here.
+
+**Matching.** In server.dll, udpdriver.obj places 242 functions (165
+before this package). The ones still unplaced are `ShouldSendPacket`
+(nothing calls it, so retail's link dropped it) and a vector-destructor
+helper. packet 30, netmgr 142 (the unplaced ones are client-only session
+calls), localdriver 35/35. In Lithtech.exe: udpdriver 237 (190 before),
+packet 28, netmgr 130, localdriver 40.
+
+Also matched in the server-side modules:
+- `HandleGuaranteed`
+- `CPacket_Read`'s sub-range constructor (inlined into about 20 exe
+  functions)
+- `CModelMgr`'s loops (iterators initialised at declaration)
+- the four object constructors without `m_nEffectShaderID` (as on master)
+- `CWorldServerBSP::Term` (no `world_tree.Term`)
+- `CLTMessage_Load::ReadObject`
+- `CollideWithAABB`
+- `Model::Load`
+- `CLTTransform::Inverse`
+
+`make progress` (check) passes: server.dll 2399 -> 2501 identical,
+Lithtech.exe 5509 -> 5613 (against this branch's recorded baseline).
+
+**Known nears, and why:**
+- `CUDPDriver::Update`. Retail calls the three flushes directly, and
+  `Term` and `GetPacket` call `FlushInternalQueues`. Written that way,
+  both binaries' `Update` match, but then the exe's `Term` inlines
+  `deque::pop_front`, which retail calls out of line (0x48e540, recorded
+  identical). So the source stays as it is (the comment in `Update`
+  says so).
+- `i_IntersectSegment`. Retail calls `TVector3`'s constructor out of
+  line inside `operator-` (0x100069bb), and our compile inlines it.
+  That is in `ltvector.h`, which other modules share.
+- `intersectsweptsphere.obj`. Several functions are 30-260 bytes off.
+  Not looked into.
+- The exe's /O2 shapes of `game_serialize`, `ltmessage` and the rest of
+  `udpdriver` (`o2gap.py`).
+- `d3d_model_load`'s `CreateModelRenderObject` and
+  `spritecontrolimpl`'s `GetFrameTextureHandle` are already fixed on
+  master (rendermatch: the `CDIModelDrawable` constructor and the
+  `SharedTexture` layout).
+
+**Left:**
+- One exe hosting and another joining (not tried; the dedicated server
+  path is what was tested).
+- A retail client against our server, which SecuROM prevents under
+  Wine.
+- The nears above.
+
+#### net: retail bugs
+
+- **`CLTTransform::Inverse` returns its input.** Retail (server.dll
+  0x10047c91; `lea -0x40(%ebp)` at 0x10047cb3 is `mTransform`, not
+  `mInverse`) inverts the matrix, then converts the original matrix back
+  into `inverse`, so `inverse` comes back equal to `transform`. The
+  release build reproduces it. Under `NOLF2SRC_MODERN` the result is the
+  real inverse (`shared/src/transformlt_impl.cpp`). Nothing in the game
+  calls it.
