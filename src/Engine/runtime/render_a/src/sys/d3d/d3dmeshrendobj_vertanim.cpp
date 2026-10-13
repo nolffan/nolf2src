@@ -26,6 +26,7 @@ CD3DVAMesh::~CD3DVAMesh()
 
 void CD3DVAMesh::Reset()
 {
+	// (retail's Reset, inlined in FreeAll at 0x510162, leaves m_bNonFixPipeData)
 	m_VBController.Reset();
 	m_iMaxBonesPerVert	= 0;
 	m_iMaxBonesPerTri	= 0;
@@ -37,7 +38,6 @@ void CD3DVAMesh::Reset()
 	m_iDupMapListCount	= 0;
 	m_pDupMapList		= NULL;
 	m_pIndexData		= NULL;
-	m_bNonFixPipeData	= false;
 
 	for (uint32 i = 0; i < 4; ++i) m_pVertData[i] = NULL;
 }

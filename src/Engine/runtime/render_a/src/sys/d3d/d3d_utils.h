@@ -131,7 +131,10 @@ inline void GetVertexFlags_and_Size(VERTEX_BLEND_TYPE VertBlendType, uint32 iVer
 	else if (iVertDataType & VERTDATATYPE_UVSETS_4) { iVertFlags |= VSTREAM_UV4_FLAGS; iUVSets = 4; }
 	if (iVertDataType & VERTDATATYPE_BASISVECTORS)
 	{
-		iExtraData					+= sizeof(float)*6;
+		// NOLF2's model files carry three floats of basis data a vertex
+		// (retail's inlined copy in CD3DSkelMesh::Load_RD, 0x5110b9), not
+		// Jupiter's six
+		iExtraData					+= sizeof(float)*3;
 		bNonFixPipeData				= true;
 	}
 
