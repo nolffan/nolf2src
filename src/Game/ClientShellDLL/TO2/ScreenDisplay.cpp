@@ -309,7 +309,14 @@ void CScreenDisplay::GetRendererData()
 		{
 			// disallow non-standard aspect ratios
 			uint32 testWidth = (pCurrentMode->m_Height * 4 / 3);
+#ifdef NOLF2SRC_MODERN
+			// MODERN.md M-G1: widescreen resolutions. Every mode at least as
+			// wide as 4:3 (the engine widens the view to match, M-E1); only
+			// the narrower ones (5:4) are still left out.
+			if (pCurrentMode->m_Width < testWidth)
+#else
 			if (pCurrentMode->m_Width != testWidth)
+#endif
 			{
 			
 				// Go to the next render mode

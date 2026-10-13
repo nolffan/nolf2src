@@ -2,9 +2,9 @@
 
 The base is ready, built from `nolf2-eu`. Nothing has been committed. The
 game DLLs compile from Monolith's source, and the legacy, debug and modern
-builds all produce game folders and tarballs. The game does not start under
-Wine yet: the retail engine the build borrows is copy-protected (see "Not
-done yet").
+builds all produce game folders and tarballs. (Then, the game did not start
+under Wine: the retail engine the build borrowed is copy-protected. It now
+runs on the engine built from source: see "Not done yet".)
 
 ## First results (legacy build vs retail 1.3)
 
@@ -33,9 +33,9 @@ README.md for the current state.
   The new part is `tools/dsp2mk.py`, which reads Monolith's workspace and
   project files (Final configuration) and generates the build rules, compile
   for compile.
-- **Output folders:** the game folder is audited (7 built, 4 retail engine
-  files, 5 third-party, none unaccounted for), and tarballs leave out saves
-  and player profiles.
+- **Output folders:** the game folder is audited (11 built, the engine
+  included, 5 third-party, none unaccounted for), and tarballs leave out
+  saves and player profiles.
 
 ## Changes to `rez` (in the submodule only, uncommitted)
 
@@ -61,20 +61,15 @@ Separately, a rare Wine compiler crash under parallel load (`C1001` /
 
 ## Not done yet
 
-- **The game does not start under Wine.** The retail `Lithtech.exe` has
-  SecuROM and asks for the disc. The protection is not removed or bypassed.
-  The real fix is the reconstructed engine, which will not have it. The
-  multiplayer demo's unprotected engine was tried, but it rejects the retail
-  game DLLs.
+- **The game did not start under Wine** with the retail `Lithtech.exe`
+  (SecuROM asks for the disc; the protection is not removed or bypassed).
+  Since package 7 of `docs/engine/PLAN.md` the game gets the engine built
+  from source, which has none, and runs.
 - **Launcher (`NOLF2.exe`):** builds (DirectX 8.1 SDK, `toolchains/dxsdk-8.1`)
   but `build/all.sh` does not put it in the game directory yet.
 - **`make progress`:** adapted to NOLF2: `progress/targets.py` lists each
   binary, its code range and what is left out (the C runtime, D3DX, WONAPI,
-  SecuROM's encrypted pages); see `progress/README.md`. The engine binaries
-  score 0% until they have source.
-- **`ServerDir.dll`:** builds from the Jupiter SDK's source
-  (`src/Game/Libs/ServerDir/ServerDir.dsw`, `build/jupiter.sh`), but the
-  game still gets the retail one.
+  SecuROM's encrypted pages); see `progress/README.md`.
 - **DirectX SDK version:** 8.1 is a guess; if the launcher's or game DLLs'
   remaining differences point at the headers, try 8.0 (archive.org `dx8sdk`).
 

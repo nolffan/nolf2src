@@ -437,8 +437,15 @@ BOOL CRenderer::Init(const char* sFile)
 
 			// Only allow 4x3 aspect ratio video modes
 			uint32 nTestWidth = (d3dDisplayMode.Height * 4 / 3);
+#ifdef NOLF2SRC_MODERN
+			// MODERN.md M-G1: widescreen resolutions here too (any mode at
+			// least as wide as 4:3), as the game's Display screen lists them.
+			if (d3dDisplayMode.Width < nTestWidth)
+				continue;
+#else
 			if (nTestWidth != d3dDisplayMode.Width)
 				continue;
+#endif
 
 			// 32-bit display modes only
 			if (d3dDisplayMode.Format != D3DFMT_X8R8G8B8)

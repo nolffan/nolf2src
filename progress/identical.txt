@@ -21672,6 +21672,7 @@ ServerDir.dll	sub_10003b90
 ServerDir.dll	sub_10003bc0
 ServerDir.dll	sub_10003c00
 ServerDir.dll	sub_10003c30
+ServerDir.dll	sub_10003cc0
 ServerDir.dll	sub_10003e10
 ServerDir.dll	sub_10003e50
 ServerDir.dll	sub_10003f10
@@ -21679,6 +21680,8 @@ ServerDir.dll	sub_10003f30
 ServerDir.dll	sub_100040b0
 ServerDir.dll	sub_10004240
 ServerDir.dll	sub_10004260
+ServerDir.dll	sub_100043a0
+ServerDir.dll	sub_100044a0
 ServerDir.dll	sub_100045b0
 ServerDir.dll	sub_100050e0
 ServerDir.dll	sub_10005100
@@ -21704,6 +21707,7 @@ ServerDir.dll	sub_100085c0
 ServerDir.dll	sub_10008680
 ServerDir.dll	sub_100086a0
 ServerDir.dll	sub_10008730
+ServerDir.dll	sub_10008850
 ServerDir.dll	sub_10008950
 ServerDir.dll	sub_10009910
 ServerDir.dll	sub_1000c680
@@ -21756,7 +21760,9 @@ ServerDir.dll	sub_1000fe70
 ServerDir.dll	sub_1000fe90
 ServerDir.dll	sub_1000ffd0
 ServerDir.dll	sub_10010000
+ServerDir.dll	sub_10010060
 ServerDir.dll	sub_100100c0
+ServerDir.dll	sub_10010120
 ServerDir.dll	sub_10010180
 ServerDir.dll	sub_100101d0
 ServerDir.dll	sub_10010210

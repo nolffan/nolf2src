@@ -54,8 +54,13 @@ def write_if_changed(path, data):
     except FileNotFoundError:
         pass
     os.makedirs(os.path.dirname(path), exist_ok=True)
-    with open(path, "wb") as f:
+    # a new file renamed over the old one, never a write through it: the
+    # old one may be a hard link shared with another worktree
+    # (tools/agentwt.sh), whose copy must not change with ours
+    tmp = path + ".jupitersrc-tmp"
+    with open(tmp, "wb") as f:
         f.write(data)
+    os.replace(tmp, path)
     return True
 
 

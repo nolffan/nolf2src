@@ -1,0 +1,20 @@
+ServerDir: CServerDir_Titan::LoadDirServerList returns when there is no
+sierraup.cfg, as the 1.3 ServerDir.dll does (the SDK's code passed the null
+FILE to fgets, which crashed on opening the Internet multiplayer screens:
+the game directory has no sierraup.cfg, the Sierra updater's file).
+
+Applied by tools/jupitersrc.py after serverdir.patch.
+
+--- a/Game/Libs/ServerDir/CServerDir_Titan.cpp
++++ b/Game/Libs/ServerDir/CServerDir_Titan.cpp
+@@ -1657,6 +1657,10 @@
+ 
+ 	// Read the directory servers out of the SierraUp.cfg file
+ 	pFile = fopen("sierraup.cfg", "r");
++	// nolf2src: 1.3 returns when there is no sierraup.cfg (retail
++	// 0x1000c1c6); the SDK's code read from a null FILE
++	if (!pFile)
++		return;
+ 
+ 	while(fgets(szBuffer, sizeof(szBuffer), pFile))
+ 	{

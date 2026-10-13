@@ -2,10 +2,15 @@
 """Take what the build needs from the installed retail game.
 
   retailextract.py resources    <retaildir> <gamedir>  game DATA only (no binary)
-  retailextract.py thirdparty   <retaildir> <gamedir>  Bink and the Microsoft
+  retailextract.py thirdparty   <retaildir> <gamedir> [open]
+                                                       Bink and the Microsoft
                                                        runtime, nothing else
-  retailextract.py retailengine <retaildir> <gamedir>  the engine binaries we
-                                                       do not build yet
+                                                       ("open": the Microsoft
+                                                       runtime only)
+  retailextract.py openruntime  <extdir> <gamedir>     the modern build's
+                                                       replacements for the
+                                                       rest (build/ext.sh's
+                                                       output)
   retailextract.py reference    <retaildir> <refdir>   the retail binaries, for
                                                        scoring only
   retailextract.py audit        <gamedir>              every PE file in a game
@@ -34,15 +39,17 @@ files (the Sierra updater, web links) are not copied.
 `thirdparty` copies the licensed middleware we have no source for: Bink
 (binkw32.dll), and the Microsoft C, C++ and MFC runtime DLLs setup installs
 (MFC42.DLL, MFC42U.DLL, MSVCP60.DLL, Msvcrt.dll), which the engine and the
-launcher import.
+launcher import. With "open" (the modern build, NOLF2_MIDDLEWARE=open) it
+leaves out what `openruntime` replaces.
 
-`retailengine` copies the engine -- Lithtech.exe, server.dll, ServerDir.dll
-and snddrv.dll -- out of the retail game, because there is no source for it
-yet: Monolith's release has the game, the launcher and the dedicated server,
-not the engine. They are marked RETAIL in the manifest and in the audit, so
-they are easy to find and to replace as the engine is reconstructed.
-ltmsg.dll, the engine's message strings, is built (src/Engine/ltmsg/,
-identical to the retail one apart from its timestamp), so it is not copied.
+`openruntime` is the modern build's other half of step 2: our Bink player,
+binkw32.dll, which build/ext.sh built from src/modern/binkw32/ and
+ext/ffmpeg into <extdir>, in place of RAD's (MANIFEST.txt origin `EXT`).
+The Microsoft runtime DLLs stay the retail ones in both builds.
+
+No engine binary is copied: Lithtech.exe, server.dll, snddrv.dll,
+ServerDir.dll and ltmsg.dll are built from our source (src/Engine/,
+src/Game/Libs/ServerDir/) and build/all.sh assembles them.
 
 `reference` copies the retail engine images, launcher and dedicated server,
 and the 1.3 game DLLs out of Update_v1x3.rez, to a reference directory
@@ -53,8 +60,10 @@ directory.
 
 Every file the steps write is recorded in <gamedir>/MANIFEST.txt
 (`<origin>\\t<path>`); build/all.sh adds the binaries it built, and `audit`
-lists every PE file in the directory with its origin, failing on any it
-cannot account for -- or on any PE file still inside a .rez archive.
+lists every PE file in the directory with its origin, failing on any that
+is neither built here, nor third-party runtime, nor the modern build's
+open-source replacement (EXT) -- or on any PE file still
+inside a .rez archive.
 """
 import os
 import shutil
@@ -79,23 +88,26 @@ RETAIL_COPIES = [("autoexec.cfg", "autoexec.cfg.retail"), ("Profiles/Default.prf
 # Microsoft runtime DLLs setup installs beside the game.
 THIRD_PARTY_NAMES = {"binkw32.dll", "mfc42.dll", "mfc42u.dll", "msvcp60.dll", "msvcrt.dll"}
 
-# RETAIL ENGINE: no source yet (see the docstring).
-RETAIL_ENGINE = ["Lithtech.exe", "server.dll", "ServerDir.dll", "snddrv.dll"]
-
-# Engine binaries built from our source (src/Engine/), identical to the
-# retail ones apart from their timestamps: build/all.sh assembles ours, and
-# `reference` still copies the retail ones to compare against.
-BUILT_ENGINE = ["ltmsg.dll"]
+# The engine: built from our source (src/Engine/, and ServerDir.dll from
+# src/Game/Libs/ServerDir/); build/all.sh assembles ours, and `reference`
+# copies the retail ones to compare against.
+BUILT_ENGINE = ["Lithtech.exe", "server.dll", "ServerDir.dll", "snddrv.dll", "ltmsg.dll"]
 
 # The retail images the checks compare against (`reference`), and the 1.3
 # game DLLs, which the retail game holds only inside Update_v1x3.rez (the
 # copies 1.3 runs, last in its rez stack, and what Monolith's source release
 # builds), under the names our build gives them.
-REFERENCE = RETAIL_ENGINE + BUILT_ENGINE + ["NOLF2.exe", "NOLF2Srv.exe"]
+REFERENCE = BUILT_ENGINE + ["NOLF2.exe", "NOLF2Srv.exe"]
 REFERENCE_REZ = "Update_v1x3.rez"
 REFERENCE_GAME = [("CSHELL.dll", "CShell.dll"), ("OBJECT.lto", "Object.lto"),
                   ("CLIENTFX.fxd", "ClientFx.fxd"), ("CRES.dll", "CRes.dll"),
                   ("SRES.dll", "SRes.dll")]
+
+
+# The modern build's replacements (build/ext.sh), and where each comes from.
+OPEN_RUNTIME = [
+    ("binkw32.dll", "src/modern/binkw32 + ext/ffmpeg: our Bink player"),
+]
 
 
 def is_third_party(name):
@@ -214,31 +226,38 @@ def cmd_resources(retaildir, gamedir):
     man.save()
 
 
-def cmd_thirdparty(retaildir, gamedir):
+def cmd_thirdparty(retaildir, gamedir, middleware="retail"):
     gamedir = Path(gamedir)
     man = Manifest(gamedir)
     r = Retail(retaildir)
+    skip = {name for name, _ in OPEN_RUNTIME} if middleware == "open" else set()
     n = 0
     for p in r.files:
-        if "/" in p or not is_third_party(p):
+        if "/" in p or not is_third_party(p) or p.lower() in skip:
             continue
         r.copy_if_changed(p, gamedir / p)
         man.add(p, f"THIRD-PARTY {r.name}:{p}")
         n += 1
     man.save()
-    print(f"== third-party runtime: {n} files (Bink, the Microsoft C++ and MFC runtime)")
+    print(f"== third-party runtime: {n} files ("
+          + ("" if skip else "Bink, ") + "the Microsoft C++ and MFC runtime)")
 
 
-def cmd_retailengine(retaildir, gamedir):
+def cmd_openruntime(extdir, gamedir):
     gamedir = Path(gamedir)
+    gamedir.mkdir(parents=True, exist_ok=True)
     man = Manifest(gamedir)
-    r = Retail(retaildir)
-    for name in RETAIL_ENGINE:
-        p = r.find(name)
-        r.copy_if_changed(p, gamedir / p)
-        man.add(p, f"RETAIL {r.name}:{p} (no source yet)")
+    for name, origin in OPEN_RUNTIME:
+        # (over a retail copy an earlier build left, whatever its case)
+        for f in gamedir.iterdir():
+            if f.is_file() and f.name.lower() == name and f.name != name:
+                f.unlink()
+                man.rows.pop(f.name, None)
+        shutil.copyfile(Path(extdir) / name, gamedir / name)
+        man.add(name, f"EXT {origin} (build/ext.sh)")
+        print(f"   {name}  <-  {origin}")
     man.save()
-    print(f"== retail engine: {', '.join(RETAIL_ENGINE)} (no source yet)")
+    print(f"== open runtime: {len(OPEN_RUNTIME)} file(s) (Bink on FFmpeg)")
 
 
 def cmd_reference(retaildir, refdir):
@@ -275,30 +294,34 @@ def cmd_audit(gamedir):
                 head = f.read(2)
             if head == b"MZ":
                 origin = man.rows.get(rel, "UNKNOWN")
-                if origin == "UNKNOWN" or origin.startswith("data "):
+                # only what we built and the third-party runtime belong
+                # in a game directory (a RETAIL row is a stale manifest's)
+                if not origin.startswith(("built ", "THIRD-PARTY ", "EXT ")):
                     bad += 1
                 rows.append((origin, rel, full.stat().st_size))
             elif fn.lower().endswith(".rez"):
                 for ename, _pos, sz in rez_pe_entries(full):
                     rows.append(("INSIDE A REZ ARCHIVE", f"{rel}:{ename}", sz))
                     bad += 1
-    order = {"built": 0, "RETAIL": 1, "THIRD-PARTY": 2}
+    order = {"built": 0, "EXT": 1, "THIRD-PARTY": 2}
     rows.sort(key=lambda r: (order.get(r[0].split()[0], 3), r[1].lower()))
     print(f"{'size':>9}  {'file':<24} origin")
     for origin, rel, sz in rows:
         print(f"{sz:>9}  {rel:<24} {origin}")
     count = lambda kind: sum(1 for r in rows if r[0].startswith(kind))
     print(f"{len(rows)} PE files: {count('built')} built from our source, "
-          f"{count('RETAIL')} retail engine (no source yet), "
-          f"{count('THIRD-PARTY')} third-party runtime, {bad} unaccounted for")
+          + (f"{count('EXT')} open-source replacements (build/ext.sh), " if count('EXT') else "")
+          + f"{count('THIRD-PARTY')} third-party runtime, {bad} unaccounted for")
     return 1 if bad else 0
 
 
 def main():
     a = sys.argv[1:]
     cmds = {"resources": cmd_resources, "thirdparty": cmd_thirdparty,
-            "retailengine": cmd_retailengine, "reference": cmd_reference}
-    if len(a) == 3 and a[0] in cmds:
+            "openruntime": cmd_openruntime, "reference": cmd_reference}
+    if len(a) == 4 and a[0] == "thirdparty" and a[3] in ("retail", "open"):
+        cmd_thirdparty(a[1], a[2], a[3])
+    elif len(a) == 3 and a[0] in cmds:
         cmds[a[0]](a[1], a[2])
     elif len(a) == 2 and a[0] == "audit":
         sys.exit(cmd_audit(a[1]))

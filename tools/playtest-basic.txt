@@ -59,10 +59,10 @@ wait 2
 shot weapon1
 # the in-game menu
 key Escape
-wait 2
+wait 3
 shot menu
 key Escape
-wait 2
+wait 3
 shot resumed
 # quicksave, move away, quickload
 key F6
