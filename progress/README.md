@@ -21,8 +21,8 @@ added there, with the evidence for its ranges.
 
 | Binary | Compared against | Our side |
 |---|---|---|
-| `CShell.dll`, `Object.lto`, `ClientFx.fxd`, `NOLF2.exe`, `NOLF2Srv.exe`, `ServerDir.dll` | the retail 1.3 binaries, extracted from the installed game into `out/reference/` (`build/reference.sh`) | the image `make` built (`src/Game/built/Final/...`) and every object and library of ours its link read, from the link's response file beside it (`<image>.rsp`) |
-| `Lithtech.exe`, `server.dll`, `snddrv.dll` | the same | nothing yet: no source. Every function is unwritten, and counted |
+| `CShell.dll`, `Object.lto`, `ClientFx.fxd`, `NOLF2.exe`, `NOLF2Srv.exe`, `ServerDir.dll`, `snddrv.dll` | the retail 1.3 binaries, extracted from the installed game into `out/reference/` (`build/reference.sh`) | the image `make` built (`src/Game/built/Final/...`) and every object and library of ours its link read, from the link's response file beside it (`<image>.rsp`) |
+| `Lithtech.exe`, `server.dll` | the same | nothing yet: no source. Every function is unwritten, and counted |
 | `CRes.dll`, `SRes.dll`, `ltmsg.dll` | the same | resource by resource: their only code is the C runtime's DLL entry and an empty `DllMain`. Listed after the code, not in the total. The 1.3 `SRes.dll` has no resources at all |
 
 The retail images have no symbols, so their functions are enumerated from
@@ -173,7 +173,7 @@ minutes.
 | `summary.json` | per-target counts and bytes of the recorded run; the README table is rendered from it |
 | `COMPILERS.md` | which compiler and flags built each retail binary, and the evidence |
 | `<stem>-screen-exclude.csv` | (none yet) per image, enumerated addresses examined by hand. A reason that starts `NOT A FUNCTION` or `NOT GAME CODE` removes the row from the count; any other reason marks the address `attempted` in an image whose addresses `src/` cites |
-| `extent-splits.csv` | (none yet) function starts the enumeration misses, with the evidence |
+| `extent-splits.csv` | function starts the enumeration misses, with the evidence (`snddrv.dll`'s small destructors, which only exception funclets reach) |
 
 The CSVs change what is counted, so a change to them is a change to the
 denominator: give the evidence in the reason.

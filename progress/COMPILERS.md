@@ -30,7 +30,7 @@ binary's own code; the rest is what came in with libraries (below).
 | `ServerDir.dll` | C++ **8966** ×13, C **8966** ×2 | `msvc-6.00-8966` | `CServerDir_Titan.cpp` `/MD /W3 /GX /O2`; WONAPI `/MD /W2 /GR /GX /O2` | The revision is the header's; ours has one C++ object fewer (12) and two `0x04` objects fewer: the SDK's 2002 source is not quite the 1.3 one. The two C objects are GameSpy's query reporting (`gqueryreporting.c`, `nonport.c`) inside WONAPI |
 | `server.dll` | C++ **8966** ×118 | -- (no source) | probably `/O1` or `/Os` (only 178 of its 1,694 call targets are 16-byte aligned, where `/O2` aligns every function), some `/GX` (it imports `__CxxFrameHandler`), no `/GR` (no RTTI type names) | the header's testimony only |
 | `Lithtech.exe` | C++ **8966** ×290 | -- (no source) | probably `/O2` (2,877 of 3,157 call targets aligned), `/GX` (a `.text$x` of funclets), almost no `/GR` (5 RTTI type names) | the header's testimony; also D3DX, below |
-| `snddrv.dll` | C++ **8966** ×5, C++ **8168** ×1 | -- (no source) | mostly aligned (64 of 92), imports `__CxxFrameHandler` | the header's testimony. The one 8168 object (VC6 RTM) is something built earlier, or prebuilt |
+| `snddrv.dll` | C++ **8966** ×5 (`counter`, `parsewavefile`, `s_dx8`, `stdafx`, and `ltmem.lib`'s `ltmem`) | `msvc-6.00-8966` | `/MD /W3 /GX /O2 /Ob2` with `/YX` (`/Ob2`: initializers expanded in place; `/YX`: where each object's header initializers sit), STLport (`src/Engine/snddrv/snddrv.dsp`); `ltmem.lib` the same without `/MD` | **Proven**: our build's Rich header is retail's, triple for triple, and 194 functions are byte-identical. The C++ object of **8168** is Creative's `eaxguid.lib` (the EAX 2.0 SDK's seven GUIDs, all in retail's `.rdata`; the copy in F.E.A.R.'s SDK tree is one C++ 8168 object): `eaxguid/eaxguid.cpp` restates it, compiled with `msvc-6.00-8168` |
 | `ltmsg.dll` | C++ 8966 ×1 | -- | -- | resources only: its code is msvcrt.lib's DLL entry, so the C++ object is an empty source file |
 
 Every binary links the C runtime as `MSVCRT.dll` (and `MSVCIRT.dll` /
@@ -91,8 +91,10 @@ The eight `0x00` members of `d3dx8.lib` are D3DX's SSE and SSE2 paths
 **Intel C/C++**: their functions carry icl's `/Qip` names (`X$$1`, as in
 NOLF's `d3d.ren`), and no Microsoft compiler of the time emitted SSE. They
 are in `Lithtech.exe` (0x4b5dce..0x4bf710, inside the first D3DX block), so
-8 of its 12 `0x00` objects are D3DX's. **The other four `0x00` objects of
-`Lithtech.exe`, and the one of `snddrv.dll`, are not identified**: objects
+8 of its 12 `0x00` objects are D3DX's. `snddrv.dll`'s one `0x00` is `uuid.lib`'s
+`cguid_i_guid0.obj` (`GUID_NULL`, which `DS3DALG_DEFAULT` is): our link
+pulls it and has the same entry. **The other four `0x00` objects of
+`Lithtech.exe` are not identified**: objects
 without `@comp.id` -- Intel-compiled, hand assembly from an assembler that
 does not write one, or a pre-VC6 compiler. `NOLF2Srv.exe`'s three `0x00`
 are from VC6's own libraries (our build, from the same sources, has the
