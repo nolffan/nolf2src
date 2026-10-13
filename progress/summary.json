@@ -211,7 +211,7 @@
     },
     "ServerDir.dll": {
       "attempted": 0,
-      "bytes_identical": 28586,
+      "bytes_identical": 29800,
       "bytes_total": 88203,
       "crt": 3653,
       "crt_bytes": 37654,
@@ -220,20 +220,20 @@
       "encrypted": 0,
       "encrypted_bytes": 0,
       "funcs": 508,
-      "identical": 201,
+      "identical": 207,
       "kind": "image",
       "middleware": 1065,
       "middleware_bytes": 206581,
-      "near": 137,
+      "near": 129,
       "small": 41,
       "started": true,
-      "todo": 129,
+      "todo": 131,
       "unlinked": 0,
       "unlinked_bytes": 0,
       "unplaced": 1,
       "unplaced_bytes": 3,
-      "unwritten": 129,
-      "unwritten_bytes": 20809
+      "unwritten": 131,
+      "unwritten_bytes": 20933
     },
     "ltmsg.dll": {
       "attempted": 0,
@@ -316,16 +316,16 @@
   },
   "total": {
     "attempted": 0,
-    "bytes_identical": 4705580,
+    "bytes_identical": 4706794,
     "bytes_total": 5273740,
     "funcs": 33112,
-    "identical": 23952,
-    "near": 1075,
+    "identical": 23958,
+    "near": 1067,
     "small": 7838,
-    "todo": 247,
+    "todo": 249,
     "unplaced": 3422,
     "unplaced_bytes": 95890,
-    "unwritten": 247,
-    "unwritten_bytes": 61736
+    "unwritten": 249,
+    "unwritten_bytes": 61860
   }
 }
