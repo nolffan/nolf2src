@@ -640,7 +640,7 @@ void CActivateTypeHandler::OnLinkBroken( LTObjRefNotifier *pRef, HOBJECT hObj )
 
 			break;
 #endif
-			// Remove it
+			// Remove it 
 			m_lstInheritedObjs.erase( iter );
 
 			// If we can and should reset the ActivateType message on the object then do so...
