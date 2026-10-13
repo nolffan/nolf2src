@@ -96,10 +96,10 @@ Package=<4>
     Project_Dep_Name Lib_RezMgr
     End Project Dependency
     Begin Project Dependency
-    Project_Dep_Name Lib_UI
+    Project_Dep_Name Lib_StdLith
     End Project Dependency
     Begin Project Dependency
-    Project_Dep_Name Lib_StdLith
+    Project_Dep_Name Lib_UI
     End Project Dependency
     Begin Project Dependency
     Project_Dep_Name Lib_Lith
