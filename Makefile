@@ -24,6 +24,10 @@ IMAGE     ?= nolf2src-build
 CONTAINER ?= nolf2src-build
 # Parallel compile jobs inside the build (build/build.mk); empty: one per CPU
 JOBS ?=
+# The game directory `make test` plays: the release build's, or a variant's
+# (make test TEST_GAME=out/nolf2-modern-release; build/variant.sh)
+TEST_GAME ?= out/nolf2-legacy-release
+TEST_NAME = $(if $(filter out/nolf2-legacy-release,$(TEST_GAME:%/=%)),test,test-$(notdir $(TEST_GAME:%/=%)))
 
 DOCKER_RUN = docker run --rm --init --name $(CONTAINER) \
 	-u $(shell id -u):$(shell id -g) -e HOME=/tmp/home $(if $(JOBS),-e NOLF2SRC_JOBS=$(JOBS)) \
@@ -44,6 +48,8 @@ help:
 	@echo "                (none of these is ever scored; build/variant.sh)"
 	@echo "make test       scripted playtest of out/nolf2-legacy-release/ under Xvfb: the main menu,"
 	@echo "               a new game, the first level (tools/playtest-newgame.txt; out/play/test/)"
+	@echo "make test TEST_GAME=out/nolf2-modern-release   the same on a variant's game directory"
+	@echo "               (out/play/test-<its name>/)"
 	@echo "make progress   score the build against the retail binaries; fails if a"
 	@echo "                function recorded in progress/identical.txt stops matching"
 	@echo "make progress-update  record the score in progress/ and README.md"
@@ -97,8 +103,8 @@ check-toolchain:
 	done
 
 test: image
-	@[ -f out/nolf2-legacy-release/Lithtech.exe ] || { echo "error: no out/nolf2-legacy-release/ -- run make first" >&2; exit 1; }
-	$(DOCKER_RUN) env PLAYTEST_NAME=test PLAYTEST_SCRIPT=tools/playtest-newgame.txt bash tools/playtest.sh out/nolf2-legacy-release - 5
+	@[ -f $(TEST_GAME)/Lithtech.exe ] || { echo "error: no $(TEST_GAME)/ -- build it first (make, or make debug/modern/modern-debug)" >&2; exit 1; }
+	$(DOCKER_RUN) env PLAYTEST_NAME=$(TEST_NAME) PLAYTEST_SCRIPT=tools/playtest-newgame.txt bash tools/playtest.sh $(TEST_GAME) - 5
 
 progress: retail
 	$(DOCKER_RUN) env COMPLETE=$(COMPLETE) COVERED=$(COVERED) bash build/progress.sh check
