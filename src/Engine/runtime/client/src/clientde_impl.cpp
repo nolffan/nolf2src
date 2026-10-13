@@ -895,7 +895,12 @@ LTRESULT CLTClient::GetCanvasRadius(HOBJECT hCanvas, float &radius)
 
 LTRESULT CLTClient::SetCanvasRadius(HOBJECT hCanvas, float radius)
 {
+#ifdef NOLF2SRC_MODERN
+	// MODERN.md M-E11: the check names its own function
+	FN_NAME(CLTClient::SetCanvasRadius);
+#else
 	FN_NAME(CLTClient::GetCanvasRadius);
+#endif
 
 	CHECK_PARAMS2(hCanvas && hCanvas->m_ObjectType == OT_CANVAS);
 
@@ -915,7 +920,12 @@ LTRESULT CLTClient::GetMaxRadiusInPoly(const HPOLY hPoly, const LTVector& vPos, 
 	{
 		// Give them a decent default
 		fMaxRadius = 0.0f;
+#ifdef NOLF2SRC_MODERN
+		// MODERN.md M-E11: the check names its own function
+		RETURN_ERROR(5, CLTClient::GetMaxRadiusInPoly, LT_NOTFOUND);
+#else
 		RETURN_ERROR(5, CLTServer::GetMaxRadiusInPoly, LT_NOTFOUND);
+#endif
 	}
 
 	// Default to some huge value (this will be overridden)
@@ -1056,11 +1066,22 @@ void CLTClient::CPrint(const char *pMsg, ...)
 
 	static const uint32 knBufferSize = 512;
 	char str[knBufferSize];
+#ifdef NOLF2SRC_MODERN
+	// MODERN.md M-E10: a message that filled the buffer had its newline
+	// and terminator written one past the end; an empty one read the
+	// byte before it. Keep room for the newline.
+	LTVSNPrintF(str, knBufferSize - 1, pMsg, marker);
+#else
 	LTVSNPrintF(str, knBufferSize, pMsg, marker);
+#endif
 	va_end(marker);
 
 	uint32 len = strlen(str);
+#ifdef NOLF2SRC_MODERN
+	if (len == 0 || str[len-1] != '\n')
+#else
 	if (str[len-1] != '\n')
+#endif
 	{
 		str[len] = '\n';
 		str[len+1] = '\0';
@@ -1895,7 +1916,12 @@ LTRESULT ci_GetSoundTimer(HLTSOUND hSound, LTFLOAT *fTimer)
 		return LT_OK;
 
 	if (!hSound || !fTimer)
+#ifdef NOLF2SRC_MODERN
+		// MODERN.md M-E11: the check names its own function
+		RETURN_ERROR(1, GetSoundTimer, LT_INVALIDPARAMS);
+#else
 		RETURN_ERROR(1, GetSoundDuration, LT_INVALIDPARAMS);
+#endif
 
 	const CSoundInstance * const pSoundInstance = GetClientILTSoundMgrImpl()->FindSoundInstance(hSound, true);
 	if (!pSoundInstance)
@@ -2689,7 +2715,12 @@ LTRESULT ci_SortParticles(HLOCALOBJ hSystem, const LTVector& vDir, uint32 nNumIt
 	LTParticleSystem *pSystem = (LTParticleSystem*)hSystem;
 	if (!pSystem || pSystem->m_ObjectType != OT_PARTICLESYSTEM)
 	{
+#ifdef NOLF2SRC_MODERN
+		// MODERN.md M-E11: the check names its own function
+		RETURN_ERROR(1, CLTClient::SortParticles, LT_INVALIDPARAMS);
+#else
 		RETURN_ERROR(1, CLTClient::OptimizeParticles, LT_INVALIDPARAMS);
+#endif
 	}
 
 	ps_SortParticles(pSystem, vDir, nNumIters);
@@ -2854,6 +2885,11 @@ void ci_SetLightColor(HLOCALOBJ hObject, float r, float g, float b)
 float ci_GetLightRadius(HLOCALOBJ hObj)
 {
 	DynamicLight *pObject = (DynamicLight*)hObj;
+#ifdef NOLF2SRC_MODERN
+	// MODERN.md M-E8: every other accessor checks the handle
+	if (!pObject)
+		return 1.0f;
+#endif
 	if (pObject->m_ObjectType == OT_LIGHT)
 	{
 		return pObject->m_LightRadius;
@@ -2867,6 +2903,11 @@ float ci_GetLightRadius(HLOCALOBJ hObj)
 void ci_SetLightRadius(HLOCALOBJ hObj, float radius)
 {
 	DynamicLight *pObject = (DynamicLight*)hObj;
+#ifdef NOLF2SRC_MODERN
+	// MODERN.md M-E8: every other accessor checks the handle
+	if (!pObject)
+		return;
+#endif
 	if (pObject->m_ObjectType != OT_LIGHT)
 		return;
 
@@ -2962,7 +3003,12 @@ LTRESULT ci_GetServiceList(NetService* &pListHead)
 
 LTRESULT ci_FreeServiceList(NetService *pListHead)
 {
+#ifdef NOLF2SRC_MODERN
+	// MODERN.md M-E11: the check names its own function
+	CHECK_PARAMS(pListHead, CLTClient::FreeServiceList);
+#else
 	CHECK_PARAMS(pListHead, CLTClient::GetServiceList);
+#endif
 	return g_pClientMgr->m_NetMgr.FreeServiceList(pListHead);
 }
 
