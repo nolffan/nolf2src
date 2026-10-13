@@ -12,6 +12,8 @@
 
 #include <vector>
 
+#include "counter.h"
+
 CDx8SoundSys* g_pSoundSys = NULL;
 
 FILE* g_pLogFile = NULL;
@@ -755,7 +757,7 @@ bool C3DListener::Init( HRESULT& hResult, LPDIRECTSOUNDBUFFER pDSPrimaryBuffer )
 	if( ( hResult = pDSPrimaryBuffer->QueryInterface( IID_IDirectSound3DListener, ( void** )&m_pDS3DListener ) ) != DS_OK )
 		return false;
 
-	m_pDS3DListener->SetDopplerFactor( m_fDopplerSetting, DS3D_DEFERRED );
+	m_pDS3DListener->SetDopplerFactor( m_fDopplerSetting, DS3D_IMMEDIATE );
 
 	return true;
 }
@@ -772,19 +774,19 @@ void C3DListener::Term( )
 void C3DListener::SetPosition( LTVector& pos )
 {
 	I3DObject::SetPosition( pos );
-	m_pDS3DListener->SetPosition( pos.x, pos.y, pos.z, DS3D_DEFERRED );
+	m_pDS3DListener->SetPosition( pos.x, pos.y, pos.z, DS3D_IMMEDIATE );
 }
 
 void C3DListener::SetVelocity( LTVector& vel )
 {
 	I3DObject::SetVelocity( vel );
-	m_pDS3DListener->SetVelocity( vel.x, vel.y, vel.z, DS3D_DEFERRED );
+	m_pDS3DListener->SetVelocity( vel.x, vel.y, vel.z, DS3D_IMMEDIATE );
 }
 
 void C3DListener::SetOrientation( LTVector& up, LTVector& face )
 {
 	I3DObject::SetOrientation( up, face );
-	m_pDS3DListener->SetOrientation( face.x, face.y, face.z, up.x, up.y, up.z, DS3D_DEFERRED );
+	m_pDS3DListener->SetOrientation( face.x, face.y, face.z, up.x, up.y, up.z, DS3D_IMMEDIATE );
 }
 
 LTLink CSample::m_lstSampleLoopHead;
@@ -1504,19 +1506,19 @@ void C3DSample::SetPosition( LTVector& pos )
 
 	I3DObject::SetPosition(	pos );
 
-	HRESULT hr = m_pDS3DBuffer->SetPosition( pos.x, pos.y, pos.z, DS3D_DEFERRED );
+	HRESULT hr = m_pDS3DBuffer->SetPosition( pos.x, pos.y, pos.z, DS3D_IMMEDIATE );
 }
 
 void C3DSample::SetVelocity( LTVector& vel )
 {
 	I3DObject::SetVelocity( vel );
-	m_pDS3DBuffer->SetVelocity( vel.x, vel.y, vel.z, DS3D_DEFERRED );
+	m_pDS3DBuffer->SetVelocity( vel.x, vel.y, vel.z, DS3D_IMMEDIATE );
 }
 
 void C3DSample::SetOrientation( LTVector& up, LTVector& face )
 {
 	I3DObject::SetOrientation( up, face );
-	m_pDS3DBuffer->SetConeOrientation( face.x, face.y, face.z, DS3D_DEFERRED );
+	m_pDS3DBuffer->SetConeOrientation( face.x, face.y, face.z, DS3D_IMMEDIATE );
 }
 
 void C3DSample::SetRadiusData( float& fInnerRadius, float& fOuterRadius )
@@ -1774,10 +1776,14 @@ uint32 CDx8SoundSys::Thread_Func()
 
 	while (WaitForMultipleObjects(3, aEvents, FALSE, INFINITE ) != WAIT_OBJECT_0)
 	{
+		uint32 nTheadedTickCounts;
 
-		if(m_cEvent_StreamingActive.IsSet())
+
+		if( WaitForSingleObject( m_cEvent_StreamingActive.GetEvent( ), 0 ) == WAIT_OBJECT_0 )
 		{
 			CWinSync_CSAuto cStreamProtection(m_cCS_SoundThread);
+
+			CountAdder cntAdd(&nTheadedTickCounts);
 
 			bool bSleep = true;
 			for( CStream *pStream = m_pStreams; pStream != NULL; )
@@ -1797,9 +1803,11 @@ uint32 CDx8SoundSys::Thread_Func()
 				m_cEvent_StreamingActive.Clear();
 		}
 
-		if(m_cEvent_SampleLoopActive.IsSet())
+		if( WaitForSingleObject( m_cEvent_SampleLoopActive.GetEvent( ), 0 ) == WAIT_OBJECT_0 )
 		{
 			CWinSync_CSAuto cLoopProtection(m_cCS_SoundThread);
+
+			CountAdder cntAdd(&nTheadedTickCounts);
 
 			bool bSleep = true;
 
@@ -1826,7 +1834,7 @@ uint32 CDx8SoundSys::Thread_Func()
 			CWinSync_CSAuto cThreadTickCountsProtection(m_cCS_ThreadedTickCounts);
 		}
 
-		if( m_cEvent_Shutdown.Block( 10 ) )
+		if( WaitForSingleObject( m_cEvent_Shutdown.GetEvent( ), 10 ) == WAIT_OBJECT_0 )
 			break;
 
 	}
@@ -1893,9 +1901,11 @@ void CDx8SoundSys::Reset( )
 	m_dwMinHardwareBuffers = 0;
 #ifdef USE_EAX20_HARDWARE_FILTERS
 	m_bSupportsEAX20Filtering = false;
-	g_iCurrentEAXDirectSetting = 0;
 #endif
 	m_pKSPropertySet = NULL;
+#ifdef USE_EAX20_HARDWARE_FILTERS
+	g_iCurrentEAXDirectSetting = 0;
+#endif
 
 	m_cEvent_SampleLoopActive.Clear();
 	m_cEvent_StreamingActive.Clear();
@@ -2136,7 +2146,7 @@ void CDx8SoundSys::Term( )
 	if (m_cThread_Handle)
 	{
 
-		if( WaitForSingleObject(m_cThread_Handle, 1000) != WAIT_OBJECT_0 )
+		if( WaitForSingleObject(m_cThread_Handle, 1000) == WAIT_TIMEOUT )
 		{
 			TerminateThread( m_cThread_Handle, 0 );
 		}
@@ -2296,11 +2306,10 @@ void GetACMDriverListDetails( const TACMDriverList &aDriverList, TACMDriverDetai
 	aDriverDetails.reserve( aDriverList.size() );
 
 	TACMDriverList::const_iterator iCurDriver = aDriverList.begin();
-	ACMDRIVERDETAILS acmdd;
 
 	for( ; iCurDriver != aDriverList.end(); ++iCurDriver )
 	{
-		aDriverDetails.push_back(acmdd);
+		aDriverDetails.push_back();
 		memset( &aDriverDetails.back(), 0, sizeof( aDriverDetails.back() ) );
 		aDriverDetails.back().cbStruct = sizeof( aDriverDetails.back() );
 		acmDriverDetails( *iCurDriver, &aDriverDetails.back(), 0 );
@@ -2624,9 +2633,6 @@ S32	CDx8SoundSys::Startup( void )
 	mmResult = acmDriverOpen( &m_hAcmPCMDriver, m_hAcmPCMDriverId, 0 );
 	if ( mmResult != 0 )
   	{
-#ifndef _FINAL
-  		MessageBox( NULL, "Sound System Startup - Missing .mp3 codec", NULL, MB_OK );
-#endif
    		return LS_ERROR;
   	}
 
@@ -3139,7 +3145,7 @@ void CDx8SoundSys::SetListenerDoppler( LH3DPOBJECT hListener, float fDoppler )
 
 	p3DListener->m_fDopplerSetting = fDoppler;
 
-	p3DListener->m_pDS3DListener->SetDopplerFactor( fDoppler, DS3D_DEFERRED );
+	p3DListener->m_pDS3DListener->SetDopplerFactor( fDoppler, DS3D_IMMEDIATE );
 }
 
 void CDx8SoundSys::Set3DPosition( LH3DPOBJECT hObj, float fX, float fY, float fZ)
@@ -3610,8 +3616,8 @@ void CDx8SoundSys::Set3DSampleDistances( LH3DSAMPLE hS, float fMax_dist, float f
 
 	C3DSample* p3DSample = ( C3DSample* )hS;
 
-  	m_hResult = p3DSample->m_pDS3DBuffer->SetMinDistance( fMax_dist, DS3D_DEFERRED );
-	m_hResult = p3DSample->m_pDS3DBuffer->SetMaxDistance( fMax_dist, DS3D_DEFERRED );
+  	m_hResult = p3DSample->m_pDS3DBuffer->SetMinDistance( fMax_dist, DS3D_IMMEDIATE );
+	m_hResult = p3DSample->m_pDS3DBuffer->SetMaxDistance( fMax_dist, DS3D_IMMEDIATE );
 }
 
 void CDx8SoundSys::Set3DSamplePreference( LH3DSAMPLE hSample, char* sName, void* pVal )
@@ -3830,7 +3836,7 @@ S32	CDx8SoundSys::GetSampleVolume( LHSAMPLE hS )
 #define DEL_DSBPAN_SIDE	(float) ( DSBPAN_RIGHT - DSBPAN_CENTER )
 
 #define ATTENUATION_FACTOR	6.0f
-#define LOG_PAN_ATTENUATION	(float)	( ATTENUATION_FACTOR * sqrt( CENTER_PAN ))
+#define LOG_PAN_ATTENUATION	(float)	( ATTENUATION_FACTOR * (float)sqrt( CENTER_PAN ))
 #define LOG_PAN_INVATTENUATION	(float) ( 1.0f / LOG_PAN_ATTENUATION )
 
 #define MAX_ROLLOFF_DIVIDER	3.0f
@@ -3844,12 +3850,12 @@ long ConvertLinPanToLogPan( long linPan )
 	if ( fDistFromCenter == 0 )
 		return DSBPAN_CENTER;
 
-	float t = ( 1.0f - ( MIN_MASTER_PAN / fDistFromCenter ) ) * ( CENTER_PAN / DEL_SIDE_PAN );
+	float t = 1.0f - ( MIN_MASTER_PAN / fDistFromCenter );
 	t = ( float )pow( t, LOG_PAN_ATTENUATION );
 
-	logPan = ( long )( t * DEL_DSBPAN_SIDE / MAX_ROLLOFF_DIVIDER );
+	logPan = ( long )( t * ( DEL_DSBPAN_SIDE / MAX_ROLLOFF_DIVIDER ) );
 
-	if ( linPan < CENTER_PAN )
+	if ( linPan < ( long )CENTER_PAN )
 		logPan = -logPan;
 
 	return logPan;
@@ -3860,15 +3866,15 @@ S32 ConvertLogPanToLinPan( long logPan )
 	long linPan;
 
 	long lTempPan = abs( logPan );
-	float t = (float) lTempPan * MAX_ROLLOFF_DIVIDER / DEL_DSBPAN_SIDE;
+	float t = (float) lTempPan * ( MAX_ROLLOFF_DIVIDER / DEL_DSBPAN_SIDE );
 	t = ( float )pow( t, LOG_PAN_INVATTENUATION );
 
 	float fDistFromCenter = (CENTER_PAN * MIN_MASTER_PAN) / (CENTER_PAN - (t * DEL_SIDE_PAN));
 
 	if ( logPan < 0 )
-		linPan = (long) (CENTER_PAN - fDistFromCenter);
+		linPan = ( long )CENTER_PAN - ( long )fDistFromCenter;
 	else
-		linPan = (long) (CENTER_PAN + fDistFromCenter);
+		linPan = ( long )fDistFromCenter + ( long )CENTER_PAN;
 
 	return linPan;
 }

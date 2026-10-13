@@ -49,10 +49,9 @@ public:
 	~CWinSync_Event()	{ CloseHandle(m_hEvent); }
 
 	HANDLE GetEvent() const	{ return m_hEvent; }
-	void Set()				{ SetEvent(m_hEvent); }
-	void Clear()			{ ResetEvent(m_hEvent); }
+	void Set()				{ SetEvent(GetEvent()); }
+	bool Clear()			{ return ResetEvent(GetEvent()) == TRUE; }
 	bool IsSet()			{ return WaitForSingleObject(m_hEvent, 0) == WAIT_OBJECT_0; }
-	bool Block(DWORD nTimeout = INFINITE)	{ return WaitForSingleObject(m_hEvent, nTimeout) == WAIT_OBJECT_0; }
 
 private:
 	HANDLE m_hEvent;

@@ -151,10 +151,14 @@ TARGETS = [
          # src/Engine/snddrv/snddrv.dsw: the reconstruction (s_dx8.cpp,
          # parsewavefile.cpp, counter.cpp) and src/libs/ltmem/ltmem.cpp
          built="src/Engine/built/Final/snddrv/SndDrv.dll",
+         # s_dx8.obj's code ends at 0x1000a05f; then the MSACM32 import
+         # thunks (0x1000a060..0x1000a0b4, the driver calls msacm.h's
+         # functions without dllimport), ltmem.lib's ltmem.obj
+         # (0x1000a0c0..0x1000a21b: its math-constant initializers, the
+         # atexit registration of its global, LTMemAlloc, LTMemFree), and
          # msvcrt.lib from __aulldiv at 0x1000a220 (ulldiv, lldiv, llmul,
-         # ehvec*, atonexit, crtdll); 0x1000a1e0..0x1000a21f, an atexit
-         # registration and two delete wrappers, are its own
-         app=[(0x10001000, 0x1000a220)]),
+         # ehvec*, atonexit, crtdll)
+         app=[(0x10001000, 0x1000a060), (0x1000a0c0, 0x1000a220)]),
     dict(label="ltmsg.dll", what="the engine's messages", kind="resources",
          # its only code is msvcrt.lib's DLL entry (crtdll.obj, dllmain.obj
          # at 0x10001000..0x1000116e): resources and nothing of Monolith's
