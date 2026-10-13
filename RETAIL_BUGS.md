@@ -302,7 +302,12 @@ A model of the function (byte-identical to retail), fed an even sweep,
 turns the view by these multiples of the mouse's motion: 1.06 at 60 frames
 a second with a 1000 Hz mouse moving fast, 1.6 moving slowly, 2.1
 diagonally; at 144 frames, 1.15, 2.4 and 2.2; at 300 frames with a 125 Hz
-mouse, 2.9 and 3.8 diagonally. In 2002, at 30 frames a second and a 125 Hz
+mouse, 2.9 and 3.8 diagonally. Measured in the release build (a temporary
+log of each frame's mouse counts and look offsets, under Xvfb at about 57
+frames a second, xdotool moving the pointer every 30 ms): 2.8 horizontally;
+diagonally 3.8 in x and 2.8 in y (y's event comes second, so x is added
+again on its pass); one event of 2 counts turned the view by 3.68, 1.84 and
+0.08 counts' worth over three frames. In 2002, at 30 frames a second and a 125 Hz
 mouse, it was a steady 1.2. Today's frame rates (the release build has no
 frame limit: `MaxFPS` works only outside the final build) make the look
 speed change with speed, direction and frame time, which reads as a mouse
