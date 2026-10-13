@@ -36,7 +36,7 @@ unwritten, and counted: the total is the whole game.
 
 | Binary | | Byte-identical functions | Byte-identical code | | Unwritten | Unplaced |
 |---|---|--:|--:|---|--:|--:|
-| `Lithtech.exe` | the engine | 3,801 / 7,076 | 644,395 / 1,345,332 bytes | `█████████░░░░░░░░░░░` 47.8% | 770 | 4,472 |
+| `Lithtech.exe` | the engine | 5,342 / 6,940 | 956,226 / 1,345,379 bytes | `██████████████░░░░░░` 71.0% | 138 | 2,195 |
 | `server.dll` | the engine's server | 1,909 / 3,465 | 208,508 / 310,859 bytes | `█████████████░░░░░░░` 67.0% | 104 | 1,318 |
 | `ServerDir.dll` | the server directory (WON Titan) | 201 / 508 | 28,586 / 88,203 bytes | `██████░░░░░░░░░░░░░░` 32.4% | 129 | 1 |
 | `snddrv.dll` | the sound driver | 194 / 236 | 35,073 / 35,599 bytes | `███████████████████░` 98.5% | 0 | 0 |
@@ -48,7 +48,7 @@ unwritten, and counted: the total is the whole game.
 | `ltmsg.dll` | the engine's messages, not in the total | 5 / 5 resources | 2,054 / 2,054 bytes | `████████████████████` 100.0% | 0 | -- |
 | `CRes.dll` | the game's client resources, not in the total | 484 / 484 resources | 622,940 / 622,940 bytes | `████████████████████` 100.0% | 0 | -- |
 | `SRes.dll` | the game's server resources, not in the total | no resources | -- | -- | -- | -- |
-| **All** | | **21,754 / 33,250** | **4,261,076 / 5,273,675 bytes** | `████████████████░░░░` **80.7%** | **1,019** | **5,840** |
+| **All** | | **23,295 / 33,114** | **4,572,907 / 5,273,722 bytes** | `█████████████████░░░` **86.7%** | **387** | **3,563** |
 <!-- progress:end -->
 
 Every function in that table is recorded in `progress/identical.txt`, and
