@@ -787,10 +787,6 @@ SOURCE=..\..\client\src\nolf2src_client_stubs.cpp
 # End Source File
 # Begin Source File
 
-SOURCE=..\..\kernel\mem\src\nolf2src_mem_stubs.cpp
-# End Source File
-# Begin Source File
-
 SOURCE=..\..\model\src\nolf2src_model_stubs.cpp
 # End Source File
 # Begin Source File
