@@ -4,7 +4,9 @@
 
 The game code is Monolith's own public source release (version 1.3, the
 game's last update), compiled with the compiler Monolith used, Visual C++ 6,
-under Wine. The aim, as for [nolfsrc](https://github.com/nolffan/nolfsrc)
+under Wine. Where the release differs from what the retail 1.3 game shipped,
+the retail code is reconstructed from the retail binaries, in place, and
+marked `RETAIL:`. The aim, as for [nolfsrc](https://github.com/nolffan/nolfsrc)
 (the first game), is two builds:
 
 - **legacy**: the 1.3 game as it shipped, rebuilt so that it compiles back
