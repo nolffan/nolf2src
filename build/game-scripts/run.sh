@@ -34,8 +34,9 @@
 # implements; Microsoft's DirectMusic can be installed in the prefix:
 #   WINEPREFIX=~/.wine-nolf2 winetricks dmband dmcompos dmime dmloader \
 #       dmscript dmstyle dmsynth dmusic dmusic32 dswave gmdls
-# The intro movies are off (+DisableMovies 1) because Bink movies stall
-# under some Wine setups.
+# The intro movies are off (+DisableMovies 1) with RAD's binkw32.dll, whose
+# movies stall under some Wine setups; on in the modern build, whose own
+# Bink player (on FFmpeg; MANIFEST.txt lists it as EXT) plays them.
 set -e
 cd "$(dirname "$0")"
 
@@ -54,6 +55,8 @@ while [ $# -gt 0 ]; do
     esac
     shift
 done
+MOVIES=1
+grep -q '^EXT .*	binkw32\.dll$' MANIFEST.txt 2>/dev/null && MOVIES=0
 W="${RES%x*}"; H="${RES#*x}"
 case "$W$H" in *[!0-9]*|"") echo "run.sh: --res wants WxH, e.g. 1024x768" >&2; exit 2 ;; esac
 
@@ -70,8 +73,8 @@ mkdir -p Save
 # then our settings: later arguments override earlier ones.
 REZ=$(tr -d '\r' < nolf2cmds.txt | tr ' ' '\n' | awk '$0=="-rez"{getline n; printf "-rez %s ", n}')
 {
-    printf '%s++screenwidth %s ++screenheight %s ++bitdepth 32 ++windowed %s +DisableMovies 1' \
-        "$REZ" "$W" "$H" "$WINDOWED"
+    printf '%s++screenwidth %s ++screenheight %s ++bitdepth 32 ++windowed %s +DisableMovies %s' \
+        "$REZ" "$W" "$H" "$WINDOWED" "$MOVIES"
     [ -n "$WORLD" ] && printf ' +runworld %s' "$WORLD"
     printf '%s\r\n' "$EXTRA"
 } > run-cmds.txt

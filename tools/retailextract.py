@@ -2,8 +2,15 @@
 """Take what the build needs from the installed retail game.
 
   retailextract.py resources    <retaildir> <gamedir>  game DATA only (no binary)
-  retailextract.py thirdparty   <retaildir> <gamedir>  Bink and the Microsoft
+  retailextract.py thirdparty   <retaildir> <gamedir> [open]
+                                                       Bink and the Microsoft
                                                        runtime, nothing else
+                                                       ("open": the Microsoft
+                                                       runtime only)
+  retailextract.py openruntime  <extdir> <gamedir>     the modern build's
+                                                       replacements for the
+                                                       rest (build/ext.sh's
+                                                       output)
   retailextract.py reference    <retaildir> <refdir>   the retail binaries, for
                                                        scoring only
   retailextract.py audit        <gamedir>              every PE file in a game
@@ -32,7 +39,13 @@ files (the Sierra updater, web links) are not copied.
 `thirdparty` copies the licensed middleware we have no source for: Bink
 (binkw32.dll), and the Microsoft C, C++ and MFC runtime DLLs setup installs
 (MFC42.DLL, MFC42U.DLL, MSVCP60.DLL, Msvcrt.dll), which the engine and the
-launcher import.
+launcher import. With "open" (the modern build, NOLF2_MIDDLEWARE=open) it
+leaves out what `openruntime` replaces.
+
+`openruntime` is the modern build's other half of step 2: our Bink player,
+binkw32.dll, which build/ext.sh built from src/modern/binkw32/ and
+ext/ffmpeg into <extdir>, in place of RAD's (MANIFEST.txt origin `EXT`).
+The Microsoft runtime DLLs stay the retail ones in both builds.
 
 No engine binary is copied: Lithtech.exe, server.dll, snddrv.dll,
 ServerDir.dll and ltmsg.dll are built from our source (src/Engine/,
@@ -48,7 +61,8 @@ directory.
 Every file the steps write is recorded in <gamedir>/MANIFEST.txt
 (`<origin>\\t<path>`); build/all.sh adds the binaries it built, and `audit`
 lists every PE file in the directory with its origin, failing on any that
-is neither built here nor third-party runtime -- or on any PE file still
+is neither built here, nor third-party runtime, nor the modern build's
+open-source replacement (EXT) -- or on any PE file still
 inside a .rez archive.
 """
 import os
@@ -88,6 +102,12 @@ REFERENCE_REZ = "Update_v1x3.rez"
 REFERENCE_GAME = [("CSHELL.dll", "CShell.dll"), ("OBJECT.lto", "Object.lto"),
                   ("CLIENTFX.fxd", "ClientFx.fxd"), ("CRES.dll", "CRes.dll"),
                   ("SRES.dll", "SRes.dll")]
+
+
+# The modern build's replacements (build/ext.sh), and where each comes from.
+OPEN_RUNTIME = [
+    ("binkw32.dll", "src/modern/binkw32 + ext/ffmpeg: our Bink player"),
+]
 
 
 def is_third_party(name):
@@ -206,19 +226,38 @@ def cmd_resources(retaildir, gamedir):
     man.save()
 
 
-def cmd_thirdparty(retaildir, gamedir):
+def cmd_thirdparty(retaildir, gamedir, middleware="retail"):
     gamedir = Path(gamedir)
     man = Manifest(gamedir)
     r = Retail(retaildir)
+    skip = {name for name, _ in OPEN_RUNTIME} if middleware == "open" else set()
     n = 0
     for p in r.files:
-        if "/" in p or not is_third_party(p):
+        if "/" in p or not is_third_party(p) or p.lower() in skip:
             continue
         r.copy_if_changed(p, gamedir / p)
         man.add(p, f"THIRD-PARTY {r.name}:{p}")
         n += 1
     man.save()
-    print(f"== third-party runtime: {n} files (Bink, the Microsoft C++ and MFC runtime)")
+    print(f"== third-party runtime: {n} files ("
+          + ("" if skip else "Bink, ") + "the Microsoft C++ and MFC runtime)")
+
+
+def cmd_openruntime(extdir, gamedir):
+    gamedir = Path(gamedir)
+    gamedir.mkdir(parents=True, exist_ok=True)
+    man = Manifest(gamedir)
+    for name, origin in OPEN_RUNTIME:
+        # (over a retail copy an earlier build left, whatever its case)
+        for f in gamedir.iterdir():
+            if f.is_file() and f.name.lower() == name and f.name != name:
+                f.unlink()
+                man.rows.pop(f.name, None)
+        shutil.copyfile(Path(extdir) / name, gamedir / name)
+        man.add(name, f"EXT {origin} (build/ext.sh)")
+        print(f"   {name}  <-  {origin}")
+    man.save()
+    print(f"== open runtime: {len(OPEN_RUNTIME)} file(s) (Bink on FFmpeg)")
 
 
 def cmd_reference(retaildir, refdir):
@@ -257,29 +296,32 @@ def cmd_audit(gamedir):
                 origin = man.rows.get(rel, "UNKNOWN")
                 # only what we built and the third-party runtime belong
                 # in a game directory (a RETAIL row is a stale manifest's)
-                if not origin.startswith(("built ", "THIRD-PARTY ")):
+                if not origin.startswith(("built ", "THIRD-PARTY ", "EXT ")):
                     bad += 1
                 rows.append((origin, rel, full.stat().st_size))
             elif fn.lower().endswith(".rez"):
                 for ename, _pos, sz in rez_pe_entries(full):
                     rows.append(("INSIDE A REZ ARCHIVE", f"{rel}:{ename}", sz))
                     bad += 1
-    order = {"built": 0, "THIRD-PARTY": 1}
+    order = {"built": 0, "EXT": 1, "THIRD-PARTY": 2}
     rows.sort(key=lambda r: (order.get(r[0].split()[0], 3), r[1].lower()))
     print(f"{'size':>9}  {'file':<24} origin")
     for origin, rel, sz in rows:
         print(f"{sz:>9}  {rel:<24} {origin}")
     count = lambda kind: sum(1 for r in rows if r[0].startswith(kind))
     print(f"{len(rows)} PE files: {count('built')} built from our source, "
-          f"{count('THIRD-PARTY')} third-party runtime, {bad} unaccounted for")
+          + (f"{count('EXT')} open-source replacements (build/ext.sh), " if count('EXT') else "")
+          + f"{count('THIRD-PARTY')} third-party runtime, {bad} unaccounted for")
     return 1 if bad else 0
 
 
 def main():
     a = sys.argv[1:]
     cmds = {"resources": cmd_resources, "thirdparty": cmd_thirdparty,
-            "reference": cmd_reference}
-    if len(a) == 3 and a[0] in cmds:
+            "openruntime": cmd_openruntime, "reference": cmd_reference}
+    if len(a) == 4 and a[0] == "thirdparty" and a[3] in ("retail", "open"):
+        cmd_thirdparty(a[1], a[2], a[3])
+    elif len(a) == 3 and a[0] in cmds:
         cmds[a[0]](a[1], a[2])
     elif len(a) == 2 and a[0] == "audit":
         sys.exit(cmd_audit(a[1]))

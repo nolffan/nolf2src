@@ -20,9 +20,13 @@
 #            same unreferenced-code removal as release). The .pdb and .map of
 #            every binary go beside it. src/nolf2src/nolf2src_debug.h's
 #            NOLF2SRC_LOG lines go to nolf2src.log in the game's directory.
-#   modern   NOLF2SRC_MODERN: the modern build's fixes and features (none
-#            yet). Compile + /D NOLF2SRC_MODERN, resource scripts
-#            + /d NOLF2SRC_MODERN, nothing else.
+#   modern   NOLF2SRC_MODERN: the modern build's fixes and features
+#            (MODERN.md). Compile + /D NOLF2SRC_MODERN, resource scripts
+#            + /d NOLF2SRC_MODERN. And open-source middleware in place of
+#            RAD's (NOLF2_MIDDLEWARE=open, build/ext.sh): our Bink player
+#            on FFmpeg, built from src/modern/binkw32/ and the ext/ffmpeg
+#            submodule into out/ext/ (shared by both modern variants); the
+#            movies play.
 ##   modern-debug   both.
 #
 # The flags reach every compile and link through build/env.sh's
@@ -78,12 +82,16 @@ tar -C "$REPO" -cf - --exclude='__pycache__' build tools | tar -C "$TREE" -xf -
 # the compilers, and the retail game where build/retail.sh looks for it
 [ -L "$TREE/toolchains" ] || ln -s ../../toolchains "$TREE/toolchains"
 [ -L "$TREE/rez" ] || ln -s ../../rez "$TREE/rez"
+# the modern build's open-source middleware (build/ext.sh), built once into
+# out/ext/ for every variant
+[ -L "$TREE/ext" ] || ln -s ../../ext "$TREE/ext"
 
 export NOLF2SRC_CFLAGS="$CFLAGS"
 export NOLF2SRC_LDFLAGS="$LDFLAGS"
 export NOLF2SRC_RCFLAGS="$RCFLAGS"
 export NOLF2_GAME_OUT="$REPO/out/$NAME"
 export NOLF2_PACKAGE=0
+case "$VARIANT" in modern*) export NOLF2_MIDDLEWARE=open NOLF2_EXT_OUT="$REPO/out/ext" ;; esac
 bash "$TREE/build/all.sh"
 
 case "$VARIANT" in *debug)

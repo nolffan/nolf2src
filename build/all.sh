@@ -20,7 +20,12 @@
 #                         default profile. No binary.
 #   2. third-party runtime  Bink (binkw32.dll) and the Microsoft C++ and MFC
 #                         runtime DLLs, from the retail game: licensed
-#                         binaries with no source.
+#                         binaries with no source. The modern build
+#                         (NOLF2_MIDDLEWARE=open, set by build/variant.sh)
+#                         takes only the Microsoft runtime from the retail
+#                         game, and our own binkw32.dll -- a Bink player on
+#                         FFmpeg, built from src/modern/binkw32/ and the
+#                         ext/ffmpeg submodule by build/ext.sh.
 #   2b. Jupiter SDK source  WONAPI and CServerDir_Titan, which ServerDir.dll
 #                         is built from and Monolith's release lacks: from
 #                         the LithTech Jupiter SDK, as rez/ fetches it
@@ -104,8 +109,15 @@ bash build/nolf2cmds.sh > "$OUT/nolf2cmds.txt"
 cp build/game-scripts/run.sh "$OUT/"
 chmod +x "$OUT/run.sh"
 
-step "2. THIRD-PARTY RUNTIME: Bink and the Microsoft runtime from $RETAIL"
-python3 tools/retailextract.py thirdparty "$RETAIL" "$OUT"
+if [ "${NOLF2_MIDDLEWARE:-retail}" = open ]; then
+    step "2. open runtime: our Bink player on FFmpeg (build/ext.sh); the Microsoft runtime from $RETAIL"
+    bash build/ext.sh
+    python3 tools/retailextract.py thirdparty "$RETAIL" "$OUT" open
+    python3 tools/retailextract.py openruntime "${NOLF2_EXT_OUT:-out/ext}" "$OUT"
+else
+    step "2. THIRD-PARTY RUNTIME: Bink and the Microsoft runtime from $RETAIL"
+    python3 tools/retailextract.py thirdparty "$RETAIL" "$OUT"
+fi
 
 step "2b. Jupiter SDK source: WONAPI, CServerDir_Titan -> src/Game/Libs/"
 python3 tools/jupitersrc.py "$(jupiter_source)" src

@@ -14,7 +14,9 @@
 # installs the game from them with the 1.3 update (rez/README.md; `make
 # retail`, which every build runs first, does it once), and the LithTech
 # Jupiter SDK, whose source ServerDir.dll is built from (`make sdk`, the same
-# way: build/jupiter.sh). Every step runs in a
+# way: build/jupiter.sh). `make modern` also needs the ext/ffmpeg submodule
+# (FFmpeg, pinned to a release), which its Bink player is built on
+# (build/ext.sh). Every step runs in a
 # throwaway container of the image docker/Dockerfile describes, with this
 # checkout mounted at /repo, as you.
 
@@ -30,7 +32,7 @@ DOCKER_RUN = docker run --rm --init --name $(CONTAINER) \
 TOOLCHAIN_FILES = toolchains/msvc-6.00-8966/BIN/cl.exe toolchains/msvc-6.00-9782/Common/MSDev98/Bin/RC.EXE \
 	toolchains/dxsdk-8.1/include/d3d8.h
 
-.PHONY: all game debug modern modern-debug image retail sdk check-rez check-toolchain test progress progress-update shell clean distclean help
+.PHONY: all game debug modern modern-debug image retail sdk check-rez check-ext check-toolchain test progress progress-update shell clean distclean help
 
 all: game
 
@@ -60,7 +62,12 @@ help:
 game: check-toolchain retail sdk
 	$(DOCKER_RUN) bash build/all.sh
 
-debug modern modern-debug: check-toolchain retail sdk
+debug: check-toolchain retail sdk
+	$(DOCKER_RUN) bash build/variant.sh $@
+
+# the modern build also builds its Bink player on FFmpeg from ext/
+# (build/ext.sh)
+modern modern-debug: check-toolchain check-ext retail sdk
 	$(DOCKER_RUN) bash build/variant.sh $@
 
 image:
@@ -80,6 +87,9 @@ sdk: check-rez image
 
 check-rez:
 	@[ -f rez/install-games.sh ] || { echo "error: rez/ is empty -- the disc images and their installer are the rez/ submodule: run git submodule update --init (see rez/README.md)" >&2; exit 1; }
+
+check-ext:
+	@[ -f ext/ffmpeg/LICENSE.md ] || { echo "error: ext/ffmpeg is empty -- the modern build's Bink player is built on the ext/ffmpeg submodule: run git submodule update --init ext/ffmpeg" >&2; exit 1; }
 
 check-toolchain:
 	@for f in $(TOOLCHAIN_FILES); do \

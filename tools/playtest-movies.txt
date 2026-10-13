@@ -1,0 +1,35 @@
+# playtest-movies.txt -- the intro movies, for a build whose Bink player is
+# to be checked (the modern build's, src/modern/binkw32/; or RAD's):
+#
+#   PLAYTEST_NAME=movies PLAYTEST_SCRIPT=tools/playtest-movies.txt \
+#   PLAYTEST_ARGS="+DisableMovies 0" tools/playtest.sh out/nolf2-modern-release - 5
+#
+# (world "-": the game starts as a player sees it, with the logo movies --
+# Sierra, Fox, Monolith, LithTech -- then the main menu). Screenshots every
+# few seconds while they play (about 80 s in all), then the menu; wine.log
+# shows whether binkw32.dll loaded ("video playback disabled" if not).
+window 120
+wait 1
+shot movie-01s
+wait 2
+shot movie-03s
+wait 3
+shot movie-06s
+wait 4
+shot movie-10s
+wait 5
+shot movie-15s
+wait 5
+shot movie-20s
+wait 5
+shot movie-25s
+wait 5
+shot movie-30s
+wait 10
+shot movie-40s
+wait 5
+shot movie-45s
+wait 15
+shot movie-60s
+wait 30
+shot menu

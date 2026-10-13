@@ -14,12 +14,14 @@
 #                     and patch artifacts (a submodule too)
 #   out/reference/    the retail images the checks compare against
 #                     (build/reference.sh)
+#   ext/ffmpeg/       FFmpeg, which the modern build's Bink player is built
+#                     on (build/ext.sh; a submodule)
 #
 # so they are copied in as HARD LINKS (`cp -al`): no extra space, and unlike
 # a symbolic link a hard link resolves inside the build container, which
 # `make` runs with the worktree itself mounted at /repo (a link pointing
 # above the worktree would dangle there). Never edit a file under those
-# three in a worktree: it is the main checkout's file too.
+# in a worktree: it is the main checkout's file too.
 #
 # The worktree is .worktrees/<name> (gitignored) on a new branch <name>,
 # started at HEAD or at the given start point. Builds go to the tree's own
@@ -53,7 +55,7 @@ add)
         fi
     fi
     # the submodules' contents and the reference images, hard-linked
-    for d in toolchains rez out/reference; do
+    for d in toolchains rez out/reference ext/ffmpeg; do
         [ -d "$REPO/$d" ] || continue
         mkdir -p "$dir/$d"
         for t in "$REPO/$d"/* "$REPO/$d"/.[!.]*; do
