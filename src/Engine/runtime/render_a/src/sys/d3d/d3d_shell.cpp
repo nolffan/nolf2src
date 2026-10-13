@@ -177,7 +177,7 @@ bool CD3D_Shell::BuildDeviceList()
 			}
 
             // Select any 640x480 mode for default (but prefer a 16-bit mode)
-            for (uint32 m=0; m<Device.Modes.size(); ++m) 
+            for (m=0; m<Device.Modes.size(); ++m) 
 			{
                 if (Device.Modes[m].Width==640 && Device.Modes[m].Height==480) 
 				{

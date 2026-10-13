@@ -33,8 +33,6 @@ static uint32 g_OldFogEnable;
 
 static LTSurfaceBlend g_Optimized2DBlend(LTSURFACEBLEND_ALPHA);
 static HLTCOLOR g_Optimized2DColor(0xFFFFFFFF);
-static DWORD g_minFilter[4] = { D3DTEXF_LINEAR,D3DTEXF_LINEAR,D3DTEXF_LINEAR,D3DTEXF_LINEAR};
-static DWORD g_magFilter[4] = { D3DTEXF_LINEAR,D3DTEXF_LINEAR,D3DTEXF_LINEAR,D3DTEXF_LINEAR};
 
 uint32 d3d_GetValidTileSize(uint32 size)
 {
@@ -387,36 +385,6 @@ bool d3d_StartOptimized2D()
 	D3D_CALL(PD3DDEVICE->SetRenderState(D3DRS_SRCBLEND, D3DBLEND_SRCALPHA));
 	D3D_CALL(PD3DDEVICE->SetRenderState(D3DRS_DESTBLEND, D3DBLEND_INVSRCALPHA));
 
-	// Possibly reset bilinear for 2d ? 
-	for(uint32 nCurrStage = 0; nCurrStage < 4; nCurrStage++)
-	{
-		// save the sampler states
-		PD3DDEVICE->GetTextureStageState(nCurrStage, D3DTSS_MINFILTER, &g_minFilter[nCurrStage]);
-		PD3DDEVICE->GetTextureStageState(nCurrStage, D3DTSS_MAGFILTER, &g_magFilter[nCurrStage]);
-
-		// check for device caps anisotropic filter for min filter
-		if ((g_Device.GetDeviceCaps()->TextureFilterCaps & D3DPTFILTERCAPS_MINFANISOTROPIC) && (g_CV_2DAnisotropic.m_Val))
-		{
-			D3D_CALL(PD3DDEVICE->SetTextureStageState(nCurrStage, D3DTSS_MINFILTER, D3DTEXF_ANISOTROPIC));
-		}
-		else
-		{
-			D3D_CALL(PD3DDEVICE->SetTextureStageState(nCurrStage, D3DTSS_MINFILTER, g_CV_2DBilinear.m_Val ? D3DTEXF_LINEAR : D3DTEXF_POINT));
-		}
-
-		// check for device caps anistropic filter for mag filter
-		if ((g_Device.GetDeviceCaps()->TextureFilterCaps & D3DPTFILTERCAPS_MAGFANISOTROPIC) && (g_CV_2DAnisotropic.m_Val))
-		{
-			D3D_CALL(PD3DDEVICE->SetTextureStageState(nCurrStage, D3DTSS_MAGFILTER, D3DTEXF_ANISOTROPIC));
-		}
-		else
-		{
-			D3D_CALL(PD3DDEVICE->SetTextureStageState(nCurrStage, D3DTSS_MAGFILTER, g_CV_2DBilinear.m_Val ? D3DTEXF_LINEAR : D3DTEXF_POINT));
-		}
-
-	}
-
-
 	g_bInOptimized2D = true;
 	return true;
 }
@@ -431,15 +399,6 @@ void d3d_EndOptimized2D()
 	PD3DDEVICE->SetRenderState(D3DRS_FOGENABLE, g_OldFogEnable);
 
 	D3D_CALL(PD3DDEVICE->SetRenderState(D3DRS_ALPHABLENDENABLE, FALSE));
-
-	// Set sampler states back to saved states
-	for(uint32 nCurrStage = 0; nCurrStage < 4; nCurrStage++)
-	{
-		// Restore the saved states 
-		D3D_CALL(PD3DDEVICE->SetTextureStageState(nCurrStage, D3DTSS_MINFILTER, g_minFilter[nCurrStage]));
-		D3D_CALL(PD3DDEVICE->SetTextureStageState(nCurrStage, D3DTSS_MAGFILTER, g_magFilter[nCurrStage]));
-	}
-
 
 	g_bInOptimized2D = false;
 }

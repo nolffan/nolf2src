@@ -450,7 +450,7 @@ void CD3D_RenderWorld::BindAll()
 	}
 
 	// Bind the renderblocks
-	for (uint32 nRBBindLoop = 0; nRBBindLoop < m_nRenderBlockCount; ++nRBBindLoop)
+	for (nRBBindLoop = 0; nRBBindLoop < m_nRenderBlockCount; ++nRBBindLoop)
 	{
 		m_pRenderBlocks[nRBBindLoop].Bind();
 	}
@@ -665,7 +665,7 @@ void CD3D_RenderWorld::Draw(const ViewParams& Params, bool bTransformed)
 		StageStateSet state20(2, D3DTSS_TEXCOORDINDEX, D3DTSS_TCI_PASSTHRU | 2);
 
 		PD3DDEVICE->SetRenderState(D3DRS_CULLMODE, D3DCULL_CCW);
-		PD3DDEVICE->SetSoftwareVertexProcessing(((g_Device.GetDeviceCaps()->DevCaps & D3DDEVCAPS_HWTRANSFORMANDLIGHT) == 0) ? 1 : 0);
+		PD3DDEVICE->SetRenderState(D3DRS_SOFTWAREVERTEXPROCESSING, ((g_Device.GetDeviceCaps()->DevCaps & D3DDEVCAPS_HWTRANSFORMANDLIGHT) == 0) ? 1 : 0);
 		PD3DDEVICE->SetRenderState(D3DRS_ALPHAFUNC, D3DCMP_GREATER);
 
 		if (g_CV_DebugRBDraw.m_Val)
@@ -928,51 +928,6 @@ CRenderShader *CD3D_RenderWorld::AllocShader(const CRBSection &cSection)
 						}
 					}
 
-					else if (pBaseTexture->m_eTexType == eSharedTexType_DOT3BumpMap)
-					{
-						if (g_CV_DOT3BumpMap.m_Val)
-						{
-							if (pRTexture[0] && pRTexture[0]->IsFullbrite())
-								eResult = eShader_Gouraud_Texture_Fullbright;  
-							else
-								eResult = eShader_Gouraud_DOT3BumpMap;
-						}
-						else
-						{
-							if (pRTexture[0] && pRTexture[0]->IsFullbrite())
-								eResult = eShader_Gouraud_Texture_Fullbright;
-							else
-								eResult = eShader_Gouraud_Texture;
-						}
-					}
-					else if (pBaseTexture->m_eTexType == eSharedTexType_DOT3EnvBumpMap)
-					{
-						if (g_CV_DOT3EnvBumpMap.m_Val)
-						{
-							if (pRTexture[0] && pRTexture[0]->IsFullbrite())
-								eResult = eShader_Gouraud_EnvMap_Fullbright;
-							else
-								eResult = eShader_Gouraud_DOT3EnvBumpMap;
-						}
-						else
-						{
-							if (pRTexture[0] && pRTexture[0]->IsFullbrite())
-								eResult = eShader_Gouraud_EnvMap_Fullbright;
-							else
-								eResult = eShader_Gouraud_EnvMap;
-						}
-					}
-					else if (pBaseTexture->m_eTexType == eSharedTexType_Effect)
-					{
-						if (pRTexture[0] && pRTexture[0]->IsFullbrite())
-						{
-							eResult = eShader_Gouraud_Texture_Fullbright;  
-						}
-						else
-						{
-							eResult = eShader_Gouraud_Effect;
-						}
-					}
 					else
 					{
 						if (pRTexture[0] && pRTexture[0]->IsFullbrite())
@@ -1013,25 +968,6 @@ CRenderShader *CD3D_RenderWorld::AllocShader(const CRBSection &cSection)
 				{
 					if (g_CV_EnvBumpMap.m_Val)
 						eResult = eShader_Lightmap_Texture_EnvBumpMap;
-					else
-					{
-						if (g_CV_EnvMapEnable.m_Val)
-							eResult = eShader_Lightmap_Texture_EnvMap;
-						else
-							eResult = eShader_Lightmap_Texture;
-					}
-				}
-				else if (pBaseTexture->m_eTexType == eSharedTexType_DOT3BumpMap)
-				{
-					if (g_CV_DOT3BumpMap.m_Val)
-						eResult = eShader_Lightmap_Texture_DOT3BumpMap;
-					else
-						eResult = eShader_Lightmap_Texture;
-				}
-				else if (pBaseTexture->m_eTexType == eSharedTexType_DOT3EnvBumpMap)
-				{
-					if (g_CV_DOT3EnvBumpMap.m_Val)
-						eResult = eShader_Lightmap_Texture_DOT3EnvBumpMap;
 					else
 					{
 						if (g_CV_EnvMapEnable.m_Val)
@@ -1100,15 +1036,6 @@ CRenderShader *CD3D_RenderWorld::AllocShader(const CRBSection &cSection)
 				case eShader_Gouraud_EnvMap_Fullbright :
 					LT_MEM_TRACK_ALLOC(pShader = new CRenderShader_Gouraud_EnvMap_Fullbright,LT_MEM_TYPE_RENDER_SHADER);
 					break;
-				case eShader_Gouraud_DOT3BumpMap :
-					LT_MEM_TRACK_ALLOC(pShader = new CRenderShader_Gouraud_DOT3BumpMap,LT_MEM_TYPE_RENDER_SHADER);
-					break;
-				case eShader_Gouraud_DOT3EnvBumpMap :
-					LT_MEM_TRACK_ALLOC(pShader = new CRenderShader_Gouraud_DOT3EnvBumpMap,LT_MEM_TYPE_RENDER_SHADER);
-					break;
-				case eShader_Gouraud_Effect :
-					LT_MEM_TRACK_ALLOC(pShader = new CRenderShader_Gouraud_Effect,LT_MEM_TYPE_RENDER_SHADER);
-					break;
 				case eShader_Lightmap :
 					LT_MEM_TRACK_ALLOC(pShader = new CRenderShader_Lightmap,LT_MEM_TYPE_RENDER_SHADER);
 					break;
@@ -1127,12 +1054,6 @@ CRenderShader *CD3D_RenderWorld::AllocShader(const CRBSection &cSection)
 					break;
 				case eShader_Lightmap_DualTexture :
 					LT_MEM_TRACK_ALLOC(pShader = new CRenderShader_Lightmap_Texture_DualTexture,LT_MEM_TYPE_RENDER_SHADER);
-					break;
-				case eShader_Lightmap_Texture_DOT3BumpMap :
-					LT_MEM_TRACK_ALLOC(pShader = new CRenderShader_Lightmap_Texture_DOT3BumpMap,LT_MEM_TYPE_RENDER_SHADER);
-					break;
-				case eShader_Lightmap_Texture_DOT3EnvBumpMap :
-					LT_MEM_TRACK_ALLOC(pShader = new CRenderShader_Lightmap_Texture_DOT3EnvBumpMap,LT_MEM_TYPE_RENDER_SHADER);
 					break;
 				default :
 					ASSERT(!"This shader is not yet implemented");
@@ -1161,8 +1082,6 @@ CRenderShader *CD3D_RenderWorld::AllocShader(const CRBSection &cSection)
 				case eShader_Gouraud_DualTexture:
 				case eShader_Gouraud_Texture_Fullbright :
 				case eShader_Gouraud_EnvBumpMap_NoFallback :
-				case eShader_Gouraud_DOT3BumpMap :
-				case eShader_Gouraud_Effect :
 					eResult = eShader_Gouraud_Texture;
 					break;
 				case eShader_Gouraud_Detail_Fullbright :
@@ -1170,18 +1089,15 @@ CRenderShader *CD3D_RenderWorld::AllocShader(const CRBSection &cSection)
 					break;
 				case eShader_Gouraud_EnvMap_Fullbright :
 				case eShader_Gouraud_EnvBumpMap:
-				case eShader_Gouraud_DOT3EnvBumpMap :
 					eResult = eShader_Gouraud_EnvMap;
 					break;
 				case eShader_Lightmap_Texture_EnvBumpMap :
-				case eShader_Lightmap_Texture_DOT3EnvBumpMap :
 					eResult = eShader_Lightmap_Texture_EnvMap;
 					break;
 				case eShader_Lightmap_Texture_Detail :
 				case eShader_Lightmap_Texture_EnvMap :
 				case eShader_Lightmap_DualTexture:
 				case eShader_Lightmap_Texture_EnvBumpMap_NoFallback :
-				case eShader_Lightmap_Texture_DOT3BumpMap :
 					eResult = eShader_Lightmap_Texture;
 					break;
 				case eShader_Lightmap_Texture :

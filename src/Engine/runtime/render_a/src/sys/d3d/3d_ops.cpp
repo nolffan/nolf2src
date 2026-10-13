@@ -174,11 +174,11 @@ void d3d_SetBumpMapTransform(uint32 nStage, float fTextureScale)
 
 
 //  Convert each vector member (-1.0 to 1.0) to (0 to 255) and saves the result in a DWORD. 
-DWORD d3d_VectorToRGB(LTVector * vector)
+DWORD d3d_VectorToRGB(LTVector * pVector)
 {
-	DWORD dwR = (DWORD)(127 * vector->x + 128);
-	DWORD dwG = (DWORD)(127 * vector->y + 128);
-	DWORD dwB = (DWORD)(127 * vector->z + 128);
+	DWORD dwR = (DWORD)(127 * pVector->x + 128);
+	DWORD dwG = (DWORD)(127 * pVector->y + 128);
+	DWORD dwB = (DWORD)(127 * pVector->z + 128);
 
 return (DWORD)(0xff000000 + (dwR << 16) + (dwG << 8) + dwB);
 }

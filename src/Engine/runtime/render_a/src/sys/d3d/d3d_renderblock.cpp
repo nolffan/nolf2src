@@ -102,7 +102,7 @@ CRBSection::~CRBSection()
 	}
 
 	// Release our sprite information if applicable
-	for (uint32 nCurrTex = 0; nCurrTex < kNumTextures; nCurrTex++)
+	for (nCurrTex = 0; nCurrTex < kNumTextures; nCurrTex++)
 		delete m_pSpriteData[nCurrTex];
 
 	// Release the lightmap data

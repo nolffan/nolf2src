@@ -96,11 +96,11 @@ bool VertexBufferController::CreateIndexBuffer(int32 iIndexCount, bool bDynamic,
 
 // Call this before a render call - sets the streams and stuff like that...
 //	(Just need to call it once per group of render calls)
-void VertexBufferController::SetStreamSources()
+void VertexBufferController::SetStreamSources(uint32 iBaseVertexIndex)
 {
 	if (m_pVB_Index) 
 	{ 
-		if (FAILED(PD3DDEVICE->SetIndices(m_pVB_Index, 0)))
+		if (FAILED(PD3DDEVICE->SetIndices(m_pVB_Index, iBaseVertexIndex)))
 		{ 
 			assert(0); return; 
 		} 
@@ -117,10 +117,10 @@ void VertexBufferController::SetStreamSources()
 }
 
 // One stop shop - transform/light/render all in one call...
-void VertexBufferController::Render(uint32 MinVertIndexed,uint32 StartIndex,uint32 VertCount,uint32 TriCount, uint32 iVertOffset)
+void VertexBufferController::Render(uint32 MinVertIndexed,uint32 StartIndex,uint32 VertCount,uint32 TriCount)
 {
 	// Render the sucker...
-	if (FAILED(PD3DDEVICE->DrawIndexedPrimitive(D3DPT_TRIANGLELIST,iVertOffset,MinVertIndexed,VertCount,StartIndex,TriCount)))	{ return; } //assert(0); return; }
+	if (FAILED(PD3DDEVICE->DrawIndexedPrimitive(D3DPT_TRIANGLELIST,MinVertIndexed,VertCount,StartIndex,TriCount)))	{ return; } //assert(0); return; }
 }
 
 // For rendering non-indexed points...
