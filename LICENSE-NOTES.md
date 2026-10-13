@@ -18,5 +18,5 @@ directory lists every file; `tools/retailextract.py audit` every binary):
 | the game DLLs, the dedicated server | built here from Monolith's source | `src/` |
 | the game data: `.rez` archives, movies, configs | Monolith Productions / Fox Interactive / Sierra | the retail game (the retail game DLLs inside the archives are zeroed) |
 | `ltmsg.dll`, the engine's messages | built here from a reconstruction (its strings are the retail DLL's) | `src/Engine/ltmsg/` |
-| the engine: `Lithtech.exe`, `server.dll`, `ServerDir.dll`, `snddrv.dll` | Monolith Productions | the retail game, until it is built here (`ServerDir.dll` is built, from the Jupiter SDK's source, and `snddrv.dll` from its reconstruction, but neither is put in the game yet) |
+| the engine: `Lithtech.exe`, `server.dll`, `ServerDir.dll`, `snddrv.dll` | Monolith Productions | the retail game, until it is built here (`ServerDir.dll` is built, from the Jupiter SDK's source, `snddrv.dll` from its reconstruction, and `Lithtech.exe` and `server.dll`, partly stubbed, from the LithTech Jupiter engine source in `src/Engine/runtime/`, but none of them is put in the game yet) |
 | `binkw32.dll` (Bink), the Microsoft C++ and MFC runtime DLLs | RAD Game Tools, Microsoft | the retail game |

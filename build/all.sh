@@ -43,7 +43,9 @@
 #                         configuration; and ServerDir.dll
 #                         (src/Game/Libs/ServerDir/ServerDir.dsw) and the
 #                         sound driver SndDrv.dll (src/Engine/snddrv/
-#                         snddrv.dsw), built but not yet put in the game:
+#                         snddrv.dsw) and the engine, Lithtech.exe and
+#                         server.dll (src/Engine/runtime/winbuild/
+#                         Engine.dsw), built but not yet put in the game:
 #                         step 2b's retail ones are, until the built ones
 #                         are shown to work; and ltmsg.dll
 #                         (src/Engine/ltmsg/ltmsg.dsw), the engine's message
@@ -122,6 +124,12 @@ echo "   $SERVERDIR built (not in the game yet: the retail one is)"
 SNDDRV=src/Engine/built/Final/snddrv/SndDrv.dll
 [ -f "$SNDDRV" ] || { echo "error: $SNDDRV was not built" >&2; exit 1; }
 echo "   $SNDDRV built (not in the game yet: the retail one is)"
+# the engine: linked, but with stand-ins for what does not compile yet
+# (docs/engine/PLAN.md), so not in the game yet: the retail one is
+for f in src/Engine/built/Final/Lithtech/Lithtech.exe src/Engine/built/Final/server/server.dll; do
+    [ -f "$f" ] || { echo "error: $f was not built" >&2; exit 1; }
+    echo "   $f built (not in the game yet: the retail one is)"
+done
 
 step "4. assemble: the built binaries -> $OUT"
 for ((i = 0; i < ${#BUILT[@]}; i += 2)); do

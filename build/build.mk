@@ -20,8 +20,8 @@
 #
 # Targets: all (the default: the projects below); a project by its workspace
 # name (ClientShellDLL, Object, ClientFxDLL, ClientRes, ServerRes, Launcher,
-# ServerApp, ServerDir, ltmsg, and the libraries they depend on); any single
-# output.
+# ServerApp, ServerDir, ltmsg, Lithtech, server, and the libraries they
+# depend on); any single output.
 #
 # The compilers see the tree's src/ as drive S: and toolchains/ as T:, so
 # they see the same paths wherever the tree is: VC6's output for NOLF's game
@@ -84,6 +84,15 @@ SNDDRV_WANTED := snddrv
 # src/Engine/ltmsg/ltmsg.dsw (written for this project) builds it from a
 # reconstructed resource script.
 LTMSG_WANTED := ltmsg
+
+# The engine, Lithtech.exe and server.dll, of which Monolith's release has
+# only the SDK headers: src/Engine/runtime/winbuild/Engine.dsw (written for
+# this project) builds them from the LithTech Jupiter engine source
+# (src/Engine/runtime/), with the libraries they link: the renderer
+# (D3DRender), the UI (Lib_UI), the sound driver loader (Lib_ILTSound),
+# RezMgr (src/Engine/libs/rezmgr/), and ltmem, Lib_StdLith and Lib_Lith,
+# whose rules the workspaces above already give (dsp2mk.py --have).
+ENGINE_WANTED := Lithtech server
 
 # ---------------------------------------------------------------------------
 # Wine and the toolchains
@@ -233,8 +242,14 @@ $(error tools/dsp2mk.py failed: $(file <$(DEPDIR)/dsp2mk-ltmsg.log))
 endif
 include $(DEPDIR)/ltmsg.mk
 
+DSP_OK := $(shell python3 tools/dsp2mk.py --have "$(PROJECTS)" src/Engine/runtime/winbuild/Engine.dsw Final $(DEPDIR)/engine.mk $(ENGINE_WANTED) 2>$(DEPDIR)/dsp2mk-engine.log && echo ok)
+ifneq ($(DSP_OK),ok)
+$(error tools/dsp2mk.py failed: $(file <$(DEPDIR)/dsp2mk-engine.log))
+endif
+include $(DEPDIR)/engine.mk
+
 .PHONY: all game
-all game: $(PROJECTS_WANTED) $(SERVERDIR_WANTED) $(SNDDRV_WANTED) $(LTMSG_WANTED)
+all game: $(PROJECTS_WANTED) $(SERVERDIR_WANTED) $(SNDDRV_WANTED) $(LTMSG_WANTED) $(ENGINE_WANTED)
 
 # ---------------------------------------------------------------------------
 # The rules all compiles and tools share
