@@ -115,7 +115,7 @@ RCONVAR(g_CV_ForceSWVertProcess, "ForceSWVertProcess", int, 0);
 RCONVAR(g_CV_Dither, "Dither", int, 1);
 RCONVAR(g_CV_S3TCEnable, "S3TCEnable", int, 1);
 RCONVAR(g_CV_MaxTexAspectRatio, "MaxTexAspectRatio", int, 0);
-RCONVAR(g_CV_32BitTextures, "32BitTextures", int, 1);
+RCONVAR(g_CV_32BitTextures, "32BitTextures", int, 0);
 RCONVAR(g_CV_32BitLightmaps, "32BitLightMaps", int, 1);
 RCONVAR(g_CV_MaxTextureSize, "MaxTextureSize", int, 16*1024);
 RCONVAR(g_CV_Saturate, "Saturate", int, 0);
@@ -133,7 +133,7 @@ RCONVAR(g_CV_GammaB, "GammaB", float, 1.0f);
 //------------------------------
 // Dynamic Lights
 RCONVAR(g_CV_DynamicLight_TextureSize, "DynamicLight_TextureSize", int, 256);
-RCONVAR(g_CV_DynamicLight_Backfacing, "DynamicLight_Backfacing", int, 1);
+RCONVAR(g_CV_DynamicLight_Backfacing, "DynamicLight_Backfacing", int, 0);
 RCONVAR(g_CV_DynamicLight_Backfacing_Error, "DynamicLight_Backfacing_Error", float, 10.0f);
 RCONVAR(g_CV_LightAddPoly, "LightAddPoly", float, 1.0f);
 RCONVAR(g_CV_DynamicLight, "DynamicLight", int, 1);

@@ -10,12 +10,6 @@
 #include "de_objects.h"
 #include "rendererconsolevars.h"
 
-
-//IClientShell game client shell object.
-#include "iclientshell.h"
-static IClientShell *i_client_shell;
-define_holder(IClientShell, i_client_shell);
-
 CD3DRigidMesh::CD3DRigidMesh()
 {
 	Reset();
@@ -38,19 +32,6 @@ void CD3DRigidMesh::Reset()
 	m_iVertCount		= 0;
 	m_iPolyCount		= 0;
 	m_pIndexData		= NULL;
-
-	m_bSWVertProcessing	=  ((g_Device.GetDeviceCaps()->DevCaps & D3DDEVCAPS_HWTRANSFORMANDLIGHT) == 0) ? true : false;
-
-	m_bSWVSBuffers = false;
-
-	// Use software processing for shaders ? 
-	if ( g_Device.GetDeviceCaps()->VertexShaderVersion < D3DVS_VERSION(1,1) )
-		m_bSWVSBuffers = true;
-
-	// in case software has been forced 
-	if ( g_CV_ForceSWVertProcess )
-		m_bSWVertProcessing = true;
-
 	m_bNonFixPipeData	= false;
 	for (uint32 i = 0; i < 4; ++i) m_pVertData[i] = NULL;
 }
@@ -125,24 +106,25 @@ void CD3DRigidMesh::ReCreateObject()
 {
 
 	// Create our VB...
-	for (uint32 i=0;i<4;++i)
+	uint32 i;
+	for (i=0;i<4;++i)
 	{
 		if (!m_VertStreamFlags[i])
 			continue;
-		if (!m_VBController.CreateStream(i,m_iVertCount,m_VertStreamFlags[i],eNO_WORLD_BLENDS,false,true, m_bSWVertProcessing))
+		if (!m_VBController.CreateStream(i,m_iVertCount,m_VertStreamFlags[i],eNO_WORLD_BLENDS,false,true,false))
 		{
 			FreeAll();
 			return;
 		}
 	}
-	if (!m_VBController.CreateIndexBuffer(m_iPolyCount*3,false,true, m_bSWVertProcessing))
+	if (!m_VBController.CreateIndexBuffer(m_iPolyCount*3,false,true,false))
 	{
 		FreeAll();
 		return;
 	}
 
 	// Read in our Verts...
-	for (int i = 0; i < 4; ++i)
+	for (i = 0; i < 4; ++i)
 	{
 		if (!m_VertStreamFlags[i])
 			continue;
@@ -166,196 +148,33 @@ void CD3DRigidMesh::FreeDeviceObjects()
 }
 
 // NOTE: The texture list needs to change to be device independent...
-void CD3DRigidMesh::Render(ModelInstance *pInstance, D3DMATRIX& WorldTransform,CD3DRenderStyle* pRenderStyle, uint32 iRenderPass)
+void CD3DRigidMesh::Render(D3DMATRIX& WorldTransform,CD3DRenderStyle* pRenderStyle, uint32 iRenderPass)
 {
 	//setup our transform for this model
 	g_RenderStateMgr.SetTransform(D3DTS_WORLDMATRIX(0), &WorldTransform);
-
-	// Set the vertex shader constants.
-	if (m_pVertexShader != NULL)
-	{
-		// Let the client set some constants.
-		if (NULL != i_client_shell)
-		{
-			i_client_shell->OnVertexShaderSetConstants(m_pVertexShader, iRenderPass, pRenderStyle, pInstance,
-													   LTShaderDeviceStateImp::GetSingleton());
-		}
-
-		// Send the constants to the video card.
-		LTVertexShaderMgr::GetSingleton().SetVertexShaderConstants(m_pVertexShader);
-	}
-
-	// Set the pixel shader constants.
-	if (m_pPixelShader != NULL)
-	{
-		// Let the client set some constants.
-		if (NULL != i_client_shell)
-		{
-			i_client_shell->OnPixelShaderSetConstants(m_pPixelShader, iRenderPass, pRenderStyle, pInstance,
-													  LTShaderDeviceStateImp::GetSingleton());
-		}
-
-		// Send the constants to the video card.
-		LTPixelShaderMgr::GetSingleton().SetPixelShaderConstants(m_pPixelShader);
-	}
 
 	//render away
 	m_VBController.Render(0, 0, m_iVertCount, m_iPolyCount);
 }
 
-void CD3DRigidMesh::BeginRender(D3DMATRIX& pD3DTransforms, CD3DRenderStyle* pRenderStyle, uint32 iRenderPass)
+void CD3DRigidMesh::BeginRender(CD3DRenderStyle* pRenderStyle, uint32 iRenderPass)
 {
-	// If this pass has a vertex shader, use it.
-	RSD3DRenderPass *pPass = pRenderStyle->GetRenderPass_D3DOptions(iRenderPass);
-
-	if (NULL != pPass &&
-	    pPass->bUseVertexShader &&
-		 pPass->VertexShaderID != LTVertexShader::VERTEXSHADER_INVALID)
-	{
-		if ( m_bSWVSBuffers && !m_bSWVertProcessing )
-		{
-			m_bSWVertProcessing = true;
-			FreeDeviceObjects();
-			ReCreateObject();
-		}
-
-		// Store the pointer to the actual shader during rendering.
-		m_pVertexShader = LTVertexShaderMgr::GetSingleton().GetVertexShader(pPass->VertexShaderID);
-		if (m_pVertexShader != NULL)
-		{
-			// Install the shader.
-			if (!LTVertexShaderMgr::GetSingleton().InstallVertexShader(m_pVertexShader))
-			{
-				m_pVertexShader = NULL;
-				return;
-			}
-		}
-		else
-		{
-			return;
-		}
-	}
-	else if (!m_VBController.getVertexFormat(0) || m_bNonFixPipeData)
-	{
-					  // This is a non fixed function pipe VB - bail out...
-		return;
-	}
-	else if (FAILED(g_RenderStateMgr.SetVertexShader(m_VBController.getVertexFormat(0))))
-	{
-		return;
-	}
-
-	// If this pass has a pixel shader, use it.
-	if (NULL != pPass &&
-	    pPass->bUsePixelShader &&
-		pPass->PixelShaderID != LTPixelShader::PIXELSHADER_INVALID)
-	{
-		// Store the pointer to the actual shader during rendering.
-		m_pPixelShader = LTPixelShaderMgr::GetSingleton().GetPixelShader(pPass->PixelShaderID);
-		if (m_pPixelShader != NULL)
-		{
-			// Install the shader.
-			if (!LTPixelShaderMgr::GetSingleton().InstallPixelShader(m_pPixelShader))
-			{
-				m_pPixelShader = NULL;
-				return;
-			}
-		}
-	}
-
-
-	// We need software processing 
-	if (m_bSWVertProcessing)
-	{
-		PD3DDEVICE->SetSoftwareVertexProcessing(TRUE);
-	}
-
-
-	m_VBController.SetStreamSources();
-}
-
-// NOTE: The texture list needs to change to be device independent...
-void CD3DRigidMesh::RenderWithEffect(ModelInstance *pInstance, D3DMATRIX& WorldTransform,CD3DRenderStyle* pRenderStyle, uint32 iRenderPass)
-{
-	/*
-	//setup our transform for this model
-	g_RenderStateMgr.SetTransform(D3DTS_WORLDMATRIX(0), &WorldTransform);
-
-	if (FAILED(PD3DDEVICE->SetFVF(m_VBController.getVertexFormat(0))))
-	{
-		return;
-	}
-
-	//Set our sources
-	m_VBController.SetStreamSources();
-	*/
-
-	//render away
-	m_VBController.Render(0, 0, m_iVertCount, m_iPolyCount);
-}
-
-
-
-
-void CD3DRigidMesh::BeginRenderWithEffect(D3DMATRIX& pD3DTransforms, CD3DRenderStyle* pRenderStyle, uint32 iRenderPass)
-{
-
-	//setup our transform for this model
-	g_RenderStateMgr.SetTransform(D3DTS_WORLDMATRIX(0), &pD3DTransforms);
-
-	/*
-	if(g_pVertexDeclaration)
-	{
-		PD3DDEVICE->SetVertexDeclaration(g_pVertexDeclaration);
-	}
-	else
 	if (!m_VBController.getVertexFormat(0) || m_bNonFixPipeData)
 	{
 		// This is a non fixed function pipe VB - bail out...
 		return;
 	}
-	else if (FAILED(g_RenderStateMgr.SetVertexShader(m_VBController.getVertexFormat(0))))
+
+	if (FAILED(g_RenderStateMgr.SetVertexShader(m_VBController.getVertexFormat(0))))
 	{
 		return;
 	}
-	*/
 
 	m_VBController.SetStreamSources();
-
-	// We need software processing 
-	if (m_bSWVertProcessing)
-	{
-		PD3DDEVICE->SetSoftwareVertexProcessing(TRUE);
-	}
 }
 
 void CD3DRigidMesh::EndRender()
 {
-	if ( m_bSWVertProcessing )
-	{
-		// If we are running with hardware then turn back on hardware processing
-		if ( (g_Device.GetDeviceCaps()->DevCaps & D3DDEVCAPS_HWTRANSFORMANDLIGHT) )
-		{
-		
-			PD3DDEVICE->SetSoftwareVertexProcessing(FALSE);
-		}
-	}
-
-
 	PD3DDEVICE->SetStreamSource(0, 0, 0);
 	PD3DDEVICE->SetIndices(0, 0);
-
-	// Uninstall the vertex shader.
-	if (NULL != m_pVertexShader)
-	{
-		LTVertexShaderMgr::GetSingleton().UninstallVertexShader();
-		m_pVertexShader = NULL;
-	}
-
-	// Uninstall the pixel shader.
-	if (NULL != m_pPixelShader)
-	{
-		LTPixelShaderMgr::GetSingleton().UninstallPixelShader();
-		m_pPixelShader = NULL;
-	}
 }

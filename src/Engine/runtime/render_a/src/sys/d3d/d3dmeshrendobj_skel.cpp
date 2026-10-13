@@ -14,14 +14,6 @@
 #include <vector>
 
 
-
-//IClientShell game client shell object.
-#include "iclientshell.h"
-static IClientShell *i_client_shell;
-define_holder(IClientShell, i_client_shell);
-
-
-
 CD3DSkelMesh::CD3DSkelMesh()
 {
 	Reset();
@@ -104,19 +96,7 @@ void CD3DSkelMesh::Reset()
 	m_iBoneSetCount		= 0;
 	m_pBoneSetArray		= NULL;
 	m_VertType			= eNO_WORLD_BLENDS;
-	m_bSWVertProcessing	= ((g_Device.GetDeviceCaps()->DevCaps & D3DDEVCAPS_HWTRANSFORMANDLIGHT) == 0) ? true : false;
-
-
-	m_bSWVSBuffers = false;
-
-	// Use software processing for shaders ? 
-	if ( g_Device.GetDeviceCaps()->VertexShaderVersion < D3DVS_VERSION(1,1) )
-		m_bSWVSBuffers = true;
-
-	// in case software has been forced 
-	if ( g_CV_ForceSWVertProcess )
-		m_bSWVertProcessing = true;
-
+	m_bSWVertProcessing	= false;
 	m_pIndexData		= NULL;
 	m_bNonFixPipeData	= false;
 	m_bReIndexedBones	= false;
@@ -293,7 +273,8 @@ bool CD3DSkelMesh::Load_MP(ILTStream& File)
 void CD3DSkelMesh::ReCreateObject()
 {
 	// Create our VB...
-	for (uint32 i=0;i<4;++i)
+	uint32 i;
+	for (i=0;i<4;++i)
 	{
 		if (!m_VertStreamFlags[i])
 			continue;
@@ -312,7 +293,7 @@ void CD3DSkelMesh::ReCreateObject()
 	}
 
 	// Read in our Verts...
-	for (int i=0;i<4;++i)
+	for (i=0;i<4;++i)
 	{
 		if (!m_VertStreamFlags[i])
 			continue;
@@ -338,76 +319,38 @@ void CD3DSkelMesh::FreeDeviceObjects()
 	m_VBController.FreeAll();										// Free our VB...
 }
 
-inline int32 CD3DSkelMesh::SetTransformsToBoneSet(BoneSetListItem* pBoneSet,D3DMATRIX* pTransforms, int32 nNumMatrices)
+inline uint32 CD3DSkelMesh::SetTransformsToBoneSet(BoneSetListItem* pBoneSet,D3DMATRIX* pTransforms, uint32 nNumMatrices)
 {
-	int32 iCurrBone;
+	uint32 iCurrBone;
 	for (iCurrBone=0; iCurrBone < 4; ++iCurrBone) 
 	{
 		if (pBoneSet->BoneSetArray[iCurrBone] == 0xFF)
-		{
-			/*
-			D3DXMATRIX mMat;
-			//D3DXMatrixIdentity(&mMat);
-			ZeroMemory(&mMat, sizeof(D3DXMATRIX));
-			g_RenderStateMgr.SetTransform(D3DTS_WORLDMATRIX(iCurrBone),&mMat);
-			continue;
-			*/
-			
 			break;
-		}
 
 		g_RenderStateMgr.SetTransform(D3DTS_WORLDMATRIX(iCurrBone),&pTransforms[pBoneSet->BoneSetArray[iCurrBone]]);
 	}
 
-
-
+	// Only change the blend state if the number of matrices changed...
 	if(nNumMatrices != iCurrBone)
 	{
-		if( g_CV_Use0WeightsForDisable )
+		switch (iCurrBone)
 		{
-			// ATI requires 0 weights instead of disable
-			switch (iCurrBone) 
-			{
-				case 1: 
-					PD3DDEVICE->SetRenderState(D3DRS_VERTEXBLEND,D3DVBF_0WEIGHTS); 
-					break;
-				case 2: 
-					PD3DDEVICE->SetRenderState(D3DRS_VERTEXBLEND,D3DVBF_1WEIGHTS); 
-					break;
-				case 3: 
-					PD3DDEVICE->SetRenderState(D3DRS_VERTEXBLEND,D3DVBF_2WEIGHTS); 
-					break;
-				case 4: 
-					PD3DDEVICE->SetRenderState(D3DRS_VERTEXBLEND,D3DVBF_3WEIGHTS); 
-					break;
-				default: 
-					PD3DDEVICE->SetRenderState(D3DRS_VERTEXBLEND,D3DVBF_DISABLE); 
-					ASSERT(0);
-					break;
-			}
-		}
-		else
-		{
-			// but NVIDIA uses disable instead of 0 weights (only on 440MX)
-			switch (iCurrBone)
-			{
-				case 2: 
-					PD3DDEVICE->SetRenderState(D3DRS_VERTEXBLEND,D3DVBF_1WEIGHTS); 
-					break;
-				case 3: 
-					PD3DDEVICE->SetRenderState(D3DRS_VERTEXBLEND,D3DVBF_2WEIGHTS); 
-					break;
-				case 4: 
-					PD3DDEVICE->SetRenderState(D3DRS_VERTEXBLEND,D3DVBF_3WEIGHTS); 
-					break;
-				default: 
-					PD3DDEVICE->SetRenderState(D3DRS_VERTEXBLEND,D3DVBF_DISABLE);
-					break;
-			}
+			case 2: 
+				PD3DDEVICE->SetRenderState(D3DRS_VERTEXBLEND,D3DVBF_1WEIGHTS); 
+				break;
+			case 3: 
+				PD3DDEVICE->SetRenderState(D3DRS_VERTEXBLEND,D3DVBF_2WEIGHTS); 
+				break;
+			case 4: 
+				PD3DDEVICE->SetRenderState(D3DRS_VERTEXBLEND,D3DVBF_3WEIGHTS); 
+				break;
+			default: 
+				PD3DDEVICE->SetRenderState(D3DRS_VERTEXBLEND,D3DVBF_DISABLE);
+				break;
 		}
 	}
 
-	return (iCurrBone-1);
+	return iCurrBone;
 }
 
 inline uint32 CD3DSkelMesh::SetMatrixPalette(uint32 MinBone,uint32 MaxBone,D3DMATRIX* pTransforms)
@@ -453,124 +396,32 @@ inline uint32 CD3DSkelMesh::SetMatrixPalette(uint32 MinBone,uint32 MaxBone,D3DMA
 // THIS Function should be removed when we go to the full render object implementation - it's
 //	temporary on the path to full render objects. The D3D pipe render model path call this guy to do
 //	the transform and lighting stuff.
-void CD3DSkelMesh::Render(ModelInstance *pInstance, D3DMATRIX* pD3DTransforms, CD3DRenderStyle* pRenderStyle, uint32 iRenderPass)
+void CD3DSkelMesh::Render(D3DMATRIX* pD3DTransforms, CD3DRenderStyle* pRenderStyle, uint32 iRenderPass)
 {
 	switch (m_eRenderMethod)
 	{
 		case eD3DRenderDirect :
 		{	// We need to do the bone walk, but we can render direct (they've been pre-processed into triangle group/bone group order)...
 			uint32 iCurrentPolyIndex = 0;
-			int32 nNumActiveBones = -1;
+			uint32 nNumActiveBones = 0;
 			for( int32 iBoneSet = 0; (iBoneSet < (int32)m_iBoneSetCount) ; ++iBoneSet )
 			{
 				BoneSetListItem* pBoneSet = &m_pBoneSetArray[iBoneSet];
 				nNumActiveBones = SetTransformsToBoneSet(pBoneSet,pD3DTransforms, nNumActiveBones);
-
-				// Set the vertex shader constants.
-				if (m_pVertexShader != NULL)
-				{
-					// Let the client set some constants.
-					if (NULL != i_client_shell)
-					{
-						i_client_shell->OnVertexShaderSetConstants(m_pVertexShader, iRenderPass, pRenderStyle, pInstance,
-																   LTShaderDeviceStateImp::GetSingleton());
-					}
-
-					// Send the constants to the video card.
-					LTVertexShaderMgr::GetSingleton().SetVertexShaderConstants(m_pVertexShader);
-				}
-
-				// Set the pixel shader constants.
-				if (m_pPixelShader != NULL)
-				{
-					// Let the client set some constants.
-					if (NULL != i_client_shell)
-					{
-						i_client_shell->OnPixelShaderSetConstants(m_pPixelShader, iRenderPass, pRenderStyle, pInstance,
-																  LTShaderDeviceStateImp::GetSingleton());
-					}
-
-					// Send the constants to the video card.
-					LTPixelShaderMgr::GetSingleton().SetPixelShaderConstants(m_pPixelShader);
-				}
-
-				RSD3DOptions rsD3DOptions;
-				pRenderStyle->GetDirect3D_Options(&rsD3DOptions);
-				if(rsD3DOptions.bUseEffectShader)
-				{
-					LTEffectImpl* _pEffect = (LTEffectImpl*)LTEffectShaderMgr::GetSingleton().GetEffectShader(rsD3DOptions.EffectShaderID);
-					ID3DXEffect* pEffect = _pEffect->GetEffect();
-				
-					if(pEffect)
-					{
-						i_client_shell->OnEffectShaderSetParams((LTEffectShader*)_pEffect, pRenderStyle, pInstance, LTShaderDeviceStateImp::GetSingleton());
-						pEffect->SetInt("BoneCount", nNumActiveBones);
-						pEffect->CommitChanges();
-					}
-				
-				}
 
 				m_VBController.Render(	pBoneSet->iFirstVertIndex,
 										iCurrentPolyIndex,
 										pBoneSet->iVertCount,
 										(pBoneSet->iIndexIntoIndexBuff - iCurrentPolyIndex)/3);
 
-
-
 				iCurrentPolyIndex = pBoneSet->iIndexIntoIndexBuff;
-
-				IncFrameStat(eFS_ModelRender_NumSkeletalRenderObjects, 1);
 			}
 
 			break;
 		}
 		case eD3DRenderMatrixPalettes :
 		{
-			uint32 nNumActiveBones = SetMatrixPalette(m_iMinBone,m_iMaxBone,pD3DTransforms);
-
-			// Set the vertex shader constants.
-			if (m_pVertexShader != NULL)
-			{
-				// Let the client set some constants.
-				if (NULL != i_client_shell)
-				{
-					i_client_shell->OnVertexShaderSetConstants(m_pVertexShader, iRenderPass, pRenderStyle, pInstance,
-															   LTShaderDeviceStateImp::GetSingleton());
-				}
-
-				// Send the constants to the video card.
-				LTVertexShaderMgr::GetSingleton().SetVertexShaderConstants(m_pVertexShader);
-			}
-
-			// Set the pixel shader constants.
-			if (m_pPixelShader != NULL)
-			{
-				// Let the client set some constants.
-				if (NULL != i_client_shell)
-				{
-					i_client_shell->OnPixelShaderSetConstants(m_pPixelShader, iRenderPass, pRenderStyle, pInstance,
-															  LTShaderDeviceStateImp::GetSingleton());
-				}
-
-				// Send the constants to the video card.
-				LTPixelShaderMgr::GetSingleton().SetPixelShaderConstants(m_pPixelShader);
-			}
-
-			RSD3DOptions rsD3DOptions;
-			pRenderStyle->GetDirect3D_Options(&rsD3DOptions);
-			if(rsD3DOptions.bUseEffectShader)
-			{
-				LTEffectImpl* _pEffect = (LTEffectImpl*)LTEffectShaderMgr::GetSingleton().GetEffectShader(rsD3DOptions.EffectShaderID);
-				ID3DXEffect* pEffect = _pEffect->GetEffect();
-
-				if(pEffect)
-				{
-					i_client_shell->OnEffectShaderSetParams((LTEffectShader*)_pEffect, pRenderStyle, pInstance, LTShaderDeviceStateImp::GetSingleton());
-					pEffect->SetInt("BoneCount", nNumActiveBones);
-					pEffect->CommitChanges();
-				}
-
-			}
+			SetMatrixPalette(m_iMinBone,m_iMaxBone,pD3DTransforms);
 
 			m_VBController.Render(0,0,m_iVertCount,m_iPolyCount);
 
@@ -579,16 +430,13 @@ void CD3DSkelMesh::Render(ModelInstance *pInstance, D3DMATRIX* pD3DTransforms, C
 	}
 }
 
-void CD3DSkelMesh::BeginRender(D3DMATRIX* pD3DTransforms, CD3DRenderStyle* pRenderStyle, uint32 iRenderPass)
+void CD3DSkelMesh::BeginRender(CD3DRenderStyle* pRenderStyle, uint32 iRenderPass)
 {
-
-// [dlj] remove this because DX9 doesn't have this bug
-
 	// DX8 has bug with table fog with blended meshes...
-//	PD3DDEVICE->GetRenderState(D3DRS_FOGTABLEMODE, &m_nPrevFogTableMode);
-//	PD3DDEVICE->SetRenderState(D3DRS_FOGTABLEMODE, D3DFOG_NONE);
-//	PD3DDEVICE->GetRenderState(D3DRS_FOGVERTEXMODE, &m_nPrevFogVertexMode);
-//	PD3DDEVICE->SetRenderState(D3DRS_FOGVERTEXMODE, D3DFOG_LINEAR);
+	PD3DDEVICE->GetRenderState(D3DRS_FOGTABLEMODE, &m_nPrevFogTableMode);
+	PD3DDEVICE->SetRenderState(D3DRS_FOGTABLEMODE, D3DFOG_NONE);
+	PD3DDEVICE->GetRenderState(D3DRS_FOGVERTEXMODE, &m_nPrevFogVertexMode);
+	PD3DDEVICE->SetRenderState(D3DRS_FOGVERTEXMODE, D3DFOG_LINEAR);
 
 	// Do we need to do software vert processing...
 	bool bSoftwareProcessing = m_bSWVertProcessing;
@@ -619,74 +467,20 @@ void CD3DSkelMesh::BeginRender(D3DMATRIX* pD3DTransforms, CD3DRenderStyle* pRend
 		ReCreateObject();
 	}
 
-
-	// If this pass has a vertex shader, use it.
-	RSD3DRenderPass *pPass = pRenderStyle->GetRenderPass_D3DOptions(iRenderPass);
-	if (NULL != pPass &&
-	    pPass->bUseVertexShader &&
-		pPass->VertexShaderID != LTVertexShader::VERTEXSHADER_INVALID)
+	// We need software processing 
+	if(m_bSWVertProcessing)
 	{
-		if ( m_bSWVSBuffers && !m_bSWVertProcessing )
-		{
-			m_bSWVertProcessing = true;
-			FreeDeviceObjects();
-			ReCreateObject();
-		}
-
-		// Store the pointer to the actual shader during rendering.
-		m_pVertexShader = LTVertexShaderMgr::GetSingleton().GetVertexShader(pPass->VertexShaderID);
-		if (m_pVertexShader != NULL)
-		{
-			// Install the shader.
-			if (!LTVertexShaderMgr::GetSingleton().InstallVertexShader(m_pVertexShader))
-			{
-				m_pVertexShader = NULL;
-				return;
-			}
-		}
+		PD3DDEVICE->SetRenderState(D3DRS_SOFTWAREVERTEXPROCESSING, TRUE);
 	}
-	else if (!m_VBController.getVertexFormat(0) || m_bNonFixPipeData)
+
+	if (!m_VBController.getVertexFormat(0) || m_bNonFixPipeData)
 	{
-
-		RSD3DOptions rsD3DOptions;
-		pRenderStyle->GetDirect3D_Options(&rsD3DOptions);
-		if(!rsD3DOptions.bUseEffectShader)
-		{
-			return; // This is a non fixed function pipe VB - bail out...
-		}
-
-		//return;				// This is a non fixed function pipe VB - bail out...
+		return;				// This is a non fixed function pipe VB - bail out...
 	}
 	else if (FAILED(g_RenderStateMgr.SetVertexShader(m_VBController.getVertexFormat(0))))
 	{
 		return;
 	}
-
-	// If this pass has a pixel shader, use it.
-	if (NULL != pPass &&
-	    pPass->bUsePixelShader &&
-		pPass->PixelShaderID != LTPixelShader::PIXELSHADER_INVALID)
-	{
-		// Store the pointer to the actual shader during rendering.
-		m_pPixelShader = LTPixelShaderMgr::GetSingleton().GetPixelShader(pPass->PixelShaderID);
-		if (m_pPixelShader != NULL)
-		{
-			// Install the shader.
-			if (!LTPixelShaderMgr::GetSingleton().InstallPixelShader(m_pPixelShader))
-			{
-				m_pPixelShader = NULL;
-				return;
-			}
-		}
-	}
-
-
-	// We need software processing 
-	if(m_bSWVertProcessing)
-	{
-		PD3DDEVICE->SetSoftwareVertexProcessing(TRUE);
-	}
-
 
 	m_VBController.SetStreamSources();
 
@@ -703,39 +497,16 @@ void CD3DSkelMesh::EndRender()
 		PD3DDEVICE->SetRenderState(D3DRS_INDEXEDVERTEXBLENDENABLE, FALSE);
 	}
 
-	if ( m_bSWVertProcessing )
+	if(m_bSWVertProcessing)
 	{
-		// If we are running with hardware then turn back on hardware processing
-		if ( (g_Device.GetDeviceCaps()->DevCaps & D3DDEVCAPS_HWTRANSFORMANDLIGHT) )
-		{
-		
-			PD3DDEVICE->SetSoftwareVertexProcessing(FALSE);
-		}
+		PD3DDEVICE->SetRenderState(D3DRS_SOFTWAREVERTEXPROCESSING, FALSE);
 	}
 
 	PD3DDEVICE->SetRenderState(D3DRS_VERTEXBLEND,D3DVBF_DISABLE);
 
-// [dlj] remove this because DX9 doesn't have this bug
-//	PD3DDEVICE->SetRenderState(D3DRS_FOGTABLEMODE, m_nPrevFogTableMode);
-//	PD3DDEVICE->SetRenderState(D3DRS_FOGVERTEXMODE, m_nPrevFogVertexMode);
+	PD3DDEVICE->SetRenderState(D3DRS_FOGTABLEMODE, m_nPrevFogTableMode);
+	PD3DDEVICE->SetRenderState(D3DRS_FOGVERTEXMODE, m_nPrevFogVertexMode);
 
 	PD3DDEVICE->SetStreamSource(0, 0, 0);
 	PD3DDEVICE->SetIndices(0, 0);
-
-	// Uninstall the vertex shader.
-	if (NULL != m_pVertexShader)
-	{
-		LTVertexShaderMgr::GetSingleton().UninstallVertexShader();
-		m_pVertexShader = NULL;
-	}
-
-	// Uninstall the pixel shader.
-	if (NULL != m_pPixelShader)
-	{
-		LTPixelShaderMgr::GetSingleton().UninstallPixelShader();
-		m_pPixelShader = NULL;
-	}
-
-
 }
-

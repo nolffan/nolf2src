@@ -27,10 +27,6 @@
 static ILTCommon *ilt_common_client;
 define_holder_to_instance(ILTCommon, ilt_common_client, Client);
 
-//Interface for the client file manager
-#include "client_filemgr.h"
-static IClientFileMgr* g_pIClientFileMgr;
-define_holder(IClientFileMgr, g_pIClientFileMgr);
 
 
 
@@ -407,16 +403,16 @@ static void RenderModelPieces( ModelInstance* pInstance )
 				{
 				case CRenderObject::eSkelMesh	 :
 					{
-						((CD3DSkelMesh*)pLOD)->BeginRender(pD3DTransforms, pRenderStyle, nCurrPass);
-						((CD3DSkelMesh*)pLOD)->Render(pInstance, pD3DTransforms, pRenderStyle, nCurrPass);
+						((CD3DSkelMesh*)pLOD)->BeginRender(pRenderStyle, nCurrPass);
+						((CD3DSkelMesh*)pLOD)->Render(pD3DTransforms, pRenderStyle, nCurrPass);
 						((CD3DSkelMesh*)pLOD)->EndRender();
 						IncFrameStat(eFS_ModelRender_NumSkeletalPieces, 1);
 					}
 					break;
 				case CRenderObject::eRigidMesh	 :
 					{
-						((CD3DRigidMesh*)pLOD)->BeginRender(pD3DTransforms[((CD3DRigidMesh*)pLOD)->GetBoneEffector()], pRenderStyle, nCurrPass);
-						((CD3DRigidMesh*)pLOD)->Render(pInstance, pD3DTransforms[((CD3DRigidMesh*)pLOD)->GetBoneEffector()], pRenderStyle, nCurrPass);
+						((CD3DRigidMesh*)pLOD)->BeginRender(pRenderStyle, nCurrPass);
+						((CD3DRigidMesh*)pLOD)->Render(pD3DTransforms[((CD3DRigidMesh*)pLOD)->GetBoneEffector()], pRenderStyle, nCurrPass);
 						((CD3DRigidMesh*)pLOD)->EndRender();
 						IncFrameStat(eFS_ModelRender_NumRigidPieces, 1);
 					}
@@ -430,7 +426,7 @@ static void RenderModelPieces( ModelInstance* pInstance )
 						{
 							DDMatrix mD3DTrans;
 							Convert_DItoDD(mTrans, mD3DTrans);
-							((CD3DVAMesh*)pLOD)->Render(pInstance, mD3DTrans, pRenderStyle, nCurrPass);
+							((CD3DVAMesh*)pLOD)->Render(mD3DTrans, pRenderStyle, nCurrPass);
 							IncFrameStat(eFS_ModelRender_NumVertexAnimatedPieces, 1);
 						}
 					}
@@ -625,6 +621,9 @@ static void BuildShadowLightInfo( ShadowLightInfo& info, float fMaxShadowDist, b
 
 //flag indicating if we failed to load this pixel shader prior
 bool CRenderShadowList::s_bFailedPSHandle = false;
+
+//the handle to the shadow blurring pixel shader
+static CPixelShaderHandle s_hBlurPS;
 
 
 //------------------------------------------------------------------------------------------
@@ -853,37 +852,12 @@ void CRenderShadowList::RenderQueuedShadows(const ViewParams& Params)
 	//handle the actual blending
 	if(bBlurShadows)
 	{
-		// Get the pixel shader.
-		LTPixelShader *pPixelShader = LTPixelShaderMgr::GetSingleton().GetPixelShader(LTPixelShader::PIXELSHADER_SHADOWBLUR);
-		if (NULL == pPixelShader)
+		//load the pixel shader if we haven't already (and haven't failed to before)
+		if(!s_hBlurPS.IsValid() && !s_bFailedPSHandle)
 		{
-			FileRef ref;
-			ref.m_FileType 	= FILE_ANYFILE;
-			ref.m_pFilename = "ps\\blurshadow.psh";
-
-			// Try to load it.
-			ILTStream *pStream = g_pIClientFileMgr->OpenFile(&ref);
-			if (NULL != pStream)
-			{
-				if (LTPixelShaderMgr::GetSingleton().AddPixelShader(pStream, ref.m_pFilename,
-																	LTPixelShader::PIXELSHADER_SHADOWBLUR, true))
-				{
-					pPixelShader = LTPixelShaderMgr::GetSingleton().GetPixelShader(LTPixelShader::PIXELSHADER_SHADOWBLUR);
-				}
-
-				// Close the file.
-				pStream->Release();
-			}
-		}
-
-		// See if we can continue.
-		if (NULL != pPixelShader && pPixelShader->IsValidShader())
-		{
-			s_bFailedPSHandle = false;
-		}
-		else
-		{
-			s_bFailedPSHandle = true;
+			s_hBlurPS = CPixelShaderMgr::GetSingleton().LoadPixelShader("PS\\BlurShadow.ps", true);
+			if(!s_hBlurPS.IsValid())
+				s_bFailedPSHandle = true;
 		}
 	}
 
@@ -1153,16 +1127,7 @@ bool CRenderShadowList::BlurShadowTexture(uint32 nSrcTex, uint32 nDestTex)
 	}
 
 	//determine if we can use the pixel shader version and do it in a single pass
-	bool bUsePixelShader 		= false;
-	LTPixelShader *pPixelShader = NULL;
-	if (!s_bFailedPSHandle)
-	{
-		pPixelShader = LTPixelShaderMgr::GetSingleton().GetPixelShader(LTPixelShader::PIXELSHADER_SHADOWBLUR);
-		if (NULL != pPixelShader && pPixelShader->IsValidShader())
-		{
-			bUsePixelShader = true;
-		}
-	}
+	bool bUsePixelShader = s_hBlurPS.IsValid() && g_CV_ModelShadow_Proj_EnableBlurPS.m_Val;
 
 	uint32	nNumTextures = (bUsePixelShader) ? 4 : 2;
 
@@ -1220,7 +1185,6 @@ bool CRenderShadowList::BlurShadowTexture(uint32 nSrcTex, uint32 nDestTex)
 			//alright, now we setup the vertices to give info to the blend
 			if(bUsePixelShader)
 			{
-				assert(pPixelShader->IsValidShader());
 				static CBlurTextureVertex Verts[4];
 
 				//setup the positions of the four vertices
@@ -1230,14 +1194,14 @@ bool CRenderShadowList::BlurShadowTexture(uint32 nSrcTex, uint32 nDestTex)
 				Verts[3].Init(0.0f, 1.0f, fWidth, fHeight);
 
 				// Install the pixel shader.
-				LTPixelShaderMgr::GetSingleton().InstallPixelShader(pPixelShader);
+				CPixelShaderMgr::GetSingleton().InstallPixelShader(s_hBlurPS);
 
 				//render the polygon
 				PD3DDEVICE->SetVertexShader(BLURTEXTUREVERTEX_FORMAT);
 				PD3DDEVICE->DrawPrimitiveUP(D3DPT_TRIANGLEFAN, 2, Verts, sizeof(CBlurTextureVertex));
 
 				// Uninstall the pixel shader.
-				LTPixelShaderMgr::GetSingleton().UninstallPixelShader();
+				CPixelShaderMgr::GetSingleton().UninstallPixelShaders();
 			}
 			else
 			{

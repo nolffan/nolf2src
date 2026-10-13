@@ -28,9 +28,6 @@
 extern uint32 g_ScreenWidth;
 extern uint32 g_ScreenHeight;
 
-// The client's console variables (clientde_impl.cpp)...
-extern HCONSOLEVAR ci_GetConsoleVar(const char *pName);
-extern float ci_GetVarValueFloat(HCONSOLEVAR hVar);
 
 //------------------------------------------------------------------------------
 //Utility classes
@@ -356,15 +353,18 @@ void CD3DDrawPrim::SetTransformMode(LPDIRECT3DDEVICE8 pDevice)
 		float fNear		= 0.1f;
 		float fFar		= 7.0f;
 
-		HCONSOLEVAR hVar;
-		if ((hVar = ci_GetConsoleVar("PVModelFOV")) != NULL)
-			fFOV = ci_GetVarValueFloat(hVar);
-		if ((hVar = ci_GetConsoleVar("PVModelAspect")) != NULL)
-			fAspect = ci_GetVarValueFloat(hVar);
-		if ((hVar = ci_GetConsoleVar("reallyclose_near")) != NULL)
-			fNear = ci_GetVarValueFloat(hVar);
-		if ((hVar = ci_GetConsoleVar("reallyclose_far")) != NULL)
-			fFar = ci_GetVarValueFloat(hVar);
+		// nolf2src: retail looks the variables up with ci_GetConsoleVar
+		// (clientde_impl.cpp), which does what r_GetParameter does; it is
+		// not in the build yet.
+		HLTPARAM hVar;
+		if ((hVar = r_GetParameter("PVModelFOV")) != NULL)
+			fFOV = r_GetParameterValueFloat(hVar);
+		if ((hVar = r_GetParameter("PVModelAspect")) != NULL)
+			fAspect = r_GetParameterValueFloat(hVar);
+		if ((hVar = r_GetParameter("reallyclose_near")) != NULL)
+			fNear = r_GetParameterValueFloat(hVar);
+		if ((hVar = r_GetParameter("reallyclose_far")) != NULL)
+			fFar = r_GetParameterValueFloat(hVar);
 
 		D3DXMATRIX NewProj;
 		D3DXMatrixPerspectiveFovLH(&NewProj, fFOV * 0.01745329251994f, fAspect, fNear, fFar);

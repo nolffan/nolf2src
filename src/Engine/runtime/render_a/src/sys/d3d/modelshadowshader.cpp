@@ -485,8 +485,6 @@ bool CModelShadowShader::IsExcluded(ERenderShader eShaderID) const
 	{
 	case eShader_Invalid:
 	case eShader_Lightmap:
-	case eShader_Gouraud_Effect: // Since projected shadows use the fixed function pipeline, they will not properly cast
-								 // on to programmable pipeline transformed surfaces.
 		return true;
 		break;
 	
