@@ -21,10 +21,10 @@
 #   2. third-party runtime  Bink (binkw32.dll) and the Microsoft C++ and MFC
 #                         runtime DLLs, from the retail game: licensed
 #                         binaries with no source.
-#   2b. RETAIL ENGINE     Lithtech.exe, server.dll, ServerDir.dll, snddrv.dll,
-#                         ltmsg.dll from the retail game: there is no source
-#                         for the engine yet (Monolith's release has the
-#                         game, the launcher and the dedicated server).
+#   2b. RETAIL ENGINE     Lithtech.exe, server.dll, ServerDir.dll, snddrv.dll
+#                         from the retail game: there is no source for the
+#                         engine yet (Monolith's release has the game, the
+#                         launcher and the dedicated server).
 #                         Isolated in this one step, and marked RETAIL in
 #                         the manifest and the audit, so they are easy to
 #                         replace as the engine is reconstructed.
@@ -45,11 +45,14 @@
 #                         sound driver SndDrv.dll (src/Engine/snddrv/
 #                         snddrv.dsw), built but not yet put in the game:
 #                         step 2b's retail ones are, until the built ones
-#                         are shown to work.
+#                         are shown to work; and ltmsg.dll
+#                         (src/Engine/ltmsg/ltmsg.dsw), the engine's message
+#                         strings, identical to retail's apart from its
+#                         timestamp: assembled in step 4.
 #   4. assemble           the built binaries into out/nolf2-legacy-release/: the
 #                         game DLLs in the custom/ rez directory, last in the
 #                         rez stack (nolf2cmds.txt), the dedicated server
-#                         beside the engine.
+#                         and ltmsg.dll beside the engine.
 #   5. audit              every PE file in out/nolf2-legacy-release/ listed with
 #                         its origin; the build fails if any is unaccounted
 #                         for or if a .rez archive still holds one.
@@ -84,6 +87,7 @@ BUILT=(
     "$B/ClientRes/TO2/CRes.dll"         custom/cres.dll
     "$B/ServerRes/TO2/SRes.dll"         custom/sres.dll
     "$B/ServerApp/NOLF2Srv.exe"         NOLF2Srv.exe
+    src/Engine/built/Final/ltmsg/ltmsg.dll  ltmsg.dll
 )
 
 step "1. resources: game data from $RETAIL -> $OUT"

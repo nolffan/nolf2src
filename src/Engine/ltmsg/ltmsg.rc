@@ -1,0 +1,68 @@
+// ltmsg.rc -- ltmsg.dll's resources: the LithTech engine's error messages.
+//
+// Written for nolf2src, from the retail NOLF2 (1.3) ltmsg.dll. The string
+// numbers are the error codes Lithtech.exe formats (FormatMessage-style
+// inserts: %1!s!, %2!d!). The engine's ltmsg.dll in NOLF had three
+// development-era network dialogs as well; NOLF2's has only the strings,
+// and string 1 says LithTech where NOLF's said DirectEngine.
+//
+// The string tables are in the order the retail DLL's resource data is:
+// RC writes a block of 16 strings (1-15, 16-31, ...) where the script first
+// uses it, so 16, 17 and 42 come last, as if added after the others.
+
+#include "winres.h"
+
+LANGUAGE LANG_ENGLISH, SUBLANG_ENGLISH_US
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// String Table
+//
+
+STRINGTABLE DISCARDABLE
+BEGIN
+    1                       "Internal LithTech error: %1!d!."
+    2                       "Missing WorldModel: %1!s!."
+    3                       "Can't load game resources in %1!s!."
+    4                       "Can't initialize DirectInput."
+    5                       "Unable to restore video mode."
+    6                       "User canceled."
+    7                       "%1!s! is an invalid world file."
+    8                       "Missing model file %1!s!."
+    9                       "%1!s! is an invalid model file."
+    10                      "Missing sprite file %1!s!."
+    11                      "%1!s! is an invalid sprite file."
+    12                      "No game resources specified."
+    13                      "Missing world file %1!s!."
+    14                      "Unable to restore object (class %1!s!)."
+    15                      "Server error: %1!s!."
+END
+
+STRINGTABLE DISCARDABLE
+BEGIN
+    66                      "Object DLL %1!s! is an invalid version (%2!d!).  Current version is %3!d!."
+    76                      "Invalid shell DLL %1!s!."
+    77                      "Invalid shell DLL version for %1!s!.  DLL version is %2!d!, current version is %3!d!."
+    78                      "Missing shell DLL %1!s!."
+END
+
+STRINGTABLE DISCARDABLE
+BEGIN
+    82                      "Can't create client shell."
+    89                      "Unable to initialize sound system."
+    92                      "Got an invalid server packet."
+    93                      "Missing class: %1!s!."
+    94                      "Unable to initialize network driver %1!s!."
+    95                      "Network protocol version mismatch - your version: %1!d!, server's version: %2!d!."
+END
+
+STRINGTABLE DISCARDABLE
+BEGIN
+    42                      "Unable to create server shell."
+END
+
+STRINGTABLE DISCARDABLE
+BEGIN
+    16                      "Error loading render DLL %1!s!."
+    17                      "Error copying file %1!s!."
+END

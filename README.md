@@ -19,7 +19,7 @@ under Wine. The aim, as for [nolfsrc](https://github.com/nolffan/nolfsrc)
 | Game DLLs | `CShell.dll`, `Object.lto`, `ClientFx.fxd`, `CRes.dll`, `SRes.dll` compile from Monolith's workspace (`src/Game/TO2.dsw`, Final configuration) and run in the game. Each is the retail binary's exact size, compiled with VC6 SP5 (build 8966) as retail was. `ClientFx.fxd`, `CRes.dll` and `SRes.dll` are byte for byte the retail ones apart from link time stamps; `CShell.dll` and `Object.lto` are close but not yet identical. |
 | Dedicated server | `NOLF2Srv.exe` compiles; its code is the retail one's but for two `CButeMgr` functions (`libs/ButeMgr`), where SP5 orders two loads the other way round. |
 | Launcher | `NOLF2.exe` compiles against the DirectX 8.1 SDK; every code segment matches the retail one's. Not yet put in the game directory. |
-| Engine | `Lithtech.exe`, `server.dll`, `ServerDir.dll`, `snddrv.dll`, `ltmsg.dll`: no source (Monolith released the game, not the engine). The build takes them from the retail game, marked RETAIL, until they are reconstructed. `ServerDir.dll` already compiles, from the LithTech Jupiter SDK's source (WONAPI and the 2002 `CServerDir_Titan`, brought to the 1.3 interface; rez/ fetches the SDK, nothing of it is committed): its functions match about 55% of the retail one's code, and it loads, but it is not put in the game yet. The retail `Lithtech.exe` is copy-protected (SecuROM), so the game does not start under Wine yet: it asks for the disc. |
+| Engine | `Lithtech.exe`, `server.dll`, `ServerDir.dll`, `snddrv.dll`: no source (Monolith released the game, not the engine). The build takes them from the retail game, marked RETAIL, until they are reconstructed. `ltmsg.dll`, the engine's message strings, is reconstructed (`src/Engine/ltmsg/`) and byte for byte the retail one apart from its link time stamp: the game gets the built one. `ServerDir.dll` already compiles, from the LithTech Jupiter SDK's source (WONAPI and the 2002 `CServerDir_Titan`, brought to the 1.3 interface; rez/ fetches the SDK, nothing of it is committed): its functions match about 55% of the retail one's code, and it loads, but it is not put in the game yet. The retail `Lithtech.exe` is copy-protected (SecuROM), so the game does not start under Wine yet: it asks for the disc. |
 | Scoring | `make progress` scores every binary function by function against the retail 1.3 ones (below, and `progress/README.md`). |
 
 ## Progress
@@ -45,7 +45,7 @@ unwritten, and counted: the total is the whole game.
 | `CShell.dll` | the game: client | 5,234 / 7,222 | 1,217,050 / 1,326,196 bytes | `██████████████████░░` 91.7% | 8 | 14 |
 | `Object.lto` | the game: server objects | 9,253 / 13,253 | 1,872,993 / 1,909,614 bytes | `███████████████████░` 98.0% | 4 | 15 |
 | `ClientFx.fxd` | the game: client effects | 385 / 497 | 119,616 / 121,011 bytes | `███████████████████░` 98.8% | 1 | 3 |
-| `ltmsg.dll` | the engine's messages, not in the total | 0 / 5 resources | 0 / 2,054 bytes | `░░░░░░░░░░░░░░░░░░░░` 0.0% | 5 | -- |
+| `ltmsg.dll` | the engine's messages, not in the total | 5 / 5 resources | 2,054 / 2,054 bytes | `████████████████████` 100.0% | 0 | -- |
 | `CRes.dll` | the game's client resources, not in the total | 484 / 484 resources | 622,940 / 622,940 bytes | `████████████████████` 100.0% | 0 | -- |
 | `SRes.dll` | the game's server resources, not in the total | no resources | -- | -- | -- | -- |
 | **All** | | **15,850 / 33,566** | **3,373,100 / 5,273,332 bytes** | `████████████░░░░░░░░` **63.9%** | **11,238** | **50** |

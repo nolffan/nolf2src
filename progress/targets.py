@@ -163,7 +163,7 @@ TARGETS = [
          # its only code is msvcrt.lib's DLL entry (crtdll.obj, dllmain.obj
          # at 0x10001000..0x1000116e): resources and nothing of Monolith's
          shipped=REFERENCE + "/ltmsg.dll", stem="ltmsg",
-         built=None, optional=True),
+         built="src/Engine/built/Final/ltmsg/ltmsg.dll"),
     # ---- the launcher and the dedicated server ------------------------
     dict(label="NOLF2.exe", what="the launcher", kind="image",
          shipped=REFERENCE + "/NOLF2.exe", stem="NOLF2",
