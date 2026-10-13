@@ -1,7 +1,7 @@
 #!/bin/sh
-# run.sh -- start No One Lives Forever 2 (built from source) with Wine.
+# linux-run.sh -- start No One Lives Forever 2 (built from source) with Wine.
 #
-#   ./run.sh [options] [engine args...]
+#   ./linux-run.sh [options] [engine args...]
 #
 # Options:
 #   --fullscreen          full screen (default: a window)
@@ -58,13 +58,13 @@ done
 MOVIES=1
 grep -q '^EXT .*	binkw32\.dll$' MANIFEST.txt 2>/dev/null && MOVIES=0
 W="${RES%x*}"; H="${RES#*x}"
-case "$W$H" in *[!0-9]*|"") echo "run.sh: --res wants WxH, e.g. 1024x768" >&2; exit 2 ;; esac
+case "$W$H" in *[!0-9]*|"") echo "linux-run.sh: --res wants WxH, e.g. 1024x768" >&2; exit 2 ;; esac
 
 WINEPREFIX="${WINEPREFIX:-$HOME/.wine-nolf2}"
 WINEDEBUG="${WINEDEBUG:-fixme-all}"
 export WINEPREFIX WINEDEBUG
 WINE="${WINE:-wine}"
-command -v "$WINE" >/dev/null 2>&1 || { echo "run.sh: '$WINE' not found -- install Wine (32-bit support needed)" >&2; exit 1; }
+command -v "$WINE" >/dev/null 2>&1 || { echo "linux-run.sh: '$WINE' not found -- install Wine (32-bit support needed)" >&2; exit 1; }
 
 [ -f autoexec.cfg ] || cp autoexec.cfg.retail autoexec.cfg
 mkdir -p Save

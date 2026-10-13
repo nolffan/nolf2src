@@ -9,7 +9,7 @@
 #
 # (on the host the make targets run this in the build container; inside
 # `make shell` run it directly). Play the result exactly like out/nolf2-legacy-release/:
-# out/<name>/run.sh, or tools/playtest.sh out/<name> ...
+# out/<name>/linux-run.sh, or tools/playtest.sh out/<name> ...
 #
 #   debug    NOLF2SRC_DEBUG and symbols, for finding out why something goes
 #            wrong. Compile + /Z7 /Oy- /D NOLF2SRC_DEBUG (debug information,
@@ -119,4 +119,4 @@ esac
 echo
 echo "== package: out/$NAME/ -> out/$NAME-private.tar.gz, -public.tar.gz"
 bash "$TREE/build/package.sh" "out/$NAME"
-echo "== done: out/$NAME/ -- play it with out/$NAME/run.sh"
+echo "== done: out/$NAME/ -- play it with out/$NAME/linux-run.sh"

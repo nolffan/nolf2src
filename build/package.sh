@@ -3,8 +3,8 @@
 #
 #   build/package.sh out/nolf2-<legacy|modern>-<release|debug>
 #
-# writes two archives, each unpacking to <name>/ (then <name>/run.sh -- see
-# its header; Wine needed there):
+# writes two archives, each unpacking to <name>/ (then <name>/linux-run.sh --
+# see its header; Wine needed there):
 #
 #   out/<name>-private.tar.gz   the whole directory, the retail game's data
 #                               included: for your own machines, and anyone
@@ -31,7 +31,7 @@
 # Save/), no logs, no player profiles but the shipped default one,
 # autoexec.cfg as the shipped one (autoexec.cfg.retail), nolf2cmds.txt as
 # the build writes it (build/nolf2cmds.sh), and none of the per-machine
-# state run.sh and run-launcher.sh create; the public one has neither
+# state linux-run.sh and linux-run-launcher.sh create; the public one has neither
 # autoexec.cfg nor the default profile, which its install scripts write.
 # Each is written beside and renamed into place, so a failed run never
 # leaves a truncated one; the <name>.tar.gz and plain .tar older builds made

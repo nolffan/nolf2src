@@ -59,7 +59,7 @@ setup() {   # setup <dir>: binaries copied, data linked
     mkdir -p "$1/Save"
     for f in "$GAME"/*; do
         b=$(basename "$f")
-        case "$b" in Profiles|Save|autoexec.cfg|run.sh|MANIFEST.txt|nolf2cmds.txt|run-cmds.txt) continue ;; esac
+        case "$b" in Profiles|Save|autoexec.cfg|linux-run.sh|MANIFEST.txt|nolf2cmds.txt|run-cmds.txt) continue ;; esac
         if [ -f "$f" ] && [ "$(head -c 2 "$f" | tr -d '\0')" = MZ ]; then cp "$f" "$1/"; else ln -s "$f" "$1/"; fi
     done
     cp "$GAME/autoexec.cfg.retail" "$1/autoexec.cfg"

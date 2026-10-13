@@ -30,7 +30,7 @@ legacy build keeps matching the retail one.
 |---|---|
 | Game DLLs | `CShell.dll`, `Object.lto`, `ClientFx.fxd`, `CRes.dll`, `SRes.dll` compile from Monolith's workspace (`src/Game/TO2.dsw`, Final configuration) and run in the game. Each is the retail binary's exact size, compiled with VC6 SP5 (build 8966) as retail was. `ClientFx.fxd`, `CRes.dll` and `SRes.dll` are byte for byte the retail ones apart from link time stamps; `CShell.dll` and `Object.lto` are close but not yet identical. |
 | Dedicated server | `NOLF2Srv.exe` compiles; its code is the retail one's but for two `CButeMgr` functions (`libs/ButeMgr`), where SP5 orders two loads the other way round. |
-| Launcher | `NOLF2.exe` compiles against the DirectX 8.1 SDK; every code segment matches the retail one's. It is in the game directory, and starts the game under Wine (`run-launcher.sh` gives it the registry values the retail installer wrote). |
+| Launcher | `NOLF2.exe` compiles against the DirectX 8.1 SDK; every code segment matches the retail one's. It is in the game directory, and starts the game under Wine (`linux-run-launcher.sh` gives it the registry values the retail installer wrote). |
 | Engine | Built here and in the game: `Lithtech.exe` and `server.dll` from the LithTech Jupiter engine source (a 2006 distribution of NOLF2's engine line, back-ported to 2002: `docs/engine/PLAN.md`), with no SecuROM; `snddrv.dll` and `ltmsg.dll` (byte for byte retail's but for its time stamp) reconstructed from the retail binaries; `ServerDir.dll` from the LithTech Jupiter SDK's source (WONAPI and the 2002 `CServerDir_Titan`, brought to the 1.3 interface; rez/ fetches the SDK, nothing of it is committed). Under Wine the game runs: the menus, a new game, the first level played with sound, saving and loading (`make test`). Nothing of the retail engine is in the game directory: every binary there is built here but the third-party runtime (Bink, the Microsoft C++ and MFC DLLs; the modern build plays the movies with its own Bink player on FFmpeg). |
 | Scoring | `make progress` scores every binary function by function against the retail 1.3 ones (below, and `progress/README.md`). |
 
@@ -90,9 +90,9 @@ make help       # everything else
 `make modern` also needs the `ext/ffmpeg` submodule (FFmpeg, pinned to a
 release; `git submodule update --init ext/ffmpeg`): `build/ext.sh` builds
 the modern build's `binkw32.dll` on it, with Zig (in the build image).
-Each game directory has `run.sh`, which starts the engine directly, and
-`run-launcher.sh`, which starts it through the launcher, as the retail
-install does.
+Each game directory has `linux-run.sh`, which starts the engine directly
+with the host's Wine, and `linux-run-launcher.sh`, which starts it through
+the launcher, as the retail install does.
 
 `build/build.mk` builds Monolith's workspace as Developer Studio would:
 `tools/dsp2mk.py` reads `TO2.dsw` and the project files and writes the
@@ -101,7 +101,7 @@ rules, compile for compile. `BUILDING.md` describes the build step by step.
 ## Playing it elsewhere: the archives
 
 To play elsewhere, copy `out/nolf2-legacy-release-private.tar.gz` (one
-file), unpack it and run `nolf2-legacy-release/run.sh`. Every variant is
+file), unpack it and run `nolf2-legacy-release/linux-run.sh`. Every variant is
 packaged the same way: `out/nolf2-legacy-debug-private.tar.gz`,
 `out/nolf2-modern-release-private.tar.gz` and
 `out/nolf2-modern-debug-private.tar.gz`.

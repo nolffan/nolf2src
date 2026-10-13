@@ -633,14 +633,14 @@ runtime from retail. The engine looks up twelve Bink entry points at run
 time (`binkvideomgrimpl.cpp`); no game DLL imports Bink. No OpenMiles:
 nothing in NOLF2 loads `mss32.dll` (snddrv.dll is DirectSound). The movies
 play (`tools/playtest-movies.txt`, about 80 s of logos to the menu; the
-same with RAD's DLL); `run.sh` turns them on when `MANIFEST.txt` lists our
+same with RAD's DLL); `linux-run.sh` turns them on when `MANIFEST.txt` lists our
 binkw32. **For the coordinator:** the main checkout needs `git submodule
 update --init ext/ffmpeg` before `make modern`; `tools/agentwt.sh` now
 hard-links `ext/ffmpeg` into new worktrees (this one was populated the
 same way, from nolfsrc's checkout of the same commit).
 
 **Launcher.** `NOLF2.exe` is installed in both builds, with
-`run-launcher.sh` (registry values the installer wrote: `InstallDir`, and
+`linux-run-launcher.sh` (registry values the installer wrote: `InstallDir`, and
 `UpdateCommandLine1` = `-rez Update_v1x3.rez -rez custom`, since the
 launcher puts `custom` before the update's zeroed DLLs). Tested in a fresh
 prefix under Xvfb, both builds: detail dialog, then the game to the main

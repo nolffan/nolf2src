@@ -19,7 +19,7 @@
 # Bink and the Microsoft runtime where this build uses them -- and checks
 # every file it writes against its SHA-256. Your NOLF2 is only read, and
 # nothing else here is changed. It can be run again: a file already in
-# place is checked and kept. Then play with ./run.sh (or ./run-launcher.sh).
+# place is checked and kept. Then play with ./linux-run.sh (or ./linux-run-launcher.sh).
 #
 # It needs bash, dd, sha256sum, base64, head, stat and find (GNU coreutils
 # and findutils; a Steam Deck has them). The list of files, at the end of
@@ -118,7 +118,7 @@ ok() {  # ok <path> <size> <sha>: is the file there, and right?
     [ -f "$1" ] && [ "$(stat -c %s "$1")" = "$2" ] &&
         [ "$(sha256sum < "$1" | cut -d' ' -f1)" = "$3" ]
 }
-OPTNOTE="Windows has its own; under Wine only run-launcher.sh needs MFC42.DLL"
+OPTNOTE="Windows has its own; under Wine only linux-run-launcher.sh needs MFC42.DLL"
 written=0 kept=0 skipped=0 skip=1 whole=
 while read -r tag a b c d; do
     case "$tag" in
@@ -165,5 +165,5 @@ done < <(data | sed -n '/^F /,$p')
 mkdir -p "$HERE/Save"
 note=
 [ $skipped = 0 ] || note=", $skipped skipped"
-echo "done: $written files written, $kept already in place$note. Play with ./run.sh"
+echo "done: $written files written, $kept already in place$note. Play with ./linux-run.sh"
 exit 0

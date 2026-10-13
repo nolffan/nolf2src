@@ -111,7 +111,7 @@ Each file the scripts write is a list of byte ranges of an installed file,
 with the retail game DLLs inside the archives written as zeros. Two kinds
 of file may differ from the build's: the Microsoft runtime DLLs, which a
 Windows install keeps in the system folder (skipped if not found; Windows
-has its own, and Wine's serves `run.sh`), and the shipped settings, which a
+has its own, and Wine's serves `linux-run.sh`), and the shipped settings, which a
 played game has rewritten (the player's own are then taken). Both scripts'
 headers say how they find the install.
 
