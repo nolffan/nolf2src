@@ -150,6 +150,10 @@ BOOL ExistRezFile(const char* sFile)
 
     hFile = _findfirst(sFile, &c_file);
 	if (hFile == -1L) return(FALSE);
+#ifdef NOLF2SRC_MODERN
+	// MODERN.md M-L3: the find handle was never closed
+	_findclose(hFile);
+#endif
 
 	if (c_file.attrib & _A_SUBDIR)
 	{
@@ -186,6 +190,10 @@ BOOL ExistRezDir(const char* sDir)
 
     hFile = _findfirst(sDir, &c_file);
 	if (hFile == -1L) return(FALSE);
+#ifdef NOLF2SRC_MODERN
+	// MODERN.md M-L3: the find handle was never closed
+	_findclose(hFile);
+#endif
 
 	if (!(c_file.attrib & _A_SUBDIR))
 	{

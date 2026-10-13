@@ -467,7 +467,13 @@ void CBaseFX::CalcColour(float tmElapsed, float tmLifespan, float *pRed, float *
 			}
 			else
 			{
+#ifdef NOLF2SRC_MODERN
+				// MODERN.md M-G15: the red key went to alpha (overwritten
+				// below), and red was left unset
+				*pRed	= endKey.m_red / 255.0f;
+#else
 				*pAlpha = endKey.m_red / 255.0f;
+#endif
 				*pGreen = endKey.m_green / 255.0f;
 				*pBlue	= endKey.m_blue / 255.0f;
 				*pAlpha = endKey.m_alpha / 255.0f;
