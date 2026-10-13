@@ -61,6 +61,7 @@ Background, in this directory:
 | 9c | `cshell`: the game DLLs (`CShell.dll`, `Object.lto`, `ClientFx.fxd`) against retail: what the source release does not have of 1.3 | 9 | done: one layout (CInterfaceTimer) was most of CShell's gap; CShell.dll 5,234 -> 5,414 identical (91.7% -> 98.4% of its bytes), Object.lto 9,253 -> 9,254; the rest is listed below |
 | 10 | `release`: public archives built by GitHub Actions, as nolfsrc does (its commits "Install scripts that copy the game's data out of the player's discs", "Package each game directory as a -private and a -public archive", "Build switches for CI: NOLF_ARCHIVES and IMAGE_BUILD", "CI: build the four public archives on GitHub Actions", "CI: check the release build for byte regressions", "CI: upload each archive unzipped") | 7, 8 and everything ported | done: -private / -public archives, install scripts from the player's installed NOLF2, the workflow (not yet run on GitHub); ServerDir.dll's score made reproducible by package 11 |
 | 11 | `bugs`: the variants (debug, modern, modern-debug) checked to build the whole game, engine included, and to play; `RETAIL_BUGS.md`; the safe fixes in the modern build | 7, 8 | done: every variant builds every binary with its define and passes the playtest; 48 entries listed, 23 of them fixed in the modern build (three only on one side: see the notes) (M-G5..M-G16, M-L3, M-E7..M-E12) |
+| 12 | `modernizer`: the NOLF 2 Modernizer (haekb) inventoried change by change in `MODERN.md`, its fixes and features reimplemented in the modern build, its known issues answered | 8, 11 | done for the most part: no disc / CD key, its retail crash fixes, widescreen menus/HUD/FOV/zoom, mouse look (M-E3), frame limiter, windows, focus, display options (FOV, frame limit, antialiasing, 4:3 cinematics), wheel, fps counter, anisotropy, scope margins, the dedicated server without the registry; left: the console (M-E5), Internet play (M-E6), controllers (M-G47), jukebox (M-G46), the damage flash's width (M-G38) |
 | 13 | `mouse`: why mouse look jumps about (a player's report, modern build on a desktop under Wine) | 7 | done: retail's `input_ReadInput` (Lithtech.exe 0x4319b0, byte-identical in both builds) adds a look axis's last event again per pass and per frame; MODERN.md M-E3 (with M-E4's frame limit) is the fix; `RETAIL_BUGS.md` has it and the packages' retail bugs |
 
 ## Notes per package
@@ -903,6 +904,67 @@ servers.
 
 The multiplayer timer that runs on while paused, and possibly an armed
 bomb that deactivates after a stopped defuse: now in `RETAIL_BUGS.md`.
+
+### 12. modernizer
+
+The NOLF 2 Modernizer (github.com/haekb/nolf2-modernizer, read at
+`76cc9cd`) was read, never built or copied; `MODERN.md` lists every one of
+its changes with its commits and what became of it, and answers each
+known issue of its readme and itch.io page (K1-K11). Done: M-L4, M-G17
+(no disc, no CD key); its crash fixes (M-G18..M-G27, M-G30); M-G1, M-G2,
+M-E1, M-E15, M-G35 (wide screens); M-E2, M-G40..M-G44, M-E4, M-G4
+(windows, focus, frame limit, options, wheel, fps); M-E3 (mouse look:
+package 13's cause); M-E13 with K1, M-G34, M-G36, M-G45, M-G50. Decided:
+M-G3, M-G21, M-G24, M-G28, M-G29, M-G32, M-G37, M-G49 and the black
+window (nothing to do). Left: M-E5 (the console), M-E6 (Internet play
+through a GameSpy-style master), M-G47 (controllers, with K8), M-G46
+(jukebox, with K2, K5-K7), M-G38 (the damage flash is a really-close
+ClientFX sprite sized for 4:3; widening it needs a scale on the FX or a
+HUD item). Not ported: M-G31, M-G33.
+
+**Mouse sensitivity.** With M-E3 the same `MouseSensitivity` turns 1.1 to
+3.8 times less than in the release build. The scale is kept: in 2002 the
+bug made about 1.2x, so the shipped default turns as it was tuned; the
+slider's lowest step is lower (`MouseScaleBase` 0.0005). The Mouse
+screen's "Input rate" (the smoothing) is not shown in the modern build.
+
+**Build.** `ClientRes.res` does not depend on the shared string table
+(`src/Game/ClientRes/Shared/Lang/EN/ClientResShared.rc`, included through
+the resource compiler's include path; `build.mk`'s `rcfile` lists only the
+script's own directory), so a string added there is not built into
+`CRes.dll` until the `.res` is removed. For whoever owns `build.mk`.
+
+Tested: `make modern` at 1280x720 (menus, Display screen, a new game,
+antialiasing 4x full screen and windowed, the dedicated server without
+the registry key, `tools/srvtest.sh` without its `reg add`); `make test`
+and `make progress` unchanged.
+
+### modernizer: retail bugs
+
+- **Antialiasing never worked with Direct3D 8's rules.**
+  `CD3D_Device::SetPresentationParams` (render_a) always asks for
+  `D3DPRESENTFLAG_LOCKABLE_BACKBUFFER`, which Direct3D 8 refuses with a
+  multisampled back buffer, and gives a window the copy swap effect, with
+  which it does not multisample: `AntiAliasFSOverSample` could not take
+  effect (Wine accepts the device). Retail never shows the setting (its
+  `IDS_ANTIALIAS` strings are unused). Fixed in the modern build (M-E13).
+- **The 2D interface is placed on pixel centres.** The draw primitives'
+  screen-space vertices are at whole pixel coordinates, which in
+  Direct3D are pixel centres; harmless without multisampling, but with it
+  every 2D item's left and top edge pixels come out half covered (the
+  Modernizer's known issue K1). Fixed in the modern build (M-E13).
+- **Anisotropic "On" is degree 1.** The Performance screen writes
+  `Anisotropic 1`, which the renderer passes as `D3DTSS_MAXANISOTROPY`:
+  anisotropic filtering of degree one, no better than bilinear. Fixed in
+  the modern build (M-G45: 2x to 16x).
+- **The dedicated server needs the installer's registry key.**
+  `CServerDlg` returns false from starting a game when
+  `HKLM\Software\Monolith Productions\No One Lives Forever 2\1.0` is
+  missing, though only the update's archive list and the selected mod
+  come from it. Fixed in the modern build (M-G50).
+- The Modernizer's other retail bugs are in `MODERN.md` with "fix (retail
+  bug)": M-L2, M-G18, M-G19, M-G20, M-G22, M-G23, M-G25, M-G26, M-G27,
+  M-G30, M-G35, M-G42, M-E3 (already in `RETAIL_BUGS.md`).
 
 ### 11. bugs
 
