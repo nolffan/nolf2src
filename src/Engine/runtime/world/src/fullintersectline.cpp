@@ -1,9 +1,7 @@
 
-// For some reason we can't use certain optimizations in this module or 
-// else the raycasting is all screwed up.  This module also can't use
-// precompiled headers or else these pragmas don't take effect.
-#pragma optimize("", off)
-#pragma optimize("as", on)
+// nolf2src: Jupiter turns the optimizer off here ("the raycasting is all
+// screwed up"); NOLF2's server.dll compiled this module with the project's
+// flags, and its i_IntersectSegment counted no ticks.
 
 #include "bdefs.h"
 #include "de_world.h"
@@ -27,7 +25,6 @@ static IntersectQuery *g_pCurQuery;
 static uint8 g_bProcessNonSolid;
 static uint8 g_bProcessObjects;
 static uint8 g_bCheckIfFromPointIsInsideObject;
-static uint8 g_bProcessModelObbs;
 
 
 // The current best intersection (LTNULL if none).
@@ -37,9 +34,8 @@ static float g_IntersectionBestDistSqr; // Distance to intersection point square
 static LTPlane g_IntersectionPlane;
 static LTVector g_IntersectionPos;
 static HPOLY g_hWorldPoly;  // The WorldModel poly we're touching.
-static HMODELNODE g_hModelNode; // The node we hit.
 
-static LTVector g_V, g_VTimesInvVV, g_VOrigin, g_VDir;
+static LTVector g_V, g_VTimesInvVV;
 static float g_VPTimesInvVV, g_LineLen;
 
 
@@ -106,13 +102,12 @@ static float g_VPTimesInvVV, g_LineLen;
 
 
 // Just sets up the current 'closest object'.
-#define USE_THIS_OBJECT(pServerObj, distSqr, plane, intersectionPt, hPoly, hNode) \
+#define USE_THIS_OBJECT(pServerObj, distSqr, plane, intersectionPt, hPoly) \
     g_IntersectionBestDistSqr = distSqr;\
     g_pIntersection = pServerObj;\
     g_IntersectionPlane = plane;\
     g_IntersectionPos = intersectionPt;\
-    g_hWorldPoly = hPoly;\
-	g_hModelNode = hNode;
+    g_hWorldPoly = hPoly;
 
 
 // Replaces macro above (left in for reference), so filtering can be done...
@@ -120,8 +115,7 @@ inline bool UseThisObject(LTObject* pServerObj,
 						  const float fDistSqr, 
 						  const LTPlane & plane, 
 						  const LTVector & intersectionPt, 
-						  const HPOLY & hPoly,
-						  const HMODELNODE hNode)
+						  const HPOLY & hPoly)
 {
 	if (g_pCurQuery->m_FilterActualIntersectFn && 
 		!g_pCurQuery->m_FilterActualIntersectFn((HOBJECT)pServerObj, g_pCurQuery->m_pActualIntersectUserData))
@@ -130,11 +124,11 @@ inline bool UseThisObject(LTObject* pServerObj,
 		return false;
 	}
 	
-	USE_THIS_OBJECT(pServerObj, fDistSqr, plane, intersectionPt, hPoly, hNode);
+	USE_THIS_OBJECT(pServerObj, fDistSqr, plane, intersectionPt, hPoly);
 	return true;
 }
 
-inline bool i_BoundingBoxTest(const LTVector& Point1, const LTVector& Point2, const LTObject *pServerObj, 
+bool i_BoundingBoxTest(const LTVector& Point1, const LTVector& Point2, const LTObject *pServerObj, 
     LTVector *pIntersectPt, LTPlane *pIntersectPlane)
 {
     float t;
@@ -259,104 +253,6 @@ inline bool i_QuickSphereTest(const LTObject *pServerObj)
     return vecTo.MagSqr() < pServerObj->GetRadiusSquared();
 }
 
-inline bool i_QuickSphereTest2(const LTVector &pVector, const float fRadius) 
-{
-    // Find the closest point to the line.
-    // Here's the equation for t:
-    // P = point1
-    // V = point2 - point1 (ie: direction vector)
-    // S = point you're testing
-    // t = parametric (P + Vt)
-    // t = -(-VS + VP) / VV
-
-    //dirVec = *pPoint2 - *pPoint1;
-    //t = pServerObj->m_Pos.Dot(dirVec) - dirVec.Dot(*pPoint1);
-    //t /= dirVec.Dot(dirVec);
-
-    float t = g_VTimesInvVV.Dot(pVector) - g_VPTimesInvVV;
-
-    if (t < -fRadius || t > (g_LineLen + fRadius)) 
-	{
-        return false;
-    }
-    
-    // Now see if it's within range.
-    LTVector vecTo = g_pCurQuery->m_From + g_V * t - pVector;
-    return vecTo.MagSqr() < (fRadius * fRadius);
-}
-
-
-// returns true if intersection happened, plus fills hit dist param with 
-// the parametric position of the intersection on the ray dir. 
-// the obb must be within ray-origin + ray-dir. So ray-dir isn't normalized.
-// source : Real-time rendering moller&haines
-inline bool i_OrientedBoundingBoxTest(const ModelOBB &mobb, 
-									  const LTransform &tf, 
-									  const LTVector &origin, 
-									  const LTVector &dir, 
-									  float &t)
-{
-	float tmin = -999999999999.0f;
-	float tmax = 999999999999.0f;
-
-	LTVector vObbPos = mobb.m_Pos;
-
-	// Setup our OBB's translated position
-	LTMatrix obb_mat;
-	obb_mat.Identity();
-	obb_mat.SetBasisVectors( &tf.m_Rot.Right(), &tf.m_Rot.Up(), &tf.m_Rot.Forward() );
-	obb_mat.SetTranslation( tf.m_Pos );
-	obb_mat.Apply(vObbPos);  
-
-	LTVector p = vObbPos - origin;
-	float e ;
-	float f;
-	float hi;
-	float t1,t2;
-	
-	// Setup OBB rotation tranforms
-	LTMatrix mObbMat;
-	mObbMat.SetBasisVectors(&mobb.m_Basis[0], &mobb.m_Basis[1], &mobb.m_Basis[2]);
-	
-	// Get matrix of our Node's rotation
-	LTMatrix mTrMat;
-	tf.m_Rot.ConvertToMatrix(mTrMat);
-	
-	// Apply our node rotation to our obb rotation
-	mTrMat.Apply(mObbMat);
-	
-	// Get our translated basis vectors
-	LTVector axis[3];
-	mObbMat.GetBasisVectors(&axis[0], &axis[1], &axis[2]);
-
-	LTVector vSize =  mobb.m_Size * 0.5f ; // we want the 1/2 size of the box.
-
-	for( int i = 0 ; i < 3 ; i++ )
-	{
-		e = axis[i].Dot(p);  
-		f = axis[i].Dot(dir);		
-		hi= vSize[i]  ; // 
-
-		if( fabs(f) > 0.00015 )
-		{
-			t1 = ( e + hi ) / f ;
-			t2 = ( e - hi ) / f ;
-			if( t1 > t2 ) {float v = t2 ; t2 = t1 ; t1 = v ; }
-			if(t1 > tmin ) {tmin = t1 ;}
-			if(t2 < tmax ) {tmax = t2 ;}
-			if(tmin > tmax ) { 
-				 return false ; }
-			if(tmax < 0  ) { 
-				 return false ; }
-		}
-		else if( ((-e - hi) > 0 ) || ( (-e + hi) < 0 )) { t = 0 ; return false ; }
-	}
-
-	if( tmin > 0 ) { t = tmin ;  return true ; }
-	else { t = tmax ;  return true ;}
-}
-
-
 // Returns true if the segment hits the world model.
 static bool i_TestWorldModel(WorldModelInstance *pObj) 
 {
@@ -394,81 +290,8 @@ static bool i_TestWorldModel(WorldModelInstance *pObj)
 
         //USE_THIS_OBJECT(pObj, distToIntersectionSqr, tempPlane, intersectionPt, hWorldPoly);
  		//return true;
-		return UseThisObject(pObj, distToIntersectionSqr, tempPlane, intersectionPt, hWorldPoly, INVALID_MODEL_NODE);
+		return UseThisObject(pObj, distToIntersectionSqr, tempPlane, intersectionPt, hWorldPoly);
 	}
-
-    return false;
-}
-
-// Returns true if the segment hits a ModelOBB.
-static bool i_TestModelOBBS(ModelInstance *pObj) 
-{
-    LTVector vIntersectPoint(0.0f, 0.0f, 0.0f);
-    float currentBestIntersection = 99999999999.0f;
-	uint32 currentBestNode = 0;
-    bool bHit = false;
-    LTransform tf;
-    float parametric_dist = 0.0f;
-
-	uint32 nNumObbs = pObj->NumCollisionObjects();
-    for(uint32 i = 0; i < nNumObbs; ++i)
-    {
-        const ModelOBB *obb = pObj->GetCollisionObject(i);
-
-        // Determine OBB Pos in 3D space.
-        if (!pObj->GetNodeTransform(obb->m_iNode, tf, true))
-        {
-            continue;
-        }
-
-		// setup the coordinate frame of the obb.
-        LTMatrix obb_mat;
-        LTVector vTPos(obb->m_Pos);
-        obb_mat.Identity();
-        obb_mat.SetBasisVectors( &tf.m_Rot.Right(), &tf.m_Rot.Up(), &tf.m_Rot.Forward() );
-        obb_mat.SetTranslation( tf.m_Pos );
-        obb_mat.Apply(vTPos);
-
-        // Test the sphere
-        if(i_QuickSphereTest2(vTPos, obb->m_Radius))
-        {           
-            if(i_OrientedBoundingBoxTest(*obb, tf, g_VOrigin, g_VDir, parametric_dist))
-            {
-              
-                // If this intersection is closer than the current best, 
-                if (parametric_dist < currentBestIntersection)
-                {
-					// Set our current closest distance
-					currentBestIntersection = parametric_dist;
-
-					// Set our current best node ID
-                    currentBestNode = obb->m_iNode;
-
-					// Setup our intersection position in world space.
-					vIntersectPoint = g_VOrigin + (g_VDir * parametric_dist);
-                }
-				// We were hit at least once!
-                bHit = true;
-            }            
-        }
-    }
-    
-    if(bHit)
-    {
-        // Since we aren't filling the return plane. 
-		// Make sure they are atleast Initialized to sane values.
-	    LTPlane ltPlane;
-		ltPlane.m_Normal.Init();
-		ltPlane.m_Dist = 0;
-
-        USE_THIS_OBJECT(pObj, 
-						tf.m_Pos.DistSqr(g_VOrigin),
-						ltPlane,
-						vIntersectPoint, 
-						INVALID_HPOLY,
-						currentBestNode);
-        return true;
-    }
 
     return false;
 }
@@ -515,40 +338,14 @@ inline bool i_HandlePossibleIntersection(const LTVector& Point1, const LTVector&
 					{
                         if (distToIntersectionSqr < g_IntersectionBestDistSqr) 
 						{
-                            // Do we care about model OBBs?
-							if(g_bProcessModelObbs)
-							{
-                                // Is this object a model?
-                                if(IsModel(pServerObj))
-                                {
-                                    ModelInstance *pModel =	pServerObj->ToModel();
-                                    
-                                    // Does this object want to expose it's OBBs?                                    
-                                    if(pServerObj->m_Flags2 & FLAG2_USEMODELOBBS)
-                                    {                                        
-                                        // Does this model have OBBS? 
-                                        if(pModel->IsCollisionObjectsEnabled())                                      
-                                        {              
-                                            // Then test the OBBs
-                                            return i_TestModelOBBS(pModel);
-                                        }else
-                                        {
-                                            // If this object has specified OBBs enabled but is 
-                                            // not equipt for model obbs, then return no collision                                        
-                                            return false;
-                                        }
-                                    }                                                                        
-                                }
-							}
-							//else
-                            return UseThisObject(pServerObj, distToIntersectionSqr, testPlane, testPt, INVALID_HPOLY, INVALID_MODEL_NODE);
+                            return UseThisObject(pServerObj, distToIntersectionSqr, testPlane, testPt, INVALID_HPOLY);
                         }
                     }
                     else 
 					{
                         //USE_THIS_OBJECT(pServerObj, distToIntersectionSqr, testPlane, testPt, INVALID_HPOLY);
                         //return true;
-                        return UseThisObject(pServerObj, distToIntersectionSqr, testPlane, testPt, INVALID_HPOLY, INVALID_MODEL_NODE);
+                        return UseThisObject(pServerObj, distToIntersectionSqr, testPlane, testPt, INVALID_HPOLY);
                     }
                 }
             }
@@ -634,27 +431,19 @@ bool i_IntersectSegment(IntersectQuery *pQuery, IntersectInfo *pInfo, WorldTree 
     float InvVV, VP, testMag;
 
     ++g_nIntersectCalls;
-	CountAdder cTicks_Intersect(&g_Ticks_Intersect);
         
     // Init..
     g_pCurQuery = pQuery;
     g_pIntersection = LTNULL;
     g_pWorldIntersection = LTNULL;
     g_hWorldPoly = INVALID_HPOLY;
-	g_hModelNode = INVALID_MODEL_NODE;
     g_bProcessNonSolid = !(pQuery->m_Flags & IGNORE_NONSOLID);
     g_bProcessObjects = !!(pQuery->m_Flags & INTERSECT_OBJECTS);
 	g_bCheckIfFromPointIsInsideObject = !!(pQuery->m_Flags & CHECK_FROM_POINT_INSIDE_OBJECTS);
-	g_bProcessModelObbs = !!(pQuery->m_Flags & INTERSECT_MODELOBBS);
     g_IntersectionBestDistSqr = (pQuery->m_From - pQuery->m_To).MagSqr() + 1.0f;
 
     // Precalculate stuff to totally accelerate i_QuickSphereTest.
-    g_VOrigin = pQuery->m_From;
     g_V = pQuery->m_To - pQuery->m_From;
-
-    // Calc Direction
-    g_VDir = g_V.Unit();  
-
     g_LineLen = g_V.Mag();
     g_V /= g_LineLen;
     
@@ -689,7 +478,6 @@ bool i_IntersectSegment(IntersectQuery *pQuery, IntersectInfo *pInfo, WorldTree 
         pInfo->m_Plane = g_IntersectionPlane;
         pInfo->m_hObject = (HOBJECT)g_pIntersection;
         pInfo->m_hPoly = g_hWorldPoly;
-		pInfo->m_hNode = g_hModelNode;
         
         if (g_pWorldIntersection) 
 		{

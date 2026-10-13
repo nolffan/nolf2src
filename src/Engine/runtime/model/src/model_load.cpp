@@ -894,10 +894,6 @@ LTRESULT Model::Load(ModelLoadRequest *pRequest, const char* pFilename)
 
 	if(nPieces > MAX_PIECES_PER_MODEL)
 	{
-		char szBuf[256];
-		sprintf(szBuf, "Error loading model %s: model pieces exceeds %d\n", pFilename, MAX_PIECES_PER_MODEL);
-		dsi_ConsolePrint(szBuf);
-
 		error_val = 3;
 		goto Error;
 	}

@@ -222,9 +222,6 @@ static LTRESULT ReadAnimInfo(CClientShell *pShell,
 		uint8	nID;
 
 		//handle loading in all of our data from the packet
-
-		bool bDirty = cPacket.Readbool();
-
 		if (cPacket.Readbool())
 		{
 			nAnimIndex = cPacket.ReadBits(MODELINFO_ANIMINDEX_LONG);
@@ -293,14 +290,9 @@ static LTRESULT ReadAnimInfo(CClientShell *pShell,
 				}
 			}
 
-			LTRESULT dResult = LT_OK;
-
-			if(bDirty)
-			{
-				//handle updating the information with the info sent from the server (includes animation, etc)
-				LTRESULT dResult = SwitchModelAnim(	pShell, pInst, pTracker, nAnimIndex, bLooping, bPlaying, nAnimTime,  
-													fAnimRate, bAllowTransition, bAllowReset);
-			}
+			//handle updating the information with the info sent from the server (includes animation, etc)
+			LTRESULT dResult = SwitchModelAnim(	pShell, pInst, pTracker, nAnimIndex, bLooping, bPlaying, nAnimTime,  
+												fAnimRate, bAllowTransition, bAllowReset);
 
 			if (dResult != LT_OK) 
 			{

@@ -280,7 +280,8 @@ SOURCE=..\..\world\src\fullintersectline.cpp
 
 !IF  "$(CFG)" == "Lithtech - Win32 Final"
 
-# PROP Exclude_From_Build 1
+# ADD CPP /Ob2
+# SUBTRACT CPP /GX
 
 !ENDIF 
 
@@ -288,6 +289,14 @@ SOURCE=..\..\world\src\fullintersectline.cpp
 # Begin Source File
 
 SOURCE=..\..\server\src\game_serialize.cpp
+
+!IF  "$(CFG)" == "Lithtech - Win32 Final"
+
+# ADD CPP /Ob2
+# SUBTRACT CPP /GX
+
+!ENDIF 
+
 # End Source File
 # Begin Source File
 
@@ -443,7 +452,8 @@ SOURCE=..\..\model\src\model_load.cpp
 
 !IF  "$(CFG)" == "Lithtech - Win32 Final"
 
-# PROP Exclude_From_Build 1
+# ADD CPP /Ob2
+# SUBTRACT CPP /GX
 
 !ENDIF 
 
@@ -530,7 +540,8 @@ SOURCE=..\..\server\src\s_net.cpp
 
 !IF  "$(CFG)" == "Lithtech - Win32 Final"
 
-# PROP Exclude_From_Build 1
+# ADD CPP /Ob2
+# SUBTRACT CPP /GX
 
 !ENDIF 
 
@@ -788,18 +799,6 @@ SOURCE=..\..\client\src\nolf2src_client_stubs.cpp
 # Begin Source File
 
 SOURCE=..\..\kernel\mem\src\nolf2src_mem_stubs.cpp
-# End Source File
-# Begin Source File
-
-SOURCE=..\..\model\src\nolf2src_model_stubs.cpp
-# End Source File
-# Begin Source File
-
-SOURCE=..\..\server\src\nolf2src_server_stubs.cpp
-# End Source File
-# Begin Source File
-
-SOURCE=..\..\world\src\nolf2src_world_stubs.cpp
 # End Source File
 # Begin Source File
 
