@@ -54,6 +54,34 @@ class StripError(Exception):
     pass
 
 
+def in_comment_after(line, in_comment):
+    """Whether a /* */ comment is still open after this line, given whether
+    one was open before it (string and character literals and // comments
+    are skipped). A directive on a line that starts inside a comment is no
+    directive: retail files keep commented-out #if/#else/#endif blocks."""
+    i, n = 0, len(line)
+    while i < n:
+        if in_comment:
+            j = line.find("*/", i)
+            if j < 0:
+                return True
+            in_comment, i = False, j + 2
+            continue
+        c = line[i]
+        if c in "\"'":
+            i += 1
+            while i < n and line[i] != c:
+                i += 2 if line[i] == "\\" else 1
+            i += 1
+        elif line.startswith("//", i):
+            return False
+        elif line.startswith("/*", i):
+            in_comment, i = True, i + 2
+        else:
+            i += 1
+    return in_comment
+
+
 def strip_text(text, name="<text>"):
     """Resolve the variant conditionals as the release build sees them."""
     if not any(v in text for v in VARIANT):
@@ -63,8 +91,10 @@ def strip_text(text, name="<text>"):
     # one entry per open conditional: None for one we leave alone, else
     # [keep_now] for a variant block (its directives are dropped)
     stack = []
+    in_comment = False
     for n, line in enumerate(text.split(nl), 1):
-        m = DIRECTIVE.match(line)
+        m = None if in_comment else DIRECTIVE.match(line)
+        in_comment = in_comment_after(line, in_comment)
         keep = all(s is None or s[0] for s in stack)
         if m:
             d, rest = m.group(1), m.group(2)

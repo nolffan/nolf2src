@@ -84,6 +84,25 @@ code (`src/Game/`).
 | M-E5 | **The developer console.** Retail never draws the engine console (no `con_Draw`; `docs/engine/PLAN.md`, package 4), so console commands can only come from the command line or `autoexec.cfg`. Draw it (the Jupiter code was removed from the release build for retail's sake and can come back behind the define) and bind a key. | feature | `src/Engine/runtime/client/src/sys/win/winconsole_impl.cpp` | todo |
 | M-E6 | **Internet play.** Sierra's WON directory servers, which the Internet server list and the version check ask, are gone (`ServerDir.dll`; without `sierraup.cfg` the list shows the directory-server error). LAN play and direct joins do not need them. A replacement directory (or a GameSpy-style master the community runs) is a project of its own. | feature | `src/Game/Libs/ServerDir/`, the game's multiplayer screens | todo |
 | M-G3 | **The loading screen's 10 fps.** The loading-screen thread draws, then sleeps 100 ms. NOLF1's modern build shortened its equivalent sleep to load faster; in NOLF2 the level loads on the main thread while this one only draws, so a shorter sleep would only take time from the load. Kept. | decided | `src/Game/ClientShellDLL/ClientShellShared/LoadingScreen.cpp` | decided |
+| M-G5 | **Names and chat as printf formats, and the chat buffer.** The server prints names and chat through `"%s"`, takes `%` out of player names and chat lines and cuts chat to 200 characters before printing or relaying them (so no client, retail or not, receives a `%` or a line that overruns its buffer); the dedicated server's console and log print text as text (`RETAIL_BUGS.md`). The engine's double format in `CLTServer::CPrint` (server package) and the client's own printing (`CShell.dll`) are left. Tested: `make modern` plays; a remote client needs two machines. | fix | `GameServerShell.cpp`, `PlayerObj.cpp`, `src/Game/ServerApp/ServerDlg.cpp`, `ScmdConsoleDriver_ServerApp.cpp` | done |
+| M-G6 | **`HandleAddGoal`'s unbounded `strcat`** (`RETAIL_BUGS.md`). | fix | `GameServerShell.cpp` | done |
+| M-G7 | **Debugging and single-player messages from remote clients.** In a multiplayer game the server ignores pause, teleport, console commands and triggers, stimuli, object alpha and AI goals from a non-local client; a trigger without a command no longer crashes it (`RETAIL_BUGS.md`). `CP_DAMAGE` left. | fix | `GameServerShell.cpp` | done |
+| M-G8 | **Skill levels from the client bounded** to the skill tables (`RETAIL_BUGS.md`). | fix | `Skills.cpp` | done |
+| M-G9 | **Unique player names unique** (`RETAIL_BUGS.md`). | fix | `PlayerObj.cpp` | done |
+| M-G10 | **`FACEOBJECT`'s zero vector** (`RETAIL_BUGS.md`). | fix | `PlayerObj.cpp` | done |
+| M-G11 | **`Body::FaceDir`/`FacePos`'s zero vector** (`RETAIL_BUGS.md`). | fix | `Body.cpp` | done |
+| M-G12 | **An AI backing away faces away from its move**, not its own position (`RETAIL_BUGS.md`). | fix | `AIMovement.cpp` | done |
+| M-G13 | **A keyframer that did not move keeps its rotation** (`RETAIL_BUGS.md`). | fix | `KeyFramer.cpp` | done |
+| M-G14 | **`CMusicMgr::SetMood` refuses a mood with no levels** (`RETAIL_BUGS.md`). | fix | `MusicMgr.cpp` | done |
+| M-G15 | **The client effects' colour step sets red** (`RETAIL_BUGS.md`). | fix | `src/Game/ClientFxDLL/BaseFx.cpp` | done |
+| M-G16 | **`CString::Left` sets the length** (`RETAIL_BUGS.md`). | fix | `src/libs/MFCStub/mfcs_string.cpp` | done |
+| M-L3 | **The launcher's path buffer and find handles** (`RETAIL_BUGS.md`). | fix | `src/Game/Launcher/Launcher.cpp`, `RezFind.cpp`, `DisplayMgr.cpp` | done |
+| M-E7 | **`StopSecondary`/`StopMotif`'s endless loop**: one walk over the list (`RETAIL_BUGS.md`). | fix | `src/Engine/runtime/kernel/src/sys/win/ltdirectmusic_impl.cpp` | done |
+| M-E8 | **Null checks in the client interface**: `ci_Get/SetLightRadius`, `cis_GetSurfaceDims` (`RETAIL_BUGS.md`). | fix | `client/src/clientde_impl.cpp`, `winclientde_impl.cpp` | done |
+| M-E9 | **`InitLevel`'s trace typo** (`RETAIL_BUGS.md`). | fix | `ltdirectmusic_impl.cpp` | done |
+| M-E10 | **The console print's one-past-the-end write** (`CLTClient::CPrint`, the client's `dsi_PrintToConsole`; `RETAIL_BUGS.md`). | fix | `clientde_impl.cpp`, `kernel/src/sys/win/dsys_interface.cpp` | done |
+| M-E11 | **Error messages naming the wrong function**, the client's (`RETAIL_BUGS.md`). | fix | `clientde_impl.cpp`, `winclientde_impl.cpp`, `client_iltphysics.cpp`, `ltinfo_impl.cpp`, `sound/src/soundmgr.cpp` | done |
+| M-E12 | **`streamsim_Open`'s leaked file** (`RETAIL_BUGS.md`). | fix | `kernel/src/sys/win/streamsim.cpp` | done |
 | M-G4 | **A field-of-view option.** With M-E1 the default view is right at any shape; a menu slider for the vertical angle (`FovY`, now a console variable only) would be the next step. | feature | `ScreenDisplay`, `PlayerMgr` | todo |
 
 ## Not changed

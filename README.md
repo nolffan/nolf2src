@@ -14,6 +14,11 @@ marked `RETAIL:`. The aim, as for [nolfsrc](https://github.com/nolffan/nolfsrc)
 - **modern**: the same source with fixes and new features (`NOLF2SRC_MODERN`;
   `MODERN.md`), and no RAD binary: its Bink player is ours, on FFmpeg.
 
+Compiling back to the retail bytes means compiling the retail game's bugs as
+well. The ones found so far are listed in [`RETAIL_BUGS.md`](RETAIL_BUGS.md);
+their fixes go behind `NOLF2SRC_MODERN`, into the modern build only, so the
+legacy build keeps matching the retail one.
+
 <p align="center">
   <img src="screenshots/screenshot01.png" alt="The main menu, running from this build" width="49%">
   <img src="screenshots/screenshot02.png" alt="In game, running from this build" width="49%">
@@ -74,10 +79,11 @@ Needs docker and the two submodules (`git submodule update --init`):
 from archive.org and installs the game with its 1.3 update).
 
 ```sh
-make            # out/nolf2-legacy-release/ and out/nolf2-legacy-release.tar.gz
+make            # out/nolf2-legacy-release/ and its -private / -public .tar.gz
 make debug      # out/nolf2-legacy-debug/: symbols, NOLF2SRC_DEBUG
 make modern     # out/nolf2-modern-release/: NOLF2SRC_MODERN (MODERN.md)
 make test       # play it under Xvfb: main menu, new game, the first level
+make test TEST_GAME=out/nolf2-modern-release   # the same, on a variant
 make help       # everything else
 ```
 
@@ -90,6 +96,35 @@ install does.
 
 `build/build.mk` builds Monolith's workspace as Developer Studio would:
 `tools/dsp2mk.py` reads `TO2.dsw` and the project files and writes the
-rules, compile for compile.
+rules, compile for compile. `BUILDING.md` describes the build step by step.
 
-See `LICENSE-NOTES.md` for what is whose.
+## Playing it elsewhere: the archives
+
+To play elsewhere, copy `out/nolf2-legacy-release-private.tar.gz` (one
+file), unpack it and run `nolf2-legacy-release/run.sh`. Every variant is
+packaged the same way: `out/nolf2-legacy-debug-private.tar.gz`,
+`out/nolf2-modern-release-private.tar.gz` and
+`out/nolf2-modern-debug-private.tar.gz`.
+
+The `-private` archives hold the retail game's data (1.8 GB of it), so they
+are for your own machines and for others developing on the build. To give
+the game to anyone else, give them the `-public` archive instead
+(`out/nolf2-modern-release-public.tar.gz`, a few MB): the same directory
+without anything from the retail game, and two scripts that copy it out of
+their own *No One Lives Forever 2* -- installed from their discs and
+updated to 1.3 (English; the European or the USA release). They check
+every file they write against its SHA-256, so the result is the `-private`
+archive's directory, byte for byte:
+
+```sh
+nolf2-modern-release/linux-install.sh ~/.wine/drive_c/'Program Files'/.../'No One Lives Forever 2'
+nolf2-modern-release/linux-install.sh    # finds it in the registry of $WINEPREFIX or ~/.wine
+```
+
+On Windows, double-click `windows-install.bat` (it finds the game where its
+setup installed it) or drop the installed game's folder onto it. Either
+script can be run again: a file already in place is checked and kept. The
+GitHub Actions workflow builds the four public archives on every push
+(`BUILDING.md`).
+
+See `LICENSE-NOTES.md` for what is whose, and what each archive holds.

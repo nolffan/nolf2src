@@ -500,6 +500,12 @@ CString CString::Left(uint32 nCount) const
 
 	CString dest(GetBuffer());
 	dest.GetBuffer(nCount + 1)[nCount] = 0;
+#ifdef NOLF2SRC_MODERN
+	// MODERN.md M-G16: the copy was cut short but kept the whole
+	// string's length, so GetLength() was wrong and a Concat after it
+	// appended behind the terminator
+	dest.ReleaseBuffer();
+#endif
 	return dest;
 }
 

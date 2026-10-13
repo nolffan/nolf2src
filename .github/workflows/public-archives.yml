@@ -1,0 +1,134 @@
+# The public archives of every build variant, as workflow artifacts (each
+# the .tar.gz itself, not a zip around it):
+# out/nolf2-{legacy,modern}-{release,debug}-public.tar.gz (build/package.sh),
+# the game directory without anything from the retail game, with the
+# scripts that copy that from the player's own installed NOLF2
+# (tools/mkinstall.py). The -private archives, which hold the retail data,
+# are not made here. The release build is also checked for byte
+# regressions (make progress).
+#
+# The build needs the retail game and the LithTech Jupiter SDK, which rez/
+# fetches from archive.org and checks against rez/isos/SHA256SUMS: the two
+# redump zips of the European discs (1.1 GB; `make retail` installs the game
+# from them and the 1.3 update rez/ carries) and the SDK's CD image (0.6 GB;
+# `make sdk`, for ServerDir.dll's source). They are cached, keyed on
+# rez/isos/SHA256SUMS, and saved as soon as they are fetched, so a failed
+# build still keeps them; the docker image's layers are cached too.
+name: Public archives
+
+on:
+  push:
+    branches: [master]
+  pull_request:
+  workflow_dispatch:
+
+concurrency:
+  group: public-archives-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 360
+    env:
+      NOLF2_ARCHIVES: public
+      IMAGE_BUILD: 0           # the step "Build image" makes it, cached
+    steps:
+      # The runner's preinstalled SDKs we never use: about 30 GB, where the
+      # build needs about 18 (the image, the discs and the retail game, four
+      # game directories and their build trees).
+      - name: Free disk space
+        run: |
+          sudo rm -rf /usr/share/dotnet /usr/local/lib/android /opt/ghc \
+            /opt/hostedtoolcache/CodeQL /usr/local/share/boost
+          df -h /
+
+      - uses: actions/checkout@v4
+
+      # .gitmodules names the submodules by SSH; all of them are public, so
+      # fetch them over HTTPS instead, at the commit this one records:
+      # toolchains/ (the compilers, the DirectX 8.1 SDK), rez/ (the discs'
+      # installer and the 1.3 update) and ext/ffmpeg (the modern build's
+      # Bink player).
+      - name: Submodules
+        run: |
+          git config --global url."https://github.com/".insteadOf "git@github.com:"
+          git submodule sync
+          git submodule update --init --depth 1 --jobs 4
+
+      - name: Restore the disc images
+        id: discs
+        uses: actions/cache/restore@v4
+        with:
+          path: |
+            rez/isos/*.zip
+            rez/isos/sdk/LithEngine.iso
+          key: redump-nolf2-eu-jupiter-${{ hashFiles('rez/isos/SHA256SUMS') }}
+
+      - uses: docker/setup-buildx-action@v3
+
+      # Loaded as nolf2src-build, which the Makefile then uses (IMAGE_BUILD=0).
+      - name: Build image
+        uses: docker/build-push-action@v6
+        with:
+          context: docker
+          tags: nolf2src-build
+          load: true
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+      # Fetch the images the cache did not have (and check every one
+      # against SHA256SUMS either way), then install the retail game and
+      # the SDK's source.
+      - name: Fetch and install the retail game and the Jupiter SDK
+        run: make retail sdk
+
+      - name: Save the disc images
+        if: steps.discs.outputs.cache-hit != 'true'
+        uses: actions/cache/save@v4
+        with:
+          path: |
+            rez/isos/*.zip
+            rez/isos/sdk/LithEngine.iso
+          key: ${{ steps.discs.outputs.cache-primary-key }}
+
+      - name: Build nolf2-legacy-release
+        run: make
+      # The release build scored against the retail binaries: fails if a
+      # function recorded in progress/identical.txt is no longer
+      # byte-identical (build/progress.sh). It scores what `make` left in
+      # src/, so it runs before the variants build.
+      - name: Byte regressions (make progress)
+        run: make progress
+      - name: Build nolf2-legacy-debug
+        run: make debug
+      - name: Build nolf2-modern-release
+        run: make modern
+      - name: Build nolf2-modern-debug
+        run: make modern-debug
+
+      # Each archive is uploaded as the .tar.gz itself (archive: false), not
+      # zipped again; the artifact takes the file's name.
+      - uses: actions/upload-artifact@v7
+        with:
+          path: out/nolf2-legacy-release-public.tar.gz
+          archive: false
+          if-no-files-found: error
+      - uses: actions/upload-artifact@v7
+        with:
+          path: out/nolf2-legacy-debug-public.tar.gz
+          archive: false
+          if-no-files-found: error
+      - uses: actions/upload-artifact@v7
+        with:
+          path: out/nolf2-modern-release-public.tar.gz
+          archive: false
+          if-no-files-found: error
+      - uses: actions/upload-artifact@v7
+        with:
+          path: out/nolf2-modern-debug-public.tar.gz
+          archive: false
+          if-no-files-found: error

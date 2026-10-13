@@ -2988,7 +2988,12 @@ LTRESULT CSoundMgr::SetSoundFilter(const char *pFilter)
 	{
 		m_FilterData.bUseFilter = false;
 		m_FilterData.uiFilterType = NULL_FILTER;
+#ifdef NOLF2SRC_MODERN
+		// MODERN.md M-E11: the check names its own function
+        RETURN_ERROR(1, CSoundMgr::SetSoundFilter, LT_NOTFOUND);
+#else
         RETURN_ERROR(1, CSoundMgr::SetSoundFilterParam, LT_NOTFOUND);
+#endif
 	}
 	else
 	{

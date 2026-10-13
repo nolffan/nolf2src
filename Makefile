@@ -1,6 +1,6 @@
 # No One Lives Forever 2, built from source.
 #
-#   make          build the game into out/nolf2-legacy-release/ (and out/nolf2-legacy-release.tar.gz)
+#   make          build the game into out/nolf2-legacy-release/ (and its -private / -public .tar.gz)
 #   make test     scripted playtest of out/nolf2-legacy-release/: main menu, new game, play
 #   make debug    the same game with symbols and debug logging, in out/nolf2-legacy-debug/
 #   make modern   the game with NOLF2SRC_MODERN, in out/nolf2-modern-release/
@@ -24,9 +24,14 @@ IMAGE     ?= nolf2src-build
 CONTAINER ?= nolf2src-build
 # Parallel compile jobs inside the build (build/build.mk); empty: one per CPU
 JOBS ?=
+# The game directory `make test` plays: the release build's, or a variant's
+# (make test TEST_GAME=out/nolf2-modern-release; build/variant.sh)
+TEST_GAME ?= out/nolf2-legacy-release
+TEST_NAME = $(if $(filter out/nolf2-legacy-release,$(TEST_GAME:%/=%)),test,test-$(notdir $(TEST_GAME:%/=%)))
 
 DOCKER_RUN = docker run --rm --init --name $(CONTAINER) \
 	-u $(shell id -u):$(shell id -g) -e HOME=/tmp/home $(if $(JOBS),-e NOLF2SRC_JOBS=$(JOBS)) \
+	$(if $(NOLF2_ARCHIVES),-e NOLF2_ARCHIVES="$(NOLF2_ARCHIVES)") \
 	-v $(CURDIR):/repo -w /repo $(IMAGE)
 
 TOOLCHAIN_FILES = toolchains/msvc-6.00-8966/BIN/cl.exe toolchains/msvc-6.00-9782/Common/MSDev98/Bin/RC.EXE \
@@ -37,13 +42,15 @@ TOOLCHAIN_FILES = toolchains/msvc-6.00-8966/BIN/cl.exe toolchains/msvc-6.00-9782
 all: game
 
 help:
-	@echo "make            build everything into out/nolf2-legacy-release/ and out/nolf2-legacy-release.tar.gz"
+	@echo "make            build everything into out/nolf2-legacy-release/ and its .tar.gz archives"
 	@echo "make debug      the game with symbols and NOLF2SRC_DEBUG logging, in out/nolf2-legacy-debug/"
 	@echo "make modern     the game with NOLF2SRC_MODERN, in out/nolf2-modern-release/"
 	@echo "make modern-debug  both, in out/nolf2-modern-debug/"
 	@echo "                (none of these is ever scored; build/variant.sh)"
 	@echo "make test       scripted playtest of out/nolf2-legacy-release/ under Xvfb: the main menu,"
 	@echo "               a new game, the first level (tools/playtest-newgame.txt; out/play/test/)"
+	@echo "make test TEST_GAME=out/nolf2-modern-release   the same on a variant's game directory"
+	@echo "               (out/play/test-<its name>/)"
 	@echo "make progress   score the build against the retail binaries; fails if a"
 	@echo "                function recorded in progress/identical.txt stops matching"
 	@echo "make progress-update  record the score in progress/ and README.md"
@@ -57,6 +64,8 @@ help:
 	@echo "make distclean  clean, and remove the docker image too"
 	@echo
 	@echo "Variables: JOBS=<n> (parallel compiles; default one per CPU)"
+	@echo "           NOLF2_ARCHIVES=\"private public\" (the archives build/package.sh writes)"
+	@echo "           IMAGE_BUILD=0 (use the docker image as it is, as CI does)"
 	@echo "           COMPLETE=1, COVERED=1, ACCEPT_LOSSES=1 (progress/README.md)"
 
 game: check-toolchain retail sdk
@@ -70,9 +79,17 @@ debug: check-toolchain retail sdk
 modern modern-debug: check-toolchain check-ext retail sdk
 	$(DOCKER_RUN) bash build/variant.sh $@
 
+# IMAGE_BUILD=0: use $(IMAGE) as it is (CI builds it with a layer cache
+# first, .github/workflows/public-archives.yml).
+IMAGE_BUILD ?= 1
 image:
+ifeq ($(IMAGE_BUILD),0)
+	@docker image inspect $(IMAGE) >/dev/null 2>&1 || \
+	  { echo "error: IMAGE_BUILD=0, but there is no docker image $(IMAGE)" >&2; exit 1; }
+else
 	@docker build -q -t $(IMAGE) docker/ >/dev/null || \
 	  { echo "error: could not build the docker image (docker/Dockerfile)" >&2; exit 1; }
+endif
 	@echo "== docker image $(IMAGE) ready"
 
 # The retail game the build takes its data from (build/retail.sh): installed
@@ -97,8 +114,8 @@ check-toolchain:
 	done
 
 test: image
-	@[ -f out/nolf2-legacy-release/Lithtech.exe ] || { echo "error: no out/nolf2-legacy-release/ -- run make first" >&2; exit 1; }
-	$(DOCKER_RUN) env PLAYTEST_NAME=test PLAYTEST_SCRIPT=tools/playtest-newgame.txt bash tools/playtest.sh out/nolf2-legacy-release - 5
+	@[ -f $(TEST_GAME)/Lithtech.exe ] || { echo "error: no $(TEST_GAME)/ -- build it first (make, or make debug/modern/modern-debug)" >&2; exit 1; }
+	$(DOCKER_RUN) env PLAYTEST_NAME=$(TEST_NAME) PLAYTEST_SCRIPT=tools/playtest-newgame.txt bash tools/playtest.sh $(TEST_GAME) - 5
 
 progress: retail
 	$(DOCKER_RUN) env COMPLETE=$(COMPLETE) COVERED=$(COVERED) bash build/progress.sh check
