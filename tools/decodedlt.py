@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Count structurally-decoded bytes in an MSVC target (lithtech.exe).
+"""Count structurally-decoded bytes in an MSVC target (NOLF's lithtech.exe).
 
 tools/decoded.py does this for d3d.ren, where every reconstruction lives in a
 file named `big<addr>.cpp` so the shipped address is implicit. lithtech.exe's
@@ -31,7 +31,12 @@ reproduced. A function that is byte-identical belongs to progress.py and must
 not appear in the mapping at all -- the tool rejects it if it does.
 
 Usage:
-  decodedlt.py progress/lithtech-decoded-map.csv [--csv=out/progress/lithtech-decoded.csv]
+  decodedlt.py <target> [map.csv] [--csv=out/progress/<stem>-decoded.csv]
+
+NOLF2: the target is looked up in progress/targets.py (tools/tgt.py); the
+map defaults to progress/<stem>-decoded-map.csv, and its `object` column
+names one of the objects of our link (the .rsp beside our image), matched
+by file name.
               [--verbose]
 """
 import csv
@@ -40,16 +45,22 @@ import re
 import subprocess
 import sys
 
-ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-IMAGE = "out/reference/lithtech.exe"
-OBJDIR = "src/engine/lithtech/Release"
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+import tgt as tgt_mod  # noqa: E402
+
+ROOT = tgt_mod.REPO
+IMAGE = None
+OBJS = {}
 
 
 def measure(addr, size, obj, sym):
     """Ordered call-sequence comparison for one function."""
+    path = OBJS.get(os.path.basename(obj).lower())
+    if not path:
+        return None
     out = subprocess.run(
         [sys.executable, f"{ROOT}/tools/callseq.py", f"{ROOT}/{IMAGE}",
-         hex(addr), hex(addr + size), f"{ROOT}/{OBJDIR}/{obj}", sym],
+         hex(addr), hex(addr + size), f"{ROOT}/{path}", sym],
         capture_output=True, text=True).stdout
     m = re.search(r"shipped calls\s+(\d+)\s+ours\s+(\d+)", out)
     g = re.search(r"in agreement\s+(\d+)", out)
@@ -62,8 +73,18 @@ def main():
     args = [a for a in sys.argv[1:] if not a.startswith("--")]
     opts = dict(a.split("=", 1) if "=" in a else (a, True)
                 for a in sys.argv[1:] if a.startswith("--"))
-    if len(args) != 1:
+    if len(args) not in (1, 2):
         sys.exit(__doc__)
+    global IMAGE
+    t = tgt_mod.find(args[0])
+    IMAGE = t["shipped"]
+    tgt_mod.require_built(t)
+    os.chdir(ROOT)
+    OBJS.update({os.path.basename(o).lower(): o for o in tgt_mod.objs(t)
+                 if o.lower().endswith(".obj")})
+    mapcsv = args[1] if len(args) == 2 else tgt_mod.data(t, "-decoded-map.csv")
+    if not os.path.exists(mapcsv):
+        sys.exit("%s: no decoded map (%s)" % (t["label"], mapcsv))
 
     # Addresses that are already byte-identical belong to progress.py. If one
     # appears in the mapping it is a harvesting error, not a decoded function,
@@ -71,15 +92,13 @@ def main():
     matched = set()
     em = subprocess.run(
         [sys.executable, f"{ROOT}/tools/exematch.py", f"{ROOT}/{IMAGE}"] +
-        [os.path.join(ROOT, OBJDIR, f)
-         for f in sorted(os.listdir(os.path.join(ROOT, OBJDIR)))
-         if f.endswith(".obj")],
+        [os.path.join(ROOT, o) for o in sorted(OBJS.values())],
         capture_output=True, text=True).stdout
     for mm in re.finditer(r"MATCH (0x[0-9a-f]+)", em):
         matched.add(int(mm.group(1), 16))
 
     rows, bad = [], []
-    for r in csv.DictReader(open(args[0])):
+    for r in csv.DictReader(open(mapcsv)):
         addr = int(r["addr"], 16)
         size = int(r["ship_size"])
         if addr in matched:

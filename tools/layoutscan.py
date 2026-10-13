@@ -10,9 +10,14 @@ closes every function that touches the struct.
 Reports, per object, the functions showing the signature and the constant
 shift, so the fix can be made once at the header rather than per function.
 
-Usage: layoutscan.py [--image=lithtech.exe] [--min-hits=1]
+Usage: layoutscan.py [--image=<target>] [--min-hits=1]
+
+The target (default Lithtech) is anything progress/targets.py knows it by
+(tools/tgt.py); each near's object is found among our link's inputs.
 """
 import re, subprocess, sys, collections, os
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+import tgt as tgt_mod  # noqa: E402
 
 def nears(target):
     out = subprocess.run([sys.executable, "tools/progress.py", "--nears=" + target],
@@ -25,10 +30,13 @@ def nears(target):
             rows.append((p[1], int(p[2]), obj, sym))
     return rows
 
-def analyse(addr, obj, sym, image, objdir):
+def analyse(addr, obj, sym, image, tgt):
     """Return (shift, nhits) if the layout signature holds, else None."""
+    path = tgt_mod.obj_path(tgt, obj)
+    if not path:
+        return None
     r = subprocess.run([sys.executable, "tools/fndiff.py", addr,
-                        os.path.join(objdir, obj), sym, "--image=" + image],
+                        path, sym, "--image=" + image],
                        capture_output=True, text=True).stdout
     if "mnemonic diff: 0 block(s)" not in r:
         return None                      # structure differs -> not a layout error
@@ -54,14 +62,15 @@ def analyse(addr, obj, sym, image, objdir):
 
 def main():
     opts = dict(x.split("=", 1) for x in sys.argv[1:] if "=" in x)
-    target = opts.get("--image", "lithtech.exe")
-    image = "out/reference/%s" % target
-    objdir = "src/engine/%s/Release" % ("lithtech" if "lithtech" in target else "server")
+    tgt = tgt_mod.find(opts.get("--image", "Lithtech"))
+    os.chdir(tgt_mod.REPO)
+    target = tgt["label"]
+    image = tgt["shipped"]
     hits = collections.defaultdict(list)
     rows = nears(target)
     print(f"scanning {len(rows)} size-exact nears in {target}\n")
     for addr, size, obj, sym in rows:
-        res = analyse(addr, obj, sym, image, objdir)
+        res = analyse(addr, obj, sym, image, tgt)
         if res:
             deltas, n = res
             uniq = sorted(set(deltas))

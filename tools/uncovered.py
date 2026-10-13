@@ -34,6 +34,7 @@ from elimination rather than from a reference, and tools/enumcheck.py will
 say whether the row is sound at all.
 
 Usage:
+  uncovered.py <target> [--lo=0x..] [--hi=0x..] [--min=24] [--max=400] ...
   uncovered.py <image> <objdir> <starts.csv> [--lo=0x..] [--hi=0x..]
                                              [--min=24] [--max=400] [--csv=out]
                                              [--show-unverifiable]
@@ -59,6 +60,17 @@ default --lo/--hi now come from there, keyed on the image's basename, instead of
 from server.dll's constants. An image with no entry keeps the old default and
 says so. Pass --lo/--hi explicitly to override, and --crt to list what the
 boundary excluded rather than dropping it silently.
+
+NOLF2: the target (its label, stem or image path: `uncovered.py Lithtech`)
+is looked up in progress/targets.py (tools/tgt.py). Its shipped image, its
+function table (out/reference/<stem>-functions.csv), the object directories
+and static libraries of our link (the .rsp beside our image: no --also
+needed) and its regions come from there: a row counts only where
+progress.region() says `app`, so D3DX (`middleware`), the SecuROM pages
+(`encrypted`) and the runtime (`crt`) are never offered as work, and a
+second `app` range is honoured. The address comments scanned are the
+target's `cited_src` (else CITED_SRC), or the objects' source tree's parent
+when the target cites nothing. The three-argument form still works.
 """
 import bisect
 import subprocess
@@ -71,6 +83,24 @@ import sys
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from exematch import parse_obj_masked, find  # noqa: E402
 from exedump import Pe  # noqa: E402
+from libextract import extract  # noqa: E402
+import tgt as tools_tgt  # noqa: E402
+
+
+def _objects(dirs):
+    """Every .obj in each directory; a .lib named instead of a directory
+    is unpacked into a scratch directory under out/ first."""
+    out = []
+    for d in dirs:
+        if d.lower().endswith(".lib") and os.path.isfile(d):
+            dest = os.path.join("out", "uncovered-lib",
+                                os.path.basename(d).rsplit(".", 1)[0])
+            os.makedirs(dest, exist_ok=True)
+            extract(d, dest)
+            out += sorted(glob.glob(os.path.join(dest, "*.obj")))
+        else:
+            out += sorted(glob.glob(os.path.join(d, "*.obj")))
+    return out
 
 
 def main():
@@ -79,9 +109,25 @@ def main():
     # alongside the --key=value options.
     opts = dict(a.split("=", 1) if "=" in a else (a, True)
                 for a in sys.argv[1:] if a.startswith("--"))
-    if len(args) != 3:
+    tgt = None
+    if len(args) == 1:
+        tgt = tools_tgt.find(args[0])
+        os.chdir(tools_tgt.REPO)
+        image = tgt["shipped"]
+        starts = tools_tgt.funcs_csv(tgt)
+        tools_tgt.require_built(tgt)
+        dirs = tools_tgt.objdirs(tgt)
+        objdir = dirs[0]
+        extra = dirs[1:] + tools_tgt.libs(tgt)
+        if extra and "--also" not in opts:
+            opts["--also"] = ",".join(dict.fromkeys(extra))
+        if "--src" not in opts and tools_tgt.cited_src(tgt):
+            opts["--src"] = ",".join(tools_tgt.cited_src(tgt))
+    elif len(args) == 3:
+        image, objdir, starts = args
+        tgt = tools_tgt.find_or_none(image)
+    else:
         sys.exit(__doc__)
-    image, objdir, starts = args
     # Rows the enumeration gets WRONG. An address that is really an operand
     # byte, or a jump target inside a function, looks exactly like a function
     # start to enumfuncs, and every reconstruction pass that has been handed
@@ -103,12 +149,10 @@ def main():
     # The app/CRT boundary is progress.py's, not a second opinion: a worklist
     # that disagreed with the scoreboard about what counts as our code would
     # send people to write functions the scoreboard will never credit.
-    from progress import APP_REGION  # noqa: E402
-    region = APP_REGION.get(os.path.basename(image))
+    region = tools_tgt.app_span(tgt) if tgt else None
     if region is None:
-        print(f"note: no APP_REGION entry for {os.path.basename(image)}; "
-              f"falling back to server.dll's range. Pass --lo/--hi.")
-        region = (0x10001000, 0x10037b47)
+        sys.exit(f"{image}: not a target of progress/targets.py with an "
+                 f"`app` range; pass --lo/--hi")
     lo = int(opts.get("--lo", hex(region[0])), 16)
     hi = int(opts.get("--hi", hex(region[1])), 16)
     nmin = int(opts.get("--min", 24))
@@ -130,8 +174,7 @@ def main():
     # The symbols exematch cannot place, indexed by the length it would
     # compare -- trailing 0x90/0xCC is COMDAT padding, not the function.
     short = {}
-    for obj in sorted(o for d in objdirs
-                      for o in glob.glob(os.path.join(d, "*.obj"))):
+    for obj in _objects(objdirs):
         try:
             fns = parse_obj_masked(open(obj, "rb").read())
         except Exception:
@@ -170,7 +213,7 @@ def main():
     nears = {}
     bridged = {}
     try:
-        base = os.path.basename(image)
+        base = tgt["label"] if tgt else os.path.basename(image)
         out = subprocess.run(
             [sys.executable, os.path.join(os.path.dirname(__file__), "progress.py"),
              "--nears=" + base],
@@ -238,9 +281,11 @@ def main():
                    if os.path.isdir(d)] or [os.path.dirname(objdir.rstrip("/"))]
     blob = ""
     for srcdir in srcdirs:
-        for pat in ("*.cpp", "*.h"):
-            for f in glob.glob(os.path.join(srcdir, pat)):
-                blob += open(f, encoding="utf-8", errors="replace").read()
+        for root, _, fs in os.walk(srcdir):
+            for f in fs:
+                if f.lower().endswith((".cpp", ".c", ".h")):
+                    blob += open(os.path.join(root, f), encoding="utf-8",
+                                 errors="replace").read()
     mentioned = {m.lower() for m in re.findall(r"0x[0-9a-fA-F]{8}", blob)}
 
     # SECOND GAP: a row already carried in the decoded map is work someone has
@@ -280,8 +325,7 @@ def main():
     # This is what stopped ServerInterface::GetConsoleVar and
     # si_GetPropRotationEuler being offered as new work twice each.
     defined = set()
-    for obj in sorted(o for d in objdirs
-                      for o in glob.glob(os.path.join(d, "*.obj"))):
+    for obj in _objects(objdirs):
         try:
             fns = parse_obj_masked(open(obj, "rb").read())
         except Exception:
@@ -309,6 +353,8 @@ def main():
             oversize.append((a, n))
         if not (lo <= a < hi) or not (nmin <= n <= nmax):
             continue
+        if tgt and not tools_tgt.in_app(tgt, a):
+            continue        # middleware, encrypted, or the runtime
         if a in bogus:
             n_bogus += 1
             continue

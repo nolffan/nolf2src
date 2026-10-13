@@ -3,21 +3,28 @@
 
 A vtable's slots are the class's virtuals in declaration order, base class
 first, a virtual destructor taking the slot where it is declared. That makes
-the SDK headers (src/LT2/sdk/inc) a slot-by-slot NAME list for every engine
+the SDK headers (src/Engine/sdk/inc, NOLF2's) a slot-by-slot NAME list for every engine
 interface the game DLLs call -- ILTClient, ILTServer, ILTCommon, ILTModel,
 ILTMessage... -- which is the check placement-by-bytes cannot give: two
 same-shape one-line wrappers (WriteCompVector / WriteCompRotation) are told
 apart by their names and by nothing else.
 
 Usage:
-  sdkvtab.py <Class>            print slot, name
+  sdkvtab.py <Class> [--inc=DIR]   print slot, name
+
+--inc reads another header tree instead (the Jupiter SDK's, or
+../fear/Dev/Source/runtime/sdk/inc for comparison).
 """
 import os
 import re
 import sys
 
 INC = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))),
-                   "src", "LT2", "sdk", "inc")
+                   "src", "Engine", "sdk", "inc")
+for _a in list(sys.argv[1:]):
+    if _a.startswith("--inc="):
+        INC = _a.split("=", 1)[1]
+        sys.argv.remove(_a)
 
 
 def _strip(src):

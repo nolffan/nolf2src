@@ -8,8 +8,18 @@ structure), and pattern hints matched against the codegen fingerprints this
 project has already proven (guides/09-codegen-patterns.md).
 
 Usage:
-  fndiff.py <ship-addr> <obj> <symbol-substr> [--image=out/reference/server.dll]
-            [--end=0xADDR] [--csv=out/reference/server-functions.csv]
+  fndiff.py <ship-addr> <obj> <symbol-substr> [--image=<target or image>]
+            [--end=0xADDR] [--csv=out/reference/<stem>-functions.csv]
+
+  --image takes a target of progress/targets.py (`server`, `Lithtech`,
+  tools/tgt.py) or an image path. Without it, the target is the one whose
+  link (our image's .rsp) read <obj>; failing that, the image whose range
+  holds <ship-addr> if only one target's `app` does.
+
+  The hints name compiler builds NOLF's engine was compiled with (8168,
+  8447, 8804); NOLF2's Monolith code is all cl 8966 (progress/COMPILERS.md),
+  so a near here is source shape or a per-file flag (/O1 against /O2, /GX),
+  never a revision.
 
 The shipped size comes from --end if given, else from the csv's (addr,size)
 row. Typical loop:
@@ -24,6 +34,10 @@ import itertools
 import re
 import subprocess
 import sys
+import os
+
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+import tgt as tgt_mod  # noqa: E402
 
 HERE = __file__.rsplit("/", 1)[0]
 
@@ -178,7 +192,22 @@ def main():
     if len(args) != 3:
         sys.exit(__doc__)
     addr, obj, sym = args
-    image = opts.get("--image", "out/reference/server.dll")
+    image = opts.get("--image")
+    if image and not os.path.exists(image):
+        image = tgt_mod.find(image)["shipped"]
+    if not image:
+        want = os.path.normcase(os.path.abspath(obj))
+        hits = [t for t in tgt_mod.cfg.TARGETS
+                if any(os.path.normcase(os.path.join(tgt_mod.REPO, o)) == want
+                       for o in tgt_mod.objs(t))]
+        if not hits:
+            a = int(addr, 16)
+            hits = [t for t in tgt_mod.cfg.TARGETS
+                    if t.get("app") and tgt_mod.app_span(t)[0] <= a < tgt_mod.app_span(t)[1]]
+        if len(hits) != 1:
+            sys.exit("fndiff: which image? pass --image=<target> (%s)" % (
+                ", ".join(t["label"] for t in hits) or "no target matches"))
+        image = os.path.join(tgt_mod.REPO, hits[0]["shipped"])
     csvpath = opts.get("--csv")
     if csvpath is None:
         stem = image.rsplit("/", 1)[-1].split(".")[0]
@@ -187,6 +216,8 @@ def main():
         # table makes a whole function look like a near-miss that is really
         # the next function's bytes counted against it.
         csvpath = f"out/reference/{stem}-functions.csv"
+        if not os.path.exists(csvpath):
+            csvpath = os.path.join(os.path.dirname(image), f"{stem}-functions.csv")
 
     start = int(addr, 16)
     if "--end" in opts:
@@ -297,8 +328,9 @@ def main():
             print("  *", h)
     if ship_len == ours_len and abs(len(ship) - len(ours)) <= 2 and len(blocks) <= 3:
         print("\nsize-exact with <=3 residual blocks: if shapes are exhausted, "
-              "suspect a cl-8168 TU (server.dll is a mixed 8168/8447 build - "
-              "see richhdr.py) and document as a near.")
+              "check the file's flags (server.dll /O1, Lithtech.exe /O2, /GX; "
+              "NOLF2 is all cl 8966, progress/COMPILERS.md) and document as a "
+              "near.")
 
 
 if __name__ == "__main__":

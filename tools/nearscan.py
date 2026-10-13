@@ -22,19 +22,20 @@ allocator's:
 
 Usage:
   nearscan.py server                 # a PE target (progress.py --nears=<t>)
+
+A target is anything progress/targets.py knows it by (tools/tgt.py); each
+near's object is found among the inputs of our link (a library member is
+unpacked first).
   nearscan.py lib ButeMgrNoMFC       # a static library (libfndiff --list)
 """
+import os
 import re
 import subprocess
 import sys
 
-HERE = __file__.rsplit("/", 1)[0]
-OBJDIR = {"server": "src/engine/server/Release",
-          "lithtech": "src/engine/lithtech/Release",
-          "NOLF": "src/engine/launcher/Release"}
-IMAGE = {"server": "out/reference/server.dll",
-         "lithtech": "out/reference/lithtech.exe",
-         "NOLF": "out/reference/NOLF.exe"}
+HERE = os.path.dirname(os.path.abspath(__file__))
+sys.path.insert(0, HERE)
+import tgt as tgt_mod  # noqa: E402
 
 MNEM = ("call", "push", "pop", "sub", "add", "test", "cmp", "mov", "lea",
         "fld", "fst", "fmul", "fadd", "fsub", "fdiv", "imul", "div", "xor",
@@ -99,15 +100,20 @@ def main():
             out = run(["python3", f"{HERE}/libfndiff.py", label, sym])
             rows.append((sym,) + classify(sym, out))
     else:
-        t = args[0]
-        lst = run(["python3", f"{HERE}/progress.py", f"--nears={t}"])
+        t = tgt_mod.find(args[0])
+        os.chdir(tgt_mod.REPO)
+        lst = run(["python3", f"{HERE}/progress.py", f"--nears={t['label']}"])
         for l in lst.splitlines()[1:]:
             f = l.split()
             if len(f) != 6 or not f[1].startswith("0x"):
                 continue
             obj, sym = f[5].split(":", 1)
+            path = tgt_mod.obj_path(t, obj)
+            if not path:
+                print(f"  {obj}: not among the link's inputs", file=sys.stderr)
+                continue
             out = run(["python3", f"{HERE}/fndiff.py", f[1],
-                       f"{OBJDIR[t]}/{obj}", sym, f"--image={IMAGE[t]}"])
+                       path, sym, f"--image={t['shipped']}"])
             rows.append((sym,) + classify(sym, out))
 
     rows.sort(key=lambda r: (r[6], abs(r[2] - r[1])))

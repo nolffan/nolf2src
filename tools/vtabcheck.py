@@ -30,7 +30,15 @@ already agrees). A slot with nothing placed there is written as
 reconstruct (or, as a last resort, to carry as labelled shipped bytes).
 
 Usage:
-  vtabcheck.py [lithtech.exe|server.dll] [--all] [--sym=SUBSTR] [--spec=FILE]
+  vtabcheck.py <target> [--all] [--sym=SUBSTR] [--spec=FILE] [--aliases=RSP]
+
+NOLF2: the target is looked up in progress/targets.py (tools/tgt.py); our
+image, its .map and its link inputs (objects and libraries, from the .rsp)
+come from there. `_purecall` is found in the shipped image as the
+`jmp [IAT]` thunk of MSVCRT!_purecall (all of NOLF2 links the CRT as a
+DLL), or taken from the target's `purecall` key where the thunk cannot be
+read (Lithtech.exe's thunks are in the SecuROM pages). --aliases names a
+linkresolve.py alias file when the link uses one.
 """
 import collections
 import glob
@@ -41,20 +49,26 @@ import sys
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 import progress  # noqa: E402
+import tgt as tgt_mod  # noqa: E402
 from linkresolve import parse_obj  # noqa: E402
 from exedump import Pe  # noqa: E402
 from libextract import extract  # noqa: E402
 
 REPO = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
-# The CRT's _purecall in each shipped image (every abstract table's filler).
-PURECALL = {"lithtech.exe": 0x004928e7}
+# The CRT's _purecall in each shipped image (every abstract table's filler):
+# filled in main() from the image, or progress/targets.py's `purecall`.
+# (NOLF's lithtech.exe linked libcmt statically: 0x004928e7.)
+PURECALL = {}
 
 # Stand-in tables that ARE an SDK interface: their slots must carry the
 # header's names in order (tools/sdkvtab.py). Placement by bytes cannot tell
 # same-shape one-line wrappers apart; their names can.
+# NOLF1's lithtech.exe tables, kept as the example of the format; NOLF2's
+# are to be added (keyed by the target's label) as the engine's stand-ins
+# appear.
 SDK_IFACE = {
-    "lithtech.exe": {
+    "lithtech.exe (NOLF1)": {
         "??_7CLTClientQ404@@6B@": "ILTClient",
         "??_7ILTCSBaseQ404@@6B@": "ILTClient",
         "??_7CLTServer@@6B@": "ILTServer",
@@ -81,26 +95,34 @@ SDK_IFACE = {
 # not: (index, name), inserted before the comparison. ILTServer's slot 102 is
 # 0x0046ef80, which the reconstruction has as CLTServer::GetObjectName and
 # after which every slot lines up with the header again.
-SDK_EXTRA = {"ILTServer": [(102, "GetObjectName")]}
+# (NOLF1's ILTServer had slot 102 GetObjectName; NOLF2's SDK headers are the
+# ones the engine was built with, so nothing is known to be missing yet.)
+SDK_EXTRA = {}
 # Interfaces whose shipped table has one slot past the header's last: that
 # slot is left to placement (ILTMessage's 36th is a `return 0`).
-SDK_TAIL_EXTRA = {"ILTMessage"}
+SDK_TAIL_EXTRA = set()          # NOLF1: {"ILTMessage"}
 
 # lithtech.exe has two copies of the allocator front end (0x004290b0/c0 over
 # dalloc/dfree, 0x00435720/30 over 0x0041ec70/80) where our link has one; a
 # relocation to either reads back "wrong" against the other. Not evidence.
 TWINS = {"??2@YAPAXI@Z", "??3@YAXPAX@Z", "?dalloc@@YAPAXK@Z", "?dfree@@YAXPAX@Z"}
-TWIN_ADDRS = {0x004290b0, 0x004290c0, 0x00435720, 0x00435730,
-              0x00428fd0, 0x00429080, 0x0041ec70, 0x0041ec80}
+# NOLF1's were 0x004290b0/c0, 0x00435720/30, 0x00428fd0, 0x00429080,
+# 0x0041ec70/80; NOLF2's are not known yet.
+TWIN_ADDRS = set()
 
-TARGETS = {
-    "lithtech.exe": ("out/reference/lithtech.exe", "src/engine/lithtech",
-                     "lithtech.exe", "lithtech.map",
-                     ["src/lithshared/out/Lith.lib", "src/lithshared/out/StdLith.lib"]),
-    "server.dll": ("out/reference/server.dll", "src/engine/server",
-                   "server.dll", "server.map",
-                   ["src/lithshared/out/StdLith.lib", "src/lithshared/out/Lith.lib"]),
-}
+
+def find_purecall(pe_path):
+    """The `jmp dword ptr [IAT]` thunk of MSVCRT!_purecall, or None."""
+    pe = Pe(pe_path)
+    tva, tvs, trp = pe.secs[".text"]
+    text = pe.d[trp:trp + tvs]
+    slots = [va for va, n in pe.imports().items()
+             if n.lower().endswith("!_purecall")]
+    for va in slots:
+        i = text.find(b"\xff\x25" + struct.pack("<I", va))
+        if i >= 0:
+            return tva + i
+    return None
 
 
 class Img:
@@ -202,13 +224,21 @@ def main():
     args = [a for a in sys.argv[1:] if not a.startswith("--")]
     opts = dict((a.split("=", 1) + [True])[:2] for a in sys.argv[1:]
                 if a.startswith("--"))
-    label = args[0] if args else "lithtech.exe"
-    ship_path, d, ours, mapf, libs = TARGETS[label]
-    objs = sorted(os.path.relpath(p, REPO)
-                  for p in glob.glob(os.path.join(REPO, d, "Release/*.obj")))
-    objs += libs
+    if len(args) != 1:
+        sys.exit(__doc__)
     os.chdir(REPO)
-    progress.rows_for_image(label, ship_path, objs)
+    tgt = tgt_mod.find(args[0])
+    label = tgt["label"]
+    ship_path = tgt["shipped"]
+    ours_img = tgt_mod.require_built(tgt)
+    mapf = tgt_mod.ourmap(tgt)
+    if not mapf:
+        sys.exit("%s: no .map beside %s" % (label, ours_img))
+    objs = tgt_mod.objs(tgt)
+    pc = tgt.get("purecall") or find_purecall(os.path.join(REPO, ship_path))
+    if pc:
+        PURECALL[label] = pc
+    progress.score_target(tgt)
 
     sym2ship = {}
     for (lb, a), n in progress.PLACED_SYMS.items():
@@ -226,22 +256,19 @@ def main():
             ship2sym[a].add(n)
 
     ship = Img(os.path.join(REPO, ship_path))
-    our = Img(os.path.join(REPO, d, "Release", ours))
-    s2a, a2s = load_map(os.path.join(REPO, d, "Release", mapf))
+    our = Img(os.path.join(REPO, ours_img))
+    s2a, a2s = load_map(os.path.join(REPO, mapf))
     # `??_E` (vector deleting dtor) is a weak external onto `??_G` in the
     # objects that need it; naming it from another object does not resolve.
     for a in a2s:
         a2s[a].sort(key=lambda n: n.startswith("??_E"))
-    aliases = load_aliases(os.path.join(REPO, d, "link/aliases.rsp"))
+    aliases = load_aliases(opts["--aliases"]) if opts.get("--aliases") else {}
 
     # Rosetta: data symbols -> shipped address, from placed functions' DIR32s
     import tempfile
     tmp = tempfile.mkdtemp()
     paths = []
-    # RezMgr.lib is linked in place of the Release rez*.obj (build/engine.sh);
-    # it places nothing progress.py does not already place from those, but
-    # it is what defines the rez symbols in the link.
-    for o in objs + ["src/lithshared/out/RezMgr.lib"]:
+    for o in objs:
         if o.endswith(".lib"):
             dd = os.path.join(tmp, os.path.basename(o))
             os.makedirs(dd, exist_ok=True)
@@ -260,7 +287,9 @@ def main():
     code_of = {}
     defined = set()       # every external our link inputs define (the map
                           # lists only what /OPT:REF kept)
-    excluded = re.compile(r"Release/(rezhash|rezdir|rezemu|rezfile|rezmgr|rezmgr2)\.obj$")
+    # (NOLF1 excluded its Release rez*.obj here, which RezMgr.lib replaced in
+    # the link; the .rsp is the link's own list, so nothing is excluded.)
+    excluded = re.compile(r"(?!)")
     for p in paths:
         try:
             f, dd_, _u = parse_obj(open(p, "rb").read())
@@ -291,7 +320,7 @@ def main():
     shipped_tabs = collections.defaultdict(dict)
     shipped_args = {}     # shipped function -> dwords its `ret` pops
     # build/reference.sh writes it (tools/vtabaudit.py --csv)
-    vt = os.path.join(REPO, "out", "reference", label.split(".")[0] + "-vtables.csv")
+    vt = os.path.join(REPO, tgt_mod.vtabs_csv(tgt))
     if os.path.exists(vt):
         import csv
         for r in csv.DictReader(open(vt)):

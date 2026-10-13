@@ -33,11 +33,16 @@ instructions ship as one newline-separated blob and only the visible slice is
 built. That keeps it responsive and the file near 4MB.
 
 Usage:
-  asmweb.py <image> <objdir> [--label=server.dll] [--out=FILE] [--stats]
+  asmweb.py <target> [--out=FILE] [--stats]
 
-  asmweb.py out/reference/server.dll src/engine/server/Release --out=out/asm.html
+  asmweb.py server --out=out/asm-server.html
+
+The target is anything progress/targets.py knows it by (label, stem, image
+path; tools/tgt.py). The rows are progress.py's score_target() for it, so
+a target with no build yet renders with every function `todo`, and the
+SecuROM pages and D3DX are shown as `encrypted` and `middleware`. The page
+covers the span of the target's `app` ranges.
 """
-import glob
 import html
 import os
 import re
@@ -47,6 +52,7 @@ import tempfile
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 import progress                                            # noqa: E402
+import tgt as tgt_mod                                      # noqa: E402
 from exedump import Pe                                     # noqa: E402
 from msvcdemangle import demangle                           # noqa: E402
 
@@ -95,13 +101,10 @@ def disassemble(pe, lo, hi):
     return rows
 
 
-def classify(label, image, objdir):
-    """(blocks, stats). One block per enumerated function, in address order."""
-    objs = sorted(os.path.relpath(p, REPO)
-                  for p in glob.glob(os.path.join(REPO, objdir, "*.obj")))
-    if not objs:
-        sys.exit("no objects under " + objdir)
-    rows = progress.rows_for_image(label, image, objs)
+def classify(tgt):
+    """One block per enumerated function, in address order."""
+    label = tgt["label"]
+    rows, _ours = progress.score_target(tgt)
 
     near = {a: sym for (lb, a, _sz, sym, _our) in progress.NEAR_PAIRS
             if lb == label}
@@ -128,17 +131,19 @@ def main():
     args = [a for a in sys.argv[1:] if not a.startswith("--")]
     opts = dict((a.split("=", 1) + [True])[:2] for a in sys.argv[1:]
                 if a.startswith("--"))
-    if len(args) != 2:
+    if len(args) != 1:
         sys.exit(__doc__)
-    image, objdir = args
-    label = opts.get("--label", os.path.basename(image))
-    out = opts.get("--out", "out/asmweb.html")
+    os.chdir(REPO)
+    tgt = tgt_mod.find(args[0])
+    label = tgt["label"]
+    image = tgt["shipped"]
+    out = opts.get("--out", "out/asmweb-%s.html" % tgt["stem"])
 
     pe = Pe(os.path.join(REPO, image))
     tva, tvs, _ = pe.secs[".text"]
-    lo, hi = progress.APP_REGION.get(label, (tva, tva + tvs))
+    lo, hi = tgt_mod.app_span(tgt) or (tva, tva + tvs)
 
-    blocks = [b for b in classify(label, image, objdir) if lo <= b["addr"] < hi]
+    blocks = [b for b in classify(tgt) if lo <= b["addr"] < hi]
     insns = [r for r in disassemble(pe, lo, hi) if lo <= r[0] < hi]
 
     at = lo

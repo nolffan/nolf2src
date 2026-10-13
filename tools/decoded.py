@@ -22,9 +22,17 @@ is why bytes-per-call is printed beside it.
 
 Usage:
   decoded.py [--csv=out/progress/decoded.csv]
+
+NOLF2: every target of progress/targets.py with a build is searched, and a
+reconstruction is any object named big<addr>.obj among the inputs of its
+link (the .rsp beside our image, tools/tgt.py), wherever its source lives.
+The `target` column of progress/decoded-extents.csv and decoded-moved.csv
+is the target's stem (`Lithtech`, `server`), and decoded-moved.csv's `file`
+is matched by name against the link's objects. NOLF's d3d.ren, for which
+this was written, has no NOLF2 counterpart: the renderer is linked into
+Lithtech.exe and compiled by cl 8966, not icl.
 """
 import csv
-import glob
 import os
 import re
 import subprocess
@@ -32,19 +40,31 @@ import sys
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
-IMAGES = {"d3d": "out/reference/d3d.ren",
-          "server": "out/reference/server.dll",
-          "lithtech": "out/reference/lithtech.exe"}
-PROGRESS_NAME = {"d3d": "d3d.ren", "server": "server.dll",
-                 "lithtech": "lithtech.exe"}
-# the function tables build/reference.sh writes
-ENUM = {"d3d": "out/reference/d3d-functions.csv",
-        "server": "out/reference/server-functions.csv",
-        "lithtech": "out/reference/lithtech-functions.csv"}
+import tgt as tgt_mod  # noqa: E402
+
+# per target stem: the shipped image, the scoreboard's label, the function
+# table build/reference.sh writes, and the objects of our link
+IMAGES, PROGRESS_NAME, ENUM, OBJS = {}, {}, {}, {}
+for _t in tgt_mod.cfg.TARGETS:
+    if _t.get("kind") != "image":
+        continue
+    IMAGES[_t["stem"]] = _t["shipped"]
+    PROGRESS_NAME[_t["stem"]] = _t["label"]
+    ENUM[_t["stem"]] = tgt_mod.funcs_csv(_t)
+
+
+def _obj(target, name):
+    """Our object called `name` (any case) in the target's link, or None."""
+    if target not in OBJS:
+        OBJS[target] = {os.path.basename(o).lower(): o
+                        for o in tgt_mod.objs(tgt_mod.find(target))
+                        if o.lower().endswith(".obj")}
+    return OBJS[target].get(name.lower())
 
 
 def main():
     opts = dict(a.split("=", 1) for a in sys.argv[1:] if a.startswith("--"))
+    os.chdir(tgt_mod.REPO)
     overrides = {}
     if os.path.exists("progress/decoded-extents.csv"):
         for r in csv.DictReader(open("progress/decoded-extents.csv")):
@@ -77,7 +97,11 @@ def main():
 
     rows, exact_skipped = [], []
     for target, image in IMAGES.items():
-        d = f"src/engine/{target}"
+        _obj(target, "")
+        bigs = sorted(o for n, o in OBJS[target].items()
+                      if re.match(r"big[0-9a-f]+\.obj$", n))
+        if not bigs:
+            continue
         # Extents, with rows the suspect file calls bogus MERGED AWAY. A
         # bogus row splits a real function in two: 0x10017cee is the
         # EPILOGUE of 0x10017c14, so the enumeration lists 218 bytes and
@@ -103,8 +127,8 @@ def main():
                 n += raw[nxt]
                 nxt += raw[nxt]
             sizes[a] = n
-        for src in sorted(glob.glob(os.path.join(d, "big*.cpp"))):
-            m = re.match(r"big([0-9a-f]+)\.cpp$", os.path.basename(src))
+        for src in bigs:
+            m = re.match(r"big([0-9a-f]+)\.obj$", os.path.basename(src).lower())
             if not m:
                 continue
             # The filename carries the low hex digits, not the whole VA
@@ -133,8 +157,7 @@ def main():
                 print(f"  {src}: an extent is not in the enumeration -- "
                       f"skipped", file=sys.stderr)
                 continue
-            obj = os.path.join(d, "Release",
-                               os.path.basename(src)[:-4] + ".obj")
+            obj = src
             if not os.path.exists(obj):
                 print(f"  {src}: no object, build it first", file=sys.stderr)
                 continue
@@ -187,9 +210,10 @@ def main():
             if exact(target, addr, size):
                 exact_skipped.append((target, addr, size))
                 continue
-            obj = os.path.join(f"src/engine/{target}", "Release",
-                               r["file"][:-4] + ".obj")
-            if not os.path.exists(obj):
+            if target not in IMAGES:
+                continue
+            obj = _obj(target, os.path.splitext(r["file"])[0] + ".obj")
+            if not obj or not os.path.exists(obj):
                 print(f"  {r['file']}: no object, build it first", file=sys.stderr)
                 continue
             out = subprocess.run(

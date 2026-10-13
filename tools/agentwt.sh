@@ -1,40 +1,39 @@
 #!/usr/bin/env bash
 # Create (or remove) an isolated git worktree that can BUILD and VERIFY, for
-# working on several things at once -- typically several agents in parallel,
-# each in its own tree, so that one's half-finished edit never changes what
-# another measures, and every edit comes back already verified.
+# working on several things at once -- typically one agent per package of
+# docs/engine/PLAN.md, each in its own tree, so that one's half-finished edit
+# never changes what another measures.
 #
 # A plain `git worktree add` is not enough, because what the build needs is
 # not tracked:
 #
-#   toolchains/       the compilers (a submodule, not checked out in a
-#                     worktree)
+#   toolchains/       the compilers and SDKs (a submodule, not checked out
+#                     in a worktree)
+#   rez/              the installed retail game (build/retail.sh), the
+#                     Jupiter SDK (rez/sdk/, build/jupiter.sh) and the demo
+#                     and patch artifacts (a submodule too)
 #   out/reference/    the retail images the checks compare against
 #                     (build/reference.sh)
-#   rez/              the installed retail game the build takes its data
-#                     from (a submodule too; build/retail.sh)
 #
-# so they are symlinked in, RELATIVELY: the worktree lives inside the
-# checkout (.worktrees/<name>, gitignored), and the build container mounts
-# the checkout at /repo, so a relative link resolves both on the host and in
-# the container. An absolute host path would not resolve in the container.
-# toolchains/ and rez/ stay real directories (the submodules', uninitialised
-# in a worktree); each compiler tree, and each entry of rez/, is linked.
+# so they are copied in as HARD LINKS (`cp -al`): no extra space, and unlike
+# a symbolic link a hard link resolves inside the build container, which
+# `make` runs with the worktree itself mounted at /repo (a link pointing
+# above the worktree would dangle there). Never edit a file under those
+# three in a worktree: it is the main checkout's file too.
 #
-# The worktree is a new branch, wt/<name>, started at HEAD (or at the given
-# start point -- another branch, e.g. a wt/ branch to build on): uncommitted
-# changes in the main checkout are not in it. Commit verified work there and
-# merge or cherry-pick it from the main checkout; `rm` removes the tree but
-# keeps the branch (delete it with `git branch -D wt/<name>` once merged).
-# Each worktree gets its own src/*/Release and src/lithshared/out, so trees
-# cannot corrupt each other's objects. A new worktree has none: build what
-# you work on first (in the container):
+# The worktree is .worktrees/<name> (gitignored) on a new branch <name>,
+# started at HEAD or at the given start point. Builds go to the tree's own
+# src/*/built and out/, so trees cannot corrupt each other's objects; a new
+# worktree has none, so build first. Give each tree's containers their own
+# names, or two `make`s collide on the default name:
 #
-#   make shell                                 # from the MAIN checkout
-#   cd /repo/.worktrees/<name>
-#   build/libs.sh all && build/engine.sh server   # then the *-one loops
+#   make -C .worktrees/<name> all CONTAINER=<name>-build
+#   make -C .worktrees/<name> progress CONTAINER=<name>-progress
 #
-# Usage:  tools/agentwt.sh add <name> [start]   # prints the host and container paths
+# Commit verified work on the branch; merging it is the coordinator's
+# (PLAN.md). `rm` removes the tree but keeps the branch.
+#
+# Usage:  tools/agentwt.sh add <name> [start]
 #         tools/agentwt.sh rm  <name>
 #         tools/agentwt.sh list
 set -e
@@ -43,46 +42,41 @@ WTROOT="$REPO/.worktrees"
 
 case "${1:-list}" in
 add)
-    name="${2:?usage: agentwt.sh add <name>}"
+    name="${2:?usage: agentwt.sh add <name> [start]}"
     dir="$WTROOT/$name"
     mkdir -p "$WTROOT"
     if [ ! -d "$dir" ]; then
-        if git -C "$REPO" show-ref -q --verify "refs/heads/wt/$name"; then
-            git -C "$REPO" worktree add -q "$dir" "wt/$name"
+        if git -C "$REPO" show-ref -q --verify "refs/heads/$name"; then
+            git -C "$REPO" worktree add -q "$dir" "$name"
         else
-            git -C "$REPO" worktree add -q -b "wt/$name" "$dir" "${3:-HEAD}"
+            git -C "$REPO" worktree add -q -b "$name" "$dir" "${3:-HEAD}"
         fi
     fi
-    # the compiler trees, one link each, inside the worktree's toolchains/
-    mkdir -p "$dir/toolchains"
-    for t in "$REPO"/toolchains/*/; do
-        t="$(basename "$t")"
-        [ -e "$dir/toolchains/$t" ] || ln -s "../../../toolchains/$t" "$dir/toolchains/$t"
-    done
-    mkdir -p "$dir/out"
-    [ -L "$dir/out/reference" ] || ln -s ../../../out/reference "$dir/out/reference"
-    # rez/: its scripts and checksums, and the installed game in games/
-    mkdir -p "$dir/rez"
-    for t in "$REPO"/rez/*; do
-        t="$(basename "$t")"
-        [ -e "$dir/rez/$t" ] || ln -s "../../../rez/$t" "$dir/rez/$t"
+    # the submodules' contents and the reference images, hard-linked
+    for d in toolchains rez out/reference; do
+        [ -d "$REPO/$d" ] || continue
+        mkdir -p "$dir/$d"
+        for t in "$REPO/$d"/* "$REPO/$d"/.[!.]*; do
+            [ -e "$t" ] || continue
+            b="$(basename "$t")"
+            [ "$b" = .git ] && continue
+            [ -e "$dir/$d/$b" ] || cp -al "$t" "$dir/$d/$b"
+        done
     done
     [ -f "$REPO/out/reference/server.dll" ] \
         || echo "note: no out/reference/ yet -- run build/reference.sh in the main checkout"
-    echo "host:      $dir"
-    echo "container: /repo/.worktrees/$name   (make shell, from the main checkout)"
-    echo "branch:    wt/$name"
+    echo "tree:   $dir"
+    echo "branch: $name"
+    echo "build:  make -C $dir all CONTAINER=$name-build"
     ;;
 rm)
     name="${2:?usage: agentwt.sh rm <name>}"
-    # the links first, so nothing can reach through them to the real trees
-    find "$WTROOT/$name/toolchains" "$WTROOT/$name/rez" "$WTROOT/$name/out" -maxdepth 1 -type l -delete 2>/dev/null || true
-    git -C "$REPO" worktree remove --force "$WTROOT/$name" 2>/dev/null || rm -rf "$WTROOT/$name"
+    git -C "$REPO" worktree remove --force "$WTROOT/$name"
     git -C "$REPO" worktree prune
-    echo "removed $name (branch wt/$name kept)"
+    echo "removed $name (branch $name kept)"
     ;;
 list)
     git -C "$REPO" worktree list
     ;;
-*)  echo "usage: $0 {add|rm|list} [name]"; exit 1 ;;
+*)  echo "usage: $0 {add|rm|list} [name] [start]"; exit 1 ;;
 esac
