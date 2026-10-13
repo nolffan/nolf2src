@@ -477,16 +477,9 @@ public:
 			IncFrameStat(eFS_ShaderDrawPrim, 1);
 
 			// Draw
-			if(HasEffect(*iFirstSection))
-			{
-				FlushWithEffect(*iFirstSection, nStartIndex, nEndIndex, nStartVertex, nEndVertex);
-			}
-			else
-			{
-				PD3DDEVICE->DrawIndexedPrimitive(D3DPT_TRIANGLELIST, nStartVertex, nNumVerts,
-					nStartIndex, nNumTris);
-				DEBUG_PRINT(2,("Brush Section: (%p) Start: (%d) Verts: (%d) sIdx: (%d) Tris: (%d)", &(*iFirstSection), nStartVertex, nNumVerts, nStartIndex, nNumTris));
-			}
+			PD3DDEVICE->DrawIndexedPrimitive(D3DPT_TRIANGLELIST, nStartVertex, nNumVerts,
+				nStartIndex, nNumTris);
+			DEBUG_PRINT(2,("Brush Section: (%p) Start: (%d) Verts: (%d) sIdx: (%d) Tris: (%d)", &(*iFirstSection), nStartVertex, nNumVerts, nStartIndex, nNumTris));
 
 			IncFrameStat(eFS_WorldTriangles, nNumTris);
 
@@ -687,20 +680,6 @@ protected:
 	// Called after flushing
 	virtual void PostFlush()
 	{
-	}
-
-	// C
-	virtual bool FlushWithEffect(CInternalSection &cSection,
-		uint32 nStartIndex, uint32 nEndIndex,
-		uint32 nStartVertex, uint32 nEndVertex)
-	{
-		return false;
-	}
-
-	// C
-	virtual bool HasEffect(CInternalSection &cSection)
-	{
-		return false;
 	}
 
 	// Draw the sections with glow (default behavior is to draw in black)

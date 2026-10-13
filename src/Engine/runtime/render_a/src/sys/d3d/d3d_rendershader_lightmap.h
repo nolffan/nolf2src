@@ -12,7 +12,7 @@ class RTexture;
 struct SVertex_Lightmap
 {
 	LTVector m_vPos;
-	float m_fU, m_fV, m_fW;
+	float m_fU, m_fV;
 };
 
 struct CSection_Lightmap
@@ -37,7 +37,7 @@ struct CSection_Lightmap
 	CTrackedTextureMem	m_TextureMem;
 };
 
-enum { k_SVertex_Lightmap_FVF = D3DFVF_XYZ | D3DFVF_TEX1 | D3DFVF_TEXCOORDSIZE3(0) };
+enum { k_SVertex_Lightmap_FVF = D3DFVF_XYZ | D3DFVF_TEX1 };
 
 class CRenderShader_Lightmap : public CRenderShader_Base<SVertex_Lightmap, CSection_Lightmap, k_SVertex_Lightmap_FVF>
 {
@@ -97,7 +97,7 @@ private:
 struct SVertex_Lightmap_Texture
 {
 	LTVector m_vPos;
-	float m_fU, m_fV, m_fW;
+	float m_fU, m_fV;
 };
 
 struct CSection_Lightmap_Texture
@@ -125,7 +125,7 @@ struct CSection_Lightmap_Texture
 	bool	m_bFullbright;
 };
 
-enum { k_SVertex_Lightmap_Texture_FVF = D3DFVF_XYZ | D3DFVF_TEX1 | D3DFVF_TEXCOORDSIZE3(0) };
+enum { k_SVertex_Lightmap_Texture_FVF = D3DFVF_XYZ | D3DFVF_TEX1 };
 
 class CRenderShader_Lightmap_Texture :
 	public CRenderShader_Base<
@@ -186,8 +186,8 @@ private:
 struct SVertex_Lightmap_Texture_Detail
 {
 	LTVector m_vPos;
-	float m_fU0, m_fV0, m_fW0;
-	float m_fU1, m_fV1, m_fW1;
+	float m_fU0, m_fV0;
+	float m_fU1, m_fV1;
 };
 
 struct CSection_Lightmap_Texture_Detail
@@ -215,7 +215,7 @@ struct CSection_Lightmap_Texture_Detail
 	bool	m_bFullbright;
 };
 
-enum { k_SVertex_Lightmap_Texture_Detail_FVF = D3DFVF_XYZ | D3DFVF_TEX2 | D3DFVF_TEXCOORDSIZE3(0) | D3DFVF_TEXCOORDSIZE3(1) };
+enum { k_SVertex_Lightmap_Texture_Detail_FVF = D3DFVF_XYZ | D3DFVF_TEX2 };
 
 class CRenderShader_Lightmap_Texture_Detail :
 	public CRenderShader_Base<
@@ -267,7 +267,7 @@ struct SVertex_Lightmap_Texture_EnvMap
 {
 	LTVector m_vPos;
 	LTVector m_vNormal;
-	float m_fU, m_fV, m_fW;
+	float m_fU, m_fV;
 };
 
 struct CSection_Lightmap_Texture_EnvMap
@@ -295,7 +295,7 @@ struct CSection_Lightmap_Texture_EnvMap
 	bool	m_bFullbright;
 };
 
-enum { k_SVertex_Lightmap_Texture_EnvMap_FVF = D3DFVF_XYZ | D3DFVF_NORMAL | D3DFVF_TEX1 | D3DFVF_TEXCOORDSIZE3(0) };
+enum { k_SVertex_Lightmap_Texture_EnvMap_FVF = D3DFVF_XYZ | D3DFVF_NORMAL | D3DFVF_TEX1 };
 
 class CRenderShader_Lightmap_Texture_EnvMap :
 	public CRenderShader_Base<
@@ -347,8 +347,8 @@ struct SVertex_Lightmap_Texture_EnvBumpMap
 {
 	LTVector m_vPos;
 	LTVector m_vNormal;
-	float m_fU0, m_fV0, m_fW0;
-	float m_fU1, m_fV1, m_fW1;
+	float m_fU0, m_fV0;
+	float m_fU1, m_fV1;
 };
 
 struct CSection_Lightmap_Texture_EnvBumpMap
@@ -376,7 +376,7 @@ struct CSection_Lightmap_Texture_EnvBumpMap
 	bool	m_bFullbright;
 };
 
-enum { k_SVertex_Lightmap_Texture_EnvBumpMap_FVF = D3DFVF_XYZ | D3DFVF_NORMAL | D3DFVF_TEX2 | D3DFVF_TEXCOORDSIZE3(0) | D3DFVF_TEXCOORDSIZE3(1) };
+enum { k_SVertex_Lightmap_Texture_EnvBumpMap_FVF = D3DFVF_XYZ | D3DFVF_NORMAL | D3DFVF_TEX2 };
 
 class CRenderShader_Lightmap_Texture_EnvBumpMap :
 	public CRenderShader_Base<
@@ -435,8 +435,8 @@ struct SVertex_Lightmap_Texture_DualTexture
 {
 	LTVector m_vPos;
 	uint32 m_nColor;
-	float m_fU0, m_fV0, m_fW0;
-	float m_fU1, m_fV1, m_fW1;
+	float m_fU0, m_fV0;
+	float m_fU1, m_fV1;
 };
 
 struct CSection_Lightmap_Texture_DualTexture
@@ -467,7 +467,7 @@ struct CSection_Lightmap_Texture_DualTexture
 	bool			m_bAdditive;
 };
 
-enum { k_SVertex_Lightmap_Texture_DualTexture_FVF = D3DFVF_XYZ | D3DFVF_DIFFUSE | D3DFVF_TEX2 | D3DFVF_TEXCOORDSIZE3(0) | D3DFVF_TEXCOORDSIZE3(1) };
+enum { k_SVertex_Lightmap_Texture_DualTexture_FVF = D3DFVF_XYZ | D3DFVF_DIFFUSE | D3DFVF_TEX2 };
 
 class CRenderShader_Lightmap_Texture_DualTexture :
 	public CRenderShader_Base<
@@ -511,199 +511,6 @@ private:
 	uint32 m_nFlushStateAlpha1;
 	uint32 m_nFlushStateAlpha2;
 	uint32 m_nFlushStateFogColor;
-
-};
-
-
-
-
-//
-//---- CSection_Lightmap_Texture_DOT3BumpMap
-//
-struct SVertex_Lightmap_Texture_DOT3BumpMap
-{
-	LTVector m_vPos;
-	LTVector m_vNormal;
-   float m_fU0, m_fV0, m_fW0;
-};
-
-struct CSection_Lightmap_Texture_DOT3BumpMap
-{
-	bool operator<(const CSection_Lightmap_Texture_DOT3BumpMap &cOther) const { return m_pTexture < cOther.m_pTexture; }
-	bool operator!=(const CSection_Lightmap_Texture_DOT3BumpMap &cOther) const { return !(*this == cOther); }
-	bool operator==(const CSection_Lightmap_Texture_DOT3BumpMap &cOther) const { 
-		return 
-			(m_pTexture == cOther.m_pTexture) && 
-//			(m_nAlphaTest == cOther.m_nAlphaTest) && 
-			(m_bFullbright == cOther.m_bFullbright);
-	}
-	void SetTexture(SharedTexture *pTexture) { m_pTexture = pTexture; }
-	SharedTexture *GetTexture() { return m_pTexture; }
-
-	bool ShouldAlphaTest() const { return false; }
-	bool ShouldGlow() const { return m_bFullbright; }
-
-	SharedTexture *m_pTexture;
-	bool	m_bFullbright;
-
-};
-
-enum { k_SVertex_Lightmap_Texture_DOT3BumpMap_FVF = D3DFVF_XYZ | D3DFVF_NORMAL | D3DFVF_TEX1 | D3DFVF_TEXCOORDSIZE3(0)};
-   
-class CRenderShader_Lightmap_Texture_DOT3BumpMap : 
-	public CRenderShader_Base<	SVertex_Lightmap_Texture_DOT3BumpMap, CSection_Lightmap_Texture_DOT3BumpMap, k_SVertex_Lightmap_Texture_DOT3BumpMap_FVF>
-{
-public:
-
-	CRenderShader_Lightmap_Texture_DOT3BumpMap()	{}
-	~CRenderShader_Lightmap_Texture_DOT3BumpMap() { s_bValidateRequired = true; }
-
-	virtual bool ValidateShader(const CRBSection &cSection);
-
-	// Count the memory used by this shader
-	virtual void GetMemStats(CMemStats_World &cMemStats) const;
-
-	// Support for determining the ID of this shader
-	virtual ERenderShader GetShaderID() const { return eShader_Lightmap_Texture_DOT3BumpMap; }
-
-protected:
-
-	// Draw the sections
-	virtual void DrawNormal(const DrawState &cState, uint32 nRenderBlock);
-
-	virtual void PreFlush();
-	virtual void FlushChangeSection(CInternalSection &cSection);
-	virtual void PreFlushBlock(CInternalSection &cSection);
-	virtual void PostFlushBlock(CInternalSection &cSection, uint32 nStartIndex, uint32 nEndIndex, uint32 nStartVertex, uint32 nEndVertex);
-	virtual void PostFlush();
-
-	// Translate a block of vertices from SRBVertex to SVertex
-	virtual void TranslateVertices(SVertex_Lightmap_Texture_DOT3BumpMap *pOut, const SRBVertex *pIn, uint32 nCount);
-
-	// Fill in an internal section from a CRBSection
-	virtual void FillSection(CSection_Lightmap_Texture_DOT3BumpMap &cInternalSection, const CRBSection &cSection);
-
-private:
-
-	// Which stage each appropriate thing is installed on
-	enum 
-	{ 		
-		knBumpStage = 0,     // Normal map
-		knTexStage = 1			// texture
-	};
-
-	static bool s_bValidateRequired, s_bValidateResult;
-
-	uint32 m_nFlushStateAlpha0;
-	uint32 m_nFlushStateAlpha1;
-	uint32 m_nFlushStateAlpha2;
-	uint32 m_nFlushStateFogColor;
-
-	// saved tfactor
-	DWORD	m_nOldTFactor;
-
-};
-
-
-// Textured+EnvMap Lightmap shader
-struct SVertex_Lightmap_Texture_DOT3EnvBumpMap
-{
-	LTVector m_vPos;
-	LTVector m_vNormal;
-   float m_fU0, m_fV0, m_fW0;       // DOT3 normal map uv
- 	float m_fU1, m_fV1, m_fW1;			// texture uv
-};
-
-
-
-
-//
-//---- CSection_Lightmap_Texture_DOT3EnvBumpMap
-//
-
-struct CSection_Lightmap_Texture_DOT3EnvBumpMap
-{
-	bool operator<(const CSection_Lightmap_Texture_DOT3EnvBumpMap &cOther) const { return m_pTexture < cOther.m_pTexture; }
-	bool operator!=(const CSection_Lightmap_Texture_DOT3EnvBumpMap &cOther) const { return !(*this == cOther); }
-	bool operator==(const CSection_Lightmap_Texture_DOT3EnvBumpMap &cOther) const { 
-		return 
-			(m_pTexture == cOther.m_pTexture) && 
-//			(m_nAlphaTest == cOther.m_nAlphaTest) && 
-			(m_bFullbright == cOther.m_bFullbright);
-	}
-	void SetTexture(SharedTexture *pTexture) { m_pTexture = pTexture; }
-	SharedTexture *GetTexture() { return m_pTexture; }
-
-	bool ShouldAlphaTest() const { return false; }
-	bool ShouldGlow() const { return m_bFullbright; }
-
-	SharedTexture *m_pTexture;
-	bool	m_bFullbright;
-
-};
-
-enum { k_SVertex_Lightmap_Texture_DOT3EnvBumpMap_FVF = D3DFVF_XYZ | D3DFVF_NORMAL | D3DFVF_TEX2 | D3DFVF_TEXCOORDSIZE3(0) | D3DFVF_TEXCOORDSIZE3(1) };
-   
-class CRenderShader_Lightmap_Texture_DOT3EnvBumpMap : 
-	public CRenderShader_Base<
-		SVertex_Lightmap_Texture_DOT3EnvBumpMap, 
-		CSection_Lightmap_Texture_DOT3EnvBumpMap, 
-		k_SVertex_Lightmap_Texture_DOT3EnvBumpMap_FVF>
-{
-public:
-
-	CRenderShader_Lightmap_Texture_DOT3EnvBumpMap()	{}
-	~CRenderShader_Lightmap_Texture_DOT3EnvBumpMap() { s_bValidateRequired = true; }
-
-	virtual bool ValidateShader(const CRBSection &cSection);
-
-	// Count the memory used by this shader
-	virtual void GetMemStats(CMemStats_World &cMemStats) const;
-
-	//Support for determining the ID of this shader
-	virtual ERenderShader GetShaderID() const { return eShader_Lightmap_Texture_DOT3EnvBumpMap; }
-
-protected:
-
-	// Draw the sections
-	virtual void DrawNormal(const DrawState &cState, uint32 nRenderBlock);
-
-	virtual void PreFlush();
-	virtual void FlushChangeSection(CInternalSection &cSection);
-	virtual void PreFlushBlock(CInternalSection &cSection);
-	virtual void PostFlushBlock(CInternalSection &cSection, 
-		uint32 nStartIndex, uint32 nEndIndex,
-		uint32 nStartVertex, uint32 nEndVertex);
-	virtual void PostFlush();
-
-	// Translate a block of vertices from SRBVertex to SVertex
-	virtual void TranslateVertices(SVertex_Lightmap_Texture_DOT3EnvBumpMap *pOut, const SRBVertex *pIn, uint32 nCount);
-
-	// Fill in an internal section from a CRBSection
-	virtual void FillSection(CSection_Lightmap_Texture_DOT3EnvBumpMap &cInternalSection, const CRBSection &cSection);
-
-private:
-	// Which stage each appropriate thing is installed on
-	enum { 
-		knTexStage = 1,
-		knBumpStage = 0,
-		knEnvMapStage = 2
-	};
-
-	static bool s_bValidateRequired, s_bValidateResult; // Hack for dealing with naughty nVidia drivers
-
-	// Used during flush
-	uint32 m_nFlushStateAlpha0;
-	uint32 m_nFlushStateAlpha1;
-	uint32 m_nFlushStateAlpha2;
-	uint32 m_nFlushStateFogColor;
-
-
-	RTexture *m_pCurEnvMap;
-
-	// saved tfactor
-	DWORD	m_nOldTFactor;
-
 
 };
 

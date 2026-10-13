@@ -263,7 +263,7 @@ void CRenderShader_DynamicLight::SaveState()
 	PD3DDEVICE->GetTextureStageState(2, D3DTSS_COLOROP, &m_aSavedStates[eRS_TSS2_COp]);
 	PD3DDEVICE->GetTextureStageState(2, D3DTSS_ALPHAOP, &m_aSavedStates[eRS_TSS2_AOp]);
 
-	PD3DDEVICE->GetIndices(&m_pSavedIB);
+	PD3DDEVICE->GetIndices(&m_pSavedIB, (UINT*)&m_nSavedIBBase);
 
 	m_bStatesSaved = true;
 }
@@ -312,7 +312,7 @@ void CRenderShader_DynamicLight::ResetStates()
 	d3d_DisableTexture(0);
 	d3d_DisableTexture(1);
 
-	PD3DDEVICE->SetIndices(m_pSavedIB, 0);
+	PD3DDEVICE->SetIndices(m_pSavedIB, m_nSavedIBBase);
 
 	m_pCurLight = 0;
 

@@ -81,7 +81,6 @@ void CRenderShader_Lightmap::TranslateVertices(SVertex_Lightmap *pOut, const SRB
 		pCurOut->m_vPos = pCurIn->m_vPos;
 		pCurOut->m_fU = pCurIn->m_fU0;
 		pCurOut->m_fV = pCurIn->m_fV0;
-        pCurOut->m_fW = 1.0f;
 		++pCurOut;
 		++pCurIn;
 	}
@@ -484,7 +483,6 @@ void CRenderShader_Lightmap_Texture::TranslateVertices(SVertex_Lightmap_Texture 
 		pCurOut->m_vPos = pCurIn->m_vPos;
 		pCurOut->m_fU = pCurIn->m_fU0;
 		pCurOut->m_fV = pCurIn->m_fV0;
-        pCurOut->m_fW = 1.0f;
 		++pCurOut;
 		++pCurIn;
 	}
@@ -505,8 +503,7 @@ void CRenderShader_Lightmap_Texture::DrawNormal(const DrawState &cState, uint32 
 void CRenderShader_Lightmap_Texture::PreFlush()
 {
 
-//	PD3DDEVICE->SetRenderState(D3DRS_SLOPESCALEDEPTHBIAS, F2DW(1.0f));
-//	PD3DDEVICE->SetRenderState(D3DRS_DEPTHBIAS, F2DW(-1.0f));
+	PD3DDEVICE->SetRenderState(D3DRS_ZBIAS, 1);
 
 	// Set up our call
 	PD3DDEVICE->GetRenderState(D3DRS_ALPHABLENDENABLE, (DWORD*)&m_nFlushStateAlpha0);
@@ -574,8 +571,7 @@ void CRenderShader_Lightmap_Texture::PostFlush()
 	PD3DDEVICE->SetRenderState(D3DRS_SRCBLEND, m_nFlushStateAlpha1);
 	PD3DDEVICE->SetRenderState(D3DRS_DESTBLEND, m_nFlushStateAlpha2);
 	PD3DDEVICE->SetRenderState(D3DRS_FOGCOLOR, m_nFlushStateFogColor);
-//	PD3DDEVICE->SetRenderState(D3DRS_SLOPESCALEDEPTHBIAS, F2DW(0.0f));
-//	PD3DDEVICE->SetRenderState(D3DRS_DEPTHBIAS, F2DW(0.0f));
+	PD3DDEVICE->SetRenderState(D3DRS_ZBIAS, 0);
 }
 
 void CRenderShader_Lightmap_Texture::DebugTri(
@@ -791,10 +787,8 @@ void CRenderShader_Lightmap_Texture_Detail::TranslateVertices(SVertex_Lightmap_T
 		pCurOut->m_vPos = pCurIn->m_vPos;
 		pCurOut->m_fU0 = pCurIn->m_fU0;
 		pCurOut->m_fV0 = pCurIn->m_fV0;
-        pCurOut->m_fW0 = 1.0f;
 		pCurOut->m_fU1 = pCurIn->m_fU0 * aTexMat[0][0] + pCurIn->m_fV0 * aTexMat[0][1];
 		pCurOut->m_fV1 = pCurIn->m_fU0 * aTexMat[1][0] + pCurIn->m_fV0 * aTexMat[1][1];
-        pCurOut->m_fW1 = 1.0f;
 		++pCurOut;
 		++pCurIn;
 	}
@@ -815,8 +809,7 @@ void CRenderShader_Lightmap_Texture_Detail::DrawNormal(const DrawState &cState, 
 void CRenderShader_Lightmap_Texture_Detail::PreFlush()
 {
 	// Set up our call
-//	PD3DDEVICE->SetRenderState(D3DRS_SLOPESCALEDEPTHBIAS, F2DW(1.0f));
-//	PD3DDEVICE->SetRenderState(D3DRS_DEPTHBIAS, F2DW(-1.0f));
+	PD3DDEVICE->SetRenderState(D3DRS_ZBIAS, 1);
 
 	PD3DDEVICE->GetRenderState(D3DRS_ALPHABLENDENABLE, (DWORD*)&m_nFlushStateAlpha0);
 	PD3DDEVICE->SetRenderState(D3DRS_ALPHABLENDENABLE, TRUE);
@@ -893,8 +886,7 @@ void CRenderShader_Lightmap_Texture_Detail::PostFlush()
 	PD3DDEVICE->SetRenderState(D3DRS_DESTBLEND, m_nFlushStateAlpha2);
 	PD3DDEVICE->SetRenderState(D3DRS_FOGCOLOR, m_nFlushStateFogColor);
 
-//	PD3DDEVICE->SetRenderState(D3DRS_SLOPESCALEDEPTHBIAS, F2DW(0.0f));
-//	PD3DDEVICE->SetRenderState(D3DRS_DEPTHBIAS, F2DW(0.0f));
+	PD3DDEVICE->SetRenderState(D3DRS_ZBIAS, 0);
 }
 
 void CRenderShader_Lightmap_Texture_Detail::GetMemStats(CMemStats_World &cMemStats) const
@@ -997,7 +989,6 @@ void CRenderShader_Lightmap_Texture_EnvMap::TranslateVertices(SVertex_Lightmap_T
 		pCurOut->m_vNormal = pCurIn->m_vNormal;
 		pCurOut->m_fU = pCurIn->m_fU0;
 		pCurOut->m_fV = pCurIn->m_fV0;
-        pCurOut->m_fW = 1.0f;
 		++pCurOut;
 		++pCurIn;
 	}
@@ -1018,8 +1009,7 @@ void CRenderShader_Lightmap_Texture_EnvMap::DrawNormal(const DrawState &cState, 
 void CRenderShader_Lightmap_Texture_EnvMap::PreFlush()
 {
 	// Set up our call
-//	PD3DDEVICE->SetRenderState(D3DRS_SLOPESCALEDEPTHBIAS, F2DW(1.0f));
-//	PD3DDEVICE->SetRenderState(D3DRS_DEPTHBIAS, F2DW(-1.0f));
+	PD3DDEVICE->SetRenderState(D3DRS_ZBIAS, 1);
 
 	PD3DDEVICE->GetRenderState(D3DRS_ALPHABLENDENABLE, (DWORD*)&m_nFlushStateAlpha0);
 	PD3DDEVICE->SetRenderState(D3DRS_ALPHABLENDENABLE, TRUE);
@@ -1112,8 +1102,7 @@ void CRenderShader_Lightmap_Texture_EnvMap::PostFlush()
 	PD3DDEVICE->SetRenderState(D3DRS_DESTBLEND, m_nFlushStateAlpha2);
 	PD3DDEVICE->SetRenderState(D3DRS_FOGCOLOR, m_nFlushStateFogColor);
 
-//	PD3DDEVICE->SetRenderState(D3DRS_SLOPESCALEDEPTHBIAS, F2DW(0.0f));
-//	PD3DDEVICE->SetRenderState(D3DRS_DEPTHBIAS, F2DW(0.0f));
+	PD3DDEVICE->SetRenderState(D3DRS_ZBIAS, 0);
 }
 
 void CRenderShader_Lightmap_Texture_EnvMap::GetMemStats(CMemStats_World &cMemStats) const
@@ -1276,10 +1265,8 @@ void CRenderShader_Lightmap_Texture_EnvBumpMap::TranslateVertices(SVertex_Lightm
 		pCurOut->m_vNormal = pCurIn->m_vNormal;
 		pCurOut->m_fU0 = pCurIn->m_fU0 * aTexMat[0][0] + pCurIn->m_fV0 * aTexMat[0][1];
 		pCurOut->m_fV0 = pCurIn->m_fU0 * aTexMat[1][0] + pCurIn->m_fV0 * aTexMat[1][1];
-        pCurOut->m_fW0 = 1.0f;
 		pCurOut->m_fU1 = pCurIn->m_fU0;
 		pCurOut->m_fV1 = pCurIn->m_fV0;
-        pCurOut->m_fW1 = 1.0f;
 		++pCurOut;
 		++pCurIn;
 	}
@@ -1300,8 +1287,7 @@ void CRenderShader_Lightmap_Texture_EnvBumpMap::DrawNormal(const DrawState &cSta
 void CRenderShader_Lightmap_Texture_EnvBumpMap::PreFlush()
 {
 	// Set up our call
-//	PD3DDEVICE->SetRenderState(D3DRS_SLOPESCALEDEPTHBIAS, F2DW(1.0f));
-//	PD3DDEVICE->SetRenderState(D3DRS_DEPTHBIAS, F2DW(-1.0f));
+	PD3DDEVICE->SetRenderState(D3DRS_ZBIAS, 1);
 
 	PD3DDEVICE->GetRenderState(D3DRS_ALPHABLENDENABLE, (DWORD*)&m_nFlushStateAlpha0);
 	PD3DDEVICE->SetRenderState(D3DRS_ALPHABLENDENABLE, TRUE);
@@ -1409,15 +1395,12 @@ void CRenderShader_Lightmap_Texture_EnvBumpMap::PostFlush()
 	mIdentity.Identity();
 	PD3DDEVICE->SetTransform(D3DTS_TEXTURE0, (D3DMATRIX*)&mIdentity);
 
-	PD3DDEVICE->SetTextureStageState( 2, D3DTSS_TEXCOORDINDEX, D3DTSS_TCI_PASSTHRU | 2 );
-
 	PD3DDEVICE->SetRenderState(D3DRS_ALPHABLENDENABLE, m_nFlushStateAlpha0);
 	PD3DDEVICE->SetRenderState(D3DRS_SRCBLEND, m_nFlushStateAlpha1);
 	PD3DDEVICE->SetRenderState(D3DRS_DESTBLEND, m_nFlushStateAlpha2);
 	PD3DDEVICE->SetRenderState(D3DRS_FOGCOLOR, m_nFlushStateFogColor);
 
-//	PD3DDEVICE->SetRenderState(D3DRS_SLOPESCALEDEPTHBIAS, F2DW(0.0f));
-//	PD3DDEVICE->SetRenderState(D3DRS_DEPTHBIAS, F2DW(0.0f));
+	PD3DDEVICE->SetRenderState(D3DRS_ZBIAS, 0);
 }
 
 void CRenderShader_Lightmap_Texture_EnvBumpMap::GetMemStats(CMemStats_World &cMemStats) const
@@ -1527,10 +1510,8 @@ void CRenderShader_Lightmap_Texture_DualTexture::TranslateVertices(SVertex_Light
 		pCurOut->m_nColor = pCurIn->m_nColor;
 		pCurOut->m_fU0 = pCurIn->m_fU0;
 		pCurOut->m_fV0 = pCurIn->m_fV0;
-        pCurOut->m_fW0 = 1.0f;
 		pCurOut->m_fU1 = pCurIn->m_fU1;
 		pCurOut->m_fV1 = pCurIn->m_fV1;
-        pCurOut->m_fW1 = 1.0f;
 		++pCurOut;
 		++pCurIn;
 	}
@@ -1551,8 +1532,7 @@ void CRenderShader_Lightmap_Texture_DualTexture::DrawNormal(const DrawState &cSt
 void CRenderShader_Lightmap_Texture_DualTexture::PreFlush()
 {
 	// Set up our call
-//	PD3DDEVICE->SetRenderState(D3DRS_SLOPESCALEDEPTHBIAS, F2DW(1.0f));
-//	PD3DDEVICE->SetRenderState(D3DRS_DEPTHBIAS, F2DW(-1.0f));
+	PD3DDEVICE->SetRenderState(D3DRS_ZBIAS, 1);
 
 	PD3DDEVICE->GetRenderState(D3DRS_ALPHABLENDENABLE, (DWORD*)&m_nFlushStateAlpha0);
 	PD3DDEVICE->SetRenderState(D3DRS_ALPHABLENDENABLE, TRUE);
@@ -1617,8 +1597,7 @@ void CRenderShader_Lightmap_Texture_DualTexture::PostFlush()
 	PD3DDEVICE->SetRenderState(D3DRS_DESTBLEND, m_nFlushStateAlpha2);
 	PD3DDEVICE->SetRenderState(D3DRS_FOGCOLOR, m_nFlushStateFogColor);
 
-//	PD3DDEVICE->SetRenderState(D3DRS_SLOPESCALEDEPTHBIAS, F2DW(0.0f));
-//	PD3DDEVICE->SetRenderState(D3DRS_DEPTHBIAS, F2DW(0.0f));
+	PD3DDEVICE->SetRenderState(D3DRS_ZBIAS, 0);
 }
 
 void CRenderShader_Lightmap_Texture_DualTexture::GetMemStats(CMemStats_World &cMemStats) const
@@ -1639,626 +1618,4 @@ void CRenderShader_Lightmap_Texture_DualTexture::GetMemStats(CMemStats_World &cM
 		cMemStats.CountTexture(g_pStruct->GetTextureName(cSection.m_pTexture1), pRTexture->GetMemoryUse());
 	}
 }
-
-
-
-
-/***********************************************************************************************************/
-//
-//
-//   DOT3BUMPMAP
-//
-//
-//*********************************************************************************************************
-
-
-
-//////////////////////////////////////////////////////////////////////////////
-// CRenderShader_Lightmap_Texture_DOT3BumpMap implementation
-
-bool CRenderShader_Lightmap_Texture_DOT3BumpMap::s_bValidateRequired = true;
-bool CRenderShader_Lightmap_Texture_DOT3BumpMap::s_bValidateResult = false;
-
-bool CRenderShader_Lightmap_Texture_DOT3BumpMap::ValidateShader(const CRBSection &cSection)
-{
-	// Check the section first
-	if (!cSection.m_pTexture[0])
-		return false;
-
-	if (!cSection.m_pTexture[0]->m_pRenderData)
-		return false;
-
-	if (!cSection.m_pTexture[0]->GetLinkedTexture(eLinkedTex_BumpMap))
-		return false;
-
-	// Make sure we've got a device
-	if (!PD3DDEVICE)
-	{
-		ASSERT(!"Device not yet initialized");
-		s_bValidateRequired = true;
-		return false;
-	}
-
-	// Use our previous results if we already know about this hardware
-	if (!s_bValidateRequired)
-		return s_bValidateResult;
-
-	// Load up the textures for validation
-	d3d_SetTexture(cSection.m_pTexture[0], knTexStage, eFS_WorldBaseTexMemory);
-	d3d_SetTexture(cSection.m_pTexture[0]->GetLinkedTexture(eLinkedTex_BumpMap), knBumpStage, eFS_WorldBumpMapTexMemory);
-
-	// Try out the states
-	StateSet alpha0(D3DRS_ALPHABLENDENABLE, TRUE);
-	StateSet alpha1(D3DRS_SRCBLEND, D3DBLEND_DESTCOLOR);
-	StateSet alpha2(D3DRS_DESTBLEND, g_CV_Saturate ? D3DBLEND_SRCCOLOR : D3DBLEND_ZERO);
-
-	StateSet ssFixMultipassFog(D3DRS_FOGCOLOR, g_CV_Saturate ? 0x808080 : 0xFFFFFF);
-
-
-	// Stage 0: bump map
-
-	StageStateSet state0co (0, D3DTSS_COLOROP, D3DTOP_DOTPRODUCT3 );
-	StageStateSet state0ca1(0, D3DTSS_COLORARG1, D3DTA_TEXTURE);
-	StageStateSet state0ca2(0, D3DTSS_COLORARG2, D3DTA_TFACTOR);
-
-	StageStateSet state0ao(0, D3DTSS_ALPHAOP, D3DTOP_DOTPRODUCT3);
-	StageStateSet state0aa1(0, D3DTSS_ALPHAARG1, D3DTA_TEXTURE);
-	StageStateSet state0aa2(0, D3DTSS_ALPHAARG2, D3DTA_TFACTOR);
-
-	// Stage 1: base texture
-	StageStateSet state1co ( 1, D3DTSS_COLOROP, g_CV_DOT3Saturate ? D3DTOP_MODULATE2X : D3DTOP_MODULATE );
-	StageStateSet state1ca1( 1, D3DTSS_COLORARG1, D3DTA_TEXTURE );
-	StageStateSet state1ca2( 1, D3DTSS_COLORARG2, D3DTA_CURRENT );
-
-	StageStateSet state1ao ( 1, D3DTSS_ALPHAOP, D3DTOP_MODULATE );
-	StageStateSet state1aa1( 1, D3DTSS_ALPHAARG1, D3DTA_TEXTURE );
-	StageStateSet state1aa2( 1, D3DTSS_ALPHAARG2, D3DTA_CURRENT );
-
-	// Stage 3: End of the line
-	StageStateSet state40  ( 2, D3DTSS_COLOROP, D3DTOP_DISABLE );
-	StageStateSet state41  ( 2, D3DTSS_ALPHAOP, D3DTOP_DISABLE );
-
-
-	HRESULT hr;
-	uint32 nNumPasses;
-	hr = PD3DDEVICE->ValidateDevice((DWORD*)&nNumPasses);
-
-	d3d_DisableTexture(0);
-	d3d_DisableTexture(1);
-
-	s_bValidateRequired = false;
-	s_bValidateResult = true;
-	if (FAILED(hr))
-	{
-		s_bValidateResult = false;
-	}
-
-	return s_bValidateResult;
-}
-
-void CRenderShader_Lightmap_Texture_DOT3BumpMap::TranslateVertices(SVertex_Lightmap_Texture_DOT3BumpMap *pOut, const SRBVertex *pIn, uint32 nCount)
-{
-
-	SVertex_Lightmap_Texture_DOT3BumpMap *pCurOut = pOut;
-	SVertex_Lightmap_Texture_DOT3BumpMap *pEndOut = &pCurOut[nCount];
-	const SRBVertex *pCurIn = pIn;
-	const SRBVertex *pEndIn = &pCurIn[nCount];
-
-	while (pCurOut != pEndOut)
-	{
-		// only one set of coords
-		pCurOut->m_vPos = pCurIn->m_vPos;
-		pCurOut->m_vNormal = pCurIn->m_vNormal;
-		pCurOut->m_fU0 = pCurIn->m_fU0;
-		pCurOut->m_fV0 = pCurIn->m_fV0;
-		pCurOut->m_fW0 = 1.0f;
-
-		++pCurOut;
-		++pCurIn;
-	}
-
-
-}
-
-void CRenderShader_Lightmap_Texture_DOT3BumpMap::FillSection(CSection_Lightmap_Texture_DOT3BumpMap &cInternalSection, const CRBSection &cSection)
-{
-	cInternalSection.m_pTexture = cSection.m_pTexture[0];
-	RTexture *pRenderTexture = (RTexture*)cSection.m_pTexture[0]->m_pRenderData;
-	cInternalSection.m_bFullbright = pRenderTexture->IsFullbrite();
-}
-
-void CRenderShader_Lightmap_Texture_DOT3BumpMap::DrawNormal(const DrawState &cState, uint32 nRenderBlock)
-{
-
-	QueueRenderBlock(nRenderBlock);
-
-}
-
-void CRenderShader_Lightmap_Texture_DOT3BumpMap::PreFlush()
-{
-
-	// Set up our call
-	PD3DDEVICE->GetRenderState(D3DRS_ALPHABLENDENABLE, (DWORD*)&m_nFlushStateAlpha0);
-	PD3DDEVICE->SetRenderState(D3DRS_ALPHABLENDENABLE, TRUE);
-	PD3DDEVICE->GetRenderState(D3DRS_SRCBLEND, (DWORD*)&m_nFlushStateAlpha1);
-	PD3DDEVICE->SetRenderState(D3DRS_SRCBLEND, D3DBLEND_DESTCOLOR);
-	PD3DDEVICE->GetRenderState(D3DRS_DESTBLEND, (DWORD*)&m_nFlushStateAlpha2);
-	PD3DDEVICE->SetRenderState(D3DRS_DESTBLEND, g_CV_Saturate ? D3DBLEND_SRCCOLOR : D3DBLEND_ZERO);
-
-	PD3DDEVICE->GetRenderState(D3DRS_FOGCOLOR, (DWORD*)&m_nFlushStateFogColor);
-	PD3DDEVICE->SetRenderState(D3DRS_FOGCOLOR, g_CV_Saturate ? 0x808080 : 0xFFFFFF);
-
-
-	// save the tfactor before setting it
-	PD3DDEVICE->GetRenderState( D3DRS_TEXTUREFACTOR, &m_nOldTFactor);
-
-	// Create a light vector for ambient lighting ( light points straight on the surface ) 
-	LTVector vLight(-1.0f,0.0f,1.0f);
-
-	// Set the TFactor to the vector to rgb for DOT3 mapping 
-	PD3DDEVICE->SetRenderState( D3DRS_TEXTUREFACTOR, d3d_VectorToRGB(&vLight) );
-
-	// Stage 1: the bump map.
-	PD3DDEVICE->SetTextureStageState( 0, D3DTSS_COLOROP, D3DTOP_DOTPRODUCT3 );
-	PD3DDEVICE->SetTextureStageState( 0, D3DTSS_COLORARG1, D3DTA_TEXTURE );		
-	PD3DDEVICE->SetTextureStageState( 0, D3DTSS_COLORARG2, D3DTA_TFACTOR );
-
-	PD3DDEVICE->SetTextureStageState( 0, D3DTSS_ALPHAOP, D3DTOP_DOTPRODUCT3 );
-	PD3DDEVICE->SetTextureStageState( 0, D3DTSS_ALPHAARG1, D3DTA_TEXTURE );
-	PD3DDEVICE->SetTextureStageState( 0, D3DTSS_ALPHAARG1, D3DTA_TFACTOR );
-
-	// Stage 2: base texture
-	PD3DDEVICE->SetTextureStageState(1, D3DTSS_COLOROP, g_CV_DOT3Saturate ? D3DTOP_MODULATE2X : D3DTOP_MODULATE );
-	PD3DDEVICE->SetTextureStageState(1, D3DTSS_COLORARG1, D3DTA_TEXTURE);
-	PD3DDEVICE->SetTextureStageState(1, D3DTSS_COLORARG2, D3DTA_CURRENT );
-
-	PD3DDEVICE->SetTextureStageState(1, D3DTSS_ALPHAOP, D3DTOP_MODULATE );
-	PD3DDEVICE->SetTextureStageState(1, D3DTSS_ALPHAARG1, D3DTA_TEXTURE);
-	PD3DDEVICE->SetTextureStageState(1, D3DTSS_ALPHAARG2, D3DTA_CURRENT );  // ??? DIFFUSE ????
-
-	PD3DDEVICE->SetTextureStageState(1, D3DTSS_TEXCOORDINDEX, D3DTSS_TCI_PASSTHRU | 0 );
-
-	// Stage 4: End of the line
-	PD3DDEVICE->SetTextureStageState( 2, D3DTSS_COLOROP, D3DTOP_DISABLE );
-	PD3DDEVICE->SetTextureStageState( 2, D3DTSS_ALPHAOP, D3DTOP_DISABLE );
-
-}
-
-
-
-void CRenderShader_Lightmap_Texture_DOT3BumpMap::FlushChangeSection(CInternalSection &cSection)
-{
-	// Change the texture
-	d3d_SetTexture(cSection.m_pTexture, knTexStage, eFS_WorldBaseTexMemory);
-	d3d_SetTexture(cSection.m_pTexture->GetLinkedTexture(eLinkedTex_BumpMap), knBumpStage, eFS_WorldBumpMapTexMemory);
-
-}
-
-
-
-void CRenderShader_Lightmap_Texture_DOT3BumpMap::PreFlushBlock(CInternalSection &cSection)
-{
-	// Setup texture effects
-	if (cSection.m_pTextureEffect)
-		cSection.m_pTextureEffect->Install(1, TSChannel_Base);
-}
-
-
-
-void CRenderShader_Lightmap_Texture_DOT3BumpMap::PostFlushBlock(CInternalSection &cSection, uint32 nStartIndex, uint32 nEndIndex,uint32 nStartVertex, uint32 nEndVertex )
-{
-	// Fullbright it
-	if (cSection.m_bFullbright)
-	{
-
-		PD3DDEVICE->SetRenderState(D3DRS_SRCBLEND, D3DBLEND_SRCALPHA);
-		PD3DDEVICE->SetRenderState(D3DRS_DESTBLEND, D3DBLEND_INVSRCALPHA);
-
-		// Draw it
-		uint32 nNumTris = (nEndIndex - nStartIndex) / 3;
-		PD3DDEVICE->DrawIndexedPrimitive(D3DPT_TRIANGLELIST, nStartVertex, nEndVertex - nStartVertex,
-			nStartIndex, nNumTris);
-
-		IncFrameStat(eFS_WorldTriangles, nNumTris);
-
-		PD3DDEVICE->SetRenderState(D3DRS_SRCBLEND, D3DBLEND_DESTCOLOR);
-		PD3DDEVICE->SetRenderState(D3DRS_DESTBLEND, g_CV_Saturate ? D3DBLEND_SRCCOLOR : D3DBLEND_ZERO);
-
-	}
-
-	// Clear texture effects
-	if (cSection.m_pTextureEffect)
-		cSection.m_pTextureEffect->Uninstall(1, TSChannel_Base );
-}
-
-
-
-
-void CRenderShader_Lightmap_Texture_DOT3BumpMap::PostFlush()
-{
-	d3d_DisableTexture(knTexStage);
-	d3d_DisableTexture(knBumpStage);
-
-	// Restore the TFactor changed for bump mapping
-	PD3DDEVICE->SetRenderState( D3DRS_TEXTUREFACTOR, m_nOldTFactor );
-
-	// restore coords index
-	PD3DDEVICE->SetTextureStageState(1, D3DTSS_TEXCOORDINDEX, D3DTSS_TCI_PASSTHRU | 1 );
-
-	PD3DDEVICE->SetRenderState(D3DRS_ALPHABLENDENABLE, m_nFlushStateAlpha0);
-	PD3DDEVICE->SetRenderState(D3DRS_SRCBLEND, m_nFlushStateAlpha1);
-	PD3DDEVICE->SetRenderState(D3DRS_DESTBLEND, m_nFlushStateAlpha2);
-	PD3DDEVICE->SetRenderState(D3DRS_FOGCOLOR, m_nFlushStateFogColor);
-
-}
-
-
-
-void CRenderShader_Lightmap_Texture_DOT3BumpMap::GetMemStats(CMemStats_World &cMemStats) const
-{
-	cMemStats.m_nVertexCount += m_nTotalVertexCount;
-	cMemStats.m_nVertexData += m_nTotalVertexCount * sizeof(SVertex_Lightmap_Texture_DOT3BumpMap);
-	cMemStats.m_nTriangleCount += m_nTotalTriCount;
-	cMemStats.m_nTriangleData += m_nTotalTriCount * 3 * sizeof(uint16);
-
-	TSectionList::const_iterator iCurSection = m_aSections.begin();
-	for (; iCurSection != m_aSections.end(); ++iCurSection)
-	{
-		const CInternalSection &cSection = *iCurSection;
-		const RTexture* pRTexture = (const RTexture*)cSection.m_pTexture->m_pRenderData;
-		cMemStats.CountTexture(g_pStruct->GetTextureName(cSection.m_pTexture), pRTexture->GetMemoryUse());
-
-		pRTexture = (const RTexture*)cSection.m_pTexture->GetLinkedTexture(eLinkedTex_BumpMap)->m_pRenderData;
-		cMemStats.CountTexture(g_pStruct->GetTextureName(cSection.m_pTexture->GetLinkedTexture(eLinkedTex_BumpMap)), pRTexture->GetMemoryUse());
-	}
-}
-
-
-
-
-
-/***********************************************************************************************************/
-//
-//
-//   DOT3ENVBUMPMAP
-//
-//
-//*********************************************************************************************************
-
-
-
-//////////////////////////////////////////////////////////////////////////////
-// CRenderShader_Lightmap_Texture_DOT3EnvBumpMap implementation
-
-bool CRenderShader_Lightmap_Texture_DOT3EnvBumpMap::s_bValidateRequired = true;
-bool CRenderShader_Lightmap_Texture_DOT3EnvBumpMap::s_bValidateResult = false;
-
-bool CRenderShader_Lightmap_Texture_DOT3EnvBumpMap::ValidateShader(const CRBSection &cSection)
-{
-	// Check the section first
-	if (!cSection.m_pTexture[0])
-		return false;
-
-	if (!cSection.m_pTexture[0]->m_pRenderData)
-		return false;
-
-	if (!cSection.m_pTexture[0]->GetLinkedTexture(eLinkedTex_EnvMap))
-		return false;
-
-	if (!cSection.m_pTexture[0]->GetLinkedTexture(eLinkedTex_BumpMap))
-		return false;
-
-	// Make sure we've got a device
-	if (!PD3DDEVICE)
-	{
-		ASSERT(!"Device not yet initialized");
-		s_bValidateRequired = true;
-		return false;
-	}
-
-	// Use our previous results if we already know about this hardware
-	if (!s_bValidateRequired)
-		return s_bValidateResult;
-
-	// Load up the textures for validation
-	d3d_SetTexture(cSection.m_pTexture[0], knTexStage, eFS_WorldBaseTexMemory);
-	d3d_SetTexture(cSection.m_pTexture[0]->GetLinkedTexture(eLinkedTex_BumpMap), knBumpStage, eFS_WorldBumpMapTexMemory);
-	d3d_SetTexture(cSection.m_pTexture[0]->GetLinkedTexture(eLinkedTex_EnvMap), knEnvMapStage, eFS_WorldEnvMapTexMemory);
-
-
-	//find the operation we want to use to blend the environment map
-	DWORD nEnvBlendOp = g_CV_EnvMapAdd.m_Val ? D3DTOP_ADDSIGNED : D3DTOP_MODULATE;
-
-	// Try out the states
-	StateSet alpha0(D3DRS_ALPHABLENDENABLE, TRUE);
-	StateSet alpha1(D3DRS_SRCBLEND, D3DBLEND_DESTCOLOR);
-	StateSet alpha2(D3DRS_DESTBLEND, g_CV_Saturate ? D3DBLEND_SRCCOLOR : D3DBLEND_ZERO);
-
-	StateSet ssFixMultipassFog(D3DRS_FOGCOLOR, g_CV_Saturate ? 0x808080 : 0xFFFFFF);
-
-	// Stage 0: bump map
-
-	StageStateSet state0co (0, D3DTSS_COLOROP, D3DTOP_DOTPRODUCT3 );
-	StageStateSet state0ca1(0, D3DTSS_COLORARG1, D3DTA_TEXTURE);
-	StageStateSet state0ca2(0, D3DTSS_COLORARG2, D3DTA_TFACTOR);
-
-	StageStateSet state0ao(0, D3DTSS_ALPHAOP, D3DTOP_DOTPRODUCT3);
-	StageStateSet state0aa1(0, D3DTSS_ALPHAARG1, D3DTA_TEXTURE);
-	StageStateSet state0aa2(0, D3DTSS_ALPHAARG2, D3DTA_TFACTOR);
-
-	// Stage 1: base texture
-	StageStateSet state1co ( 1, D3DTSS_COLOROP, g_CV_DOT3Saturate ? D3DTOP_MODULATE2X : D3DTOP_MODULATE );
-	StageStateSet state1ca1( 1, D3DTSS_COLORARG1, D3DTA_TEXTURE );
-	StageStateSet state1ca2( 1, D3DTSS_COLORARG2, D3DTA_CURRENT );
-
-	StageStateSet state1ao ( 1, D3DTSS_ALPHAOP, D3DTOP_MODULATE );
-	StageStateSet state1aa1( 1, D3DTSS_ALPHAARG1, D3DTA_TEXTURE );
-	StageStateSet state1aa2( 1, D3DTSS_ALPHAARG2, D3DTA_CURRENT );
-
-	// Stage 2: the environment map
-	StageStateSet state2co ( 2, D3DTSS_COLOROP, nEnvBlendOp );
-	StageStateSet state2ca1( 2, D3DTSS_COLORARG1, D3DTA_TEXTURE );
-	StageStateSet state2ca2( 2, D3DTSS_COLORARG2, D3DTA_CURRENT );
-	StageStateSet state2ao ( 2, D3DTSS_ALPHAOP, D3DTOP_MODULATE );
-	StageStateSet state2ao1( 2, D3DTSS_ALPHAARG1, D3DTA_TEXTURE ); 
-	StageStateSet state2ao2( 2, D3DTSS_ALPHAARG2, D3DTA_DIFFUSE );
-
-	// Stage 4: End of the line
-	StageStateSet state40  ( 3, D3DTSS_COLOROP, D3DTOP_DISABLE );
-	StageStateSet state41  ( 3, D3DTSS_ALPHAOP, D3DTOP_DISABLE );
-
-
-	HRESULT hr;
-	uint32 nNumPasses;
-	hr = PD3DDEVICE->ValidateDevice((DWORD*)&nNumPasses);
-
-	d3d_DisableTexture(0);
-	d3d_DisableTexture(1);
-	d3d_DisableTexture(2);
-
-	s_bValidateRequired = false;
-	s_bValidateResult = true;
-	if (FAILED(hr))
-	{
-		s_bValidateResult = false;
-	}
-
-	return s_bValidateResult;
-}
-
-void CRenderShader_Lightmap_Texture_DOT3EnvBumpMap::TranslateVertices(SVertex_Lightmap_Texture_DOT3EnvBumpMap *pOut, const SRBVertex *pIn, uint32 nCount)
-{
-	SVertex_Lightmap_Texture_DOT3EnvBumpMap *pCurOut = pOut;
-	SVertex_Lightmap_Texture_DOT3EnvBumpMap *pEndOut = &pCurOut[nCount];
-
-	const SRBVertex *pCurIn = pIn;
-	const SRBVertex *pEndIn = &pCurIn[nCount];
-
-	// Set up a texture transform to get the detail texture coords
-	float aTexMat[2][2];
-
-	CRenderBlockData &cRB = m_aRenderBlocks[m_nCurRB];
-	CInternalSection &cISection = m_aSections[cRB.m_aSections[m_nCurSection]];
-
-	SharedTexture *pTexture = cISection.m_pTexture;
-	RTexture *pRTex = LTNULL;
-	if (pTexture)
-	{
-		pRTex = reinterpret_cast<RTexture*>(pTexture->m_pRenderData);
-	}
-	if (pRTex)
-	{
-		float fScale = pRTex->m_DetailTextureScale * g_CV_EnvBumpMapScale.m_Val;
-		aTexMat[0][0] = fScale * pRTex->m_DetailTextureAngleC;
-		aTexMat[0][1] = fScale * -pRTex->m_DetailTextureAngleS;
-		aTexMat[1][0] = fScale * pRTex->m_DetailTextureAngleS;
-		aTexMat[1][1] = fScale * pRTex->m_DetailTextureAngleC;
-	}
-	else
-	{
-		ASSERT(!"Error setting detail texture coordinates (bad texture)");
-		// Initialize to identity * g_CV_DetailTextureScale in failure cases
-		aTexMat[0][0] = g_CV_EnvBumpMapScale.m_Val;
-		aTexMat[0][1] = 0.0f;
-		aTexMat[1][0] = 0.0f;
-		aTexMat[1][1] = g_CV_EnvBumpMapScale.m_Val;
-	}
-
-	while (pCurOut != pEndOut)
-	{
-		pCurOut->m_vPos = pCurIn->m_vPos;
-		pCurOut->m_vNormal = pCurIn->m_vNormal;
-		pCurOut->m_fU0 = pCurIn->m_fU0 * aTexMat[0][0] + pCurIn->m_fV0 * aTexMat[0][1];
-		pCurOut->m_fV0 = pCurIn->m_fU0 * aTexMat[1][0] + pCurIn->m_fV0 * aTexMat[1][1];
-      pCurOut->m_fW0 = 1.0f;
-
-		pCurOut->m_fU1 = pCurIn->m_fU0;
-		pCurOut->m_fV1 = pCurIn->m_fV0;
-      pCurOut->m_fW1 = 1.0f;
-		++pCurOut;
-		++pCurIn;
-	}
-}
-
-void CRenderShader_Lightmap_Texture_DOT3EnvBumpMap::FillSection(CSection_Lightmap_Texture_DOT3EnvBumpMap &cInternalSection, const CRBSection &cSection)
-{
-	cInternalSection.m_pTexture = cSection.m_pTexture[0];
-	RTexture *pRenderTexture = (RTexture*)cSection.m_pTexture[0]->m_pRenderData;
-	cInternalSection.m_bFullbright = pRenderTexture->IsFullbrite();
-}
-
-void CRenderShader_Lightmap_Texture_DOT3EnvBumpMap::DrawNormal(const DrawState &cState, uint32 nRenderBlock)
-{
-
-	QueueRenderBlock(nRenderBlock);
-
-}
-
-void CRenderShader_Lightmap_Texture_DOT3EnvBumpMap::PreFlush()
-{
-	// Find the operation we want to use to blend the environment map
-	DWORD nEnvBlendOp = g_CV_EnvMapAdd.m_Val ? D3DTOP_ADDSIGNED : D3DTOP_MODULATE;
-
-	// save the tfactor before setting it
-	PD3DDEVICE->GetRenderState( D3DRS_TEXTUREFACTOR, &m_nOldTFactor);
-
-	// Create a light vector for ambient lighting ( light points straight on the surface ) 
-	LTVector vLight(-1.0f,0.0f,1.0f);
-
-	// Set the TFactor to the vector to rgb for DOT3 mapping 
-	PD3DDEVICE->SetRenderState( D3DRS_TEXTUREFACTOR, d3d_VectorToRGB(&vLight) );
-
-
-	PD3DDEVICE->GetRenderState(D3DRS_ALPHABLENDENABLE, (DWORD*)&m_nFlushStateAlpha0);
-	PD3DDEVICE->SetRenderState(D3DRS_ALPHABLENDENABLE, TRUE);
-	PD3DDEVICE->GetRenderState(D3DRS_SRCBLEND, (DWORD*)&m_nFlushStateAlpha1);
-	PD3DDEVICE->SetRenderState(D3DRS_SRCBLEND, D3DBLEND_DESTCOLOR);
-	PD3DDEVICE->GetRenderState(D3DRS_DESTBLEND, (DWORD*)&m_nFlushStateAlpha2);
-	PD3DDEVICE->SetRenderState(D3DRS_DESTBLEND, g_CV_Saturate ? D3DBLEND_SRCCOLOR : D3DBLEND_ZERO);
-
-	PD3DDEVICE->GetRenderState(D3DRS_FOGCOLOR, (DWORD*)&m_nFlushStateFogColor);
-	PD3DDEVICE->SetRenderState(D3DRS_FOGCOLOR, g_CV_Saturate ? 0x808080 : 0xFFFFFF);
-
-
-	//Stage 1: Bump map
-	PD3DDEVICE->SetTextureStageState( 0, D3DTSS_COLOROP, D3DTOP_DOTPRODUCT3 );
-	PD3DDEVICE->SetTextureStageState( 0, D3DTSS_COLORARG1, D3DTA_TEXTURE );
-	PD3DDEVICE->SetTextureStageState( 0, D3DTSS_COLORARG2, D3DTA_TFACTOR );
-		
-	PD3DDEVICE->SetTextureStageState( 0, D3DTSS_ALPHAOP, D3DTOP_DOTPRODUCT3 );
-	PD3DDEVICE->SetTextureStageState( 0, D3DTSS_ALPHAARG1, D3DTA_TEXTURE);
-	PD3DDEVICE->SetTextureStageState( 0, D3DTSS_ALPHAARG2, D3DTA_TFACTOR );
-
-	// Stage 2: base texture
-	PD3DDEVICE->SetTextureStageState(1, D3DTSS_COLOROP, g_CV_DOT3Saturate ? D3DTOP_MODULATE2X : D3DTOP_MODULATE);
-	PD3DDEVICE->SetTextureStageState(1, D3DTSS_COLORARG1, D3DTA_TEXTURE);
-	PD3DDEVICE->SetTextureStageState(1, D3DTSS_COLORARG2, D3DTA_CURRENT );
-
-	PD3DDEVICE->SetTextureStageState( 1, D3DTSS_ALPHAOP, D3DTOP_MODULATE );
-	PD3DDEVICE->SetTextureStageState( 1, D3DTSS_ALPHAARG1, D3DTA_TEXTURE );
-	PD3DDEVICE->SetTextureStageState( 1, D3DTSS_ALPHAARG2, D3DTA_CURRENT );
-
-	PD3DDEVICE->SetTextureStageState(1, D3DTSS_TEXCOORDINDEX,  D3DTSS_TCI_PASSTHRU | 0 );
-
-	// Stage 1: a specular environment map.
-	PD3DDEVICE->SetTextureStageState( 2, D3DTSS_COLOROP, nEnvBlendOp  );
-	PD3DDEVICE->SetTextureStageState( 2, D3DTSS_COLORARG1, D3DTA_TEXTURE );
-	PD3DDEVICE->SetTextureStageState( 2, D3DTSS_COLORARG2, D3DTA_CURRENT );
-
-	PD3DDEVICE->SetTextureStageState( 2, D3DTSS_ALPHAOP, D3DTOP_ADD );
-	PD3DDEVICE->SetTextureStageState( 2, D3DTSS_ALPHAARG1, D3DTA_TEXTURE );
-	PD3DDEVICE->SetTextureStageState( 2, D3DTSS_ALPHAARG2, D3DTA_CURRENT );
-	
-	// Stage 4: End of the line
-	PD3DDEVICE->SetTextureStageState( 3, D3DTSS_COLOROP, D3DTOP_DISABLE );
-	PD3DDEVICE->SetTextureStageState( 3, D3DTSS_ALPHAOP, D3DTOP_DISABLE );
-
-	m_pCurEnvMap = 0;
-}
-
-void CRenderShader_Lightmap_Texture_DOT3EnvBumpMap::FlushChangeSection(CInternalSection &cSection)
-{
-	// See if we need to setup the environment map texture
-	RTexture* pCurrRTexture = (RTexture*)cSection.m_pTexture->m_pRenderData;
-	if (pCurrRTexture != m_pCurEnvMap)
-	{
-		RTexture* pEnvMap = (RTexture*)cSection.m_pTexture->GetLinkedTexture(eLinkedTex_EnvMap)->m_pRenderData;
-		d3d_SetEnvMapTransform(pEnvMap, knEnvMapStage);
-		
-		m_pCurEnvMap = pCurrRTexture;
-	}
-
-	// Change the texture
-	d3d_SetTexture(cSection.m_pTexture, knTexStage, eFS_WorldBaseTexMemory);
-	d3d_SetTexture(cSection.m_pTexture->GetLinkedTexture(eLinkedTex_BumpMap), knBumpStage, eFS_WorldBumpMapTexMemory);
-	d3d_SetTexture(cSection.m_pTexture->GetLinkedTexture(eLinkedTex_EnvMap), knEnvMapStage, eFS_WorldEnvMapTexMemory);
-
-}
-
-void CRenderShader_Lightmap_Texture_DOT3EnvBumpMap::PreFlushBlock(CInternalSection &cSection)
-{
-	// Setup texture effects
-	if (cSection.m_pTextureEffect)
-		cSection.m_pTextureEffect->Install(3, TSChannel_Base, TSChannel_Null, TSChannel_Base);
-}
-
-void CRenderShader_Lightmap_Texture_DOT3EnvBumpMap::PostFlushBlock(CInternalSection &cSection, 
-		uint32 nStartIndex, uint32 nEndIndex,
-		uint32 nStartVertex, uint32 nEndVertex)
-{
-	// Fullbright it
-	if (cSection.m_bFullbright)
-	{
-		PD3DDEVICE->SetRenderState(D3DRS_SRCBLEND, D3DBLEND_SRCALPHA);
-		PD3DDEVICE->SetRenderState(D3DRS_DESTBLEND, D3DBLEND_INVSRCALPHA);
-
-		// Draw it
-		uint32 nNumTris = (nEndIndex - nStartIndex) / 3;
-		PD3DDEVICE->DrawIndexedPrimitive(D3DPT_TRIANGLELIST, nStartVertex, nEndVertex - nStartVertex,
-			nStartIndex, nNumTris);
-
-		IncFrameStat(eFS_WorldTriangles, nNumTris);
-
-		PD3DDEVICE->SetRenderState(D3DRS_SRCBLEND, D3DBLEND_DESTCOLOR);
-		PD3DDEVICE->SetRenderState(D3DRS_DESTBLEND, g_CV_Saturate ? D3DBLEND_SRCCOLOR : D3DBLEND_ZERO);
-
-	}
-
-	// Clear texture effects
-	if (cSection.m_pTextureEffect)
-		cSection.m_pTextureEffect->Uninstall(3, TSChannel_Base, TSChannel_Null, TSChannel_Base);
-}
-
-void CRenderShader_Lightmap_Texture_DOT3EnvBumpMap::PostFlush()
-{
-	d3d_DisableTexture(knTexStage);
-	d3d_DisableTexture(knBumpStage);
-	d3d_DisableTexture(knEnvMapStage);
-
-	// Make sure to turn off the transform
-	d3d_UnsetEnvMapTransform(knEnvMapStage);
-
-	// Restore the TFactor changed for bump mapping
-	PD3DDEVICE->SetRenderState( D3DRS_TEXTUREFACTOR, m_nOldTFactor );
-
-
-	LTMatrix mIdentity;
-	mIdentity.Identity();
-	PD3DDEVICE->SetTransform((D3DTRANSFORMSTATETYPE)(D3DTS_TEXTURE0+knEnvMapStage), (D3DMATRIX*)&mIdentity);
-
-	PD3DDEVICE->SetTextureStageState( 1, D3DTSS_TEXCOORDINDEX, D3DTSS_TCI_PASSTHRU | 1 );
-
-	PD3DDEVICE->SetRenderState(D3DRS_ALPHABLENDENABLE, m_nFlushStateAlpha0);
-	PD3DDEVICE->SetRenderState(D3DRS_SRCBLEND, m_nFlushStateAlpha1);
-	PD3DDEVICE->SetRenderState(D3DRS_DESTBLEND, m_nFlushStateAlpha2);
-	PD3DDEVICE->SetRenderState(D3DRS_FOGCOLOR, m_nFlushStateFogColor);
-
-}
-
-void CRenderShader_Lightmap_Texture_DOT3EnvBumpMap::GetMemStats(CMemStats_World &cMemStats) const
-{
-	cMemStats.m_nVertexCount += m_nTotalVertexCount;
-	cMemStats.m_nVertexData += m_nTotalVertexCount * sizeof(SVertex_Lightmap_Texture_DOT3EnvBumpMap);
-	cMemStats.m_nTriangleCount += m_nTotalTriCount;
-	cMemStats.m_nTriangleData += m_nTotalTriCount * 3 * sizeof(uint16);
-
-	TSectionList::const_iterator iCurSection = m_aSections.begin();
-	for (; iCurSection != m_aSections.end(); ++iCurSection)
-	{
-		const CInternalSection &cSection = *iCurSection;
-		const RTexture* pRTexture = (const RTexture*)cSection.m_pTexture->m_pRenderData;
-		cMemStats.CountTexture(g_pStruct->GetTextureName(cSection.m_pTexture), pRTexture->GetMemoryUse());
-
-		pRTexture = (const RTexture*)cSection.m_pTexture->GetLinkedTexture(eLinkedTex_EnvMap)->m_pRenderData;
-		cMemStats.CountTexture(g_pStruct->GetTextureName(cSection.m_pTexture->GetLinkedTexture(eLinkedTex_EnvMap)), pRTexture->GetMemoryUse());
-
-		pRTexture = (const RTexture*)cSection.m_pTexture->GetLinkedTexture(eLinkedTex_BumpMap)->m_pRenderData;
-		cMemStats.CountTexture(g_pStruct->GetTextureName(cSection.m_pTexture->GetLinkedTexture(eLinkedTex_BumpMap)), pRTexture->GetMemoryUse());
-	}
-}
-
-
-
-
-
 
