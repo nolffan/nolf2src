@@ -62,7 +62,10 @@ class LAlloc;
 #define MODELFLAG_CACHED_CLIENT (1<<1)
 
 // enable the obb in the model db.
-#define MODEL_OBB 1
+// nolf2src: NOLF2 shipped without them (the retail Model::Load skips them with
+// "this feature is not supported in this version of exe"; the Mac build's
+// ILTModel::GetModelOBBCopy/UpdateModelOBB only fail).
+#define MODEL_OBB 0
 
 class ModelNode;
 class ModelAnim;

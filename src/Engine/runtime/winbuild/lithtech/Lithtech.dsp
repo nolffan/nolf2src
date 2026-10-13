@@ -258,13 +258,6 @@ SOURCE=..\..\shared\src\ftserv.cpp
 # Begin Source File
 
 SOURCE=..\..\world\src\fullintersectline.cpp
-
-!IF  "$(CFG)" == "Lithtech - Win32 Final"
-
-# PROP Exclude_From_Build 1
-
-!ENDIF 
-
 # End Source File
 # Begin Source File
 
@@ -425,13 +418,6 @@ SOURCE=..\..\model\src\model.cpp
 # Begin Source File
 
 SOURCE=..\..\model\src\model_load.cpp
-
-!IF  "$(CFG)" == "Lithtech - Win32 Final"
-
-# PROP Exclude_From_Build 1
-
-!ENDIF 
-
 # End Source File
 # Begin Source File
 
@@ -512,13 +498,6 @@ SOURCE=..\..\server\src\s_intersect.cpp
 # Begin Source File
 
 SOURCE=..\..\server\src\s_net.cpp
-
-!IF  "$(CFG)" == "Lithtech - Win32 Final"
-
-# PROP Exclude_From_Build 1
-
-!ENDIF 
-
 # End Source File
 # Begin Source File
 
@@ -753,18 +732,6 @@ SOURCE=..\..\sound\src\soundmgr.cpp
 # Begin Source File
 
 SOURCE=..\..\client\src\client_iltvideomgr.cpp
-# End Source File
-# Begin Source File
-
-SOURCE=..\..\model\src\nolf2src_model_stubs.cpp
-# End Source File
-# Begin Source File
-
-SOURCE=..\..\server\src\nolf2src_server_stubs.cpp
-# End Source File
-# Begin Source File
-
-SOURCE=..\..\world\src\nolf2src_world_stubs.cpp
 # End Source File
 # Begin Source File
 

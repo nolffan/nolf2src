@@ -70,8 +70,6 @@ int32	g_CV_MasterPaletteMode = 2;
 
 int32	g_CV_ModelTransitionMS = 200;
 
-int32	g_CV_ModelOnlyUpdateDirtyTrackers = 1;
-
 float	g_CV_LatencySim = 0.0f;	// Simulate latency.
 float	g_CV_DropRate = 0.0f;   // Simulate packet drops - affects both client and server at the same time
 
@@ -344,8 +342,6 @@ static LTEngineVar g_LTEngineVars[] =
 
 	EV_LONG("UDPSimulatePacketLoss", &g_CV_UDPSimulatePacketLoss),
 	EV_LONG("UDPSimulateCorruption", &g_CV_UDPSimulateCorruption),
-
-	EV_LONG("ModelOnlyUpdateDirtyTrackers", &g_CV_ModelOnlyUpdateDirtyTrackers),
 };
 
 

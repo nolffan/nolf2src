@@ -41,7 +41,6 @@ define_holder(ICompress, compress);
 
 
 extern int32 g_bLocalDebug;
-extern int32 g_CV_ModelOnlyUpdateDirtyTrackers;
 
 //------------------------------------------------------------------
 //------------------------------------------------------------------
@@ -390,33 +389,6 @@ void WriteAnimInfo(ModelInstance *pInst, CPacket_Write &cPacket)
 		// set this true for the first tracker
 		cPacket.Writebool(true);
 
-		if(g_CV_ModelOnlyUpdateDirtyTrackers)
-		{
-			//If this is the main tracker, then send the info
-			if(pTracker == pInst->m_AnimTrackers)
-			{
-				cPacket.Writebool(true);
-			}
-			else // We're a user-made tracker
-			{
-				// Are we dirty?
-				if(pTracker->m_bDirty)
-				{
-					cPacket.Writebool(true);
-					pTracker->m_bDirty = false;
-				}
-				else
-				{
-					// We don't need to do a full update, we haven't changed
-					cPacket.Writebool(false);
-				}
-			}
-		}
-		else
-		{
-			cPacket.Writebool(true);
-		}
-		
 	    uint16 nAnimIndex = (uint16)trk_GetCurAnimIndex(pTracker);
 		bool bLongModelInfo = (nAnimIndex >= (1 << MODELINFO_ANIMINDEX_SHORT)) || ((pTracker->m_Flags & AT_PLAYING) == 0);
 		cPacket.Writebool(bLongModelInfo);

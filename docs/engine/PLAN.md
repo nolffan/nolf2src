@@ -49,7 +49,7 @@ Background, in this directory:
 |---|---|---|---|
 | 1 | `tools`: guides, tool fixes, Mac symbol inventory, demo import map, scorer targets for the engine | -- | done |
 | 2 | `skeleton`: `src/Engine/runtime/` from the Jupiter tree, `Engine.dsw` with Lithtech/server and the libraries, `build.mk` pass; first link of both (stubs allowed) | -- | done: both link, with the excluded files below stubbed |
-| 3 | `server`: `server.dll` compiles, links and loads (`server/`, `shared/`, `world/`, `model/`, `kernel/net`, `kernel/io`) | 2 | todo |
+| 3 | `server`: `server.dll` compiles, links and loads (`server/`, `shared/`, `world/`, `model/`, `kernel/net`, `kernel/io`) | 2 | done: nothing stubbed; the built dll hosts a level in NOLF2Srv.exe, the built exe plays C01S01 |
 | 4 | `client`: the exe's own objects (`client/`, `kernel/src`, input, DirectMusic, video, console) with the server objects at `/O2` | 2 (3 helps) | done: no client stubs, Bink at run time; Lithtech.exe is `/O2 /Ob2` without `/GX`; the built exe reaches the main menu under Wine (`+DisableSound 1`) |
 | 5 | `libs`: `rezmgr`, `stdlith`/`lith`, `ltmem`, `iltsound`, `ui` (Lib_UI) | 2 | done: no stubs left; fonts and the mem command as 2002 had them; the libraries' flags and link order as retail's |
 | 6 | `render`: `render_b` (drawprim, texinterface) and `render_a` back-ported from D3D9 to D3D8 | 2 | done: all of it compiles for D3D8 and links; a device comes up under Wine (tools/rendertest); not yet seen in the game |
@@ -202,6 +202,80 @@ compiled, as Jupiter's code calls it, but is not 2002's. Nothing of the
 engine is in the game yet (build/all.sh checks both are built and keeps
 the retail ones, as for SndDrv.dll), and neither is scored
 (`progress/targets.py` is package 1's).
+
+### 3. server
+
+Done: nothing of server/, shared/, world/, model/, kernel/net, kernel/io
+is stubbed; `server.dll` 1,909 -> 2,399 identical functions, 208,508 ->
+272,709 identical bytes (unwritten 104 -> 17, unplaced 1,318 -> 1,182).
+What was found and changed:
+
+- **Worklist.** `s_net.cpp`: no per-tracker dirty bit in the model info
+  (retail's WriteAnimInfo, 0x10027e50, writes none; it is identical
+  now), so no `ModelOnlyUpdateDirtyTrackers` console variable (retail's
+  table has 105 entries, ours now too) and, to keep the exe's client and
+  server speaking one protocol, no dirty bit read in the client's
+  `shellnet.cpp` ReadAnimInfo either (a client/ file: the only edit
+  outside these modules besides the renderer's, below). `model_load.cpp`:
+  `MODEL_OBB` is 0 (model.h; retail skips OBBs with "not supported in this
+  version of exe", the Mac build's OBB methods only fail), no "model
+  pieces exceeds" message. `fullintersectline.cpp`: no model-OBB tests,
+  `i_BoundingBoxTest` out of line, and none of Jupiter's
+  `#pragma optimize("", off)` (retail's code is the project's /O1) or
+  tick counter: everything in it matches but `i_IntersectSegment` (608
+  vs 572: retail calls the vector constructor where we inline it).
+- **Flags.** `server.dsp` is `/O1` without `/GX`: retail's own objects
+  have no EH frame (the 46 `fs:[0]` uses are rezmgr's and stdlith's).
+  exematch places 2,313 functions instead of 2,022. `/O1 /Ob2` was
+  tried (PLAN 5's hint): it removes the `_$E` initializer thunks (unplaced
+  1,318 -> 340) but loses 86 recorded identical functions and ~30 KB, so
+  the thunks come from something else (not found).
+  `progress/COMPILERS.md` has it.
+- **game_serialize.** The "NOLF1-era saveio/savrest code" is not separate
+  code: the dll's game_serialize region is Jupiter's file. What differed:
+  NOLF2 keeps the save buffer in a `std::vector<uint8>` (resized per
+  message, swapped empty at the end of a save or restore), objects over
+  0x80000 bits are "suspicious". sm_SaveObjects/RestoreObjects identical,
+  the rest a few bytes off (register choice).
+- **CPacket_Read** (packet.h): NOLF2's constructors do the work
+  themselves and the short ones delegate with a placement new (retail's
+  out-of-line constructors at 0x1000b208/b60e/b634 show it); Jupiter's
+  Init made VC6 inline the constructors everywhere and so stop inlining
+  what retail inlined (`SendAllObjectsUnguaranteed` matched as soon as
+  this changed). The 3-argument constructor is 2 bytes off.
+- **Renderer** (render_a, `d3d_renderblock.h`): `SRBVertex` without
+  Jupiter's tangent and binormal: retail reads 44 bytes a vertex. This was
+  why the built exe stayed on the loading screen (a 1 GB allocation from
+  misread render blocks, "Out of memory"; s_net was not the cause).
+
+**What runs.** `build/engine.sh server test` (loads, CreateServer /
+DeleteServer). `tools/srvtest.sh` (new): the built NOLF2Srv.exe with the
+built server.dll hosts the first co-op level (CP_c01s01) under Xvfb and
+keeps running, as with the retail dll; deathmatch needs a DMMissions.txt
+the game's host screen writes. The built Lithtech.exe (game dir from
+`make game`, exe copied over, `+DisableSound 1`, Xvfb screen 640x480 and
+`++windowed 1` 640x480) loads C01S01, shows the briefing, plays the intro
+and leaves the player in control with the HUD. The only load error,
+"FX\WATERFALL2.LTB ... Invalid Header", is retail's too (the file is
+model version 18, the minimum is 23). No client has joined the dedicated
+server yet: the network protocol between our exe and dll is untested.
+
+**Score notes for the merge.** `make progress` fails on one exe function,
+0x4aa8b0 `CLTCommonServer::SetObjectFlags` (310 bytes, two loads in
+swapped order): it matches only with both Jupiter's packet.h and
+`MODEL_OBB 1`, either alone is not enough, so it is VC6's register
+tie-break, not the function's source. It needs ACCEPT_LOSSES=1.
+
+**Left.**
+- The kernel/net UDP driver is the biggest unmatched code
+  (`HandleUnconnectedData`, `ReallyJoinSession`, `WriteGuaranteed`,
+  `HandleGuaranteed`, ...): check it against retail for protocol drift
+  (fear-mapping notes retail's `Term2` takes one argument) before
+  matching it; then client-to-dedicated-server joins.
+- Near functions: `Model::Load` (+73), `sm_CreateNextObject` (+6),
+  `sm_SaveObjectData` (+14), `sm_RestoreNextObject` (+12, registers),
+  `i_IntersectSweptSphere`, `CPlayerMover::CollideWithAABB`; the
+  `_$E` initializer thunks (1,100 unplaced rows).
 
 ### 4. client
 
