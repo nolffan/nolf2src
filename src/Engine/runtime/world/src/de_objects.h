@@ -703,7 +703,6 @@ public:
     int             m_nSrcBlend;        // Src blend mode LTBLEND_
     int             m_nDestBlend;       // Dest blend mode LTBLEND_
     uint32  m_psFlags;
-	uint32			m_nEffectShaderID;
 };
 
 
@@ -798,7 +797,6 @@ public:
 	HPOLY				m_ClipperPoly;	// Poly index if this sprite is clipped.
 										// INVALID_HPOLY if not clipped.
 	SpriteControlImpl	m_SCImpl;
-	uint32				m_nEffectShaderID;
 };
 
 
@@ -825,7 +823,6 @@ public:
     float           m_xScale, m_yScale;
 	float			m_fBaseReflection;
 	float			m_fFresnelVolumeIOR;	//The index of refraction for the volume, used for generating fresnel data
-	uint32			m_nEffectShaderID;
 
 	uint32*			m_pValidMask;			//the pointer to the valid mask (NULL if none is used)
 	uint32			m_nValidMaskWidth;		//width in uint32's of the valid mask
@@ -880,7 +877,6 @@ public:
 	VolumeEffectInfo::DynamicParticleLighting m_DPLighting;		// lighting type to be used
 	uint32 m_DPLightConstant;					// constant light value to be used if lighting is kConstant
 	bool m_DPSaturate;							// true if saturated lighting (MODULATE2X) should be used
-	uint32 m_nEffectShaderID;
 };
 
 

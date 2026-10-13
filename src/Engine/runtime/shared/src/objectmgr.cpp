@@ -1516,7 +1516,6 @@ SpriteInstance::SpriteInstance()
     memset(&m_SpriteTracker, 0, sizeof(m_SpriteTracker));
     m_ClipperPoly = INVALID_HPOLY;
     m_SCImpl.m_pSprite = this;
-	m_nEffectShaderID = -1;
 }
 
 SpriteInstance::~SpriteInstance()
@@ -1592,7 +1591,6 @@ LTParticleSystem::LTParticleSystem()
 
     // No blend mode set
     m_nSrcBlend = m_nDestBlend = -1;
-	m_nEffectShaderID = -1;
 }
 
 LTParticleSystem::~LTParticleSystem()
@@ -1641,7 +1639,6 @@ LTPolyGrid::LTPolyGrid()
     m_xScale = m_yScale = 1.0f;
 	m_fBaseReflection = 0.5f;
 	m_fFresnelVolumeIOR = 1.33f;
-	m_nEffectShaderID = -1;
     m_pEnvMap = LTNULL;
     m_nTris = 0;
     m_nIndices = 0;
@@ -1762,7 +1759,6 @@ LTVolumeEffect::LTVolumeEffect()
 {
 	m_EffectType = VolumeEffectInfo::kUninitialized;
 	m_Dims = LTVector( 16.0f, 16.0f, 16.0f );
-	m_nEffectShaderID = -1;
 }
 
 LTVolumeEffect::~LTVolumeEffect()
