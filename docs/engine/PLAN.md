@@ -56,6 +56,7 @@ Background, in this directory:
 | 7 | `boot`: the built `Lithtech.exe` in the game under Wine: to the menu, then a level; snddrv/ServerDir/ltmsg built ones in | 3–6 | done: every engine binary in the game is built (no retail engine left); `make test` plays from the main menu into C01S01 with sound (null ALSA device); `make modern` builds and runs the same |
 | 8 | `modern`: the modern build of the engine (FFmpeg Bink, fixes) | 7 | done: no RAD binary in the modern build (Bink on FFmpeg; NOLF2 has no Miles); the launcher installed in both builds; Hor+, widescreen modes, the launcher's server name (`MODERN.md`) |
 | 9 | `match`: byte-matching passes per module, ratcheted by `make progress` | 3–6 | ongoing |
+| 10 | `release`: public archives built by GitHub Actions, as nolfsrc does (its commits "Install scripts that copy the game's data out of the player's discs", "Package each game directory as a -private and a -public archive", "Build switches for CI: NOLF_ARCHIVES and IMAGE_BUILD", "CI: build the four public archives on GitHub Actions", "CI: check the release build for byte regressions", "CI: upload each archive unzipped") | 7, 8 and everything ported | todo |
 
 ## Notes per package
 
