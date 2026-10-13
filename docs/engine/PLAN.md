@@ -50,7 +50,7 @@ Background, in this directory:
 | 1 | `tools`: guides, tool fixes, Mac symbol inventory, demo import map, scorer targets for the engine | -- | done |
 | 2 | `skeleton`: `src/Engine/runtime/` from the Jupiter tree, `Engine.dsw` with Lithtech/server and the libraries, `build.mk` pass; first link of both (stubs allowed) | -- | done: both link, with the excluded files below stubbed |
 | 3 | `server`: `server.dll` compiles, links and loads (`server/`, `shared/`, `world/`, `model/`, `kernel/net`, `kernel/io`) | 2 | todo |
-| 4 | `client`: the exe's own objects (`client/`, `kernel/src`, input, DirectMusic, video, console) with the server objects at `/O2` | 2 (3 helps) | todo |
+| 4 | `client`: the exe's own objects (`client/`, `kernel/src`, input, DirectMusic, video, console) with the server objects at `/O2` | 2 (3 helps) | done: no client stubs, Bink at run time; Lithtech.exe is `/O2 /Ob2` without `/GX`; the built exe reaches the main menu under Wine (`+DisableSound 1`) |
 | 5 | `libs`: `rezmgr`, `stdlith`/`lith`, `ltmem`, `iltsound`, `ui` (Lib_UI) | 2 | done: no stubs left; fonts and the mem command as 2002 had them; the libraries' flags and link order as retail's |
 | 6 | `render`: `render_b` (drawprim, texinterface) and `render_a` back-ported from D3D9 to D3D8 | 2 | done: all of it compiles for D3D8 and links; a device comes up under Wine (tools/rendertest); not yet seen in the game |
 | 7 | `boot`: the built `Lithtech.exe` in the game under Wine: to the menu, then a level; snddrv/ServerDir/ltmsg built ones in | 3–6 | todo |
@@ -202,6 +202,76 @@ compiled, as Jupiter's code calls it, but is not 2002's. Nothing of the
 engine is in the game yet (build/all.sh checks both are built and keeps
 the retail ones, as for SndDrv.dll), and neither is scored
 (`progress/targets.py` is package 1's).
+
+### 4. client
+
+**State.** Nothing of the client is stubbed: `clientde_impl.cpp`,
+`winclientde_impl.cpp`, `winconsole_impl.cpp` and `binkvideomgrimpl.cpp`
+build, and `nolf2src_client_stubs.cpp` is gone. What was taken out, and
+why (the commits give the retail evidence):
+- ILTClient: Jupiter's renderer stats, vertex/pixel shaders and
+  effect-shader IDs (not in NOLF2's SDK); `QueryGraphicDevice` and the
+  "d3ddevice" engine hook (neither string nor code in retail).
+- The console is never drawn in retail (no `con_Draw`, nothing reads
+  `ConsoleAlpha` but `CConsole::Init`, the ILTDrawPrim holder is unread),
+  so its drawing routines (D3D9 device calls), `con_Draw`/`con_DrawSmall`,
+  `MaybeDrawConsole` and `r_GenericTextPrint` are gone.
+- Bink: always built, `Binkw32.dll` loaded at run time, ported to D3D8
+  from retail (0x4036c0..0x404430: `BinkDX8SurfaceType` picks the copy
+  format, `SetVertexShader(FVF)`); the few BINK declarations are in
+  `binkvideomgrimpl.h`, no RAD SDK. `CClientMgr::Init` always asks for
+  "BINK".
+- `memorywatch.cpp` is back (the skeleton thought retail lacked it):
+  `mw_ResetWatches` is 0x447f70, `g_dwSoundMemory` is counted by
+  soundbuffer.cpp; only `mw_ShowMemoryWatches` (under `#ifndef _FINAL`)
+  drops out.
+- `sound/src/iltsound.h` (shared with Lib_ILTSound): no `CommitDeferred`,
+  as snddrv.dll's header says; with it the engine called the wrong
+  driver slots.
+- CClientMgr: no `m_pOldShell`/`m_bInCurShellUpdate` (retail offsets).
+
+**Flags (the big one).** `Lithtech.dsp` is `/O2 /Ob2` and *no* `/GX`
+(`progress/COMPILERS.md`): the holders' CAPIHolder constructors are
+expanded, and none of retail's 634 EH-frame prologues is in the exe's
+own objects (all in the libraries). Lithtech.exe went 2,441 -> 3,881
+identical on this branch before the merge of render/libs, 5,342 (71.1%)
+after it. `make progress` FAILs only on three recorded functions:
+0x45889f (a 27-byte function of ours matching mid-function: a false
+pairing), 0x48d4f0 (`udp_SaveIPClientPortMRU`, server package: retail
+calls it from one place and keeps it out of line, Jupiter calls it from
+two and /Ob2 inlines it) and 0x4af1d0 (`CSoundMgr::Get3DProviderLists`:
+retail does not inline `SoundSys`, ours does -- a source difference not
+found yet). The coordinator's progress-update has to accept them
+(ACCEPT_LOSSES=1). ServerDir.dll's unwritten count also moved 129 -> 131
+in this run; nothing here touches it.
+
+**Startability** (scratch game dir: the `make game` directory with the
+built Lithtech.exe; Xvfb screen 640x480, `++windowed 1` 640x480, as the
+renderer needs a display mode of the window's size): command line, rez
+stack, ltmsg/ServerDir/cshell/cres loaded, D3D8 device up, snddrv.dll and
+DirectSound loaded, DirectMusic up, the main menu drawn. Sound: the
+driver's Init fails in the container ("Failed to initialize sound driver
+'snddrv.dll'", a message box that stops the game) -- the container has
+no audio device; run with `+DisableSound 1`. With `+runworld
+Worlds\RetailSinglePlayer\C01S01` it shows the loading screen and stays
+there after 90 s (the server's s_net stand-ins, package 3; not
+investigated). The version line reads "LithTech build
+4294967295.4294967295": retail has no RCDATA 12346 either.
+
+**Left.**
+- Other packages' headers keep Jupiter's members the exe's code reads at
+  retail's offsets: `m_nEffectShaderID` in LTParticleSystem, LTPolyGrid,
+  LTVolumeEffect, SpriteInstance (`world/src/de_objects.h`, objectmgr.cpp
+  sets them), SharedTexture 12 bytes too big (`de_world.h`, retail
+  sizeof 0x68), ModelInstance 8 bytes too big (0x5dc in retail).
+- The interface holders' initializers (76/49-byte pairs, about 150 of
+  them) still call the CAPIHolder constructor where retail expands it,
+  even with /Ob2 (and even with `inline` on it, tried): not found why.
+- `lithtech.rc`: icons differ (retail has five images in another order,
+  the cursors are numbered 6 and 7) -- 18 of 28 resources identical.
+- Many size-exact nears in clientmgr/soundmgr/dmusic remain; shellnet's
+  2002 function order differs from Jupiter's (retail has the CClientShell
+  methods first).
 
 ### 5. libs
 
