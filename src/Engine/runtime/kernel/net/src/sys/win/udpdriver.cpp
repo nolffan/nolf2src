@@ -1833,8 +1833,7 @@ bool udp_RecvFromSocket(SOCKET theSocket, CPacket_Read *pPacket, sockaddr_in *pS
 
 	// Dump it into a packet
 	CPacket_Write cIncomingPacket;
-//	cIncomingPacket.WriteData(aRecvBuffer, status * 8);
-	cIncomingPacket.WriteDataRaw(aRecvBuffer, status );
+	cIncomingPacket.WriteData(aRecvBuffer, status * 8);
 	*pPacket = CPacket_Read(cIncomingPacket);
 
 	return true;
@@ -1985,8 +1984,7 @@ bool CUDPDriver::SendTo(SOCKET theSocket, const CPacket_Read &cPacket, sockaddr_
 	cReadPacket.SeekTo(0);
 	int nDataLen = (cReadPacket.Size() + 7) / 8;
 	uint8 *aSendBuffer = (uint8 *)alloca(nDataLen);
-//	cReadPacket.ReadData(aSendBuffer, nDataLen * 8);
-	cReadPacket.ReadDataRaw( aSendBuffer, nDataLen );
+	cReadPacket.ReadData(aSendBuffer, nDataLen * 8);
 
 	if (g_CV_UDPSimulateCorruption)
 	{
@@ -2504,6 +2502,10 @@ void CUDPDriver::Update()
 {
 	CWinSync_CSAuto cConnProtect(m_cCS_Connections);
 
+	// Note : retail's server.dll has the three flushes here, inlined, and
+	// still calls FlushInternalQueues out of line from Term and GetPacket;
+	// no way of writing it found that also keeps Lithtech.exe's shape
+	// (pop_front out of line in Term, _M_pop_front_aux in Update).
 	FlushInternalQueues();
 
 	// Update the connections

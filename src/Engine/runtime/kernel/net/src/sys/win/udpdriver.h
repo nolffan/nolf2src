@@ -162,12 +162,12 @@ public:
 
 	virtual bool GetIPAddress(uint8 pAddr[4], uint16 *pPort) 
 	{ 
-		pAddr[0] = (uint8)m_RemoteAddr.sin_addr.s_addr;
-		pAddr[1] = (uint8)m_RemoteAddr.sin_addr.s_addr >> 8;
-		pAddr[2] = (uint8)m_RemoteAddr.sin_addr.s_addr >> 16;
-		pAddr[3] = (uint8)m_RemoteAddr.sin_addr.s_addr >> 24;
+		pAddr[0] = m_RemoteAddr.sin_addr.S_un.S_un_b.s_b1;
+		pAddr[1] = m_RemoteAddr.sin_addr.S_un.S_un_b.s_b2;
+		pAddr[2] = m_RemoteAddr.sin_addr.S_un.S_un_b.s_b3;
+		pAddr[3] = m_RemoteAddr.sin_addr.S_un.S_un_b.s_b4;
 		
-		*pPort = (uint16)m_RemoteAddr.sin_port;
+		*pPort = m_RemoteAddr.sin_port;
 		return true;
 	}
 	
@@ -731,13 +731,13 @@ public:
 };
 
 inline unsigned char INADDR_B1(const sockaddr_in& addr)
-{ return (unsigned char ) addr.sin_addr.s_addr; }
+{ return addr.sin_addr.S_un.S_un_b.s_b1; }
 inline unsigned char INADDR_B2(const sockaddr_in& addr)
-{ return (unsigned char ) (addr.sin_addr.s_addr >> 8); }
+{ return addr.sin_addr.S_un.S_un_b.s_b2; }
 inline unsigned char INADDR_B3(const sockaddr_in& addr)
-{ return (unsigned char ) (addr.sin_addr.s_addr >> 16); }
+{ return addr.sin_addr.S_un.S_un_b.s_b3; }
 inline unsigned char INADDR_B4(const sockaddr_in& addr)
-{ return (unsigned char ) (addr.sin_addr.s_addr >> 24); }
+{ return addr.sin_addr.S_un.S_un_b.s_b4; }
 
 #define EXPAND_BASEADDR(addr)\
               INADDR_B1(addr), INADDR_B2(addr), INADDR_B3(addr), INADDR_B4(addr)
