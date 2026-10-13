@@ -597,9 +597,8 @@ void CUDPConn::HandleGuaranteed(CPacket_Read &cPacket, bool bOutOfOrder)
 		// Was this a near-miss?
 		if (((nFrameCode - nNextFrame) & k_nFrameMask) <= k_nMaxOutOfOrderPackets)
 		{
-			CPacket_Read cPacketTemp(cPacket, nStartPos, (cPacket.Tell() - nStartPos));
 			// Save this packet for later...
-			SaveOutOfOrderPacket( cPacketTemp, nFrameCode );
+			SaveOutOfOrderPacket(CPacket_Read(cPacket, nStartPos, (cPacket.Tell() - nStartPos)), nFrameCode);
 		}
 	}
 	// Flush out any following out of order packets...
@@ -2502,10 +2501,12 @@ void CUDPDriver::Update()
 {
 	CWinSync_CSAuto cConnProtect(m_cCS_Connections);
 
-	// Note : retail's server.dll has the three flushes here, inlined, and
-	// still calls FlushInternalQueues out of line from Term and GetPacket;
-	// no way of writing it found that also keeps Lithtech.exe's shape
-	// (pop_front out of line in Term, _M_pop_front_aux in Update).
+	// Note : retail has the three flushes here, each called out of line in
+	// server.dll and FlushConnectQueue inlined in Lithtech.exe, and still
+	// calls FlushInternalQueues from Term and GetPacket. Writing the three
+	// calls here matches both Updates, but then the exe's Term inlines
+	// deque::pop_front, which retail's calls out of line (0x48e540); no
+	// way found of having both.
 	FlushInternalQueues();
 
 	// Update the connections
