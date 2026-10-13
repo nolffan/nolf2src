@@ -38,14 +38,14 @@ class CUIFont_Impl : public CUIFont
 		HTEXTURE		GetTexture()			{ return m_Texture; }
 		uint32			GetAttributes()			{ return m_Flags; }
 
-		uint8			GetDefCharScreenWidth()	{ return m_DefaultCharScreenWidth; }
-		uint8			GetDefCharScreenHeight(){ return m_DefaultCharScreenHeight; }
+		int8			GetDefCharScreenWidth()	{ return m_DefaultCharScreenWidth; }
+		int8			GetDefCharScreenHeight(){ return m_DefaultCharScreenHeight; }
 
-		uint8			GetCharTexWidth()		{ return m_CharTexWidth; }
-		uint8			GetCharTexHeight()		{ return m_CharTexHeight; }
+		int8			GetCharTexWidth()		{ return m_CharTexWidth; }
+		int8			GetCharTexHeight()		{ return m_CharTexHeight; }
 
-		uint8			GetDefSpacingH()		{ return m_DefaultHorizontalSpacing; }
-		uint8			GetDefSpacingV()		{ return m_DefaultVerticalSpacing; }
+		int8			GetDefSpacingH()		{ return m_DefaultHorizontalSpacing; }
+		int8			GetDefSpacingV()		{ return m_DefaultVerticalSpacing; }
 
 		int8			GetDefSlant()			{ return m_DefaultSlant; }
 		int8			GetDefBold()			{ return m_DefaultBold; }
@@ -67,11 +67,11 @@ class CUIFont_Impl : public CUIFont
 		void		SetAttributes(uint32 attrs);
 		void		UnsetAttributes(uint32 attrs);
 		
-		void		SetDefCharWidth(uint8 width);
-		void		SetDefCharHeight(uint8 height);
+		void		SetDefCharWidth(int8 width);
+		void		SetDefCharHeight(int8 height);
 
-		void		SetDefSpacingH(uint8 spacing);
-		void		SetDefSpacingV(uint8 vspacing);
+		void		SetDefSpacingH(int8 spacing);
+		void		SetDefSpacingV(int8 vspacing);
 		
 		
 		void		SetDefSlant(int8 slant);

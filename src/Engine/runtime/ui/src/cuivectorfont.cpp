@@ -26,7 +26,6 @@
 #include "ltsysoptim.h"
 #endif
 
-#include "LTFontParams.h"
 
 #include "iltclient.h"
 #include "interface_helpers.h"
@@ -140,7 +139,7 @@ class InstalledFontFace
 		}
 
 		// Intialize the font face, from optional font file.
-		bool Init( char const* pszFontFile, char const* pszFontFace, int nHeight, LTFontParams *fontParams);
+		bool Init( char const* pszFontFile, char const* pszFontFace, int nHeight );
 		void Term( );
 
 		HFONT			GetHFont( ) { return m_hFont; }
@@ -173,7 +172,7 @@ class InstalledFontFace
 //
 // ----------------------------------------------------------------------- //
 
-bool InstalledFontFace::Init( char const* pszFontFile, char const* pszFontFace, int nHeight, LTFontParams *fontParams )
+bool InstalledFontFace::Init( char const* pszFontFile, char const* pszFontFace, int nHeight )
 {
 	// Check inputs.
 	if( !pszFontFace || !pszFontFace[0] )
@@ -214,28 +213,12 @@ bool InstalledFontFace::Init( char const* pszFontFile, char const* pszFontFace, 
 	memset( &logFont, 0, sizeof( logFont ));
 	logFont.lfHeight = nHeight;
 	
-	if(fontParams)
-	{
-		DEBUG_PRINT( 1, ("InstalledFontFace::Init Using User Defined Font Params!" ));
-		logFont.lfWeight = fontParams->Weight;
-		logFont.lfCharSet = fontParams->CharSet;
-		logFont.lfOutPrecision = fontParams->OutPrecision;
-		logFont.lfClipPrecision = fontParams->ClipPrecision;
-		logFont.lfQuality = fontParams->Quality;
-		logFont.lfPitchAndFamily = fontParams->PitchAndFamily;
-		logFont.lfItalic = fontParams->Italic;
-		logFont.lfUnderline = fontParams->Underline;
-		logFont.lfStrikeOut = fontParams->StrikeOut;
-	}
-	else
-	{
-		logFont.lfWeight = FW_NORMAL;
-		logFont.lfCharSet = ANSI_CHARSET;
-		logFont.lfOutPrecision = OUT_TT_PRECIS;
-		logFont.lfClipPrecision = CLIP_DEFAULT_PRECIS;
-		logFont.lfQuality = ANTIALIASED_QUALITY;
-		logFont.lfPitchAndFamily = DEFAULT_PITCH;
-	}
+	logFont.lfWeight = FW_NORMAL;
+	logFont.lfCharSet = ANSI_CHARSET;
+	logFont.lfOutPrecision = OUT_TT_PRECIS;
+	logFont.lfClipPrecision = CLIP_DEFAULT_PRECIS;
+	logFont.lfQuality = ANTIALIASED_QUALITY;
+	logFont.lfPitchAndFamily = DEFAULT_PITCH;
 	strncpy( logFont.lfFaceName, pszFontFace, LF_FACESIZE );
 	logFont.lfFaceName[LF_FACESIZE - 1] = 0;
 
@@ -310,8 +293,7 @@ bool CUIVectorFont::Init(
 		char const* pszFontFace,
 		uint32 pointSize,
 		uint8  asciiStart,
-		uint8  asciiEnd,
-		LTFontParams* fontParams
+		uint8  asciiEnd
 		)
 {
 	char szChars[256];
@@ -322,7 +304,7 @@ bool CUIVectorFont::Init(
 	}
 	szChars[i - asciiStart] = 0;
 
-	bool bOk = Init( pszFontFile, pszFontFace, pointSize, szChars, fontParams);
+	bool bOk = Init( pszFontFile, pszFontFace, pointSize, szChars );
 
 	return bOk;
 }
@@ -332,8 +314,7 @@ bool CUIVectorFont::Init(
 bool CUIVectorFont::Init(char const* pszFontFile,
 						 char const* pszFontFace,
 						 uint32 pointSize,
-						 char const* pszCharacters,
-						 LTFontParams* fontParams
+						 char const* pszCharacters
 						 )
 {
 	// Check inputs.
@@ -347,7 +328,7 @@ bool CUIVectorFont::Init(char const* pszFontFile,
 	m_Proportional 		= true;
 
 	InstalledFontFace installedFontFace;
-	if( !installedFontFace.Init( pszFontFile, pszFontFace, pointSize, fontParams ))
+	if( !installedFontFace.Init( pszFontFile, pszFontFace, pointSize ))
 		return false;
 
 	// when the font is created, this can be

@@ -176,14 +176,14 @@ void CUIFont_Impl::UnsetAttributes(uint32 attrs)
 
 
 //	--------------------------------------------------------------------------
-void CUIFont_Impl::SetDefCharWidth(uint8 width)
+void CUIFont_Impl::SetDefCharWidth(int8 width)
 {
 	m_DefaultCharScreenWidth = width;
 }
 
 
 //	--------------------------------------------------------------------------
-void CUIFont_Impl::SetDefCharHeight(uint8 height)
+void CUIFont_Impl::SetDefCharHeight(int8 height)
 {
 	m_DefaultCharScreenHeight = height;
 }
@@ -191,14 +191,14 @@ void CUIFont_Impl::SetDefCharHeight(uint8 height)
 
 
 //	--------------------------------------------------------------------------
-void CUIFont_Impl::SetDefSpacingH(uint8 hspacing)
+void CUIFont_Impl::SetDefSpacingH(int8 hspacing)
 {
 	m_DefaultHorizontalSpacing = hspacing;
 }
 
 
 //	--------------------------------------------------------------------------
-void CUIFont_Impl::SetDefSpacingV(uint8 vspacing)
+void CUIFont_Impl::SetDefSpacingV(int8 vspacing)
 {
 	m_DefaultVerticalSpacing = vspacing;
 }

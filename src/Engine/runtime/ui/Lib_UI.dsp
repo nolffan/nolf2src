@@ -21,7 +21,11 @@ CFG=Lib_UI - Win32 Final
 !MESSAGE 
 
 # nolf2src: the UI library (Lib_UI: the CUI widgets, the bitmap and GDI
-# vector fonts), a static library of Lithtech.exe (Engine.dsw).
+# vector fonts), a static library of Lithtech.exe (Engine.dsw). Retail's
+# shows two differences from the engine's flags: /Ob2 (no `jmp _$E1`
+# initializer thunks, which /O2's /Ob1 leaves in every object) and no
+# STLport (cuivectorfont.cpp's std::string calls MSVCP60.dll, the only
+# code in Lithtech.exe that does).
 # Begin Project
 # PROP AllowPerConfigDependencies 0
 # PROP Scc_ProjName ""
@@ -42,7 +46,7 @@ RSC=rc.exe
 # PROP Intermediate_Dir "..\..\built\Final\Lib_UI"
 # PROP Target_Dir ""
 # ADD BASE CPP /nologo /W3 /GX /O2 /D "WIN32" /D "NDEBUG" /D "_WINDOWS" /D "_MBCS" /YX /FD /c
-# ADD CPP /nologo /MD /W3 /GX /O2 /I "..\..\..\libs\STLPort-4.0\stlport" /I "src" /I "..\client\src" /I "..\shared\src" /I "..\kernel\src" /I "..\kernel\mem\src" /I "..\world\src" /I "..\kernel\io\src" /I "..\kernel\net\src" /I "..\model\src" /I "..\sound\src" /I "..\shared\src\sys\win" /I "..\lithtemplate" /I "..\physics\src" /I "..\render_b\src" /I "src" /I "..\controlfilemgr" /I "..\server\src" /I "..\kernel\src\sys\win" /I "..\kernel\io\src\sys\win" /I "..\kernel\mem\src\sys\win" /I "..\kernel\net\src\sys\win" /I "..\client\src\sys\win" /I "..\render_a\src\sys\d3d" /I "..\..\sdk\inc" /I "..\..\sdk\inc\physics" /I "..\..\..\libs\stdlith" /I "..\..\..\libs\lith" /I "..\..\libs\rezmgr" /D "WIN32" /D "NDEBUG" /D "_WINDOWS" /D "_MBCS" /D "_FINAL" /D "__D3D" /D "__D3DREND" /D "_LIB" /FD /c
+# ADD CPP /nologo /MD /W3 /GX /O2 /Ob2 /I "src" /I "..\client\src" /I "..\shared\src" /I "..\kernel\src" /I "..\kernel\mem\src" /I "..\world\src" /I "..\kernel\io\src" /I "..\kernel\net\src" /I "..\model\src" /I "..\sound\src" /I "..\shared\src\sys\win" /I "..\lithtemplate" /I "..\physics\src" /I "..\render_b\src" /I "src" /I "..\controlfilemgr" /I "..\server\src" /I "..\kernel\src\sys\win" /I "..\kernel\io\src\sys\win" /I "..\kernel\mem\src\sys\win" /I "..\kernel\net\src\sys\win" /I "..\client\src\sys\win" /I "..\render_a\src\sys\d3d" /I "..\..\sdk\inc" /I "..\..\sdk\inc\physics" /I "..\..\..\libs\stdlith" /I "..\..\..\libs\lith" /I "..\..\libs\rezmgr" /D "WIN32" /D "NDEBUG" /D "_WINDOWS" /D "_MBCS" /D "_FINAL" /D "__D3D" /D "__D3DREND" /D "_LIB" /FD /c
 BSC32=bscmake.exe
 # ADD BASE BSC32 /nologo
 # ADD BSC32 /nologo
@@ -60,13 +64,6 @@ LIB32=link.exe -lib
 # Begin Source File
 
 SOURCE=.\src\cuifontmanager.cpp
-
-!IF  "$(CFG)" == "Lib_UI - Win32 Final"
-
-# PROP Exclude_From_Build 1
-
-!ENDIF 
-
 # End Source File
 # Begin Source File
 
@@ -79,24 +76,10 @@ SOURCE=.\src\cuimessagequeue.cpp
 # Begin Source File
 
 SOURCE=.\src\cuibitmapfont.cpp
-
-!IF  "$(CFG)" == "Lib_UI - Win32 Final"
-
-# PROP Exclude_From_Build 1
-
-!ENDIF 
-
 # End Source File
 # Begin Source File
 
 SOURCE=.\src\cuivectorfont.cpp
-
-!IF  "$(CFG)" == "Lib_UI - Win32 Final"
-
-# PROP Exclude_From_Build 1
-
-!ENDIF 
-
 # End Source File
 # Begin Source File
 
@@ -169,13 +152,6 @@ SOURCE=.\src\cuidropdownlist_impl.cpp
 # Begin Source File
 
 SOURCE=.\src\cuifont_impl.cpp
-
-!IF  "$(CFG)" == "Lib_UI - Win32 Final"
-
-# PROP Exclude_From_Build 1
-
-!ENDIF 
-
 # End Source File
 # Begin Source File
 
@@ -244,10 +220,6 @@ SOURCE=.\src\cuiwidget_impl.cpp
 # Begin Source File
 
 SOURCE=.\src\cuiwindow_impl.cpp
-# End Source File
-# Begin Source File
-
-SOURCE=.\src\nolf2src_ui_stubs.cpp
 # End Source File
 # End Group
 # End Target
