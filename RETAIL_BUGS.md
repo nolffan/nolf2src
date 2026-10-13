@@ -282,7 +282,12 @@ constructor set: the console's `version` and the log line "LithTech build
 ### Mouse look overshoots, unevenly, and more at high frame rates
 `input_ReadInput`, `0x4319b0` (lithtech.exe) · `src/Engine/runtime/kernel/src/sys/win/input.cpp`
 
-Not fixed yet: MODERN.md M-E3.
+> **FIXED in the modern build** (`NOLF2SRC_MODERN`): the mouse's whole
+> buffer is read and each look axis hands on the sum of the frame's
+> motion, once (MODERN.md M-E3); the frame rate is limited to 60 by
+> default (M-E4). The sensitivity's scale is kept, so a setting turns as
+> it did in 2002 (about 1.2x then, 1x now); the Mouse screen's "Input
+> rate", the smoothing, is gone.
 
 The system mouse is read one DirectInput event at a time (`nEvents = 1`,
 "fixes the USB mouse lockups"; x and y are separate events), and after each
