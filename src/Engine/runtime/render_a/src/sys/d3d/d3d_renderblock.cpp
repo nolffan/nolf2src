@@ -644,10 +644,10 @@ bool CD3D_RenderBlock::Load(ILTStream *pStream)
 	uint32 nLightGroupCount;
 	*pStream >> nLightGroupCount;
 	LT_MEM_TRACK_ALLOC(m_aLightGroups.reserve(nLightGroupCount), LT_MEM_TYPE_RENDER_LIGHTGROUP);
-	SRBLightGroup LightGroup;
 	for (; nLightGroupCount; --nLightGroupCount)
 	{
-		m_aLightGroups.push_back(LightGroup);
+		// (retail 0x520eb0: the default-constructing push_back, no local)
+		m_aLightGroups.push_back();
 		*pStream >> m_aLightGroups.back();
 	}
 
