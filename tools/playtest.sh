@@ -126,7 +126,7 @@ rm -rf "$RUN"; mkdir -p "$RUN"
 REL="$(python3 -c 'import os,sys; print(os.path.relpath(sys.argv[1], sys.argv[2]))' "$GAME" "$RUN")"
 for f in "$GAME"/*; do
     b=$(basename "$f")
-    case "$b" in autoexec.cfg|Save|Profiles|nolf2cmds.txt|MANIFEST.txt|run.sh|run-cmds.txt) continue ;; esac
+    case "$b" in autoexec.cfg|Save|Profiles|nolf2cmds.txt|MANIFEST.txt|run.sh|run-launcher.sh|run-cmds.txt|launchcmds.txt) continue ;; esac
     if [ -f "$f" ] && [ "$(head -c 2 "$f" | tr -d '\0')" = MZ ]; then cp "$f" "$RUN/$b"
     else ln -s "$REL/$b" "$RUN/$b"; fi
 done

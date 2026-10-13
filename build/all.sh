@@ -48,8 +48,10 @@
 #   4. assemble           the built binaries into out/nolf2-legacy-release/: the
 #                         game DLLs in the custom/ rez directory, last in the
 #                         rez stack (nolf2cmds.txt); the engine (Lithtech.exe,
-#                         server.dll, snddrv.dll, ServerDir.dll, ltmsg.dll)
-#                         and the dedicated server in the game's root. Every
+#                         server.dll, snddrv.dll, ServerDir.dll, ltmsg.dll),
+#                         the dedicated server and the launcher NOLF2.exe
+#                         (run-launcher.sh plays through it) in the game's
+#                         root. Every
 #                         binary of the game is then built here but the
 #                         third-party runtime of step 2. Each built engine
 #                         binary was shown to work in the game under Wine
@@ -91,6 +93,7 @@ BUILT=(
     "$B/ClientRes/TO2/CRes.dll"         custom/cres.dll
     "$B/ServerRes/TO2/SRes.dll"         custom/sres.dll
     "$B/ServerApp/NOLF2Srv.exe"         NOLF2Srv.exe
+    "$B/Launcher/NOLF2.exe"             NOLF2.exe
     src/Engine/built/Final/Lithtech/Lithtech.exe  Lithtech.exe
     src/Engine/built/Final/server/server.dll      server.dll
     src/Engine/built/Final/snddrv/SndDrv.dll      snddrv.dll
@@ -106,8 +109,8 @@ python3 tools/retailextract.py resources "$RETAIL" "$OUT"
 mkdir -p "$OUT/Save" "$OUT/custom" "$OUT/Profiles"
 [ -f "$OUT/Profiles/Default.prf" ] || cp "$OUT/Default.prf.retail" "$OUT/Profiles/Default.prf"
 bash build/nolf2cmds.sh > "$OUT/nolf2cmds.txt"
-cp build/game-scripts/run.sh "$OUT/"
-chmod +x "$OUT/run.sh"
+cp build/game-scripts/run.sh build/game-scripts/run-launcher.sh "$OUT/"
+chmod +x "$OUT/run.sh" "$OUT/run-launcher.sh"
 
 if [ "${NOLF2_MIDDLEWARE:-retail}" = open ]; then
     step "2. open runtime: our Bink player on FFmpeg (build/ext.sh); the Microsoft runtime from $RETAIL"
