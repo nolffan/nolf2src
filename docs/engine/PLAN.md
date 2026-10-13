@@ -61,6 +61,7 @@ Background, in this directory:
 | 9c | `cshell`: the game DLLs (`CShell.dll`, `Object.lto`, `ClientFx.fxd`) against retail: what the source release does not have of 1.3 | 9 | done: one layout (CInterfaceTimer) was most of CShell's gap; CShell.dll 5,234 -> 5,414 identical (91.7% -> 98.4% of its bytes), Object.lto 9,253 -> 9,254; the rest is listed below |
 | 10 | `release`: public archives built by GitHub Actions, as nolfsrc does (its commits "Install scripts that copy the game's data out of the player's discs", "Package each game directory as a -private and a -public archive", "Build switches for CI: NOLF_ARCHIVES and IMAGE_BUILD", "CI: build the four public archives on GitHub Actions", "CI: check the release build for byte regressions", "CI: upload each archive unzipped") | 7, 8 and everything ported | done: -private / -public archives, install scripts from the player's installed NOLF2, the workflow (not yet run on GitHub); ServerDir.dll's score made reproducible by package 11 |
 | 11 | `bugs`: the variants (debug, modern, modern-debug) checked to build the whole game, engine included, and to play; `RETAIL_BUGS.md`; the safe fixes in the modern build | 7, 8 | done: every variant builds every binary with its define and passes the playtest; 48 entries listed, 23 of them fixed in the modern build (three only on one side: see the notes) (M-G5..M-G16, M-L3, M-E7..M-E12) |
+| 13 | `mouse`: why mouse look jumps about (a player's report, modern build on a desktop under Wine) | 7 | done: retail's `input_ReadInput` (Lithtech.exe 0x4319b0, byte-identical in both builds) adds a look axis's last event again per pass and per frame; MODERN.md M-E3 (with M-E4's frame limit) is the fix; `RETAIL_BUGS.md` has it and the packages' retail bugs |
 
 ## Notes per package
 
@@ -757,13 +758,7 @@ Lithtech.exe 5509 -> 5613 (against this branch's recorded baseline).
 
 #### net: retail bugs
 
-- **`CLTTransform::Inverse` returns its input.** Retail (server.dll
-  0x10047c91; `lea -0x40(%ebp)` at 0x10047cb3 is `mTransform`, not
-  `mInverse`) inverts the matrix, then converts the original matrix back
-  into `inverse`, so `inverse` comes back equal to `transform`. The
-  release build reproduces it. Under `NOLF2SRC_MODERN` the result is the
-  real inverse (`shared/src/transformlt_impl.cpp`). Nothing in the game
-  calls it.
+`CLTTransform::Inverse` returns its input: now in `RETAIL_BUGS.md`.
 
 ### 9b. rendermatch
 
@@ -906,19 +901,8 @@ servers.
 
 ### cshell: retail bugs
 
-- **The multiplayer timer runs on while paused.** Retail's
-  `CInterfaceTimer` (CShell 0x100eb260) computes the time left from the
-  game time on every draw and never reads the pause flag the server sends
-  (`CInterfaceMgr::HandleDisplayTimerMsg`; the flag is stored at 0x1005c484/0x10063f4e and
-  read nowhere), so a paused round's timer keeps counting down on screen.
-  The source release fixes it (`m_fTimeLeft`, kept while paused). The
-  release build reproduces it.
-- **Possibly: an armed bomb deactivates after a stopped defuse.** Retail's
-  `Bombable::HandleStoppedMsg` (Object.lto 0x101d45b0) sets
-  `m_bCanDeactivate` when a defuse is interrupted with the bomb still
-  armed, which planting clears so that `Prop::Update` keeps the object
-  updating for the countdown; the source release does not set it. Not
-  checked in the game. The release build reproduces it.
+The multiplayer timer that runs on while paused, and possibly an armed
+bomb that deactivates after a stopped defuse: now in `RETAIL_BUGS.md`.
 
 ### 11. bugs
 
@@ -1072,3 +1056,45 @@ rebuilt. Fix before turning CI on: pin the number (e.g. patch it in the
 objects after compiling, or score `ServerDir.dll` without those
 functions), or record the fresh-build score. (Done by package 11:
 `stdafx.cpp` compiled first, and `tools/anonns.py` pins the names.)
+
+### 13. mouse
+
+**The report.** Mouse look "is not smooth... jumps around chaotically and
+is hard to control" (the modern build, on a desktop under Wine). The
+release build is the same: on master no input code differs between the
+builds, and neither limits the frame rate (`MaxFPS` works only outside
+`_FINAL`).
+
+**The cause is retail's.** `input_ReadInput` (Lithtech.exe 0x4319b0) is
+byte-identical to retail, so nothing from the Jupiter tree is missing here. The function reads the system mouse
+one event at a time (x and y are separate events) and runs every trigger
+after each and after the closing empty read. A relative axis hands on its
+last event, blended 12% (`InputRate` 12) toward its last three, and is
+zeroed only when `GetTickCount` has moved more than 1 ms past it, checked
+once a frame. So an event is added two or three times, an x event again on
+the y event's pass, and how many times depends on the frame rate, the
+mouse's report rate and the speed: the look speed changes as you move.
+`RETAIL_BUGS.md` has the numbers: a model of the function (1.06 to 3.8
+times the motion), and a run of the release build with a temporary
+per-frame log (not committed): 2.8 times horizontally, 3.8/2.8 diagonally,
+one event spread over three frames. Nothing here is Wine's: the game clips
+the cursor to its window (`GameClientShell.cpp`) and DirectInput's relative
+counts are what the log saw. How coarse Wine's DirectInput events are on a
+desktop X server was not measured.
+
+**The fix** is MODERN.md M-E3 as reimplemented from the NOLF2 Modernizer
+(read the mouse's whole buffer, add up each look axis over the frame, use
+it once, no smoothing; a 1024-event buffer), which this package does not
+duplicate. It helps: in the model the turn is exactly the motion at every
+frame rate, speed and direction. Two side effects for whoever finishes it:
+the view turns 1.1 to 3.8 times less for the same `MouseSensitivity` than
+retail did (players will turn it up; `MouseScaleBase`/`MouseScaleIncrement`
+could make up the usual 2x), and the Mouse screen's input-rate slider no
+longer does anything for mouse look. M-E4's 60 fps default limit makes
+retail's code behave better too, but is not needed once M-E3 is in.
+
+**Retail bugs.** The net and cshell packages' lists moved into
+`RETAIL_BUGS.md`, with mouse look: `CLTTransform::Inverse` (fixed in the
+modern build), the multiplayer timer, the bomb (not fixed).
+
+**Score.** `make progress` (check) passes unchanged; `make test` passes.
