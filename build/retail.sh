@@ -10,6 +10,9 @@
 #                 the release from them and the update (rez/patches/),
 #                 unless it is installed already
 #                 (rez/fetch-isos.sh, rez/install-games.sh; `make` runs it)
+# retail_discs    fetches the USA release's two disc images too, unless they
+#                 are there: the public archive's install scripts are made
+#                 against both releases' (tools/mkinstall.py; `make` runs it)
 # retail_verify   checks every installed file against rez/games.sha256 (the
 #                 Makefile runs it before every build; NOLF2_SKIP_RETAIL_CHECK=1
 #                 skips it)
@@ -44,6 +47,20 @@ retail_install() {
     [ -f "$rez/games/$RETAIL_RELEASE/MANIFEST.txt" ] && return 0
     echo "== fetching and installing $RETAIL_RELEASE (rez/: about 1.1 GB from archive.org, once)"
     "$rez/fetch-isos.sh" "$RETAIL_RELEASE" && "$rez/install-games.sh" "$RETAIL_RELEASE"
+}
+
+# The images of both releases' discs, as .iso (fetch-isos.sh converts the
+# zips; it fetches only what is missing, and checks every zip).
+RETAIL_DISCS="$RETAIL_RELEASE nolf2-usa"
+retail_discs() {
+    local rez name missing=0
+    rez="$(retail_rez)" || return 1
+    while IFS= read -r name; do
+        [ -f "$rez/isos/$name.iso" ] || missing=1
+    done < <(python3 -I "$rez/tools/install.py" --discs $RETAIL_DISCS)
+    [ $missing = 0 ] && return 0
+    echo "== fetching the disc images of $RETAIL_DISCS (rez/: the USA release's are about 1.1 GB more, once)"
+    "$rez/fetch-isos.sh" $RETAIL_DISCS
 }
 
 retail_verify() {

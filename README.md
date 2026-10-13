@@ -76,7 +76,8 @@ binary, and the evidence, is `progress/COMPILERS.md`.
 
 Needs docker and the two submodules (`git submodule update --init`):
 `toolchains/` (the compilers) and `rez/` (which fetches the European discs
-from archive.org and installs the game with its 1.3 update).
+from archive.org and installs the game with its 1.3 update, and the USA
+discs, for the public archive's install scripts).
 
 ```sh
 make            # out/nolf2-legacy-release/ and its -private / -public .tar.gz
@@ -110,21 +111,28 @@ The `-private` archives hold the retail game's data (1.8 GB of it), so they
 are for your own machines and for others developing on the build. To give
 the game to anyone else, give them the `-public` archive instead
 (`out/nolf2-modern-release-public.tar.gz`, a few MB): the same directory
-without anything from the retail game, and two scripts that copy it out of
-their own *No One Lives Forever 2* -- installed from their discs and
-updated to 1.3 (English; the European or the USA release). They check
-every file they write against its SHA-256, so the result is the `-private`
-archive's directory, byte for byte:
+without anything from the retail game, and two scripts that install it
+from their own disc images of *No One Lives Forever 2* (the European or
+the USA release) and Sierra's English 1.3 update, `nolf2-update_1x3.exe`
+-- without installing the game. An image can be a plain `.iso` (an own
+rip), redump's `.bin` (or its `.cue`), or redump's `.zip` as archive.org
+serves it; a `.bin` or `.zip` is converted to a temporary `.iso` first
+(about 0.6 GB a disc). On Linux they need `python3`, whose zlib unpacks
+the setup's compressed cabinets; on Windows, the PowerShell every Windows
+10 and 11 has. They check each image's SHA-256 and every file they write,
+so the result is the `-private` archive's directory, byte for byte:
 
 ```sh
-nolf2-modern-release/linux-install.sh ~/.wine/drive_c/'Program Files'/.../'No One Lives Forever 2'
-nolf2-modern-release/linux-install.sh    # finds it in the registry of $WINEPREFIX or ~/.wine
+nolf2-modern-release/linux-install.sh disc1.zip disc2.zip nolf2-update_1x3.exe   # Linux, Steam Deck
 ```
 
-On Windows, double-click `windows-install.bat` (it finds the game where its
-setup installed it) or drop the installed game's folder onto it. Either
-script can be run again: a file already in place is checked and kept. The
-GitHub Actions workflow builds the four public archives on every push
+On Windows, drop both images and the update onto `windows-install.bat` (or
+put them in the game folder and double-click it), then start `NOLF2.exe`.
+Either script finds them in the game directory or the one above it by
+itself, and can be run again: a file already in place is checked and kept.
+The public archive is made only if `rez/isos/` has the `.iso` images of
+both releases' discs (`make retail` fetches them; `tools/mkinstall.py`).
+The GitHub Actions workflow builds the four public archives on every push
 (`BUILDING.md`).
 
 See `LICENSE-NOTES.md` for what is whose, and what each archive holds.

@@ -54,12 +54,15 @@ project's own files, none of the retail game's:
 | `snddrv.dll`, `ltmsg.dll` | built here from this project's reconstructions (Monolith's code in substance; `ltmsg.dll`'s strings are the retail DLL's) | as above |
 | `binkw32.dll` (modern builds only) | our Bink player statically linked with FFmpeg | LGPL-2.1-or-later (FFmpeg); the source is `src/modern/binkw32/` and `ext/ffmpeg`, rebuilt by `build/ext.sh` |
 | `.pdb`, `.map` (debug builds only) | the linker's, for the binaries above | as those binaries |
-| `linux-run.sh`, `linux-run-launcher.sh`, `linux-install.sh`, `windows-install.bat`, `nolf2cmds.txt`, `MANIFEST.txt` | written for this project (the install scripts by `tools/mkinstall.py`, with the sizes and SHA-256 of the retail files they read) | no licence is declared |
+| `linux-run.sh`, `linux-run-launcher.sh`, `linux-install.sh`, `windows-install.bat`, `nolf2cmds.txt`, `MANIFEST.txt` | written for this project (the install scripts by `tools/mkinstall.py`, with the sizes and SHA-256 of the disc images, the update and the retail files they read, and where on the images each file's bytes are) | no licence is declared |
 
 It has no `.rez` archive, movie, setting or profile of the retail game, no
 RAD Bink and no Microsoft runtime DLL. The install scripts copy those from
-the player's own installed NOLF2 (updated to 1.3, English) into the
-directory, on the player's machine; nothing of them is in the archive. So
+the player's own disc images of NOLF2 (the European or the USA release)
+and Sierra's 1.3 update into the directory, on the player's machine;
+nothing of them is in the archive, and the scripts carry no InstallShield
+or Microsoft code (they inflate with python3's zlib or .NET's
+DeflateStream). So
 the public archive is the one meant for other people -- but its binaries
 are still built from Monolith's source, the LithTech engine source and the
 Jupiter SDK, whose terms no licence here overrides: work them out before

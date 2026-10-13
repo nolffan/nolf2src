@@ -66,8 +66,9 @@
 #                         directory as one file (unpack, then ./linux-run.sh
 #                         -- see its header; Wine needed there), and
 #                         -public.tar.gz: the same without the retail game's
-#                         files, which its install scripts copy from the
-#                         player's own NOLF2 (build/package.sh).
+#                         files, which its install scripts copy out of the
+#                         player's own disc images and 1.3 update
+#                         (build/package.sh).
 set -e
 REPO="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 
