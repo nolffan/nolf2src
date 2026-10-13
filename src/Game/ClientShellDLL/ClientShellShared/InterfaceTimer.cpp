@@ -22,7 +22,6 @@ static void BuildTimeString(char* aBuffer, int nTime);
 CInterfaceTimer::CInterfaceTimer() 
 {
 	m_fTime		= 0.0f;
-	m_fTimeLeft = 0.0f;
 	m_bPause	= LTFALSE;
 	m_pTimeStr	= LTNULL;
 	m_nBaseSize = 0;
@@ -48,18 +47,18 @@ CInterfaceTimer::~CInterfaceTimer()
 void CInterfaceTimer::Draw()
 {
 
-	// If we're not paused, recalculate the time left.
-	if( !m_bPause )
-		m_fTimeLeft = m_fTime - g_pLTClient->GetGameTime( );
+	// RETAIL: reconstructed from the retail 1.3 CShell.dll (0x100eb260): the
+	// time left is counted from the game time on every draw, paused or not.
+	float fTimeLeft = m_fTime - g_pLTClient->GetGameTime( );
 
 	// Update/Draw the timer if there is anytime left...
-	if( m_fTimeLeft <= 0.0f )
+	if( fTimeLeft <= 0.0f )
 		return;
 
 	// Draw the string to the surface...
 
-	int nMinutes = int(m_fTimeLeft) / 60;
-	int nSeconds = m_fTimeLeft > 60.0 ? int(m_fTimeLeft) % 60 : int(m_fTimeLeft);
+	int nMinutes = int(fTimeLeft) / 60;
+	int nSeconds = fTimeLeft > 60.0 ? int(fTimeLeft) % 60 : int(fTimeLeft);
 
 	char aBuffer[8];
 	char aMinutes[8];

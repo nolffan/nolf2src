@@ -89,8 +89,7 @@ CPacket_Data::SChunk *CPacket_Data::Allocate_Chunk(uint32 nOffset)
 		
 		g_cPacket_CS_Trash.Unlock();
 
-		pResult->Init(nOffset);
-	
+		new(pResult) SChunk(nOffset);
 		return pResult;
 	}
 	else
@@ -138,7 +137,7 @@ CPacket_Data* CPacket_Data::Allocate()
 	{
 		pResult = s_pTrash_Data;
 		s_pTrash_Data = (CPacket_Data*)s_pTrash_Data->m_pFirstChunk;
-	    pResult->Init();
+		new(pResult) CPacket_Data;
 	}
 	else
 	{
@@ -249,35 +248,6 @@ void CPacket_Write::WriteData(const void *pData, uint32 nBits)
 
 
 
-//-------------------------------------------------------------------------------------
-//
-//
-//	NOTE: Special routine that assume a empty write packet and wants to create the 
-//			entire packet structure etc at once. 
-//
-//
-//-------------------------------------------------------------------------------------
-
-void CPacket_Write::WriteDataRaw( void *pData, uint32 nBytes )
-{
-	if (!m_pData)
-	{
-		m_pData = CPacket_Data::Allocate();
-		m_pData->IncRef();
-
-		uint8 * pData8 = reinterpret_cast<uint8*>(pData);
-
-		m_pData->CreateWriteRaw( pData8, nBytes ); 
-
-	}
-	else
-	{
-		return;
-	}
-
-}
-
-
 
 void CPacket_Write::WritePacket(const CPacket_Read &cRead)
 {
@@ -381,32 +351,6 @@ void CPacket_Read::ReadData(void *pData, uint32 nBits)
 	}
 }
 
-//--------------------------------------------------------------------------------------------
-//
-//	Note: !!!! This is a special routine that reads the packet into a byte buffer
-//			It doesn't do a bunch of checking so make sure the packet and pData are nBytes
-//
-//
-//--------------------------------------------------------------------------------------------
-void CPacket_Read::ReadDataRaw(void *pData, uint32 nBytes)
-{
-	uint32 *pData32 = reinterpret_cast<uint32*>(pData);
-
-	CPacket_Data::TConstIterator iTer = m_pData->Begin();
-	uint32 nByteCap = m_pData->GetByteCapacity();
-
-	while ( nBytes )
-	{
-		memcpy ( pData32, iTer.m_pChunk->m_aData, (nBytes >  nByteCap ? nByteCap : ((nBytes+3)/4)*4));
-
-		if ( nBytes <= nByteCap )
-			return;
-
-		nBytes -= nByteCap;
-		pData32 += nByteCap/4;
-		iTer.NextChunk();
-	}
-}
 
 
 uint32 CPacket_Read::ReadString(char *pDest, uint32 nMaxLen)

@@ -53,7 +53,12 @@ bool ScmdConsoleDriver_ServerApp::WriteMessage( char const* pszMessage )
 		return false;
 	}
 
+#ifdef NOLF2SRC_MODERN
+	// MODERN.md M-G5: the message (player names in it) is not a format
+	g_pDialog->WriteConsoleString( "%s", pszMessage );
+#else
 	g_pDialog->WriteConsoleString( pszMessage );
+#endif
 	
 	return true;
 }

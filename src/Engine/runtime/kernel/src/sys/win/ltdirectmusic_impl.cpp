@@ -797,7 +797,12 @@ LTRESULT CLTDirectMusicMgr::Term()
 LTRESULT CLTDirectMusicMgr::InitLevel(const char* sWorkingDirectory, const char* sControlFileName, const char* sDefine1,
 		  						     const char* sDefine2, const char* sDefine3)
 {
+#ifdef NOLF2SRC_MODERN
+	// MODERN.md M-E9: "sDeine3" in retail's trace
+	LTDMConOutMsg(3, "CLTDirectMusicMgr::InitLevel sWorkingDirectory=%s sControlFileName=%s sDefine1=%s sDefine2=%s sDefine3=%s\n",
+#else
 	LTDMConOutMsg(3, "CLTDirectMusicMgr::InitLevel sWorkingDirectory=%s sControlFileName=%s sDefine1=%s sDefine2=%s sDeine3=%s\n",
+#endif
 					  sWorkingDirectory, sControlFileName, sDefine1, sDefine2, sDefine3);
 
 	// control file mgr object used for reading the control file
@@ -1687,6 +1692,30 @@ LTRESULT CLTDirectMusicMgr::StopSecondary(const char* sSecondarySegment, const L
 	// enter critical section for messing with the command queue
 	CWinSync_CSAuto cProtection(m_CommandQueueCriticalSection);
 
+#ifdef NOLF2SRC_MODERN
+	// MODERN.md M-E7: one walk over the list, for a name or for all.
+	// Retail looked a name up again until nothing was found, but a node
+	// it did not clean up (one to play to its end, LTDMEnactNextSegment,
+	// or one whose segment had no DirectMusic segment) was found again
+	// for ever: the game hung, holding the command queue's lock. And the
+	// stop-all walk advanced only past nodes with a segment state.
+	pStopSegmentState = m_lstSecondarySegmentsPlaying.GetFirst();
+	while (pStopSegmentState != LTNULL)
+	{
+		pNextSegmentState = pStopSegmentState->Next();
+		CSegment* pSegment = pStopSegmentState->GetSegment();
+		if (pStopSegmentState->GetDMSegmentState() != LTNULL &&
+			(sSecondarySegment == LTNULL ||
+			 (pSegment != LTNULL && pSegment->GetSegmentName() != LTNULL &&
+			  stricmp(pSegment->GetSegmentName(), sSecondarySegment) == 0)))
+		{
+			nEnactTime = nStart;
+			if (nStart == LTDMEnactDefault && pSegment != LTNULL) nEnactTime = pSegment->GetDefaultEnact();
+			if (nEnactTime != LTDMEnactNextSegment) m_lstSecondarySegmentsPlaying.CleanupSegmentState(this, pStopSegmentState, nEnactTime);
+		}
+		pStopSegmentState = pNextSegmentState;
+	}
+#else
 	// if name is LTNULL then stop them all
 	if (sSecondarySegment == LTNULL)
 	{
@@ -1741,6 +1770,7 @@ LTRESULT CLTDirectMusicMgr::StopSecondary(const char* sSecondarySegment, const L
 			else break;
 		}
 	}
+#endif
 
 	return LT_OK;
 }
@@ -1847,6 +1877,25 @@ LTRESULT CLTDirectMusicMgr::StopMotif(const char* sMotifName, const LTDMEnactTyp
 
 	CWinSync_CSAuto cProtection(m_CommandQueueCriticalSection);
 
+#ifdef NOLF2SRC_MODERN
+	// MODERN.md M-E7: one walk, as in StopSecondary
+	pStopSegmentState = m_lstMotifsPlaying.GetFirst();
+	while (pStopSegmentState != LTNULL)
+	{
+		pNextSegmentState = pStopSegmentState->Next();
+		CSegment* pSegment = pStopSegmentState->GetSegment();
+		if (pStopSegmentState->GetDMSegmentState() != LTNULL &&
+			(sMotifName == LTNULL ||
+			 (pSegment != LTNULL && pSegment->GetSegmentName() != LTNULL &&
+			  stricmp(pSegment->GetSegmentName(), sMotifName) == 0)))
+		{
+			nEnactTime = nStart;
+			if (nStart == LTDMEnactDefault && pSegment != LTNULL) nEnactTime = pSegment->GetDefaultEnact();
+			if (nEnactTime != LTDMEnactNextSegment) m_lstMotifsPlaying.CleanupSegmentState(this, pStopSegmentState, nEnactTime);
+		}
+		pStopSegmentState = pNextSegmentState;
+	}
+#else
 	// if name is LTNULL then stop them all
 	if (sMotifName == LTNULL)
 	{
@@ -1901,6 +1950,7 @@ LTRESULT CLTDirectMusicMgr::StopMotif(const char* sMotifName, const LTDMEnactTyp
 			else break;
 		}
 	}
+#endif
 
 	return LT_OK;
 }

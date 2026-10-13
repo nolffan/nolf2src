@@ -47,6 +47,18 @@ import shlex
 import sys
 
 
+# /YX compiles of a project run one at a time in its file order, the first
+# one writing the precompiled header and the next using it if its headers
+# start the same way (or writing its own). Where the retail binary was
+# built from another order, its first object is named here:
+# - ServerDir: CServerDir_Titan.cpp comes first in ServerDir.dsp, and
+#   compiled first it writes a header of all its includes and compiles to
+#   375,182 bytes; compiled after stdafx.cpp (stdafx.h's header) it is
+#   377,910 bytes and six more of ServerDir.dll's functions are retail's
+#   (0x10003cc0, 0x100043a0, 0x100044a0, 0x10008850, 0x10010060,
+#   0x10010120). progress/identical.txt was recorded from such a rebuild.
+YX_FIRST = {"serverdir": "stdafx.obj"}
+
 _spelling = {}
 
 
@@ -353,6 +365,9 @@ def main():
             if kind == "u" and makers and o != makers[0]:
                 mk.append(f"{o}: {makers[0]}")
         yx = [o for o, kind in pch_objs if kind == "x"]
+        first = YX_FIRST.get(pname.lower())
+        if first:
+            yx.sort(key=lambda o: ntpath.basename(o).lower() != first)
         for prev, nxt in zip(yx, yx[1:]):
             mk.append(f"{nxt}: {prev}")
         if makers:

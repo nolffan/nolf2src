@@ -56,8 +56,11 @@ Background, in this directory:
 | 7 | `boot`: the built `Lithtech.exe` in the game under Wine: to the menu, then a level; snddrv/ServerDir/ltmsg built ones in | 3–6 | done: every engine binary in the game is built (no retail engine left); `make test` plays from the main menu into C01S01 with sound (null ALSA device); `make modern` builds and runs the same |
 | 8 | `modern`: the modern build of the engine (FFmpeg Bink, fixes) | 7 | done: no RAD binary in the modern build (Bink on FFmpeg; NOLF2 has no Miles); the launcher installed in both builds; Hor+, widescreen modes, the launcher's server name (`MODERN.md`) |
 | 9 | `match`: byte-matching passes per module, ratcheted by `make progress` | 3–6 | ongoing |
+| 9a | `net`: multiplayer with the built engine (dedicated server and client over UDP); kernel/net and the server-side modules matched | 3, 7 | done: our Lithtech.exe joins our NOLF2Srv.exe/server.dll (and retail's server.dll) over loopback, `tools/mptest.sh`; server.dll +102, Lithtech.exe +104 identical |
 | 9b | `rendermatch`: render_a/render_b structures and file formats against retail, the renderer in the game, byte matching | 6, 7 | done: layouts and loaders fixed (below); Lithtech.exe 5,509 -> 5,792 identical |
-| 10 | `release`: public archives built by GitHub Actions, as nolfsrc does (its commits "Install scripts that copy the game's data out of the player's discs", "Package each game directory as a -private and a -public archive", "Build switches for CI: NOLF_ARCHIVES and IMAGE_BUILD", "CI: build the four public archives on GitHub Actions", "CI: check the release build for byte regressions", "CI: upload each archive unzipped") | 7, 8 and everything ported | todo |
+| 9c | `cshell`: the game DLLs (`CShell.dll`, `Object.lto`, `ClientFx.fxd`) against retail: what the source release does not have of 1.3 | 9 | done: one layout (CInterfaceTimer) was most of CShell's gap; CShell.dll 5,234 -> 5,414 identical (91.7% -> 98.4% of its bytes), Object.lto 9,253 -> 9,254; the rest is listed below |
+| 10 | `release`: public archives built by GitHub Actions, as nolfsrc does (its commits "Install scripts that copy the game's data out of the player's discs", "Package each game directory as a -private and a -public archive", "Build switches for CI: NOLF_ARCHIVES and IMAGE_BUILD", "CI: build the four public archives on GitHub Actions", "CI: check the release build for byte regressions", "CI: upload each archive unzipped") | 7, 8 and everything ported | done: -private / -public archives, install scripts from the player's installed NOLF2, the workflow (not yet run on GitHub); ServerDir.dll's score made reproducible by package 11 |
+| 11 | `bugs`: the variants (debug, modern, modern-debug) checked to build the whole game, engine included, and to play; `RETAIL_BUGS.md`; the safe fixes in the modern build | 7, 8 | done: every variant builds every binary with its define and passes the playtest; 48 entries listed, 23 of them fixed in the modern build (three only on one side: see the notes) (M-G5..M-G16, M-L3, M-E7..M-E12) |
 
 ## Notes per package
 
@@ -672,6 +675,96 @@ raw mouse input (M-E3), high-frame-rate checks before a default
 `MaxFPS` (M-E4), drawing the console (M-E5), Internet play without the
 WON servers (M-E6), an FOV option (M-G4).
 
+### 9a. net
+
+Done. **Multiplayer works** with the built engine: `tools/mptest.sh`
+starts NOLF2Srv.exe with a `server.dll` (ours by default;
+`out/reference/server.dll` is the protocol's control) hosting the first
+co-op level, and our `Lithtech.exe` joins it over UDP loopback through
+the LAN menus (xdotool), both under one Xvfb in the build container. It
+prints JOINED when the server keeps the client and the client enters the
+world. The command line's `+join` does not work here, because it asks
+WON's servers to check the CD key first. The server needs the 1.3
+update's rez registered as its installer does it (`UpdateNum`,
+`UpdateCommandLine0`). Without it the server's attribute files are 1.0's,
+and the handshake's CRC checks kick the client.
+
+**Protocol.** Two differences from Jupiter had to go:
+- Every unconnected packet carries NOLF2's token 0x01337F10, not
+  Jupiter's 0x9919D9C7. With Jupiter's, our client could not find or join
+  a retail server.
+- The 2002 UDP driver locks with `CWinSync_CS`, not `LCriticalSection`.
+  That shifted every field of `CUDPConn` and `CUDPDriver`.
+
+The driver also gets back its 2002 listen thread, `ReallyJoinSession`,
+`SendPing` and the one-argument `Term2`. Packets are copied bit by bit
+(`WriteData`/`ReadData`); Jupiter's raw-copy helpers are gone.
+
+**The game's handshake** (cshell's notes, 9c) derives its key and mask
+from the player GUID and a rotated constant in retail. Our CShell and
+Object.lto still use the source release's fixed values. Our client and
+our server agree, so mptest passes, whichever `server.dll` is used. A
+retail Object.lto, or a retail client, would not agree with them. The
+fix is in the game code, not here.
+
+**Matching.** In server.dll, udpdriver.obj places 242 functions (165
+before this package). The ones still unplaced are `ShouldSendPacket`
+(nothing calls it, so retail's link dropped it) and a vector-destructor
+helper. packet 30, netmgr 142 (the unplaced ones are client-only session
+calls), localdriver 35/35. In Lithtech.exe: udpdriver 237 (190 before),
+packet 28, netmgr 130, localdriver 40.
+
+Also matched in the server-side modules:
+- `HandleGuaranteed`
+- `CPacket_Read`'s sub-range constructor (inlined into about 20 exe
+  functions)
+- `CModelMgr`'s loops (iterators initialised at declaration)
+- the four object constructors without `m_nEffectShaderID` (as on master)
+- `CWorldServerBSP::Term` (no `world_tree.Term`)
+- `CLTMessage_Load::ReadObject`
+- `CollideWithAABB`
+- `Model::Load`
+- `CLTTransform::Inverse`
+
+`make progress` (check) passes: server.dll 2399 -> 2501 identical,
+Lithtech.exe 5509 -> 5613 (against this branch's recorded baseline).
+
+**Known nears, and why:**
+- `CUDPDriver::Update`. Retail calls the three flushes directly, and
+  `Term` and `GetPacket` call `FlushInternalQueues`. Written that way,
+  both binaries' `Update` match, but then the exe's `Term` inlines
+  `deque::pop_front`, which retail calls out of line (0x48e540, recorded
+  identical). So the source stays as it is (the comment in `Update`
+  says so).
+- `i_IntersectSegment`. Retail calls `TVector3`'s constructor out of
+  line inside `operator-` (0x100069bb), and our compile inlines it.
+  That is in `ltvector.h`, which other modules share.
+- `intersectsweptsphere.obj`. Several functions are 30-260 bytes off.
+  Not looked into.
+- The exe's /O2 shapes of `game_serialize`, `ltmessage` and the rest of
+  `udpdriver` (`o2gap.py`).
+- `d3d_model_load`'s `CreateModelRenderObject` and
+  `spritecontrolimpl`'s `GetFrameTextureHandle` are already fixed on
+  master (rendermatch: the `CDIModelDrawable` constructor and the
+  `SharedTexture` layout).
+
+**Left:**
+- One exe hosting and another joining (not tried; the dedicated server
+  path is what was tested).
+- A retail client against our server, which SecuROM prevents under
+  Wine.
+- The nears above.
+
+#### net: retail bugs
+
+- **`CLTTransform::Inverse` returns its input.** Retail (server.dll
+  0x10047c91; `lea -0x40(%ebp)` at 0x10047cb3 is `mTransform`, not
+  `mInverse`) inverts the matrix, then converts the original matrix back
+  into `inverse`, so `inverse` comes back equal to `transform`. The
+  release build reproduces it. Under `NOLF2SRC_MODERN` the result is the
+  real inverse (`shared/src/transformlt_impl.cpp`). Nothing in the game
+  calls it.
+
 ### 9b. rendermatch
 
 **Structures and file formats** (each fix in its commit, with the retail
@@ -737,3 +830,245 @@ SharedTexture/object layouts). `make progress` passes.
   object and `callseq.py`, not the near list.
 - `MODERN.md`'s windowed mode at any size (render_a, behind
   `NOLF2SRC_MODERN`) was not done.
+
+### 9c. cshell
+
+**Where the gap was.** Of CShell.dll's 109 KB of non-identical code, 89 KB
+was 187 nears and 19 KB `small` (global initializers, unverifiable by the
+scorer: not source work). `tools/layoutscan.py --image=CShell` put 180 of
+the nears, in InterfaceMgr, GameClientShell and every screen, on one field
+shift of 12 bytes: retail's `CInterfaceTimer` is 0x1c bytes, without the
+source release's `m_fTimeLeft`, and `CInterfaceMgr` holds three of them.
+Taken back to retail's (constructor 0x100eb210, `Draw` 0x100eb260,
+`SetTime` inlined at 0x1005c484 and 0x10063f4e), CShell.dll went from
+5,234 to 5,414 identical functions (+88 KB). The flags were not the cause:
+the Rich header already matched, triple for triple.
+
+**Convention.** `src/Game/` is the source release, which is not quite what
+retail 1.3 shipped (here it is later: the timer above is a fix retail does
+not have). Where retail differs, the retail code is reconstructed from the
+binary in place and marked `// RETAIL: reconstructed from the retail 1.3
+<binary> (<address>)`, as nolfsrc marks its Game of the Year changes
+`GOTY:` (README, LICENSE-NOTES). Not behind `NOLF2SRC_MODERN`: the release
+build is retail. The source release's version of a change may be a fix
+worth taking into the modern build.
+
+**Done.**
+- `InterfaceTimer.h/.cpp` (CShell): the layout above.
+- `Bombable::HandleStoppedMsg` (Object.lto 0x101d45b0): retail sets
+  `m_bCanDeactivate = true` after a stopped defuse; +1 function.
+
+**Found and not committed: the handshake.** Retail's client and server
+handshake is not the release's fixed key and mask
+(`GAME_HANDSHAKE_PASSWORD`, `GAME_HANDSHAKE_MASK`), which Monolith seems to
+have taken out of the published source. Retail, with
+`K(n) = rol(0xDEADFACE, n & 0xF)` (compiled from
+`(0xDEADFACE << r) + (0xDEADFACE >> (32 - r))`, `r = n & 0xF`, written as
+an inline function: a macro lets VC6 share the two evaluations in the
+client, which retail does not) and `name` the first four bytes of the
+player GUID (the client's `m_sPlayerGuid`, copied with `LTStrCpy(sz, ..,
+255)` into a 256-byte buffer whose first four bytes are zeroed first; the
+server's `GetClientName`):
+- client HELLO (0x1007e260) sends `(uint32)this` as its key;
+- server HELLO (Object.lto 0x1002a440) answers
+  `K(name) ^ clientKey ^ (uint32)this`;
+- client PASSWORD: `m_nServerKey = K(name) ^ m_nServerKey ^ (uint32)this;
+  nXORMask = K(name) ^ m_nServerKey; nPassword = nXORMask ^ name`; the
+  CRCs are masked with `nXORMask` as before;
+- server LETMEIN: `nXORMask = K(name) ^ (uint32)this`, the password must
+  be `name ^ nXORMask`; the CRCs as before.
+The client side compiles byte-identical (1,104 bytes). The server side
+stays near (1,477 of 1,475 bytes: retail tests the loaded name dword for
+zero and stores zero, which no form tried reproduces: a ternary or an `if`
+folds away, `LTMAX` gives sbb/and, a pointer test gives neg/sbb), and any
+change to its LETMEIN case swaps two reloads in `FindStartPoint` (Object.lto
+0x1002cf80, recorded identical, 1,444 bytes), whatever the form. Both sides
+have to change together, so neither was committed. Doing it means finding
+the server's exact form (which should give FindStartPoint back) or
+accepting that loss; it also makes our builds talk to retail clients and
+servers.
+
+**Left.**
+- CShell.dll: 4 nears, 2 KB (the handshake above; `InitSound`, two spill
+  slots swapped; two tiny scorer mispairings). The other 19 KB is `small`.
+- Object.lto: `CAIGoalButeMgr::ReadGoalSet` (two loads in the other
+  order), the server handshake; the rest of its 2% is `small` (34 KB) and
+  mispaired template instances. ClientFx.fxd has no near: its 1.2% is
+  `small` and one row whose extent covers an initializer thunk and the
+  function after it.
+- `make progress` fails, before and after this package, on six ServerDir.dll
+  functions: `CServerDir_Titan.obj` built from the current
+  `src/Game/Libs/` (identical in every worktree since the jupitersrc
+  rewrite) differs from the one the baseline was recorded from (WONAPI
+  template destructors 93 -> 45 bytes, `IPAddr`'s copy constructor); not
+  the order of `/YX`'s precompiled header (recompiling with the header in
+  place changes nothing). For whoever owns ServerDir.
+
+### cshell: retail bugs
+
+- **The multiplayer timer runs on while paused.** Retail's
+  `CInterfaceTimer` (CShell 0x100eb260) computes the time left from the
+  game time on every draw and never reads the pause flag the server sends
+  (`CInterfaceMgr::HandleDisplayTimerMsg`; the flag is stored at 0x1005c484/0x10063f4e and
+  read nowhere), so a paused round's timer keeps counting down on screen.
+  The source release fixes it (`m_fTimeLeft`, kept while paused). The
+  release build reproduces it.
+- **Possibly: an armed bomb deactivates after a stopped defuse.** Retail's
+  `Bombable::HandleStoppedMsg` (Object.lto 0x101d45b0) sets
+  `m_bCanDeactivate` when a defuse is interrupted with the bomb still
+  armed, which planting clears so that `Prop::Update` keeps the object
+  updating for the countdown; the source release does not set it. Not
+  checked in the game. The release build reproduces it.
+
+### 11. bugs
+
+**Variants.** `make debug`, `make modern` and `make modern-debug` build
+every binary of the game, the engine included (`Lithtech.exe`,
+`server.dll`, `SndDrv.dll`, `ServerDir.dll`, `ltmsg.dll`, the launcher and
+the dedicated server): build.mk puts `NOLF2SRC_CFLAGS` on every compile, so
+each engine object's command line has `/D NOLF2SRC_DEBUG /Z7 /Oy-` or
+`/D NOLF2SRC_MODERN` (checked in the `.obj.cmd` files of
+`out/build-<variant>/`), and the debug variants put a `.pdb` beside every
+binary. Nothing needed fixing. `make test TEST_GAME=out/<variant>` (new)
+plays a variant's game directory (`out/play/test-<name>/`); all three pass
+`playtest-newgame.txt`, and `tools/srvtest.sh` hosts CP_c01s01 with the
+modern `NOLF2Srv.exe` and `server.dll`.
+
+**`releasesrc.py`** now ignores directives inside `/* */` comments:
+`ltdirectmusic_impl.cpp` keeps a commented-out `#else`/`#endif`, which the
+stripper took for an unmatched `#endif` once the file had a variant block.
+Also: the editing tool drops trailing whitespace on the lines it touches,
+and retail files have plenty; `tools/releasesrc.py diff` (run in the
+checkout: it uses the current directory) catches it, run it after every
+edit.
+
+**`RETAIL_BUGS.md`** (48 entries) came from the porting notes, from
+nolfsrc's list looked for bug by bug in NOLF2's game and engine code, and
+from reading the multiplayer, gameplay and engine code for the same kinds
+of mistake. Engine entries were checked with `tools/exematch.py` against
+`out/reference/` (it runs on the host, read only): each names a function
+byte-identical to retail at its address. NOLF2's engine fixed or rewrote
+most of NOLF1's server.dll bugs (the list ends with them); the game code
+carried more over, and NOLF2's multiplayer adds remote holes of its own
+(chat overflows, debug messages obeyed from any client, the handshake not
+enforced).
+
+**Fixed in the modern build**: 23 entries (`MODERN.md` M-G5..M-G16,
+M-L3, M-E7..M-E12), each tested with `make modern` and the playtest. Three
+only on one side: names and chat as formats and the chat overflow are
+fixed on the server (which also cleans what it relays, so clients behind a
+modern server are safe) but not in the client's own code, and only the
+client's wrong function names.
+
+**Left, by owner.**
+- The server package (`server/`, `shared/`, `world/`, `model/`,
+  `kernel/net`, `kernel/io`): `CLTServer::CPrint` formats its line twice
+  (pass it on through `"%s"`), `ReadHStringAsString`'s seek,
+  `ReadHString`'s terminator, `WriteMessage`'s 16-bit size,
+  `OnHelloPacket`, `cb_LoadModule`'s double free, the world loader's
+  vertex count, `ILTModel::GetNodeName`'s bound, `trk_ScanToKeyFrame`,
+  `LTObject::Clear`, the codec, `CGenLTStream::WriteStream`, the property
+  guard, the server's wrong function names.
+- `CShell.dll` (being byte-matched): the particle and line systems at high
+  frame rates, the client's chat and kill-message printing, the server
+  list's `=`, the lip-sync reader, the camera clamp, the particle colour
+  range.
+- Not done here: the handshake and password (`KickClient` on a wrong
+  password, refusing messages before the handshake) want a two-machine
+  test; `CP_DAMAGE` from clients needs a design; the sprite-system timing
+  and the snow rate change how the shipped effects look.
+
+**Score.** `tools/releasesrc.py diff` is empty and `make game` recompiles
+nothing for the fixes. `make progress` passes.
+
+**ServerDir.dll was not reproducible** (six recorded functions, 0x10003cc0,
+0x100043a0, 0x100044a0, 0x10008850, 0x10010060, 0x10010120, lost by every
+fresh build). Two causes, both fixed:
+- **The /YX precompiled header.** ServerDir compiles with `/YX` (automatic
+  precompiled header), one compile after another in the .dsp's order:
+  `CServerDir_Titan.cpp` first, which writes a header of everything it
+  includes, then `stdafx.cpp`, which finds that inconsistent with its own
+  and rewrites it with `stdafx.h` alone. A later rebuild of
+  `CServerDir_Titan.cpp` alone (its source changed; the main checkout's
+  14:15 rebuild) uses stdafx's header, and compiles differently: 377,910
+  bytes against 375,182, eight more of its functions retail's
+  (`tools/exematch.py`). The recorded score is from such a rebuild. The
+  same source compiled in the two orders, by hand, gives exactly the two
+  objects. `tools/dsp2mk.py` (`YX_FIRST`) now compiles ServerDir's
+  `stdafx.cpp` first, so every build makes the retail-matching object.
+  (The main checkout's `make game` did not rebuild the object because the
+  release tree's copy of the source had not changed since 14:15 -- the
+  15:27 time is `jupitersrc.py` rewriting `src/` with the same text, and
+  the release tree keeps the time of the last real change. No dependency
+  is missing.)
+- **Anonymous-namespace numbers.** VC6 names an anonymous namespace
+  `?%<source><number>` with a number drawn afresh on every compile (the
+  same file compiled twice gets two numbers, 7 to 10 digits; not the time,
+  the path or the text). WONAPI has three (`CDKey.cpp`, `CRC.cpp`,
+  `QueueSocket.cpp`), in symbol names and, for `QueueSocket.cpp`, in an
+  RTTI type name in a COMDAT data section, so the length moves code and
+  data. `tools/anonns.py` rewrites them, for the libraries `build.mk`'s
+  `PINNED_LIBS` names (WONAPI only: other projects' anonymous namespaces
+  have not moved a recorded function), to the numbers of the WONAPI.lib the
+  score was recorded on; the pinned objects are then those objects byte
+  for byte, but for the time stamp and the COMDAT checksums. Whether the
+  length alone moves any of the six was not separated from the first
+  cause; with both fixed, fresh WONAPI and ServerDir objects score 207.
+
+### 10. release
+
+Done: nolfsrc's release pattern, for NOLF2 (`BUILDING.md`, "Archives";
+`LICENSE-NOTES.md`, "The archives").
+
+- `build/package.sh` writes `out/<name>-private.tar.gz` (the whole game
+  directory, 0.9 GB) and `-public.tar.gz` (4.6 MB for the legacy release
+  build): the same without every file `MANIFEST.txt` lists as `data` or
+  `THIRD-PARTY`, with `linux-install.sh` and `windows-install.bat`.
+  `NOLF2_ARCHIVES` (default `private public`) picks them; `IMAGE_BUILD=0`
+  makes `make image` take the docker image as it is.
+- `tools/mkinstall.py` writes the install scripts. Unlike nolfsrc's, they
+  read the player's *installed* NOLF2 (1.3, English: EU and USA install
+  the same files), not the disc images: NOLF2's setup keeps its files in
+  compressed InstallShield cabinets and the 1.3 update in a
+  self-extractor, so only an install has them as they are. Each file is
+  byte ranges of an installed file plus zeros (the retail DLLs blanked in
+  GAME2.REZ, GAMEDLL.REZ, Update_v1x3.rez), checked by SHA-256. Flags:
+  the Microsoft runtime is optional (a Windows install keeps it in
+  system32; under Wine only `run-launcher.sh` needs MFC42), and the
+  shipped settings (`autoexec.cfg`, `Default.prf`) fall back to the
+  player's own. Linux finds the install in the Wine registry
+  (`$WINEPREFIX`, `~/.wine`), the .bat in HKLM's InstallDir.
+- `tools/retailextract.py resources` hard-links the retail files it does
+  not change (Engine/GAME/SOUND.REZ, the movies): a game directory is
+  1.2 GB instead of 1.8.
+- `.github/workflows/public-archives.yml`: the four builds with
+  `NOLF2_ARCHIVES=public`, `make progress` after the release build, the
+  four public archives uploaded unzipped; the disc zips and the SDK image
+  cached on `rez/isos/SHA256SUMS`. actionlint passes it.
+
+Tested here, in a fresh worktree with `NOLF2_ARCHIVES=public` (the CI
+commands): `make`, `make debug`, `make modern`, `make modern-debug` build
+the four public archives (4.6, 21, 5.5 and 22 MB). The legacy release
+one, unpacked in an empty directory and installed by `linux-install.sh`
+from `rez/games/nolf2-eu-1.3` (found through a Wine registry), is the
+built game directory byte for byte and passes the `make test` playtest
+(menu, new game, C01S01); the modern one installs byte for byte too. The
+.bat's PowerShell ran under PowerShell 7.4 on Linux with the same result;
+Windows PowerShell 5.1 and the .bat wrapper itself were not run. Not
+tested: the workflow on GitHub (the runner's disk, the 6-hour limit, the
+caches, upload-artifact v7).
+
+**`make progress` is not reproducible for `ServerDir.dll`** (found here;
+the CI step will fail on it). VC6 names an anonymous namespace
+`?%<source path><number>`, the number different on every compile (8 to 10
+digits: retail's `QueueSocket.cpp` has `152339212`). WONAPI has such
+namespaces (`QueueSocket.cpp`'s `QueueOpFastCompletion`, in
+`Socket.obj`, `Common.obj`, `Auth.obj`), and the names' lengths move
+`ServerDir.dll`'s layout: a fresh build of master scores 201 identical
+functions, not the 207 recorded (`sub_10003cc0`, `sub_100043a0`,
+`sub_100044a0`, `sub_10008850`, `sub_10010060`, `sub_10010120` lost); the
+recorded score came from a WONAPI.lib built once on Oct 12 and never
+rebuilt. Fix before turning CI on: pin the number (e.g. patch it in the
+objects after compiling, or score `ServerDir.dll` without those
+functions), or record the fresh-build score. (Done by package 11:
+`stdafx.cpp` compiled first, and `tools/anonns.py` pins the names.)

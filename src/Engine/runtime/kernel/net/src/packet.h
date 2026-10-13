@@ -38,11 +38,6 @@ private:
 public:
 	CPacket_Data() 
 	{
-		Init();
-	}
-
-	void	Init ( )
-	{
 		m_pFirstChunk = 0;
 		m_pLastChunk = 0;
 		m_nRefCount = 0;
@@ -70,31 +65,6 @@ public:
 		return true;
 	}
 
-	bool CreateWriteRaw ( uint8 * pData, uint32 nBytes )
-	{
-		m_nSize = nBytes * 8;
-
-		if (!m_pFirstChunk)
-		{
-			m_pFirstChunk = Allocate_Chunk();
-			m_pLastChunk = m_pFirstChunk;
-		}
-
-		uint32 nByteCap = GetByteCapacity();
-
-		while ( nBytes )
-		{
-			m_pLastChunk = m_pLastChunk->WriteRaw( pData, ( nBytes >  nByteCap ? nByteCap : nBytes) );
-
-			if ( nBytes <= nByteCap )
-				return true;
-
-			nBytes -= nByteCap;
-			pData += nByteCap;
-		}
-
-		return false;
-	}
 
 
 
@@ -110,7 +80,6 @@ public:
 	uint32 Size() const { return m_nSize; }
 	bool Empty() const { return m_nSize == 0; }
 
-	uint32 GetByteCapacity( ) const { return SChunk::k_nByteCapacity; }
 
 
 public:
@@ -238,11 +207,6 @@ private:
 	{
 		SChunk(uint32 nOffset = 0) 
 		{
-			Init ( nOffset);
-		}
-
-		void Init(uint32 nOffset = 0) 
-		{
 			m_nOffset = nOffset;
 			m_nInUse = 0;
 			m_pNext = 0;
@@ -261,28 +225,12 @@ private:
 				return this;
 		}
 
-		SChunk *WriteRaw ( uint8 * pData, uint32 nBytes ) 
-		{
-			m_nInUse = ( nBytes + 3 ) / 4;
-
-			memcpy ( m_aData, (uint32*)pData, (m_nInUse*4) );
-
-			if ( m_nInUse == k_nCapacity )
-			{
-				m_pNext = CPacket_Data::Allocate_Chunk(m_nOffset + m_nInUse);
-				return m_pNext;
-			}
-			else
-				return this;
-
-		}
 
 		enum {
 			k_nOverhead = sizeof(uint32) + sizeof(SChunk*),
 			k_nSize = 256,
 			k_nCapacity = (k_nSize - k_nOverhead) / sizeof(uint32),
-			k_nBitCapacity = k_nCapacity * 32,
-			k_nByteCapacity = k_nCapacity * 4
+			k_nBitCapacity = k_nCapacity * 32
 		};
 		uint32 m_aData[k_nCapacity];
 		uint32 m_nOffset;
@@ -347,8 +295,6 @@ public:
 	void WriteBits(uint32 nValue, uint32 nBits);
 	void WriteBits64(uint64 nValue, uint32 nBits);
 	void WriteData(const void *pData, uint32 nBits);
-
-	void WriteDataRaw( void *pData, uint32 nBytes );
 
 	void WritePacket(const CPacket_Read &cRead);
 
@@ -456,11 +402,10 @@ public:
 		  m_nSize(nSize)
 	{
 		// Do some range checking...
-		uint32 nOtherEnd = cOther.m_nSize + cOther.m_nStart;
-		if (m_nStart > nOtherEnd)
+		if (m_nStart > (cOther.m_nStart + cOther.m_nSize))
 		{
+			m_nStart = cOther.m_nStart + cOther.m_nSize;
 			m_nSize = 0;
-			m_nStart = nOtherEnd;
 		}
 
 		m_nSize = LTMIN(m_nSize, cOther.m_nSize - (m_nStart - cOther.m_nStart));
@@ -532,7 +477,6 @@ public:
 	uint32 ReadBits(uint32 nBits);
 	uint64 ReadBits64(uint32 nBits);
 	void ReadData(void *pData, uint32 nBits);
-	void ReadDataRaw(void *pData, uint32 nBits );
 
 	// Convenience functions
 	template <class T>

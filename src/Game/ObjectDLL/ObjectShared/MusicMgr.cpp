@@ -326,6 +326,15 @@ void CMusicMgr::DoEvent(Event eEvent)
 bool CMusicMgr::SetMood( Mood eMood )
 {
 	char szMusic[128];
+#ifdef NOLF2SRC_MODERN
+	// MODERN.md M-G14: a mood out of range (the player's SetMood message
+	// checks only the top), or one the theme gives no levels, indexed
+	// the level table at -1 (GetRandom(0, -1)) or at a slot never set
+	if ( (int)eMood < 0 || (int)eMood >= kNumMoods || m_acMoods[eMood] == 0 )
+	{
+		return false;
+	}
+#endif
 	uint32 iLevel = GetRandom(0, m_acMoods[eMood]-1);
 	sprintf(szMusic, "MUSIC I %d measure", m_aanMoods[eMood][iLevel]);
 

@@ -4,13 +4,20 @@
 
 The game code is Monolith's own public source release (version 1.3, the
 game's last update), compiled with the compiler Monolith used, Visual C++ 6,
-under Wine. The aim, as for [nolfsrc](https://github.com/nolffan/nolfsrc)
+under Wine. Where the release differs from what the retail 1.3 game shipped,
+the retail code is reconstructed from the retail binaries, in place, and
+marked `RETAIL:`. The aim, as for [nolfsrc](https://github.com/nolffan/nolfsrc)
 (the first game), is two builds:
 
 - **legacy**: the 1.3 game as it shipped, rebuilt so that it compiles back
   to the retail binaries byte for byte, as far as that can be done;
 - **modern**: the same source with fixes and new features (`NOLF2SRC_MODERN`;
   `MODERN.md`), and no RAD binary: its Bink player is ours, on FFmpeg.
+
+Compiling back to the retail bytes means compiling the retail game's bugs as
+well. The ones found so far are listed in [`RETAIL_BUGS.md`](RETAIL_BUGS.md);
+their fixes go behind `NOLF2SRC_MODERN`, into the modern build only, so the
+legacy build keeps matching the retail one.
 
 <p align="center">
   <img src="screenshots/screenshot01.png" alt="The main menu, running from this build" width="49%">
@@ -41,19 +48,19 @@ is the whole game.
 
 | Binary | | Byte-identical functions | Byte-identical code | | Unwritten | Unplaced |
 |---|---|--:|--:|---|--:|--:|
-| `Lithtech.exe` | the engine | 5,792 / 6,903 | 1,177,014 / 1,345,398 bytes | `█████████████████░░░` 87.4% | 60 | 1,227 |
-| `server.dll` | the engine's server | 2,410 / 3,469 | 273,996 / 310,859 bytes | `█████████████████░░░` 88.1% | 17 | 1,182 |
+| `Lithtech.exe` | the engine | 5,883 / 6,894 | 1,218,828 / 1,345,398 bytes | `██████████████████░░` 90.5% | 54 | 1,214 |
+| `server.dll` | the engine's server | 2,503 / 3,470 | 295,660 / 310,859 bytes | `███████████████████░` 95.1% | 16 | 1,165 |
 | `ServerDir.dll` | the server directory (WON Titan) | 207 / 508 | 29,800 / 88,203 bytes | `██████░░░░░░░░░░░░░░` 33.7% | 131 | 1 |
 | `snddrv.dll` | the sound driver | 194 / 236 | 35,073 / 35,599 bytes | `███████████████████░` 98.5% | 0 | 0 |
 | `NOLF2.exe` | the launcher | 309 / 406 | 49,095 / 49,876 bytes | `███████████████████░` 98.4% | 1 | 8 |
 | `NOLF2Srv.exe` | the dedicated server | 468 / 587 | 85,760 / 86,985 bytes | `███████████████████░` 98.5% | 2 | 9 |
-| `CShell.dll` | the game: client | 5,234 / 7,222 | 1,217,050 / 1,326,196 bytes | `██████████████████░░` 91.7% | 8 | 14 |
-| `Object.lto` | the game: server objects | 9,253 / 13,253 | 1,872,993 / 1,909,614 bytes | `███████████████████░` 98.0% | 4 | 15 |
+| `CShell.dll` | the game: client | 5,414 / 7,218 | 1,305,485 / 1,326,186 bytes | `███████████████████░` 98.4% | 1 | 8 |
+| `Object.lto` | the game: server objects | 9,254 / 13,253 | 1,873,159 / 1,909,614 bytes | `███████████████████░` 98.0% | 4 | 15 |
 | `ClientFx.fxd` | the game: client effects | 385 / 497 | 119,616 / 121,011 bytes | `███████████████████░` 98.8% | 1 | 3 |
 | `ltmsg.dll` | the engine's messages, not in the total | 5 / 5 resources | 2,054 / 2,054 bytes | `████████████████████` 100.0% | 0 | -- |
 | `CRes.dll` | the game's client resources, not in the total | 484 / 484 resources | 622,940 / 622,940 bytes | `████████████████████` 100.0% | 0 | -- |
 | `SRes.dll` | the game's server resources, not in the total | no resources | -- | -- | -- | -- |
-| **All** | | **24,252 / 33,081** | **4,860,397 / 5,273,741 bytes** | `██████████████████░░` **92.1%** | **224** | **2,459** |
+| **All** | | **24,617 / 33,069** | **5,012,476 / 5,273,731 bytes** | `███████████████████░` **95.0%** | **210** | **2,423** |
 <!-- progress:end -->
 
 Every function in that table is recorded in `progress/identical.txt`, and
@@ -72,10 +79,11 @@ Needs docker and the two submodules (`git submodule update --init`):
 from archive.org and installs the game with its 1.3 update).
 
 ```sh
-make            # out/nolf2-legacy-release/ and out/nolf2-legacy-release.tar.gz
+make            # out/nolf2-legacy-release/ and its -private / -public .tar.gz
 make debug      # out/nolf2-legacy-debug/: symbols, NOLF2SRC_DEBUG
 make modern     # out/nolf2-modern-release/: NOLF2SRC_MODERN (MODERN.md)
 make test       # play it under Xvfb: main menu, new game, the first level
+make test TEST_GAME=out/nolf2-modern-release   # the same, on a variant
 make help       # everything else
 ```
 
@@ -88,6 +96,35 @@ install does.
 
 `build/build.mk` builds Monolith's workspace as Developer Studio would:
 `tools/dsp2mk.py` reads `TO2.dsw` and the project files and writes the
-rules, compile for compile.
+rules, compile for compile. `BUILDING.md` describes the build step by step.
 
-See `LICENSE-NOTES.md` for what is whose.
+## Playing it elsewhere: the archives
+
+To play elsewhere, copy `out/nolf2-legacy-release-private.tar.gz` (one
+file), unpack it and run `nolf2-legacy-release/run.sh`. Every variant is
+packaged the same way: `out/nolf2-legacy-debug-private.tar.gz`,
+`out/nolf2-modern-release-private.tar.gz` and
+`out/nolf2-modern-debug-private.tar.gz`.
+
+The `-private` archives hold the retail game's data (1.8 GB of it), so they
+are for your own machines and for others developing on the build. To give
+the game to anyone else, give them the `-public` archive instead
+(`out/nolf2-modern-release-public.tar.gz`, a few MB): the same directory
+without anything from the retail game, and two scripts that copy it out of
+their own *No One Lives Forever 2* -- installed from their discs and
+updated to 1.3 (English; the European or the USA release). They check
+every file they write against its SHA-256, so the result is the `-private`
+archive's directory, byte for byte:
+
+```sh
+nolf2-modern-release/linux-install.sh ~/.wine/drive_c/'Program Files'/.../'No One Lives Forever 2'
+nolf2-modern-release/linux-install.sh    # finds it in the registry of $WINEPREFIX or ~/.wine
+```
+
+On Windows, double-click `windows-install.bat` (it finds the game where its
+setup installed it) or drop the installed game's folder onto it. Either
+script can be run again: a file already in place is checked and kept. The
+GitHub Actions workflow builds the four public archives on every push
+(`BUILDING.md`).
+
+See `LICENSE-NOTES.md` for what is whose, and what each archive holds.

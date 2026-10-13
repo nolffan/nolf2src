@@ -201,12 +201,6 @@ public:
         LTLink *pListHead = &g_pServerMgr->m_ObjectMgr.m_ObjectLists[nObjectType].m_Head;
         for (LTLink *pCur = pListHead->m_pNext; pCur != pListHead; pCur = pCur->m_pNext)
 		{
-			// Sanity check.
-			if (NULL == pCur)
-			{
-				break;
-			}
-
             LTObject *pObject = (LTObject*)pCur->m_pData;
 
             if (pObject->m_SerializeID == nID)

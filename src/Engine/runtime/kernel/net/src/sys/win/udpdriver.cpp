@@ -191,7 +191,7 @@ bool CUDPConn::QueuePacket(const CPacket_Read &cPacket, bool bGuaranteed)
 
 CUDPConn::EIncomingPacketResult CUDPConn::HandleIncomingPacket(const CPacket_Read &cPacket)
 {
-	CSAccess cSerialize(&m_cUpdateCS);
+	CWinSync_CSAuto cSerialize(m_cUpdateCS);
 
 	// Simulate packet loss....
 	if (g_CV_UDPSimulatePacketLoss)
@@ -597,9 +597,8 @@ void CUDPConn::HandleGuaranteed(CPacket_Read &cPacket, bool bOutOfOrder)
 		// Was this a near-miss?
 		if (((nFrameCode - nNextFrame) & k_nFrameMask) <= k_nMaxOutOfOrderPackets)
 		{
-			CPacket_Read cPacketTemp(cPacket, nStartPos, (cPacket.Tell() - nStartPos));
 			// Save this packet for later...
-			SaveOutOfOrderPacket( cPacketTemp, nFrameCode );
+			SaveOutOfOrderPacket(CPacket_Read(cPacket, nStartPos, (cPacket.Tell() - nStartPos)), nFrameCode);
 		}
 	}
 	// Flush out any following out of order packets...
@@ -1220,7 +1219,7 @@ void CUDPConn::UpdateBandwidth()
 
 void CUDPConn::Update(bool bFrameUpdate) 
 {
-	CSAccess cSerialize(&m_cUpdateCS);
+	CWinSync_CSAuto cSerialize(m_cUpdateCS);
 
 	UpdateOutgoingFlowControl(0, timeGetTime());
 
@@ -1231,7 +1230,7 @@ void CUDPConn::Update(bool bFrameUpdate)
 
 CPacket_Read CUDPConn::GetPacket()
 {
-	CSAccess cSerialize(&m_cUpdateCS);
+	CWinSync_CSAuto cSerialize(m_cUpdateCS);
 
 	if (m_cIncomingQueue.empty())
 		return CPacket_Read();
@@ -1833,8 +1832,7 @@ bool udp_RecvFromSocket(SOCKET theSocket, CPacket_Read *pPacket, sockaddr_in *pS
 
 	// Dump it into a packet
 	CPacket_Write cIncomingPacket;
-//	cIncomingPacket.WriteData(aRecvBuffer, status * 8);
-	cIncomingPacket.WriteDataRaw(aRecvBuffer, status );
+	cIncomingPacket.WriteData(aRecvBuffer, status * 8);
 	*pPacket = CPacket_Read(cIncomingPacket);
 
 	return true;
@@ -1913,16 +1911,18 @@ bool CUDPDriver::Init()
 }
 
 
-void CUDPDriver::Term2(bool bFullShutdown, bool bShutdownSocket )
+void CUDPDriver::Term2(bool bFullShutdown)
 {
 	// Close down any connections.
 	m_cCS_Connections.Enter();
 	MDeleteAndRemoveElements(m_Connections);
 	m_cCS_Connections.Leave();
 
-	if ( bShutdownSocket )
+	if (m_Socket != INVALID_SOCKET)
 	{
- 		StopThread_Listen();
+		StopThread_Listen();
+		closesocket(m_Socket);
+		m_Socket = INVALID_SOCKET;
 	}
 
 	// Get rid of the query stuff.
@@ -1971,7 +1971,7 @@ void CUDPDriver::Term()
 
 	m_cCS_Connections.Leave();
 
-	Term2(true,true);
+	Term2(true);
 }
 
 
@@ -1983,8 +1983,7 @@ bool CUDPDriver::SendTo(SOCKET theSocket, const CPacket_Read &cPacket, sockaddr_
 	cReadPacket.SeekTo(0);
 	int nDataLen = (cReadPacket.Size() + 7) / 8;
 	uint8 *aSendBuffer = (uint8 *)alloca(nDataLen);
-//	cReadPacket.ReadData(aSendBuffer, nDataLen * 8);
-	cReadPacket.ReadDataRaw( aSendBuffer, nDataLen );
+	cReadPacket.ReadData(aSendBuffer, nDataLen * 8);
 
 	if (g_CV_UDPSimulateCorruption)
 	{
@@ -2008,7 +2007,7 @@ bool CUDPDriver::SendTo(SOCKET theSocket, const CPacket_Read &cPacket, sockaddr_
 
 CUDPConn* CUDPDriver::FindConnByAddr(sockaddr_in *pAddr)
 {
-	CSAccess cConnProtect(&m_cCS_Connections);
+	CWinSync_CSAuto cConnProtect(m_cCS_Connections);
 
 	MPOS pos;
 	CUDPConn *pConn;
@@ -2367,7 +2366,7 @@ LTRESULT CUDPDriver::GetSessionList(NetSession* &pListHead, const char *pInfo)
 
 LTRESULT CUDPDriver::GetSessionName(char* sName, uint32 dwBufferSize)
 {
-	CSAccess cProtection(&m_cCS_SessionData);
+	CWinSync_CSAuto cProtection(m_cCS_SessionData);
 
 	sName[0] = 0;
 	if(m_SessionName)
@@ -2380,7 +2379,7 @@ LTRESULT CUDPDriver::GetSessionName(char* sName, uint32 dwBufferSize)
 
 LTRESULT CUDPDriver::SetSessionName(const char* sName)
 {
-	CSAccess cProtection(&m_cCS_SessionData);
+	CWinSync_CSAuto cProtection(m_cCS_SessionData);
 	
 	if(m_SessionName && strlen(m_SessionName) >= strlen(sName))
 	{
@@ -2406,7 +2405,7 @@ LTRESULT CUDPDriver::SetSessionName(const char* sName)
 
 LTRESULT CUDPDriver::GetMaxConnections(uint32 &nMaxConnections)
 {
-	CSAccess cProtection(&m_cCS_SessionData);
+	CWinSync_CSAuto cProtection(m_cCS_SessionData);
 
 	nMaxConnections = m_nMaxConnections;
 	return LT_OK;
@@ -2414,17 +2413,17 @@ LTRESULT CUDPDriver::GetMaxConnections(uint32 &nMaxConnections)
 
 void CUDPDriver::FlushInternalQueues()
 {
-	FlushConnectQueue();
 	FlushDisconnectQueue();
+	FlushConnectQueue();
 	FlushUnknownMessageQueue();
 }
 
 void CUDPDriver::FlushDisconnectQueue()
 {
-	CSAccess cConnProtect(&m_cCS_Connections);
+	CWinSync_CSAuto cConnProtect(m_cCS_Connections);
 
 	// Disconnect any un-believers
-	CSAccess cDisconnectProtect(&m_cCS_DisconnectQueue);
+	CWinSync_CSAuto cDisconnectProtect(m_cCS_DisconnectQueue);
 
 	while (!m_cDisconnectQueue.empty())
 	{
@@ -2450,7 +2449,7 @@ void CUDPDriver::FlushDisconnectQueue()
 void CUDPDriver::FlushConnectQueue()
 {
 	// Connect anyone new
-	CSAccess cConnectProtect(&m_cCS_ConnectQueue);
+	m_cCS_ConnectQueue.Enter();
 
 	while (!m_cConnectQueue.empty())
 	{
@@ -2465,12 +2464,14 @@ void CUDPDriver::FlushConnectQueue()
 		
 		m_cConnectQueue.pop_front();
 	}
+
+	m_cCS_ConnectQueue.Leave();
 }
 
 void CUDPDriver::FlushUnknownMessageQueue()
 {
 	// Send any unknown messages that got queued
-	CSAccess CUnknownMessageProtect(&m_cCS_UnknownMessages);
+	CWinSync_CSAuto CUnknownMessageProtect(m_cCS_UnknownMessages);
 
 	// Jump out if there's no handler
 	if (!m_pNetMgr->m_pHandler)
@@ -2498,8 +2499,14 @@ void CUDPDriver::FlushUnknownMessageQueue()
 
 void CUDPDriver::Update()
 {
-	CSAccess cConnProtect(&m_cCS_Connections);
+	CWinSync_CSAuto cConnProtect(m_cCS_Connections);
 
+	// Note : retail has the three flushes here, each called out of line in
+	// server.dll and FlushConnectQueue inlined in Lithtech.exe, and still
+	// calls FlushInternalQueues from Term and GetPacket. Writing the three
+	// calls here matches both Updates, but then the exe's Term inlines
+	// deque::pop_front, which retail's calls out of line (0x48e540); no
+	// way found of having both.
 	FlushInternalQueues();
 
 	// Update the connections
@@ -2519,7 +2526,7 @@ void CUDPDriver::Update()
 
 void CUDPDriver::Disconnect(CBaseConn *id, EDisconnectReason reason, bool bSendMessage)
 {
-	CSAccess cConnProtect(&m_cCS_Connections);
+	CWinSync_CSAuto cConnProtect(m_cCS_Connections);
 
 	CUDPConn *pConn;
 	
@@ -2550,7 +2557,7 @@ LTRESULT CUDPDriver::HostSession(NetHost* pHost)
 	char portStr[64];
 
 	// Clear everything we've got so far..
-	Term2(false,true);
+	Term2(false);
 
 	port = (uint16)pHost->m_Port;
 	if(port == 0)
@@ -2591,7 +2598,7 @@ LTRESULT CUDPDriver::JoinSession(NetSession *pNetSession)
 
 	pSession = (CUDPSession*)pNetSession;
 	ASSERT(pSession->m_pDriver == this); // Make sure we're the right driver.
-	return ReallyJoinSession(true, &pSession->m_Addr);
+	return ReallyJoinSession(&pSession->m_Addr);
 }
 
 
@@ -2649,7 +2656,7 @@ void CUDPDriver::HandleUnconnectedData(CPacket_Read &cPacket, sockaddr_in *pSend
 		{
 			bool bNewConnection = true;
 			{
-				CSAccess cConnProtect(&m_cCS_Connections);
+				CWinSync_CSAuto cConnProtect(m_cCS_Connections);
 
 				// Ignore queries from connections we already know about
 				CUDPConn *pConn = FindConnByAddr(pSender);
@@ -2663,7 +2670,7 @@ void CUDPDriver::HandleUnconnectedData(CPacket_Read &cPacket, sockaddr_in *pSend
 					else
 					{
 						// Queue up a disconnection and break out..  They'll send another request later
-						CSAccess cDisconnectProtect(&m_cCS_DisconnectQueue);
+						CWinSync_CSAuto cDisconnectProtect(m_cCS_DisconnectQueue);
 						CDisconnectRequest cDisconnect;
 						cDisconnect.m_pConnection = pConn;
 						cDisconnect.m_eReason = DISCONNECTREASON_DEAD;
@@ -2719,7 +2726,7 @@ void CUDPDriver::HandleUnconnectedData(CPacket_Read &cPacket, sockaddr_in *pSend
 				m_cCS_Connections.Leave();
 
 				// Add it to the connection queue
-				CSAccess cConnQueueProtection(&m_cCS_ConnectQueue);
+				CWinSync_CSAuto cConnQueueProtection(m_cCS_ConnectQueue);
 				CConnectRequest cConnRequest;
 				cConnRequest.m_pConnection = pConn;
 				LT_MEM_TRACK_ALLOC(m_cConnectQueue.push_back(cConnRequest), LT_MEM_TYPE_NETWORKING);
@@ -2775,7 +2782,7 @@ void CUDPDriver::HandleUnconnectedData(CPacket_Read &cPacket, sockaddr_in *pSend
 			uint32 nPingID = cPacket.ReadBits(k_nPing_Bits);
 
 			// Do a look-up
-			CSAccess cProtection(&m_cCS_ActivePings);
+			CWinSync_CSAuto cProtection(m_cCS_ActivePings);
 			TPingMap::iterator iPing = m_cActivePings.find(nPingID);
 			if (iPing == m_cActivePings.end())
 			{
@@ -2798,7 +2805,7 @@ void CUDPDriver::HandleUnconnectedData(CPacket_Read &cPacket, sockaddr_in *pSend
 
 bool CUDPDriver::GetPacket(CPacket_Read *pPacket, CBaseConn **pSender)
 {
-	CSAccess cConnProtect(&m_cCS_Connections);
+	CWinSync_CSAuto cConnProtect(m_cCS_Connections);
 
 	// Flush the queues, just in case something got processed since the update
 	FlushInternalQueues();
@@ -2828,7 +2835,7 @@ bool CUDPDriver::SendPacket(const CPacket_Read &cPacket, CBaseConn *idSendTo, bo
 	if(!idSendTo || !m_Socket)
 		return false;
 
-	CSAccess cConnProtect(&m_cCS_Connections);
+	CWinSync_CSAuto cConnProtect(m_cCS_Connections);
 
 	pConn = (CUDPConn*)idSendTo;
 
@@ -2955,7 +2962,7 @@ bool CUDPDriver::GetLocalIpAddress(char* sBuffer, uint32 dwBufferSize, uint16 &h
 }
 
 
-/*LTRESULT CUDPDriver::ReallyJoinSession(sockaddr_in *addr)
+LTRESULT CUDPDriver::ReallyJoinSession(sockaddr_in *addr)
 {
 	uint32 startTime, curTime, lastSendTime;
 	sockaddr_in localInfo, queryAddr, senderAddr, myAddr;
@@ -3125,207 +3132,6 @@ bool CUDPDriver::GetLocalIpAddress(char* sBuffer, uint32 dwBufferSize, uint16 &h
 
 	RETURN_ERROR_PARAM(2, CUDPDriver::JoinSession, LT_TIMEOUT, addrStr);
 }
-*/
-
-LTRESULT CUDPDriver::ReallyJoinSession( bool bOpenNewSocket, sockaddr_in *addr )
-{
-	uint32 startTime, curTime, lastSendTime;
-	sockaddr_in queryAddr, senderAddr, myAddr;
-	int status;
-	socklen_t size;
-	CUDPConn *pConn;
-	char addrStr[128];
-
-	// Remember the remote address, then get rid of all our connections and stuff.
-	queryAddr = ( *addr );
-	Term2(false, bOpenNewSocket);
-
-	// In case we return an error.
-	LTSNPrintF(addrStr, sizeof(addrStr), ADDR_PRINTF, EXPAND_ADDR(*addr));
-
-	if ( bOpenNewSocket )
-	{
-		LTRESULT ltRes = OpenSocket( NULL );
-		if ( ltRes != LT_OK )
-		{
-			return ltRes;
-		}
-	}
-
-	// Tell the listen thread to pause.
-	m_hEvent_Thread_Listen_Pause.Set( );
-	
-// temporarily compiled out of all but Win32 builds (this will change soon)
-//#ifdef _WIN32
-	// Stop here until we need to shutdown or the thread has confirmed it is paused.
-//	HANDLE aEvents[] = { m_hEvent_Thread_Listen_Shutdown.GetEvent( ), m_hEvent_Thread_Listen_Paused.GetEvent( )};
-//	if( WaitForMultipleObjects( 2, aEvents, FALSE, INFINITE ) == WAIT_OBJECT_0 )
-//	{
-//		return LT_OK;
-//	}
-//#endif
-
-	// Stop here until we need to shutdown or the thread has confirmed it is paused.
-	while ( 1 )
-	{
-		// listen thread shutdown 
-		if ( m_hEvent_Thread_Listen_Shutdown.IsSet() )
-		{
-			return LT_OK;
-		}
-
-		// thread is paused 
-		if ( m_hEvent_Thread_Listen_Paused.IsSet() )
-		{
-			break; 
-		}
-
-
-		// give others threads a break
-#ifdef _LINUX
-		::sched_yield();
-#else
-		Sleep(10);
-#endif
-
-	}
-
-	
-	CPacket_Write cConnectionPacket_Write;
-	cConnectionPacket_Write.Writeuint32(UNCONNECTED_DATA_TOKEN);
-	cConnectionPacket_Write.WriteBits(UNCONNECTED_MSG_CONNECT, UNCONNECTED_MSG_BITS);
-	cConnectionPacket_Write.WriteType(m_pNetMgr->m_guidApp);
-	ASSERT(g_CV_BandwidthTargetClient > 8000);
-	cConnectionPacket_Write.Writeuint32(g_CV_BandwidthTargetClient);
-	CPacket_Read cConnectionPacket(cConnectionPacket_Write);
-
-	// Send off and wait for a response.
-	startTime = timeGetTime();
-	lastSendTime = startTime - CONN_SEND_INTERVAL;
-	bool bConnected = false;
-	LTRESULT ltRes = LT_TIMEOUT;
-
-	do
-	{
-		curTime = timeGetTime();
-
-		// Ask if we can join.
-		if((curTime - lastSendTime) >= CONN_SEND_INTERVAL)
-		{
-			if(g_CV_UDPDebug)
-			{
-				dsi_ConsolePrint("UDP: Sending conn request to %d.%d.%d.%d:%d",
-					EXPAND_ADDR(queryAddr));
-			}
-
-			SendTo(m_Socket, cConnectionPacket, &queryAddr);
-			lastSendTime = curTime;
-		}
-
-		// See if we've gotten a response yet.
-		CPacket_Read cResponsePacket;
-		if (!udp_RecvFromSocket(m_Socket, &cResponsePacket, &senderAddr))
-			continue;
-
-		if (cResponsePacket.Readuint32() != UNCONNECTED_DATA_TOKEN)
-		{
-			// Note : There's a possibility this may mean we're already connected,
-			// and we should be getting heartbeat messages.  That can't be handled
-			// Reliably, so the message is get ignored, and the connection will
-			// time out from the other end.
-			continue;
-		}
-
-		uint32 sub = cResponsePacket.ReadBits(UNCONNECTED_MSG_BITS);
-		if (sub != UNCONNECTED_MSG_CONNECT_RESPONSE)
-		{
-			// Something must have gotten delayed or something....
-			continue;
-		}
-
-		bool bAccept = cResponsePacket.Readbool();
-		// Handle rejection..  *sniff*
-		if (!bAccept)
-		{
-			bool bServerFull = cResponsePacket.Readbool();
-			StopThread_Listen();
-			if (bServerFull)
-			{
-				GENERATE_ERROR(2, CUDPDriver::JoinSession, LT_REJECTED, addrStr);
-				ltRes = LT_REJECTED;
-				break;
-			}
-			else
-			{
-				GENERATE_ERROR(2, CUDPDriver::JoinSession, LT_NOTSAMEGUID, addrStr);
-				ltRes = LT_NOTSAMEGUID;
-				break;
-			}
-		}
-
-		if (g_CV_UDPDebug)
-		{
-			dsi_ConsolePrint("UDP: Connection to %d.%d.%d.%d:%d accepted",
-				EXPAND_ADDR(queryAddr));
-			dsi_ConsolePrint("UDP: recvfrom addr: %d.%d.%d.%d:%d",
-				EXPAND_ADDR(senderAddr));
-		}
-
-		CSAccess cConnProtect(&m_cCS_Connections);
-
-		LT_MEM_TRACK_ALLOC(pConn = new CUDPConn,LT_MEM_TYPE_NETWORKING);
-		if (!pConn)
-		{
-			ltRes = LT_ERROR;
-			break;
-		}
-		pConn->m_RemoteAddr = senderAddr;
-		pConn->m_Socket = m_Socket;
-		pConn->m_pDriver = this;
-		
-		if(m_pNetMgr->NewConnectionNotify(pConn))
-		{
-			m_Connections.AddHead(pConn, &pConn->m_Node);
-
-			if(g_CV_UDPDebug)
-			{
-				size = sizeof(myAddr);
-				status = getsockname(m_Socket, (sockaddr*)&myAddr, &size);
-				if(status == 0)
-				{
-					dsi_ConsolePrint("UDP: getsockname() returned %d.%d.%d.%d:%d", 
-						EXPAND_ADDR(myAddr));
-				}
-				else
-				{
-					dsi_ConsolePrint("UDP: getsockname() returned error %d", status);
-				}
-			}
-
-			bConnected = true;
-			break;
-		}
-		else
-		{
-			delete pConn;
-		}
-
-	} while ((curTime - startTime) < CONN_WAIT_TIME);
-
-	// Tell listen thread it can go now.
-	m_hEvent_Thread_Listen_Pause.Set( );
-
-	if ( !bConnected )
-	{
-		GENERATE_ERROR(2, CUDPDriver::JoinSession, ltRes, addrStr);
-		return ltRes;
-	}
-
-	return LT_OK;
-}
-
-
-
 
 LTRESULT CUDPDriver::ConnectTCP( const char* sAddress)
 {
@@ -3336,8 +3142,7 @@ LTRESULT CUDPDriver::ConnectTCP( const char* sAddress)
 		RETURN_ERROR(1, ConnectTCP, LT_CANTBINDTOPORT);
 	}
 
-	// always opens a new socket 
-	return(ReallyJoinSession(true, &addr));
+	return ReallyJoinSession(&addr);
 }
 
 
@@ -3365,44 +3170,6 @@ LTRESULT CUDPDriver::SendTcpIp(const CPacket_Read &cMsg, const char *sAddr, uint
 		return LT_OK;
 	else
 		return LT_ERROR;
-}
-
-
-LTRESULT CUDPDriver::OpenSocket( SOCKET* phSocket )
-{
-	StopThread_Listen( );
-
-	int32 bindPort = udp_GetFirstClientPort();
-	int32 bindAttempts = 0;
-
-	while( m_Socket == INVALID_SOCKET )
-	{
-		sockaddr_in cAddr;
-		udp_SetupLocalSockaddr(&cAddr, (u_short)bindPort);
-		m_Socket = udp_BindToPort(&cAddr, &cAddr);
-		if (m_Socket == INVALID_SOCKET)
-		{
-			if( bindPort == 0 )
-			{
-				RETURN_ERROR_PARAM(2, CUDPDriver::OpenSocket, LT_ERROR, "Can't bind to port");
-			}
-			if( g_CV_UDPDebug )
-			{
-				dsi_ConsolePrint("UDP: Bind to port %d failed.  Trying next port.", (int)bindPort);
-			}
-			bindPort = udp_GetNextClientPort(++bindAttempts); // last port to try is always port 0
-		}
-	}
-
-	// Tell them about their socket.
-	if( phSocket )
-	{
-		*phSocket = m_Socket;
-	}
-
-	// Start listening to traffic.
-	StartThread_Listen();
-	return LT_OK;
 }
 
 
@@ -3455,7 +3222,6 @@ LTRESULT CUDPDriver::RemovePing(uint32 nPingID)
 	return LT_OK;
 }
 
-/*
 LTRESULT CUDPDriver::SendPing(const char *pAddr, uint16 nPort, uint32 nID)
 {
 	sockaddr_in cPingAddr;
@@ -3497,49 +3263,14 @@ LTRESULT CUDPDriver::SendPing(const char *pAddr, uint16 nPort, uint32 nID)
 
 	return LT_OK;
 }
-*/
-
-LTRESULT CUDPDriver::SendPing(const char *pAddr, uint16 nPort, uint32 nID)
-{
-	sockaddr_in cAddr;
-
-	LTRESULT ltRes = OpenSocket( NULL );
-	
-	if ( ltRes != LT_OK )
-	{
-		return ltRes;
-	}
-
-	if (!udp_BuildSockaddrFromString(pAddr, &cAddr))
-	{
-		return LT_ERROR;
-	}
-
-	cAddr.sin_port = htons((u_short)nPort);
-
-	// Send the ping
-	CPacket_Write cPing;
-	cPing.Writeuint32(UNCONNECTED_DATA_TOKEN);
-	cPing.WriteBits(UNCONNECTED_MSG_PING, UNCONNECTED_MSG_BITS);
-	cPing.WriteBits(nID, k_nPing_Bits);
-
-	if (!SendTo(m_Socket, CPacket_Read(cPing), &cAddr))
-	{
-		return LT_ERROR;
-	}
-
-	return LT_OK;
-}
-
 
 void CUDPDriver::UpdateGUID(LTGUID &cGUID)
 {
-	CSAccess cProtection(&m_cCS_GUID);
+	CWinSync_CSAuto cProtection(m_cCS_GUID);
 	m_cGUID = cGUID;
 }
 
 
-/*
 void CUDPDriver::StartThread_Listen()
 {
 	ASSERT(m_Socket != INVALID_SOCKET);
@@ -3595,53 +3326,52 @@ uint32 CUDPDriver::Thread_Listen()
 				break;
 			}
 			// Go to sleep if there's nothing waiting on the line
-			else if (nRecvStatus == EWOULDBLOCK)
+			else if (nRecvStatus == WSAEWOULDBLOCK)
 			{
-		// Reset the read state
-		fd_set aReadSet;
-		FD_ZERO(&aReadSet);
-		FD_SET(m_Socket, &aReadSet);
+				// Reset the read state
+				fd_set aReadSet;
+				FD_ZERO(&aReadSet);
+				FD_SET(m_Socket, &aReadSet);
 
-		// Wait...
-		int status = select(m_Socket + 1, &aReadSet, NULL, NULL, &cTimeout);
-		// Did we time out?
-		if (status == 0)
-		{
-			// Jump out if we're supposed to shut down...
-			if (m_hEvent_Thread_Listen_Shutdown.IsSet())
-				break;
-			// Update the connections so they stay alive
-			// Note : This can't use the standard update, because we don't want
-			// to flush anything, and we don't want to disconnect any dead connections.
-			CWinSync_CSAuto cConnProtection(m_cCS_Connections);
-			MPOS pCurPos = m_Connections.GetHeadPosition();
-			while (pCurPos)
-			{
-				CUDPConn *pCurConn = m_Connections.GetNext(pCurPos);
-				pCurConn->Update(false);
+				// Wait...
+				int status = select(m_Socket + 1, &aReadSet, NULL, NULL, &cTimeout);
+				// Did we time out?
+				if (status == 0)
+				{
+					// Jump out if we're supposed to shut down...
+					if (m_hEvent_Thread_Listen_Shutdown.IsSet())
+						break;
+					// Update the connections so they stay alive
+					// Note : This can't use the standard update, because we don't want
+					// to flush anything, and we don't want to disconnect any dead connections.
+					CWinSync_CSAuto cConnProtection(m_cCS_Connections);
+					MPOS pCurPos = m_Connections.GetHeadPosition();
+					while (pCurPos)
+					{
+						CUDPConn *pCurConn = m_Connections.GetNext(pCurPos);
+						pCurConn->Update(false);
+					}
+					continue;
+				}
+				// Was there an error?
+				else if (status == SOCKET_ERROR)
+				{
+					if (!m_hEvent_Thread_Listen_Shutdown.IsSet())
+					{
+						dsi_ConsolePrint("UDP Socket error %s!  Shutting down listen thread..", udp_GetLastError());
+						nResult = 1;
+					}
+					break;
+				}
 			}
-			continue;
-		}
-		// Was there an error?
-		else if (status == SOCKET_ERROR)
-		{
-			if (!m_hEvent_Thread_Listen_Shutdown.IsSet())
+			else if (nRecvStatus != WSAECONNRESET)
 			{
-				dsi_ConsolePrint("UDP Socket error %s!  Shutting down listen thread..", udp_GetLastError());
-				nResult = 1;
-			}
-			break;
-		}
-			}	
-			else if (nRecvStatus != ECONNRESET)
-		{
 				// Return a non-zero result if there was an error
-					nResult = 1;
+				nResult = 1;
 				break;
 			}
 
-			// if we're inside this block, we don't want to do the packet parsing...
-				continue;
+			continue;
 		}
 
 		if (cIncomingPacket.Peekuint32() == UNCONNECTED_DATA_TOKEN)
@@ -3691,247 +3421,3 @@ uint32 CUDPDriver::Thread_Listen()
 
 	return nResult;
 }
-*/
-
-
-void CUDPDriver::StartThread_Listen()
-{
-	if (m_cListenThread.IsCreated())
-	{
-		return;
-	}
-
-	ASSERT(m_Socket != INVALID_SOCKET);
-
-	m_cListenThread.Create(&ThreadBootstrap_Listen, (void*) this);
-	m_cEvent_Thread_Listen_Ready.Block();
-}
-
-void CUDPDriver::StopThread_Listen()
-{
-	// Signal the shutdown
-	m_hEvent_Thread_Listen_Shutdown.Set();
-
-	// Closing the socket is the only way to release the thread...  :(
-	if( m_Socket != INVALID_SOCKET )
-	{
-#ifdef __LINUX
-		close ( m_Socket );
-#else
-		closesocket ( m_Socket );
-#endif
-		m_Socket = INVALID_SOCKET;
-	}
-
-	// Wait for it to shut down
-	if (m_cListenThread.IsCreated())
-	{	
-		m_cListenThread.WaitForExit();
-	}
-	
-	// Clean up
-	m_hEvent_Thread_Listen_Shutdown.Clear();
-	m_hEvent_Thread_Listen_Pause.Clear( );
-	m_hEvent_Thread_Listen_Paused.Clear( );
-}
-
-uint32 CUDPDriver::ThreadBootstrap_Listen(void *pUserData)
-{
-	CUDPDriver *pDriver = (CUDPDriver *)pUserData;
-
-	return (unsigned long)pDriver->Thread_Listen();
-}
-
-uint32 CUDPDriver::Thread_Listen()
-{
-	uint32 nResult = 0;
-
-	timeval cTimeout;
-	cTimeout.tv_sec = k_nListenThread_Timeout / 1000;
-	cTimeout.tv_usec = (k_nListenThread_Timeout % 1000) * 1000;
-
-	// Ok, we're starting now...
-	m_cEvent_Thread_Listen_Ready.Set();
-
-	// Semi-infinite loop...
-	while (1)
-	{
-		// Read a packet
-		CPacket_Read cIncomingPacket;
-		sockaddr_in senderAddr;
-		int nRecvStatus;
-		if (!udp_RecvFromSocket(m_Socket, &cIncomingPacket, &senderAddr, &nRecvStatus))
-		{
-			// Jump out if the socket's being shut down
-			if (m_hEvent_Thread_Listen_Shutdown.IsSet())
-			{
-				break;
-			}
-			// Check if we need to pause.
-			else if (m_hEvent_Thread_Listen_Pause.IsSet())
-			{
-				// Clear the pause event.
-				m_hEvent_Thread_Listen_Pause.Clear( );
-
-				// Tell main thread we're paused.
-				m_hEvent_Thread_Listen_Paused.Set( );
-
-// temporarily compiled out of all but Win32 builds (this will change soon)
-//#ifdef _WIN32
-//				// Stop here until we're told to shutdown or resume.
-//				HANDLE aEvents[] = { m_hEvent_Thread_Listen_Shutdown.GetEvent( ), m_hEvent_Thread_Listen_Pause.GetEvent( )};
-//				if( WaitForMultipleObjects( 2, aEvents, FALSE, INFINITE ) == WAIT_OBJECT_0 )
-//				{
-					// Break out of the loop if told to shutdown.
-//					break;
-//				}
-//#endif
-				bool bShutdown = false;
-
-				// Stop here until we need to shutdown or resume
-				while ( 1 )
-				{
-					// listen thread shutdown 
-					if ( m_hEvent_Thread_Listen_Shutdown.IsSet() )
-					{
-						bShutdown = true;
-						break; 
-					}
-
-					// thread is paused 
-					if ( m_hEvent_Thread_Listen_Pause.IsSet() )
-					{
-						break; 
-					}
-
-					// give others threads a break
-#ifdef _LINUX
-					::sched_yield();
-#else
-					Sleep(10);
-#endif
-				}
-
-				// we were signaled to shutdown 
-				if ( bShutdown )
-					break;
-
-
-				// Done with the pause.
-				m_hEvent_Thread_Listen_Paused.Clear( );
-				m_hEvent_Thread_Listen_Pause.Clear( );
-
-
-			}
-			// Go to sleep if there's nothing waiting on the line
-			else if (nRecvStatus == EWOULDBLOCK)
-			{
-				// Reset the read state
-				fd_set aReadSet;
-				FD_ZERO(&aReadSet);
-				FD_SET(m_Socket, &aReadSet);
-
-				// Wait...
-				int status = select(m_Socket + 1, &aReadSet, NULL, NULL, &cTimeout);
-				// Did we time out?
-				if (status == 0)
-				{
-					// Jump out if we're supposed to shut down...
-					if (m_hEvent_Thread_Listen_Shutdown.IsSet())
-						break;
-					// Update the connections so they stay alive
-					// Note : This can't use the standard update, because we don't want
-					// to flush anything, and we don't want to disconnect any dead connections.
-					CSAccess cConnProtection(&m_cCS_Connections);
-					MPOS pCurPos = m_Connections.GetHeadPosition();
-					while (pCurPos)
-					{
-						CUDPConn *pCurConn = m_Connections.GetNext(pCurPos);
-						pCurConn->Update(false);
-					}
-					continue;
-				}
-				// Was there an error?
-				else if (status == SOCKET_ERROR)
-				{
-					if (!m_hEvent_Thread_Listen_Shutdown.IsSet())
-					{
-						dsi_ConsolePrint("UDP Socket error %s!  Shutting down listen thread..", udp_GetLastError());
-						nResult = 1;
-					}
-					break;
-				}
-			}	
-			else if (nRecvStatus != ECONNRESET) 
-			{
-				// someone is playing with our server sending zero length messages or too large of messages 
-				if ( !nRecvStatus ||
-#ifdef __LINUX
-					  (nRecvStatus == EMSGSIZE )
-#else
-					  (nRecvStatus == WSAEMSGSIZE ) 
-#endif
-					 )
-				{
-					// we are going to pass on shutting down the listening thread
-					continue;
-				}		
-
-				// Return a non-zero result if there was an error
-				nResult = 1;
-				break;
-			}
-
-			// if we're inside this block, we don't want to do the packet parsing...
-			continue;
-		}
-
-		if (cIncomingPacket.Peekuint32() == UNCONNECTED_DATA_TOKEN)
-		{
-			// Parse the unconnected data packet
-			HandleUnconnectedData(cIncomingPacket, &senderAddr);
-		}
-		else 
-		{
-			CSAccess cConnProtect(&m_cCS_Connections);
-
-			// Look up the sender
-			CUDPConn *pConn = FindConnByAddr(&senderAddr);
-
-			if (pConn)
-			{
-				// Handle the packet
-				CUDPConn::EIncomingPacketResult eResult;
-				eResult = pConn->HandleIncomingPacket(cIncomingPacket);
-				if (eResult == CUDPConn::eIPR_Disconnect)
-				{
-					// Handle a disconnection the next time we update
-					CDisconnectRequest cRequest;
-					cRequest.m_pConnection = pConn;
-					cRequest.m_eReason = pConn->GetLastDisconnectReason( );
-
-					CSAccess cDisconnectProtect(&m_cCS_DisconnectQueue);
-					LT_MEM_TRACK_ALLOC(m_cDisconnectQueue.push_back(cRequest), LT_MEM_TYPE_NETWORKING);
-				}
-				else
-				{
-					// Give them an update, just to keep things running as smoothly as possible
-					pConn->Update(false);
-				}
-			}
-			else
-			{
-				CUnknownMessage cMsg;
-				cMsg.m_cPacket = cIncomingPacket;
-				cMsg.m_cSender = senderAddr;
-				// Handle an unknown message the next time we update
-				CSAccess cUnknownMessageProtect(&m_cCS_UnknownMessages);
-				LT_MEM_TRACK_ALLOC(m_cUnknownMessages.push_back(cMsg), LT_MEM_TYPE_NETWORKING);
-			}
-		}
-	}
-
-	return nResult;
-}
-
-

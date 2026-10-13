@@ -1176,7 +1176,12 @@ static LTRESULT cis_UnoptimizeSurface(HSURFACE hSurface)
 	CisSurface *pSurface;
 
 	if(!hSurface)
+#ifdef NOLF2SRC_MODERN
+		// MODERN.md M-E11: the check names its own function
+		RETURN_ERROR(1, UnoptimizeSurface, LT_INVALIDPARAMS);
+#else
 		RETURN_ERROR(1, OptimizeSurface, LT_INVALIDPARAMS);
+#endif
 
 	pSurface = (CisSurface*)hSurface;
 	if(!(pSurface->m_Flags & SURFFLAG_OPTIMIZED))
@@ -1431,7 +1436,16 @@ static void cis_GetSurfaceDims(HSURFACE hSurf, uint32 *pWidth, uint32 *pHeight)
 	}
 	else
 	{
+#ifdef NOLF2SRC_MODERN
+		// MODERN.md M-E8: zero only the outputs asked for, as the
+		// branch above fills only those
+		if(pWidth)
+			*pWidth = 0;
+		if(pHeight)
+			*pHeight = 0;
+#else
 		*pWidth = *pHeight = 0;
+#endif
 	}
 }
 
@@ -1793,6 +1807,18 @@ static LTRESULT cis_RenderObjects(HLOCALOBJ hCamera, HLOCALOBJ *pObjects, int nO
 {
 	CameraInstance *pCamera;
 
+#ifdef NOLF2SRC_MODERN
+	// MODERN.md M-E11: the checks name their own function
+	if(!r_GetRenderStruct()->m_bInitted)
+		RETURN_ERROR(1, RenderObjects, LT_NOTINITIALIZED);
+
+	if(!r_GetRenderStruct()->IsIn3D())
+		RETURN_ERROR(1, RenderObjects, LT_NOTIN3D);
+
+	pCamera = (CameraInstance*)hCamera;
+	if(!pCamera || pCamera->m_ObjectType != OT_CAMERA)
+		RETURN_ERROR(1, RenderObjects, LT_INVALIDPARAMS);
+#else
 	if(!r_GetRenderStruct()->m_bInitted)
 		RETURN_ERROR(1, RenderCamera, LT_NOTINITIALIZED);
 
@@ -1802,6 +1828,7 @@ static LTRESULT cis_RenderObjects(HLOCALOBJ hCamera, HLOCALOBJ *pObjects, int nO
 	pCamera = (CameraInstance*)hCamera;
 	if(!pCamera || pCamera->m_ObjectType != OT_CAMERA)
 		RETURN_ERROR(1, RenderCamera, LT_INVALIDPARAMS);
+#endif
 
 	if(!pObjects || nObjects <= 0)
 		return LT_OK;

@@ -1364,10 +1364,24 @@ bool CPlayerObj::OnTrigger(HOBJECT hSender, const CParsedMsg &cMsg)
 					vTargetPos.y = vPos.y; // Don't look up/down.
 
 					VEC_SUB(vDir, vTargetPos, vPos);
+#ifdef NOLF2SRC_MODERN
+					// MODERN.md M-G10: an object straight above or below
+					// the player leaves no horizontal direction, and
+					// normalising the zero vector made the rotation NaN.
+					// Leave the rotation alone then.
+					if (vDir.MagSqr() > 0.0001f)
+					{
+						VEC_NORM(vDir);
+
+						LTRotation rRot(vDir, LTVector(0.0f, 1.0f, 0.0f));
+						g_pLTServer->SetObjectRotation(m_hObject, &rRot);
+					}
+#else
 					VEC_NORM(vDir);
 
                     LTRotation rRot(vDir, LTVector(0.0f, 1.0f, 0.0f));
 					g_pLTServer->SetObjectRotation(m_hObject, &rRot);
+#endif
 				}
 			}
 		}
@@ -8660,6 +8674,58 @@ static bool IsNameTaken( char const* pszName, CPlayerObj* pSkipPlayer )
 
 void CPlayerObj::GenerateUniqueName( char const* pszNameBase, char* pszUniqueName, int nUniqueNameSize )
 {
+#ifdef NOLF2SRC_MODERN
+	// MODERN.md M-G9: the name is checked as it will be stored, cut to
+	// the buffer, and the number goes on a base cut short enough to keep
+	// it. Retail checked the whole "<name><n>" and cut it afterwards, so a
+	// taken name of the full length plus "0" came back as the taken name.
+	char szName[64];
+	char szBase[64];
+	char szNum[16];
+	// MODERN.md M-G5: no '%' in a name: the server console and every
+	// retail client print names through printf formats
+	char szIn[64];
+	int nIn = 0;
+	for( char const* pIn = pszNameBase; *pIn && nIn < ( int )sizeof( szIn ) - 1; pIn++ )
+	{
+		if( *pIn != '%' )
+			szIn[nIn++] = *pIn;
+	}
+	szIn[nIn] = 0;
+	pszNameBase = szIn;
+	int nMax = nUniqueNameSize - 1;
+	if( nMax > ( int )sizeof( szName ) - 1 )
+		nMax = sizeof( szName ) - 1;
+	if( nMax < 0 )
+		nMax = 0;
+
+	strncpy( szName, pszNameBase, nMax );
+	szName[nMax] = 0;
+
+	if( IsNameTaken( szName, this ))
+	{
+		for( int nCount = 0; ; nCount++ )
+		{
+			sprintf( szNum, "%d", nCount );
+			int nBase = nMax - ( int )strlen( szNum );
+			if( nBase < 0 )
+				nBase = 0;
+			strncpy( szBase, pszNameBase, nBase );
+			szBase[nBase] = 0;
+			_snprintf( szName, nMax, "%s%s", szBase, szNum );
+			szName[nMax] = 0;
+			if( !IsNameTaken( szName, this ))
+				break;
+		}
+	}
+
+	if( nUniqueNameSize > 0 )
+	{
+		strncpy( pszUniqueName, szName, nUniqueNameSize );
+		pszUniqueName[nUniqueNameSize-1] = 0;
+	}
+}
+#else
 	CString sUniqueName = pszNameBase;
 	bool bFound = false;
 
@@ -8682,6 +8748,7 @@ void CPlayerObj::GenerateUniqueName( char const* pszNameBase, char* pszUniqueNam
 	strncpy( pszUniqueName, sUniqueName, nUniqueNameSize );
 	pszUniqueName[nUniqueNameSize-1] = 0;
 }
+#endif
 
 
 // ----------------------------------------------------------------------- //

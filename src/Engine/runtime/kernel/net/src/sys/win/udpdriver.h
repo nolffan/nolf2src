@@ -19,7 +19,7 @@
 #endif
 
 #include "syslthread.h"
-#include "sysudpthread.h"
+#include "winsync.h"
 
 #include "listqueue.h"
 #include "staticfifo.h"
@@ -162,12 +162,12 @@ public:
 
 	virtual bool GetIPAddress(uint8 pAddr[4], uint16 *pPort) 
 	{ 
-		pAddr[0] = (uint8)m_RemoteAddr.sin_addr.s_addr;
-		pAddr[1] = (uint8)m_RemoteAddr.sin_addr.s_addr >> 8;
-		pAddr[2] = (uint8)m_RemoteAddr.sin_addr.s_addr >> 16;
-		pAddr[3] = (uint8)m_RemoteAddr.sin_addr.s_addr >> 24;
+		pAddr[0] = m_RemoteAddr.sin_addr.S_un.S_un_b.s_b1;
+		pAddr[1] = m_RemoteAddr.sin_addr.S_un.S_un_b.s_b2;
+		pAddr[2] = m_RemoteAddr.sin_addr.S_un.S_un_b.s_b3;
+		pAddr[3] = m_RemoteAddr.sin_addr.S_un.S_un_b.s_b4;
 		
-		*pPort = (uint16)m_RemoteAddr.sin_port;
+		*pPort = m_RemoteAddr.sin_port;
 		return true;
 	}
 	
@@ -299,7 +299,7 @@ private:
 	CPacketQueue m_cIncomingQueue;
 
 	// Only one thread updating at a time, please...
-	LCriticalSection m_cUpdateCS;
+	CWinSync_CS m_cUpdateCS;
 
 	bool m_bPauseGuaranteed;
 	CPacketQueue m_cOutgoingGuaranteedQueue;
@@ -522,7 +522,7 @@ public:
 
     virtual bool Init();
 
-    void Term2(bool bFullShutdown, bool bShutdownSocket);
+    void Term2(bool bFullShutdown);
     virtual void Term();
 
     
@@ -545,28 +545,28 @@ public:
 
     virtual LTRESULT GetHasPassword(bool *bHasPassword) 
 	{ 
-		CSAccess cCS(&m_cCS_SessionData); 
+		CWinSync_CSAuto cCS(m_cCS_SessionData); 
 		*bHasPassword = m_bPassword; 
 		return LT_OK; 
 	}
 	
     virtual LTRESULT SetHasPassword(bool bHasPassword)  
 	{ 
-		CSAccess cCS(&m_cCS_SessionData); 
+		CWinSync_CSAuto cCS(m_cCS_SessionData); 
 		m_bPassword = bHasPassword; 
 		return LT_OK; 
 	}
 
     virtual LTRESULT GetGameType(uint8 *nGameType) 
 	{ 
-		CSAccess cCS(&m_cCS_SessionData); 
+		CWinSync_CSAuto cCS(m_cCS_SessionData); 
 		*nGameType = m_nGameType; 
 		return LT_OK; 
 	}
 	
     virtual LTRESULT SetGameType(uint8 nGameType)  
 	{ 
-		CSAccess cCS(&m_cCS_SessionData); 
+		CWinSync_CSAuto cCS(m_cCS_SessionData); 
 		m_nGameType = nGameType; 
 		return LT_OK; 
 	}
@@ -579,7 +579,7 @@ public:
     virtual LTRESULT JoinSession(NetSession *pSession);
 
     virtual bool GetLocalIpAddress(char* sBuffer, uint32 dwBufferSize, uint16 &hostPort);
-    LTRESULT ReallyJoinSession( bool bOpenNewSocket, sockaddr_in *addr);
+    LTRESULT ReallyJoinSession(sockaddr_in *addr);
     virtual LTRESULT ConnectTCP( const char* sAddress );
     virtual LTRESULT SendTcpIp(const CPacket_Read &cMsg, const char *sAddr, uint32 port);
 
@@ -587,12 +587,11 @@ public:
 	virtual LTRESULT GetPingStatus(uint32 nPingID, uint32 *pStatus, uint32 *pLatency);
 	virtual LTRESULT RemovePing(uint32 nPingID);
 
-	virtual LTRESULT CUDPDriver::OpenSocket( SOCKET* phSocket );
 
 	virtual void UpdateGUID(LTGUID &cGUID);
 	
 	enum {
-		UNCONNECTED_DATA_TOKEN = 0x9919D9C7, // Packet identifier for unconnected communication
+		UNCONNECTED_DATA_TOKEN = 0x01337F10, // Packet identifier for unconnected communication (NOLF2's; Jupiter's is 0x9919D9C7)
 		UNCONNECTED_MSG_QUERY = 0,
 		UNCONNECTED_MSG_QUERY_RESPONSE = 1,
 		UNCONNECTED_MSG_CONNECT = 2,
@@ -625,31 +624,12 @@ private:
 	// Threading support
 	void StartThread_Listen();
 	void StopThread_Listen();
-	static uint32 ThreadBootstrap_Listen(void* pUserData);
+	static unsigned long _stdcall ThreadBootstrap_Listen(void *pUserData);
 	uint32 Thread_Listen();
-	CLTThread m_cListenThread;
-	CLTThreadEvent m_cEvent_Thread_Listen_Ready;
-	CLTThreadEvent m_hEvent_Thread_Listen_Shutdown;
-	CLTThreadEvent m_hEvent_Thread_Listen_Pause;
-	CLTThreadEvent m_hEvent_Thread_Listen_Paused;
+	HANDLE m_hThread_Listen;
+	CWinSync_Event m_cEvent_Thread_Listen_Ready;
+	CWinSync_Event m_hEvent_Thread_Listen_Shutdown;
 
-
-/*
-	// Threading support
-	void StartThread_Listen();
-	void StopThread_Listen();
-	
-//	static unsigned long _stdcall ThreadBootstrap_Listen(void *pUserData);
-
-	uint32 ThreadBootstrap_Listen(void *pUserData)
-
-
-	uint32 Thread_Listen();
-	
-//	HANDLE m_hThread_Listen;
-//	CWinSync_Event m_cEvent_Thread_Listen_Ready;
-//	CWinSync_Event m_hEvent_Thread_Listen_Shutdown;
-*/
 
 
 private:
@@ -663,7 +643,7 @@ private:
 		sockaddr_in m_cSender;
 	};
 	
-	LCriticalSection m_cCS_UnknownMessages;
+	CWinSync_CS m_cCS_UnknownMessages;
 	std::deque<CUnknownMessage> m_cUnknownMessages;
 
 	void FlushUnknownMessageQueue();
@@ -675,7 +655,7 @@ private:
 		EDisconnectReason m_eReason;
 	};
 	
-	LCriticalSection m_cCS_DisconnectQueue;
+	CWinSync_CS m_cCS_DisconnectQueue;
 	
 	std::deque<CDisconnectRequest> m_cDisconnectQueue;
 
@@ -687,7 +667,7 @@ private:
 		CUDPConn *m_pConnection;
 	};
 	
-	LCriticalSection m_cCS_ConnectQueue;
+	CWinSync_CS m_cCS_ConnectQueue;
 	
 	std::deque<CConnectRequest> m_cConnectQueue;
 
@@ -708,11 +688,11 @@ private:
 		uint32 m_nStatus;
 	};
 	typedef std::map<uint32, CPingRequest> TPingMap;
-	LCriticalSection m_cCS_ActivePings;
+	CWinSync_CS m_cCS_ActivePings;
 	TPingMap m_cActivePings;
 
 	// Misc. data
-	LCriticalSection m_cCS_GUID;
+	CWinSync_CS m_cCS_GUID;
 	LTGUID m_cGUID;
 	
 public:
@@ -729,7 +709,7 @@ public:
 
     SOCKET m_Socket;
 
-	LCriticalSection m_cCS_SessionData;
+	CWinSync_CS m_cCS_SessionData;
 	
     bool m_bHosting;
     uint32 m_nMaxConnections; // Max remote connections if we're the host.
@@ -739,11 +719,11 @@ public:
 
 	bool IsHosting() 
 	{ 
-		CSAccess cCS(&m_cCS_SessionData); 
+		CWinSync_CSAuto cCS(m_cCS_SessionData); 
 		return m_bHosting; 
 	}
 
-	LCriticalSection m_cCS_Connections;
+	CWinSync_CS m_cCS_Connections;
     CMultiLinkList<CUDPConn*> m_Connections;
 
     bool m_bWSAInitted;
@@ -751,13 +731,13 @@ public:
 };
 
 inline unsigned char INADDR_B1(const sockaddr_in& addr)
-{ return (unsigned char ) addr.sin_addr.s_addr; }
+{ return addr.sin_addr.S_un.S_un_b.s_b1; }
 inline unsigned char INADDR_B2(const sockaddr_in& addr)
-{ return (unsigned char ) (addr.sin_addr.s_addr >> 8); }
+{ return addr.sin_addr.S_un.S_un_b.s_b2; }
 inline unsigned char INADDR_B3(const sockaddr_in& addr)
-{ return (unsigned char ) (addr.sin_addr.s_addr >> 16); }
+{ return addr.sin_addr.S_un.S_un_b.s_b3; }
 inline unsigned char INADDR_B4(const sockaddr_in& addr)
-{ return (unsigned char ) (addr.sin_addr.s_addr >> 24); }
+{ return addr.sin_addr.S_un.S_un_b.s_b4; }
 
 #define EXPAND_BASEADDR(addr)\
               INADDR_B1(addr), INADDR_B2(addr), INADDR_B3(addr), INADDR_B4(addr)

@@ -127,7 +127,12 @@ LTRESULT CLTPhysicsClient::SetObjectDims(HOBJECT hObj, LTVector *pNewDims, uint3
     WorldTree *pWorldTree;
 
 
+#ifdef NOLF2SRC_MODERN
+	// MODERN.md M-E11: the check names its own function
+    CHECK_PARAMS(hObj && pNewDims, CLTPhysicsClient::SetObjectDims);
+#else
     CHECK_PARAMS(hObj && pNewDims, SPhysicsLT::SetObjectDims);
+#endif
     pWorldTree = world_bsp_client->ClientTree();
     if (!pWorldTree) {
         RETURN_ERROR(1, CLTPhysicsClient::SetObjectDims, LT_INVALIDPARAMS);

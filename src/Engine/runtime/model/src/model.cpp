@@ -1189,10 +1189,8 @@ CModelMgr::CModelMgr()
 CModelMgr::~CModelMgr()
 {
 	// report potential errors.
-	std::set<Model*>::iterator it;
-	
-	it = m_Models.begin() ;
-	
+	std::set<Model*>::iterator it = m_Models.begin() ;
+
 	for( ; it != m_Models.end() ; it++ )
 	{
 		DEBUG_MODEL_REZ( ("model-rez: unfreed model [%d] %s", (*it), (*it)->GetFilename()) );
@@ -1206,10 +1204,8 @@ Model* CModelMgr::Find( const char *filename )
 		char pszFilename[_MAX_PATH + 1];
 		CHelpers::FormatFilename(filename, pszFilename, _MAX_PATH + 1);
 
-		std::set<Model*>::iterator it;
-		
-		it = m_Models.begin();
-		
+		std::set<Model*>::iterator it = m_Models.begin();
+
 		for( ; it != m_Models.end() ; it++ )
 			if( stricmp( pszFilename, (*it)->GetFilename() ) == 0 )
 				return *it ;
@@ -1220,9 +1216,7 @@ Model* CModelMgr::Find( const char *filename )
 
 Model*	CModelMgr::Find( uint16 file_id )
 {
-	std::set<Model*>::iterator it;
-	
-	it = m_Models.begin();
+	std::set<Model*>::iterator it = m_Models.begin();
 	
 	for( ; it != m_Models.end() ; it++ )
 		if( (*it)->m_FileID == file_id  )
@@ -1238,10 +1232,8 @@ Model*	CModelMgr::Find( uint16 file_id )
 // ------------------------------------------------------------------------
 void CModelMgr::ForEach( void (*fn)(const Model &Model, void *user_data), void *user_data)
 {
-	std::set<Model*>::iterator it;
-	
-	it = m_Models.begin();
-	
+	std::set<Model*>::iterator it = m_Models.begin();
+
 	for( ; it != m_Models.end() ;  )
 	{
 		Model *pModel = *it;
@@ -1272,9 +1264,7 @@ static bool UncacheServerModel(const Model & model )
 
 void CModelMgr::UncacheServerModels()
 {
-	std::set<Model*>::iterator it;
-	
-	it = m_Models.begin();
+	std::set<Model*>::iterator it = m_Models.begin();
 	
 	for( ; it != m_Models.end() ;  )
 	{
@@ -1297,9 +1287,7 @@ void CModelMgr::UncacheServerModels()
 
 void CModelMgr::UncacheClientModels()
 {
-	std::set<Model*>::iterator it;
-	
-	it = m_Models.begin();
+	std::set<Model*>::iterator it = m_Models.begin();
 	
 	for( ; it != m_Models.end() ;  )
 	{

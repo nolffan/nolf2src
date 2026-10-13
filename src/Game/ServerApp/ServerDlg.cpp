@@ -572,7 +572,14 @@ void CServerDlg::WriteConsoleString(LPCTSTR pMsg, ...)
 	}
 
 	va_start(marker, pMsg);
+#ifdef NOLF2SRC_MODERN
+	// MODERN.md M-G5: a line that fills the buffer is left unterminated
+	// by _vsnprintf, and "\r\n" is appended after it: keep room for both
+	_vsnprintf( str, sizeof( str ) - 3, pMsg, marker );
+	str[sizeof( str ) - 3] = '\0';
+#else
 	_vsnprintf( str, sizeof( str ) - 1, pMsg, marker );
+#endif
 	va_end(marker);
 
 	int len = strlen(str);
@@ -968,7 +975,13 @@ void CServerDlg::UpdateUI()
 	pos = lstShellMsgs.GetHeadPosition( );
 	while( pos )
 	{
+#ifdef NOLF2SRC_MODERN
+		// MODERN.md M-G5: the engine's and game's console text (chat
+		// and player names among it) is not a format
+		WriteConsoleString( "%s", ( LPCTSTR )lstShellMsgs.GetNext( pos ));
+#else
 		WriteConsoleString( lstShellMsgs.GetNext( pos ));
+#endif
 	}
 
 	// Send data to dialog.
@@ -1835,8 +1848,14 @@ bool CServerDlg::WriteToErrorLog( char const* pszMsg )
 	if( !pszMsg || !m_pErrorLogFile )
 		return false;
 
+#ifdef NOLF2SRC_MODERN
+	// MODERN.md M-G5: the line was formatted already; it is not a format
+	fputs( pszMsg, m_pErrorLogFile );
+	if( !pszMsg[0] || pszMsg[ strlen( pszMsg ) - 1 ] != '\n' )
+#else
 	fprintf( m_pErrorLogFile, pszMsg );
 	if( pszMsg[ strlen( pszMsg ) - 1 ] != '\n' )
+#endif
 		fprintf( m_pErrorLogFile, "\n" );
 	
 	if( m_bAlwaysFlushLog )

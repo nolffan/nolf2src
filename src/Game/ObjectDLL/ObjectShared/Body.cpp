@@ -1156,6 +1156,18 @@ void Body::FaceDir(const LTVector& vTargetDir)
 
 	LTVector vDir = vTargetDir;
 
+#ifdef NOLF2SRC_MODERN
+	// MODERN.md M-G11: the zero test came before the direction was
+	// flattened, so a straight up or down one (an explosion's death
+	// direction) was normalised as a zero vector and the body's
+	// rotation became NaN. Test what is normalised.
+	vDir.y = 0.0f; // Don't look up/down
+
+	if ( vDir.MagSqr() < 0.0001f )
+	{
+		return;
+	}
+#else
 	if ( vDir.MagSqr() == 0.0f )
 	{
 		// Facing the same position... this would be a divide by zero case
@@ -1164,6 +1176,7 @@ void Body::FaceDir(const LTVector& vTargetDir)
 	}
 
 	vDir.y = 0.0f; // Don't look up/down
+#endif
 	VEC_NORM(vDir);
 
 	LTRotation rRot(vDir, LTVector(0.0f, 1.0f, 0.0f));
@@ -1188,6 +1201,18 @@ void Body::FacePos(const LTVector& vTargetPos)
 	LTVector vDir;
 	VEC_SUB(vDir, vTargetPos, vPos);
 
+#ifdef NOLF2SRC_MODERN
+	// MODERN.md M-G11: the zero test came before the direction was
+	// flattened, so a straight up or down one (an explosion's death
+	// direction) was normalised as a zero vector and the body's
+	// rotation became NaN. Test what is normalised.
+	vDir.y = 0.0f; // Don't look up/down
+
+	if ( vDir.MagSqr() < 0.0001f )
+	{
+		return;
+	}
+#else
 	if ( vDir.MagSqr() == 0.0f )
 	{
 		// Facing the same position... this would be a divide by zero case
@@ -1196,6 +1221,7 @@ void Body::FacePos(const LTVector& vTargetPos)
 	}
 
 	vDir.y = 0.0f; // Don't look up/down
+#endif
 	VEC_NORM(vDir);
 
 	LTRotation rRot(vDir, LTVector(0.0f, 1.0f, 0.0f));
