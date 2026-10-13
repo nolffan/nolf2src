@@ -1228,6 +1228,30 @@ void CGameServerShell::OnMessage(HCLIENT hSender, ILTMessage_Read *pMsg)
 	pMsg->SeekTo(0);
 	uint8 messageID = pMsg->Readuint8();
 	
+#ifdef NOLF2SRC_MODERN
+	// MODERN.md M-G7: in a multiplayer game, a remote client may not pause
+	// the server, teleport, run console commands and triggers, or work
+	// the AI and object debugging messages. The client sends them only
+	// from its own console (or, pausing, only in single player); retail
+	// obeyed them from anyone.
+	if( IsMultiplayerGame( ) && !( g_pLTServer->GetClientInfoFlags( hSender ) & CIF_LOCAL ))
+	{
+		switch( messageID )
+		{
+			case MID_GAME_PAUSE:
+			case MID_GAME_UNPAUSE:
+			case MID_PLAYER_TELEPORT:
+			case MID_CONSOLE_TRIGGER:
+			case MID_CONSOLE_COMMAND:
+			case MID_STIMULUS:
+			case MID_RENDER_STIMULUS:
+			case MID_OBJECT_ALPHA:
+			case MID_ADD_GOAL:
+			case MID_REMOVE_GOAL:
+				return;
+		}
+	}
+#endif
 	switch (messageID)
 	{
 		case MID_PLAYER_UPDATE:				HandlePlayerUpdate				(hSender, pMsg);	break;
@@ -1554,6 +1578,29 @@ void CGameServerShell::HandleClientLoaded( HCLIENT hSender, ILTMessage_Read *pMs
 //
 // ----------------------------------------------------------------------- //
 
+#ifdef NOLF2SRC_MODERN
+// MODERN.md M-G5: a chat line from a client, made safe before the server
+// prints it and relays it. '%' is taken out: the engine's server console
+// formats a printed line a second time (CLTServer::CPrint), and every
+// retail client prints chat and names through printf formats. And the
+// line is cut to 200 characters: a client puts "<name> : " before it in a
+// 256-byte buffer (CInterfaceMgr::OnMessage, MID_PLAYER_MESSAGE).
+static void FilterChatString(char* pszString)
+{
+	char* pDst = pszString;
+	int nLen = 0;
+	for (char* pSrc = pszString; *pSrc && nLen < 200; pSrc++)
+	{
+		if (*pSrc != '%')
+		{
+			*pDst++ = *pSrc;
+			nLen++;
+		}
+	}
+	*pDst = 0;
+}
+
+#endif
 void CGameServerShell::HandlePlayerTaunt (HCLIENT hSender, ILTMessage_Read *pMsg)
 {
     CPlayerObj* pPlayer = GET_PLAYER(hSender);
@@ -1574,11 +1621,19 @@ void CGameServerShell::HandlePlayerTaunt (HCLIENT hSender, ILTMessage_Read *pMsg
 		char szString[256];
 		szString[0] = 0;
 		pMsg->ReadString(szString, sizeof(szString));
+#ifdef NOLF2SRC_MODERN
+		FilterChatString(szString);	// MODERN.md M-G5
+#endif
 
 		// So it shows up in GameSrv..
 		if(szString[0] && !(g_pLTServer->GetClientInfoFlags(hSender) & CIF_LOCAL))
 		{
+#ifdef NOLF2SRC_MODERN
+			// MODERN.md M-G5: the client's text is not a format
+			g_pLTServer->CPrint("%s", szString);
+#else
 			g_pLTServer->CPrint(szString);
+#endif
 		}
 
 		uint32 clientID = g_pLTServer->GetClientID(hSender);
@@ -1787,6 +1842,9 @@ void CGameServerShell::HandlePlayerMessage (HCLIENT hSender, ILTMessage_Read *pM
 	char szString[256];
 	szString[0] = 0;
 	pMsg->ReadString(szString, sizeof(szString));
+#ifdef NOLF2SRC_MODERN
+	FilterChatString(szString);	// MODERN.md M-G5
+#endif
 	bool bTeamMsg = pMsg->Readbool();
 
 	uint8 nTeam = INVALID_TEAM;
@@ -1801,10 +1859,16 @@ void CGameServerShell::HandlePlayerMessage (HCLIENT hSender, ILTMessage_Read *pM
 		if( !pPlayer )
 			return;
         
+#ifdef NOLF2SRC_MODERN
+		// MODERN.md M-G5: the name and a 255-character line overran
+		// szMsg, and both were then the format of the print
+		g_pLTServer->CPrint( "%s: %s", pPlayer->GetNetUniqueName(), szString );
+#else
 		char szMsg[256] = {0};
 		sprintf( szMsg, "%s: %s", pPlayer->GetNetUniqueName(), szString );
     
 		g_pLTServer->CPrint( szMsg );
+#endif
 	}
 	uint32 clientID = g_pLTServer->GetClientID(hSender);
 
@@ -1842,14 +1906,22 @@ void CGameServerShell::HandlePlayerGhostMessage (HCLIENT hSender, ILTMessage_Rea
 	char szString[100];
 	szString[0] = 0;
 	pMsg->ReadString(szString, sizeof(szString));
+#ifdef NOLF2SRC_MODERN
+	FilterChatString(szString);	// MODERN.md M-G5
+#endif
 
 	// So it shows up in GameSrv..
     if(szString[0] && !(g_pLTServer->GetClientInfoFlags(hSender) & CIF_LOCAL))
 	{
+#ifdef NOLF2SRC_MODERN
+		// MODERN.md M-G5: the client's text is not a format
+		g_pLTServer->CPrint( "%s: %s", pPlayer->GetNetUniqueName(), szString );
+#else
 		char szMsg[256] = {0};
 		sprintf( szMsg, "%s: %s", pPlayer->GetNetUniqueName(), szString );
         
 		g_pLTServer->CPrint( szMsg );
+#endif
 	}
 	uint32 clientID = g_pLTServer->GetClientID(hSender);
 
@@ -2025,7 +2097,13 @@ void CGameServerShell::HandleConsoleTrigger (HCLIENT hSender, ILTMessage_Read *p
 
 	// Special case if we're supposed to list objects of a certain type...
 
+#ifdef NOLF2SRC_MODERN
+	// MODERN.md M-G7: a message with no command string (a null HSTRING)
+	// was compared as one; the code below already expects it
+	if (pCommand && _strnicmp(pCommand, "LIST", 4) == 0)
+#else
 	if (_strnicmp(pCommand, "LIST", 4) == 0)
+#endif
 	{
 		ConParse parse;
 		parse.Init(pCommand);
@@ -2248,6 +2326,13 @@ void CGameServerShell::HandleAddGoal(HCLIENT hSender, ILTMessage_Read *pMsg)
 		for(uint32 iNameValuePair=0; iNameValuePair < cNameValuePairs; ++iNameValuePair)
 		{
 			pMsg->ReadString(szNameValuePair, 64);
+#ifdef NOLF2SRC_MODERN
+			// MODERN.md M-G6: the pairs, as many as the client says, were
+			// appended to the 128-byte message without a bound; stop at
+			// the first that does not fit
+			if (strlen(szMsg) + 1 + strlen(szNameValuePair) >= sizeof(szMsg))
+				break;
+#endif
 			strcat(szMsg, " ");
 			strcat(szMsg, szNameValuePair);
 		}
