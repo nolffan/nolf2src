@@ -88,28 +88,23 @@ enum ESharedTexType
 	eSharedTexType_EnvMap,							// Environment map
 	eSharedTexType_EnvMapAlpha,					// Environment map blended with the alpha channel
 	eSharedTexType_EnvBumpMap,						// Environment map with an underlying bumpmap
-	eSharedTexType_EnvBumpMap_NoFallback,		// Environment map with bumpmap, but falls back to normal texturing instead of environment map
-	eSharedTexType_DOT3BumpMap,					// DOT3 bumpmap 
-	eSharedTexType_DOT3EnvBumpMap,					// DOT3 bump map with environment map
-	eSharedTexType_Effect
+	eSharedTexType_EnvBumpMap_NoFallback		// Environment map with bumpmap, but falls back to normal texturing instead of environment map
 };
 
+// NOLF2 (retail r_LoadSystemTexture, 0x465d80) links at most two textures:
+// no DOT3 bumpmaps and no effect textures, and SharedTexture is 0x68 bytes.
 enum ELinkedTex
 {	
 	eLinkedTex_EnvMap,			// The environment map of this texture
 	eLinkedTex_Detail,			// The detail texture of this texture
-	eLinkedTex_BumpMap,			// The bumpmap of this texture
-	eLinkedTex_EffectTexture1,	// The effect texture 1 of this texture
-	eLinkedTex_EffectTexture2,	// The effect texture 2 of this texture
-	eLinkedTex_EffectTexture3,	// The effect texture 1 of this texture
-	eLinkedTex_EffectTexture4,	// The effect texture 2 of this texture
+	eLinkedTex_BumpMap			// The bumpmap of this texture
 };
 
 class SharedTexture
 {
 public:
 
-	enum {	NUM_LINKED_TEXTURES = 4 };
+	enum {	NUM_LINKED_TEXTURES = 2 };
 
     SharedTexture()
     {
@@ -119,7 +114,6 @@ public:
         m_pFile				= NULL;
         m_RefCount			= 0;
 		m_eTexType			= eSharedTexType_Single;
-		m_nShaderID			= 0;
 
 		for(uint32 nCurrLinkedTex = 0; nCurrLinkedTex < NUM_LINKED_TEXTURES; nCurrLinkedTex++)
 			m_pLinkedTexture[nCurrLinkedTex] = NULL;
@@ -167,7 +161,6 @@ public:
 
     FileIdentifier		*m_pFile;		// File identifier so the client can load it.
     ESharedTexType		m_eTexType;		// Determines the type of this texture
-	int					m_nShaderID;	// Effect shader ID (0 for none)
 
 protected:
 
@@ -180,18 +173,10 @@ protected:
 		//those into the same link
 		case eLinkedTex_EnvMap:
 		case eLinkedTex_Detail:
-		case eLinkedTex_EffectTexture1:
 			return 0;
 			break;
 		case eLinkedTex_BumpMap:
-		case eLinkedTex_EffectTexture2:
 			return 1;
-			break;
-		case eLinkedTex_EffectTexture3:
-			return 2;
-			break;
-		case eLinkedTex_EffectTexture4:
-			return 3;
 			break;
 		default:
 			assert(!"Invalid linked texture type specified");
