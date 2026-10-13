@@ -1,0 +1,32 @@
+# playtest-newgame.txt -- `make test`'s input script for tools/playtest.sh
+# (world "-": the game starts on its main menu). Screenshots the main menu,
+# starts a new game the way a player does (Single player > New game >
+# Normal), waits through the loading screen and the briefing, skips the
+# opening cinematic until the HUD is up, then looks and walks about a
+# little. Page coordinates are the menus' 640x480 page (PLAYTEST_MAP).
+window 120
+wait 20
+shot menu
+# Single player
+mclick 130 191
+wait 4
+shot singleplayer
+# New game, then the difficulty: Normal
+mclick 120 191
+wait 3
+mclick 360 188
+wait 20
+shot loading
+skipcine 120
+shot play
+turn 300 0
+wait 1
+shot turned
+hold w 2
+shot forward
+key Escape
+wait 3
+shot menu-ingame
+key Escape
+wait 3
+shot resumed
