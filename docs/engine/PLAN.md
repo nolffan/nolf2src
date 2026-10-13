@@ -57,7 +57,7 @@ Background, in this directory:
 | 8 | `modern`: the modern build of the engine (FFmpeg Bink, fixes) | 7 | done: no RAD binary in the modern build (Bink on FFmpeg; NOLF2 has no Miles); the launcher installed in both builds; Hor+, widescreen modes, the launcher's server name (`MODERN.md`) |
 | 9 | `match`: byte-matching passes per module, ratcheted by `make progress` | 3–6 | ongoing |
 | 9b | `rendermatch`: render_a/render_b structures and file formats against retail, the renderer in the game, byte matching | 6, 7 | done: layouts and loaders fixed (below); Lithtech.exe 5,509 -> 5,792 identical |
-| 10 | `release`: public archives built by GitHub Actions, as nolfsrc does (its commits "Install scripts that copy the game's data out of the player's discs", "Package each game directory as a -private and a -public archive", "Build switches for CI: NOLF_ARCHIVES and IMAGE_BUILD", "CI: build the four public archives on GitHub Actions", "CI: check the release build for byte regressions", "CI: upload each archive unzipped") | 7, 8 and everything ported | todo |
+| 10 | `release`: public archives built by GitHub Actions, as nolfsrc does (its commits "Install scripts that copy the game's data out of the player's discs", "Package each game directory as a -private and a -public archive", "Build switches for CI: NOLF_ARCHIVES and IMAGE_BUILD", "CI: build the four public archives on GitHub Actions", "CI: check the release build for byte regressions", "CI: upload each archive unzipped") | 7, 8 and everything ported | done: -private / -public archives, install scripts from the player's installed NOLF2, the workflow (not yet run on GitHub); ServerDir.dll's score made reproducible by package 11 |
 | 11 | `bugs`: the variants (debug, modern, modern-debug) checked to build the whole game, engine included, and to play; `RETAIL_BUGS.md`; the safe fixes in the modern build | 7, 8 | done: every variant builds every binary with its define and passes the playtest; 48 entries listed, 23 of them fixed in the modern build (three only on one side: see the notes) (M-G5..M-G16, M-L3, M-E7..M-E12) |
 
 ## Notes per package
@@ -833,3 +833,61 @@ fresh build). Two causes, both fixed:
   for byte, but for the time stamp and the COMDAT checksums. Whether the
   length alone moves any of the six was not separated from the first
   cause; with both fixed, fresh WONAPI and ServerDir objects score 207.
+
+### 10. release
+
+Done: nolfsrc's release pattern, for NOLF2 (`BUILDING.md`, "Archives";
+`LICENSE-NOTES.md`, "The archives").
+
+- `build/package.sh` writes `out/<name>-private.tar.gz` (the whole game
+  directory, 0.9 GB) and `-public.tar.gz` (4.6 MB for the legacy release
+  build): the same without every file `MANIFEST.txt` lists as `data` or
+  `THIRD-PARTY`, with `linux-install.sh` and `windows-install.bat`.
+  `NOLF2_ARCHIVES` (default `private public`) picks them; `IMAGE_BUILD=0`
+  makes `make image` take the docker image as it is.
+- `tools/mkinstall.py` writes the install scripts. Unlike nolfsrc's, they
+  read the player's *installed* NOLF2 (1.3, English: EU and USA install
+  the same files), not the disc images: NOLF2's setup keeps its files in
+  compressed InstallShield cabinets and the 1.3 update in a
+  self-extractor, so only an install has them as they are. Each file is
+  byte ranges of an installed file plus zeros (the retail DLLs blanked in
+  GAME2.REZ, GAMEDLL.REZ, Update_v1x3.rez), checked by SHA-256. Flags:
+  the Microsoft runtime is optional (a Windows install keeps it in
+  system32; under Wine only `run-launcher.sh` needs MFC42), and the
+  shipped settings (`autoexec.cfg`, `Default.prf`) fall back to the
+  player's own. Linux finds the install in the Wine registry
+  (`$WINEPREFIX`, `~/.wine`), the .bat in HKLM's InstallDir.
+- `tools/retailextract.py resources` hard-links the retail files it does
+  not change (Engine/GAME/SOUND.REZ, the movies): a game directory is
+  1.2 GB instead of 1.8.
+- `.github/workflows/public-archives.yml`: the four builds with
+  `NOLF2_ARCHIVES=public`, `make progress` after the release build, the
+  four public archives uploaded unzipped; the disc zips and the SDK image
+  cached on `rez/isos/SHA256SUMS`. actionlint passes it.
+
+Tested here, in a fresh worktree with `NOLF2_ARCHIVES=public` (the CI
+commands): `make`, `make debug`, `make modern`, `make modern-debug` build
+the four public archives (4.6, 21, 5.5 and 22 MB). The legacy release
+one, unpacked in an empty directory and installed by `linux-install.sh`
+from `rez/games/nolf2-eu-1.3` (found through a Wine registry), is the
+built game directory byte for byte and passes the `make test` playtest
+(menu, new game, C01S01); the modern one installs byte for byte too. The
+.bat's PowerShell ran under PowerShell 7.4 on Linux with the same result;
+Windows PowerShell 5.1 and the .bat wrapper itself were not run. Not
+tested: the workflow on GitHub (the runner's disk, the 6-hour limit, the
+caches, upload-artifact v7).
+
+**`make progress` is not reproducible for `ServerDir.dll`** (found here;
+the CI step will fail on it). VC6 names an anonymous namespace
+`?%<source path><number>`, the number different on every compile (8 to 10
+digits: retail's `QueueSocket.cpp` has `152339212`). WONAPI has such
+namespaces (`QueueSocket.cpp`'s `QueueOpFastCompletion`, in
+`Socket.obj`, `Common.obj`, `Auth.obj`), and the names' lengths move
+`ServerDir.dll`'s layout: a fresh build of master scores 201 identical
+functions, not the 207 recorded (`sub_10003cc0`, `sub_100043a0`,
+`sub_100044a0`, `sub_10008850`, `sub_10010060`, `sub_10010120` lost); the
+recorded score came from a WONAPI.lib built once on Oct 12 and never
+rebuilt. Fix before turning CI on: pin the number (e.g. patch it in the
+objects after compiling, or score `ServerDir.dll` without those
+functions), or record the fresh-build score. (Done by package 11:
+`stdafx.cpp` compiled first, and `tools/anonns.py` pins the names.)

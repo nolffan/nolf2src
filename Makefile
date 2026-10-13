@@ -1,6 +1,6 @@
 # No One Lives Forever 2, built from source.
 #
-#   make          build the game into out/nolf2-legacy-release/ (and out/nolf2-legacy-release.tar.gz)
+#   make          build the game into out/nolf2-legacy-release/ (and its -private / -public .tar.gz)
 #   make test     scripted playtest of out/nolf2-legacy-release/: main menu, new game, play
 #   make debug    the same game with symbols and debug logging, in out/nolf2-legacy-debug/
 #   make modern   the game with NOLF2SRC_MODERN, in out/nolf2-modern-release/
@@ -31,6 +31,7 @@ TEST_NAME = $(if $(filter out/nolf2-legacy-release,$(TEST_GAME:%/=%)),test,test-
 
 DOCKER_RUN = docker run --rm --init --name $(CONTAINER) \
 	-u $(shell id -u):$(shell id -g) -e HOME=/tmp/home $(if $(JOBS),-e NOLF2SRC_JOBS=$(JOBS)) \
+	$(if $(NOLF2_ARCHIVES),-e NOLF2_ARCHIVES="$(NOLF2_ARCHIVES)") \
 	-v $(CURDIR):/repo -w /repo $(IMAGE)
 
 TOOLCHAIN_FILES = toolchains/msvc-6.00-8966/BIN/cl.exe toolchains/msvc-6.00-9782/Common/MSDev98/Bin/RC.EXE \
@@ -41,7 +42,7 @@ TOOLCHAIN_FILES = toolchains/msvc-6.00-8966/BIN/cl.exe toolchains/msvc-6.00-9782
 all: game
 
 help:
-	@echo "make            build everything into out/nolf2-legacy-release/ and out/nolf2-legacy-release.tar.gz"
+	@echo "make            build everything into out/nolf2-legacy-release/ and its .tar.gz archives"
 	@echo "make debug      the game with symbols and NOLF2SRC_DEBUG logging, in out/nolf2-legacy-debug/"
 	@echo "make modern     the game with NOLF2SRC_MODERN, in out/nolf2-modern-release/"
 	@echo "make modern-debug  both, in out/nolf2-modern-debug/"
@@ -63,6 +64,8 @@ help:
 	@echo "make distclean  clean, and remove the docker image too"
 	@echo
 	@echo "Variables: JOBS=<n> (parallel compiles; default one per CPU)"
+	@echo "           NOLF2_ARCHIVES=\"private public\" (the archives build/package.sh writes)"
+	@echo "           IMAGE_BUILD=0 (use the docker image as it is, as CI does)"
 	@echo "           COMPLETE=1, COVERED=1, ACCEPT_LOSSES=1 (progress/README.md)"
 
 game: check-toolchain retail sdk
@@ -76,9 +79,17 @@ debug: check-toolchain retail sdk
 modern modern-debug: check-toolchain check-ext retail sdk
 	$(DOCKER_RUN) bash build/variant.sh $@
 
+# IMAGE_BUILD=0: use $(IMAGE) as it is (CI builds it with a layer cache
+# first, .github/workflows/public-archives.yml).
+IMAGE_BUILD ?= 1
 image:
+ifeq ($(IMAGE_BUILD),0)
+	@docker image inspect $(IMAGE) >/dev/null 2>&1 || \
+	  { echo "error: IMAGE_BUILD=0, but there is no docker image $(IMAGE)" >&2; exit 1; }
+else
 	@docker build -q -t $(IMAGE) docker/ >/dev/null || \
 	  { echo "error: could not build the docker image (docker/Dockerfile)" >&2; exit 1; }
+endif
 	@echo "== docker image $(IMAGE) ready"
 
 # The retail game the build takes its data from (build/retail.sh): installed

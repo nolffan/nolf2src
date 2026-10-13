@@ -62,9 +62,12 @@
 #   5. audit              every PE file in out/nolf2-legacy-release/ listed with
 #                         its origin; the build fails if any is unaccounted
 #                         for or if a .rez archive still holds one.
-#   6. package            out/nolf2-legacy-release.tar.gz: the game directory as
-#                         one file (unpack, then ./run.sh -- see its header;
-#                         Wine needed there).
+#   6. package            out/nolf2-legacy-release-private.tar.gz: the game
+#                         directory as one file (unpack, then ./run.sh -- see
+#                         its header; Wine needed there), and -public.tar.gz:
+#                         the same without the retail game's files, which its
+#                         install scripts copy from the player's own NOLF2
+#                         (build/package.sh).
 set -e
 REPO="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 
@@ -158,7 +161,7 @@ python3 tools/retailextract.py audit "$OUT"
 # (NOLF2_PACKAGE=0 skips it: build/variant.sh packages its game directory
 # itself)
 if [ "${NOLF2_PACKAGE:-1}" = 1 ]; then
-    step "6. package: $OUT -> $OUT.tar.gz"
+    step "6. package: $OUT -> $OUT-private.tar.gz, -public.tar.gz"
     bash "$REPO/build/package.sh" "$OUT"
 fi
 

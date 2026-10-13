@@ -26,7 +26,11 @@ is run, and the build never writes to it.
 .rez archives, the movies, and the shipped autoexec.cfg and default player
 profile (as autoexec.cfg.retail and Default.prf.retail, which build/all.sh
 starts a game directory's autoexec.cfg and Profiles/Default.prf from, and
-build/package.sh packages: the game rewrites both). No file is
+build/package.sh packages: the game rewrites both). A movie or an archive
+that holds no binary is hard-linked rather than copied when it can be (the
+same filesystem): it is the retail file unchanged, and four game
+directories would otherwise take 7 GB. Nothing writes to it; were it
+changed, build/retail.sh's check of the retail game would say so. No file is
 copied that is a Windows executable image (recognised by its "MZ" header,
 not its name). Two archives carry the retail game DLLs -- GAMEDLL.REZ the
 1.0 ones and Update_v1x3.rez the 1.3 ones (CSHELL.dll, OBJECT.lto,
@@ -152,6 +156,20 @@ class Retail:
         if not dest.exists() or dest.stat().st_size != self.size(p):
             self.copy(p, dest)
 
+    def link_if_changed(self, p, dest):
+        """The retail file itself in the game directory, hard-linked, or
+        copied where it cannot be (another filesystem)."""
+        if dest.exists() and dest.stat().st_size == self.size(p):
+            return
+        dest.parent.mkdir(parents=True, exist_ok=True)
+        tmp = dest.with_name(dest.name + ".part")
+        tmp.unlink(missing_ok=True)
+        try:
+            os.link(self.root / p, tmp)
+        except OSError:
+            shutil.copyfile(self.root / p, tmp)
+        tmp.replace(dest)
+
 
 class Manifest:
     def __init__(self, gamedir):
@@ -208,7 +226,7 @@ def cmd_resources(retaildir, gamedir):
             continue
         if r.head(p) == b"MZ":
             sys.exit(f"retailextract: {r.name}:{p} is a binary")
-        r.copy_if_changed(p, gamedir / p)
+        r.link_if_changed(p, gamedir / p)
         man.add(p, f"data {r.name}:{p}")
     for name, copy in RETAIL_COPIES:
         p = r.find(name)
@@ -219,7 +237,10 @@ def cmd_resources(retaildir, gamedir):
         dest = gamedir / p
         if not dest.exists() or dest.stat().st_size != r.size(p):
             print(f"== {r.name}:{p} -> {p}")
-            r.copy(p, dest)
+            if rez_pe_entries(r.root / p):
+                r.copy(p, dest)
+            else:
+                r.link_if_changed(p, dest)
         for ename, _pos, sz in scrub_rez(dest):
             print(f"   {p}: retail binary {ename} ({sz} bytes) zeroed")
         man.add(p, f"data {r.name}:{p} (game binaries inside zeroed)")
