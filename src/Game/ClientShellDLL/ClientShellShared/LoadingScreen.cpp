@@ -461,6 +461,9 @@ LTBOOL CLoadingScreen::Init()
 	m_pMissionNameStr->SetText(m_missionname.c_str());
 	m_pMissionNameStr->SetCharScreenHeight(nFontSize);
 	float x = (float)TitlePos.x * g_pInterfaceResMgr->GetXRatio();
+#ifdef NOLF2SRC_MODERN
+	x += (float)g_pInterfaceResMgr->GetXOffset();	// MODERN.md M-G2
+#endif
 	float y = (float)TitlePos.y * g_pInterfaceResMgr->GetYRatio();
 	m_pMissionNameStr->SetPosition(x,y);
 
@@ -475,6 +478,9 @@ LTBOOL CLoadingScreen::Init()
 	m_pLevelNameStr->SetText(m_levelname.c_str());
 	m_pLevelNameStr->SetCharScreenHeight(nFontSize);
 	x = (float)LevelPos.x * g_pInterfaceResMgr->GetXRatio();
+#ifdef NOLF2SRC_MODERN
+	x += (float)g_pInterfaceResMgr->GetXOffset();	// MODERN.md M-G2
+#endif
 	y = (float)LevelPos.y * g_pInterfaceResMgr->GetYRatio();
 	m_pLevelNameStr->SetPosition(x,y);
 
@@ -531,6 +537,9 @@ LTBOOL CLoadingScreen::Init()
 	m_pBriefingStr->SetColor(BriefingColor);
 	m_pBriefingStr->SetCharScreenHeight(nFontSize);
 	x = (float)BriefingPos.x * g_pInterfaceResMgr->GetXRatio();
+#ifdef NOLF2SRC_MODERN
+	x += (float)g_pInterfaceResMgr->GetXOffset();	// MODERN.md M-G2
+#endif
 	y = (float)BriefingPos.y * g_pInterfaceResMgr->GetYRatio();
 	m_pBriefingStr->SetPosition(x,y);
 	m_pBriefingStr->SetWrapWidth((uint16)(g_pInterfaceResMgr->GetXRatio() * (float)BriefingWidth));
@@ -582,6 +591,9 @@ LTBOOL CLoadingScreen::Init()
 		m_pHelpStr->SetColor(HelpColor);
 		m_pHelpStr->SetCharScreenHeight(nFontSize);
 		x = (float)HelpPos.x * g_pInterfaceResMgr->GetXRatio();
+#ifdef NOLF2SRC_MODERN
+		x += (float)g_pInterfaceResMgr->GetXOffset();	// MODERN.md M-G2
+#endif
 		y = (float)HelpPos.y * g_pInterfaceResMgr->GetYRatio();
 		m_pHelpStr->SetPosition(x,y);
 		m_pHelpStr->SetWrapWidth((uint16)(g_pInterfaceResMgr->GetXRatio() * (float)HelpWidth));
@@ -602,6 +614,9 @@ LTBOOL CLoadingScreen::Init()
 
 			float fScale = g_pInterfaceResMgr->GetXRatio();
 			float fx = (float)m_DefaultPhotoRect.left * fScale;
+#ifdef NOLF2SRC_MODERN
+			fx += (float)g_pInterfaceResMgr->GetXOffset();	// MODERN.md M-G2
+#endif
 			float fy = (float)m_DefaultPhotoRect.top * fScale;
 
 			float fw = (float)(m_DefaultPhotoRect.right - m_DefaultPhotoRect.left) * fScale;
@@ -1018,6 +1033,9 @@ void CLoadingScreen::UpdateMissionInfo()
 
 			float fScale = g_pInterfaceResMgr->GetXRatio();
 			float fx = (float)m_DefaultPhotoRect.left * fScale;
+#ifdef NOLF2SRC_MODERN
+			fx += (float)g_pInterfaceResMgr->GetXOffset();	// MODERN.md M-G2
+#endif
 			float fy = (float)m_DefaultPhotoRect.top * fScale;
 
 			float fw = (float)(m_DefaultPhotoRect.right - m_DefaultPhotoRect.left) * fScale;

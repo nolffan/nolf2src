@@ -185,6 +185,9 @@ void CHUDRespawn::Update()
 	
 	float x = (float)m_StrPos.x * g_pInterfaceResMgr->GetXRatio();
 	float y = (float)m_StrPos.y * g_pInterfaceResMgr->GetYRatio();
+#ifdef NOLF2SRC_MODERN
+	x += (float)g_pInterfaceResMgr->GetHUDXOffset(m_StrPos.x);	// MODERN.md M-G2
+#endif
 	uint8 nTextSize = (uint8)((float)m_nStrSz * g_pInterfaceResMgr->GetYRatio());
 	m_pString->SetCharScreenHeight(nTextSize);
 

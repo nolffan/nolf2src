@@ -1745,15 +1745,16 @@ void CClientMgr::RemoveClientObject(LTObject *pObj)
 // (RenderCamera, DRAWMODE_NORMAL) drawn over the whole screen wider than
 // 4:3 now keeps the vertical angle and gets a horizontal one that matches
 // its shape -- tan(x/2) grows with the width over 4:3 -- so it sees more at
-// the sides instead. At 4:3 or narrower nothing changes. Not the
-// interface's 3D objects (RenderObjects, DRAWMODE_OBJECTLIST: the menus'
-// and briefings' art), which are laid out with the 2D interface on the
-// 640x480 page stretched to the screen, and must stretch with it. The
+// the sides instead. At 4:3 or narrower nothing changes. The interface's
+// 3D objects (RenderObjects, DRAWMODE_OBJECTLIST: the menus' and
+// briefings' art) widen the same way: they are laid out with the 2D
+// interface, whose 640x480 page the modern game scales by the height and
+// centres (M-G2), so the art keeps its place beside the text. The
 // camera's own angles (GetCameraFOV, which the game's zoom, underwater and
 // damage effects read back) are untouched: only what is drawn widens.
 static float cm_WidescreenFovX(float xFov, int drawMode, const LTRect &rect, uint32 width, uint32 height)
 {
-    if (drawMode != DRAWMODE_NORMAL ||
+    if ((drawMode != DRAWMODE_NORMAL && drawMode != DRAWMODE_OBJECTLIST) ||
         rect.left != 0 || rect.top != 0 || (uint32)rect.right != width ||
         (uint32)rect.bottom != height || height == 0)
         return xFov;

@@ -190,6 +190,11 @@ void CHUDMgr::QueueUpdate(uint32 nUpdateFlag)
 void CHUDMgr::ScreenDimsChanged()
 {
 	m_UpdateFlags = kHUDAll;
+#ifdef NOLF2SRC_MODERN
+	// MODERN.md M-G2: the items read their places again, for the new
+	// screen's margins (CInterfaceResMgr::GetHUDBaseShift)
+	UpdateLayout();
+#endif
 }
 
 void CHUDMgr::NextLayout()

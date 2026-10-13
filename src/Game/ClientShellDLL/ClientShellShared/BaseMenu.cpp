@@ -97,6 +97,16 @@ void CSubMenu::UpdateFrame()
 
 	float fw = (float)m_nWidth * m_fScale * 0.75f;
 	float fh = (float)m_nHeight * m_fScale;
+#ifdef NOLF2SRC_MODERN
+	// MODERN.md M-G2: a frame that starts at the page's left edge (the
+	// menu bar, sliding in from it) reaches on to the screen's
+	if (m_basePos.x <= 0)
+	{
+		float fMargin = (float)CLTGUICtrl::GetPageOffset();
+		fx -= fMargin;
+		fw += fMargin;
+	}
+#endif
 
 	g_pDrawPrim->SetXYWH(&m_Poly[0],fx,fy,fw,fh);
 	g_pDrawPrim->SetXYWH(&m_Poly[1],fx+fw,fy,(fh/2.0f),fh);

@@ -1,0 +1,51 @@
+# playtest-menus.txt -- a tour of the menus for tools/playtest.sh (world
+# "-": the game starts on its main menu), for checking their layout at a
+# screen size (PLAYTEST_RES; MODERN.md M-G2). Page coordinates are the
+# menus' 640x480 page (PLAYTEST_MAP).
+window 120
+wait 20
+shot main
+# Options > Display, Sound, Controls, Game, Performance
+mclick 130 308
+wait 3
+shot options
+mclick 110 189
+wait 3
+shot display
+key Escape
+wait 2
+mclick 110 203
+wait 3
+shot sound
+key Escape
+wait 2
+mclick 110 217
+wait 3
+shot controls
+key Escape
+wait 2
+mclick 110 231
+wait 3
+shot game
+key Escape
+wait 2
+mclick 110 245
+wait 3
+shot performance
+key Escape
+wait 2
+key Escape
+wait 2
+# Profile
+mclick 130 336
+wait 3
+shot profile
+key Escape
+wait 2
+# Multiplayer (LAN)
+mclick 130 280
+wait 4
+shot multi-lan
+key Escape
+wait 2
+shot main-again

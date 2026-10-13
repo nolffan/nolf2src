@@ -101,6 +101,9 @@ void CHUDChatInput::Update()
 
 	float x = ((float)(m_BasePos.x - 5)  * g_pInterfaceResMgr->GetXRatio()) - m_pStr->GetWidth();
 	float y = (float)(m_BasePos.y) * g_pInterfaceResMgr->GetYRatio();
+#ifdef NOLF2SRC_MODERN
+	x += (float)g_pInterfaceResMgr->GetXOffset();	// MODERN.md M-G2: beside its edit control
+#endif
 	m_pStr->SetPosition(x,y);
 
 	m_EditCtrl.SetScale(g_pInterfaceResMgr->GetXRatio());

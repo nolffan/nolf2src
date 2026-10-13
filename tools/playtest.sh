@@ -52,9 +52,10 @@
 #   focus                 re-focus the game window
 #   mmove <x> <y>         move the pointer to a point of the menus' 640x480
 #                         page, mapped to the window as PLAYTEST_MAP says:
-#                         "retail" (default: the page centred, unscaled) or
-#                         "modern" (the modern build: the centred 4:3 area,
-#                         scaled by the height; MODERN.md, M-P3-01)
+#                         "retail" (the page centred, unscaled; the default
+#                         for a release build) or "modern" (the centred 4:3
+#                         area, scaled by the height: MODERN.md M-G2; the
+#                         default for a game directory named *modern*)
 #   mclick <x> <y>        the same, then a click of button 1
 # After every command the runner checks the game process; if it has died the
 # script stops and the run is judged (EXITED / CRASHED, naming the line).
@@ -285,7 +286,9 @@ if [ ! -e /dev/snd ] && [ -f /usr/share/alsa/alsa.conf ]; then
 fi
 export WINEDEBUG=${PLAYTEST_WINEDEBUG:--all,+seh} WINEDLLOVERRIDES=${PLAYTEST_DLLOVERRIDES-winedbg.exe=d}
 [ -n "${PLAYTEST_PREFIX:-}" ] && export WINEPREFIX=$PLAYTEST_PREFIX
-export PLAYTEST_MAP="${PLAYTEST_MAP:-retail}"
+# the modern build lays its menus out in the centred 4:3 area (MODERN.md M-G2)
+case "$(basename "$GAME")" in *modern*) DEFMAP=modern ;; *) DEFMAP=retail ;; esac
+export PLAYTEST_MAP="${PLAYTEST_MAP:-$DEFMAP}"
 xvfb-run -a -s "-screen 0 ${SCREEN}x24" bash runner.sh $SECS
 )
 cat "$RUN/result.txt" 2>/dev/null || echo "NO RESULT (the run failed)"

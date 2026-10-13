@@ -850,7 +850,11 @@ void CLTGUIListCtrl::SetBasePos ( LTIntPt pos )
 
 void CLTGUIListCtrl::SetScale(float fScale)
 {
+#ifdef NOLF2SRC_MODERN
+	m_pos.x = (int)(fScale * (float)m_basePos.x) + s_nPageOffsetX;	// MODERN.md M-G2
+#else
 	m_pos.x = (int)(fScale * (float)m_basePos.x);
+#endif
 	m_pos.y = (int)(fScale * (float)m_basePos.y);
 	m_fScale = fScale;
 	for (uint16 i = 0; i < m_controlArray.size(); i++ )
