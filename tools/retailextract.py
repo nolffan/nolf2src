@@ -4,8 +4,6 @@
   retailextract.py resources    <retaildir> <gamedir>  game DATA only (no binary)
   retailextract.py thirdparty   <retaildir> <gamedir>  Bink and the Microsoft
                                                        runtime, nothing else
-  retailextract.py retailengine <retaildir> <gamedir>  the engine binaries we
-                                                       do not build yet
   retailextract.py reference    <retaildir> <refdir>   the retail binaries, for
                                                        scoring only
   retailextract.py audit        <gamedir>              every PE file in a game
@@ -36,13 +34,9 @@ files (the Sierra updater, web links) are not copied.
 (MFC42.DLL, MFC42U.DLL, MSVCP60.DLL, Msvcrt.dll), which the engine and the
 launcher import.
 
-`retailengine` copies the engine -- Lithtech.exe, server.dll, ServerDir.dll
-and snddrv.dll -- out of the retail game, because there is no source for it
-yet: Monolith's release has the game, the launcher and the dedicated server,
-not the engine. They are marked RETAIL in the manifest and in the audit, so
-they are easy to find and to replace as the engine is reconstructed.
-ltmsg.dll, the engine's message strings, is built (src/Engine/ltmsg/,
-identical to the retail one apart from its timestamp), so it is not copied.
+No engine binary is copied: Lithtech.exe, server.dll, snddrv.dll,
+ServerDir.dll and ltmsg.dll are built from our source (src/Engine/,
+src/Game/Libs/ServerDir/) and build/all.sh assembles them.
 
 `reference` copies the retail engine images, launcher and dedicated server,
 and the 1.3 game DLLs out of Update_v1x3.rez, to a reference directory
@@ -53,8 +47,9 @@ directory.
 
 Every file the steps write is recorded in <gamedir>/MANIFEST.txt
 (`<origin>\\t<path>`); build/all.sh adds the binaries it built, and `audit`
-lists every PE file in the directory with its origin, failing on any it
-cannot account for -- or on any PE file still inside a .rez archive.
+lists every PE file in the directory with its origin, failing on any that
+is neither built here nor third-party runtime -- or on any PE file still
+inside a .rez archive.
 """
 import os
 import shutil
@@ -79,19 +74,16 @@ RETAIL_COPIES = [("autoexec.cfg", "autoexec.cfg.retail"), ("Profiles/Default.prf
 # Microsoft runtime DLLs setup installs beside the game.
 THIRD_PARTY_NAMES = {"binkw32.dll", "mfc42.dll", "mfc42u.dll", "msvcp60.dll", "msvcrt.dll"}
 
-# RETAIL ENGINE: no source yet (see the docstring).
-RETAIL_ENGINE = ["Lithtech.exe", "server.dll", "ServerDir.dll", "snddrv.dll"]
-
-# Engine binaries built from our source (src/Engine/), identical to the
-# retail ones apart from their timestamps: build/all.sh assembles ours, and
-# `reference` still copies the retail ones to compare against.
-BUILT_ENGINE = ["ltmsg.dll"]
+# The engine: built from our source (src/Engine/, and ServerDir.dll from
+# src/Game/Libs/ServerDir/); build/all.sh assembles ours, and `reference`
+# copies the retail ones to compare against.
+BUILT_ENGINE = ["Lithtech.exe", "server.dll", "ServerDir.dll", "snddrv.dll", "ltmsg.dll"]
 
 # The retail images the checks compare against (`reference`), and the 1.3
 # game DLLs, which the retail game holds only inside Update_v1x3.rez (the
 # copies 1.3 runs, last in its rez stack, and what Monolith's source release
 # builds), under the names our build gives them.
-REFERENCE = RETAIL_ENGINE + BUILT_ENGINE + ["NOLF2.exe", "NOLF2Srv.exe"]
+REFERENCE = BUILT_ENGINE + ["NOLF2.exe", "NOLF2Srv.exe"]
 REFERENCE_REZ = "Update_v1x3.rez"
 REFERENCE_GAME = [("CSHELL.dll", "CShell.dll"), ("OBJECT.lto", "Object.lto"),
                   ("CLIENTFX.fxd", "ClientFx.fxd"), ("CRES.dll", "CRes.dll"),
@@ -229,18 +221,6 @@ def cmd_thirdparty(retaildir, gamedir):
     print(f"== third-party runtime: {n} files (Bink, the Microsoft C++ and MFC runtime)")
 
 
-def cmd_retailengine(retaildir, gamedir):
-    gamedir = Path(gamedir)
-    man = Manifest(gamedir)
-    r = Retail(retaildir)
-    for name in RETAIL_ENGINE:
-        p = r.find(name)
-        r.copy_if_changed(p, gamedir / p)
-        man.add(p, f"RETAIL {r.name}:{p} (no source yet)")
-    man.save()
-    print(f"== retail engine: {', '.join(RETAIL_ENGINE)} (no source yet)")
-
-
 def cmd_reference(retaildir, refdir):
     refdir = Path(refdir)
     refdir.mkdir(parents=True, exist_ok=True)
@@ -275,21 +255,22 @@ def cmd_audit(gamedir):
                 head = f.read(2)
             if head == b"MZ":
                 origin = man.rows.get(rel, "UNKNOWN")
-                if origin == "UNKNOWN" or origin.startswith("data "):
+                # only what we built and the third-party runtime belong
+                # in a game directory (a RETAIL row is a stale manifest's)
+                if not origin.startswith(("built ", "THIRD-PARTY ")):
                     bad += 1
                 rows.append((origin, rel, full.stat().st_size))
             elif fn.lower().endswith(".rez"):
                 for ename, _pos, sz in rez_pe_entries(full):
                     rows.append(("INSIDE A REZ ARCHIVE", f"{rel}:{ename}", sz))
                     bad += 1
-    order = {"built": 0, "RETAIL": 1, "THIRD-PARTY": 2}
+    order = {"built": 0, "THIRD-PARTY": 1}
     rows.sort(key=lambda r: (order.get(r[0].split()[0], 3), r[1].lower()))
     print(f"{'size':>9}  {'file':<24} origin")
     for origin, rel, sz in rows:
         print(f"{sz:>9}  {rel:<24} {origin}")
     count = lambda kind: sum(1 for r in rows if r[0].startswith(kind))
     print(f"{len(rows)} PE files: {count('built')} built from our source, "
-          f"{count('RETAIL')} retail engine (no source yet), "
           f"{count('THIRD-PARTY')} third-party runtime, {bad} unaccounted for")
     return 1 if bad else 0
 
@@ -297,7 +278,7 @@ def cmd_audit(gamedir):
 def main():
     a = sys.argv[1:]
     cmds = {"resources": cmd_resources, "thirdparty": cmd_thirdparty,
-            "retailengine": cmd_retailengine, "reference": cmd_reference}
+            "reference": cmd_reference}
     if len(a) == 3 and a[0] in cmds:
         cmds[a[0]](a[1], a[2])
     elif len(a) == 2 and a[0] == "audit":

@@ -21,14 +21,7 @@
 #   2. third-party runtime  Bink (binkw32.dll) and the Microsoft C++ and MFC
 #                         runtime DLLs, from the retail game: licensed
 #                         binaries with no source.
-#   2b. RETAIL ENGINE     Lithtech.exe, server.dll, ServerDir.dll, snddrv.dll
-#                         from the retail game: there is no source for the
-#                         engine yet (Monolith's release has the game, the
-#                         launcher and the dedicated server).
-#                         Isolated in this one step, and marked RETAIL in
-#                         the manifest and the audit, so they are easy to
-#                         replace as the engine is reconstructed.
-#   2c. Jupiter SDK source  WONAPI and CServerDir_Titan, which ServerDir.dll
+#   2b. Jupiter SDK source  WONAPI and CServerDir_Titan, which ServerDir.dll
 #                         is built from and Monolith's release lacks: from
 #                         the LithTech Jupiter SDK, as rez/ fetches it
 #                         (build/jupiter.sh; `make` fetches it once), into
@@ -40,21 +33,25 @@
 #                         from nothing): the libraries, CShell.dll,
 #                         Object.lto, ClientFx.fxd, CRes.dll, SRes.dll and
 #                         the dedicated server NOLF2Srv.exe, Final
-#                         configuration; and ServerDir.dll
-#                         (src/Game/Libs/ServerDir/ServerDir.dsw) and the
+#                         configuration; ServerDir.dll
+#                         (src/Game/Libs/ServerDir/ServerDir.dsw), the
 #                         sound driver SndDrv.dll (src/Engine/snddrv/
-#                         snddrv.dsw) and the engine, Lithtech.exe and
+#                         snddrv.dsw), the engine, Lithtech.exe and
 #                         server.dll (src/Engine/runtime/winbuild/
-#                         Engine.dsw), built but not yet put in the game:
-#                         step 2b's retail ones are, until the built ones
-#                         are shown to work; and ltmsg.dll
-#                         (src/Engine/ltmsg/ltmsg.dsw), the engine's message
-#                         strings, identical to retail's apart from its
-#                         timestamp: assembled in step 4.
+#                         Engine.dsw), and ltmsg.dll (src/Engine/ltmsg/
+#                         ltmsg.dsw), the engine's message strings.
 #   4. assemble           the built binaries into out/nolf2-legacy-release/: the
 #                         game DLLs in the custom/ rez directory, last in the
-#                         rez stack (nolf2cmds.txt), the dedicated server
-#                         and ltmsg.dll beside the engine.
+#                         rez stack (nolf2cmds.txt); the engine (Lithtech.exe,
+#                         server.dll, snddrv.dll, ServerDir.dll, ltmsg.dll)
+#                         and the dedicated server in the game's root. Every
+#                         binary of the game is then built here but the
+#                         third-party runtime of step 2. Each built engine
+#                         binary was shown to work in the game under Wine
+#                         (tools/playtest.sh: the menus, a new game, play,
+#                         quicksave and quickload; Internet multiplayer
+#                         reaching the directory-server request, which fails
+#                         as retail's does without sierraup.cfg).
 #   5. audit              every PE file in out/nolf2-legacy-release/ listed with
 #                         its origin; the build fails if any is unaccounted
 #                         for or if a .rez archive still holds one.
@@ -89,7 +86,11 @@ BUILT=(
     "$B/ClientRes/TO2/CRes.dll"         custom/cres.dll
     "$B/ServerRes/TO2/SRes.dll"         custom/sres.dll
     "$B/ServerApp/NOLF2Srv.exe"         NOLF2Srv.exe
-    src/Engine/built/Final/ltmsg/ltmsg.dll  ltmsg.dll
+    src/Engine/built/Final/Lithtech/Lithtech.exe  Lithtech.exe
+    src/Engine/built/Final/server/server.dll      server.dll
+    src/Engine/built/Final/snddrv/SndDrv.dll      snddrv.dll
+    src/Game/built/Final/libs/ServerDir/ServerDir.dll  ServerDir.dll
+    src/Engine/built/Final/ltmsg/ltmsg.dll        ltmsg.dll
 )
 
 step "1. resources: game data from $RETAIL -> $OUT"
@@ -106,29 +107,13 @@ chmod +x "$OUT/run.sh"
 step "2. THIRD-PARTY RUNTIME: Bink and the Microsoft runtime from $RETAIL"
 python3 tools/retailextract.py thirdparty "$RETAIL" "$OUT"
 
-step "2b. RETAIL ENGINE from $RETAIL (no source yet)"
-python3 tools/retailextract.py retailengine "$RETAIL" "$OUT"
-
-step "2c. Jupiter SDK source: WONAPI, CServerDir_Titan -> src/Game/Libs/"
+step "2b. Jupiter SDK source: WONAPI, CServerDir_Titan -> src/Game/Libs/"
 python3 tools/jupitersrc.py "$(jupiter_source)" src
 
 step "3. compile: Monolith's workspace (build/compile.sh: build/build.mk, ${NOLF2SRC_JOBS:-$(nproc)} jobs)"
 bash build/compile.sh all
 for ((i = 0; i < ${#BUILT[@]}; i += 2)); do
     [ -f "${BUILT[i]}" ] || { echo "error: ${BUILT[i]} was not built" >&2; exit 1; }
-done
-# (built, not assembled: see step 2b)
-SERVERDIR=src/Game/built/Final/libs/ServerDir/ServerDir.dll
-[ -f "$SERVERDIR" ] || { echo "error: $SERVERDIR was not built" >&2; exit 1; }
-echo "   $SERVERDIR built (not in the game yet: the retail one is)"
-SNDDRV=src/Engine/built/Final/snddrv/SndDrv.dll
-[ -f "$SNDDRV" ] || { echo "error: $SNDDRV was not built" >&2; exit 1; }
-echo "   $SNDDRV built (not in the game yet: the retail one is)"
-# the engine: linked, but with stand-ins for what does not compile yet
-# (docs/engine/PLAN.md), so not in the game yet: the retail one is
-for f in src/Engine/built/Final/Lithtech/Lithtech.exe src/Engine/built/Final/server/server.dll; do
-    [ -f "$f" ] || { echo "error: $f was not built" >&2; exit 1; }
-    echo "   $f built (not in the game yet: the retail one is)"
 done
 
 step "4. assemble: the built binaries -> $OUT"
