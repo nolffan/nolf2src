@@ -725,6 +725,47 @@ void cm_HandleMaxFPS(uint32 frameTicks)
 
 
 
+#ifdef NOLF2SRC_MODERN
+// MODERN.md M-E4: the frame limiter. MaxFPS limits the frame rate only
+// outside the final build (cm_HandleMaxFPS above), so the game has always
+// run as fast as it could. Parts of NOLF2 go wrong at high frame rates
+// (the music above 100, M-G18; the Modernizer saw cutscene timing go
+// wrong), so the modern build limits it: to MaxFPS (60 unless set; 0 is
+// no limit; at most 1000). Each frame waits until 1/MaxFPS has passed
+// since the last one ended, sleeping while more than two milliseconds are
+// left (the timer runs at 1 ms: timemgr.cpp) and spinning for the rest.
+static void cm_ModernFrameLimit()
+{
+    static CounterFinal s_FrameCounter;
+    static bool s_bCounting = false;
+
+    if (g_CV_MaxFPS <= 0.0f)
+    {
+        s_bCounting = false;
+        return;
+    }
+
+    float fFPS = LTMIN(g_CV_MaxFPS, 1000.0f);
+    float fTicksPerSecond = (float)cnt_NumTicksPerSecond();
+    float fWantedTicks = fTicksPerSecond / fFPS;
+
+    if (s_bCounting)
+    {
+        for (;;)
+        {
+            float fTicks = (float)cnt_EndCounterFinal(s_FrameCounter);
+            if (fTicks >= fWantedTicks)
+                break;
+            if ((fWantedTicks - fTicks) * 1000.0f / fTicksPerSecond > 2.0f)
+                dsi_ClientSleep(1);
+        }
+    }
+
+    cnt_StartCounterFinal(s_FrameCounter);
+    s_bCounting = true;
+}
+
+#endif
 LTRESULT CClientMgr::Update()
 {
     uint16 i;
@@ -897,6 +938,9 @@ LTRESULT CClientMgr::Update()
 
     cm_HandleMaxFPS(frameTicks);                    // Lock framerate if they want.
 
+#endif
+#ifdef NOLF2SRC_MODERN
+    cm_ModernFrameLimit();                          // M-E4
 #endif
 
     GraphicsBenchmarkingUpdate();  // Update the benchmark mgr

@@ -32,6 +32,15 @@ namespace
 	}
 	LTBOOL bInitTex;
 	LTBOOL bInitLM;
+#ifdef NOLF2SRC_MODERN
+	// MODERN.md M-G4: the vertical field of view, in degrees (FovY; 78 in
+	// retail), and M-E4: the frame rate limits on offer (MaxFPS; 0 is none)
+	const int	kModernFovYMin = 50;
+	const int	kModernFovYMax = 100;
+	const int	kModernFrameLimits[] = { 30, 60, 75, 100, 120, 144, 165, 200, 240, 0 };
+	const int	kNumModernFrameLimits = sizeof(kModernFrameLimits) / sizeof(kModernFrameLimits[0]);
+	const int	kModernDefaultFrameLimit = 1;	// 60
+#endif
 
 	const int	kNumSteps = 50;
 	const float	kBreakpoint = (float)(kNumSteps/3);
@@ -201,6 +210,33 @@ LTBOOL CScreenDisplay::Build()
 	pBar->SetBasePos(pos);
 	pBar->SetScale(g_pInterfaceResMgr->GetXRatio());
 	AddControl(pBar);
+#ifdef NOLF2SRC_MODERN
+	// MODERN.md M-G28, M-G29, M-G4, M-E4: windowed, running in the
+	// background, the field of view, the frame rate limit
+	AddToggle(IDS_MODERN_WINDOWED,IDS_HELP_MODERN_WINDOWED,kGap,&m_bModernWindowed);
+	AddToggle(IDS_MODERN_BACKGROUND,IDS_HELP_MODERN_BACKGROUND,kGap,&m_bModernRunInBackground);
+
+	CLTGUISlider *pFov = AddSlider(IDS_MODERN_FOV,IDS_HELP_MODERN_FOV,kGap,kWidth,-1,&m_nModernFovY);
+	pFov->SetSliderRange(kModernFovYMin,kModernFovYMax);
+	pFov->SetSliderIncrement(1);
+	pFov->SetNumericDisplay(LTTRUE);
+
+	CLTGUICycleCtrl *pLimit = AddCycle(IDS_MODERN_FRAMELIMIT,IDS_HELP_MODERN_FRAMELIMIT,kGap,&m_nModernFrameLimit);
+	for (int nLimit = 0; nLimit < kNumModernFrameLimits; nLimit++)
+	{
+		char szLimit[16];
+		if (kModernFrameLimits[nLimit] > 0)
+			sprintf(szLimit,"%d",kModernFrameLimits[nLimit]);
+		else
+			SAFE_STRCPY(szLimit,LoadTempString(IDS_MODERN_UNLIMITED));
+		pLimit->AddString(szLimit);
+	}
+
+	// the frame takes in the new lines
+	int nModernBottom = pLimit->GetBasePos().y + pLimit->GetBaseHeight();
+	if (nModernBottom > frameRect.bottom)
+		pFrame->SetSize(nWd,(nModernBottom - frameRect.top) + 8);
+#endif
 
 
 
@@ -442,6 +478,9 @@ void CScreenDisplay::OnFocus(LTBOOL bFocus)
 		float gamma = pProfile->m_fGamma;
 
 		m_nGamma = ConvertToSlider(gamma);
+#ifdef NOLF2SRC_MODERN
+		ModernReadOptions();	// MODERN.md M-G28, M-G29, M-G4, M-E4
+#endif
 
 		
 
@@ -494,6 +533,9 @@ void CScreenDisplay::OnFocus(LTBOOL bFocus)
 			}
 	
 			pProfile->ApplyDisplay();
+#ifdef NOLF2SRC_MODERN
+			ModernApplyOptions();	// MODERN.md M-G28, M-G29, M-G4, M-E4
+#endif
 					
 			//display settings can affect performance sttings so update them here...
 			g_pPerformanceMgr->GetPerformanceOptions(&pProfile->m_sPerformance);
@@ -696,3 +738,50 @@ void CScreenDisplay::ConfirmHardwareCursor(LTBOOL bReturn)
 }
 
 
+#ifdef NOLF2SRC_MODERN
+// MODERN.md M-G28, M-G29, M-G4, M-E4: the modern options' current values
+void CScreenDisplay::ModernReadOptions()
+{
+	m_bModernWindowed = (GetConsoleInt("Windowed",0) != 0);
+	m_bModernRunInBackground = (GetConsoleInt("RunInBackground",0) != 0);
+
+	m_nModernFovY = (int)(GetConsoleFloat("FovY",78.0f) + 0.5f);
+	m_nModernFovY = LTCLAMP(m_nModernFovY,kModernFovYMin,kModernFovYMax);
+
+	int nMaxFPS = (int)(GetConsoleFloat("MaxFPS",60.0f) + 0.5f);
+	m_nModernFrameLimit = kModernDefaultFrameLimit;
+	for (int nLimit = 0; nLimit < kNumModernFrameLimits; nLimit++)
+	{
+		if (kModernFrameLimits[nLimit] == nMaxFPS)
+			m_nModernFrameLimit = (uint8)nLimit;
+	}
+}
+
+// ... and applied, when the screen is left with its OK
+void CScreenDisplay::ModernApplyOptions()
+{
+	WriteConsoleInt("RunInBackground",m_bModernRunInBackground ? 1 : 0);
+	WriteConsoleFloat("MaxFPS",(float)kModernFrameLimits[m_nModernFrameLimit]);
+
+	// The horizontal angle keeps retail's shape (90 by 78: the tangents'
+	// ratio); a wider screen widens it further (M-E1).
+	float fFovY = (float)m_nModernFovY;
+	float fShape = (float)tan(DEG2RAD(45.0f)) / (float)tan(DEG2RAD(39.0f));
+	float fFovX = RAD2DEG(2.0f * (float)atan((float)tan(DEG2RAD(fFovY) / 2.0f) * fShape));
+	WriteConsoleFloat("FovY",fFovY);
+	WriteConsoleFloat("FovX",fFovX);
+	if (g_pPlayerMgr && g_pPlayerMgr->GetCamera() && !g_pPlayerMgr->IsZoomed())
+		g_pPlayerMgr->SetCameraFOV(DEG2RAD(fFovX),DEG2RAD(fFovY));
+
+	// A change of window mode takes a new renderer.
+	if (m_bModernWindowed != (GetConsoleInt("Windowed",0) != 0))
+	{
+		WriteConsoleInt("Windowed",m_bModernWindowed ? 1 : 0);
+		g_pInterfaceResMgr->DrawMessage(IDS_REINITIALIZING_RENDERER);
+		g_pInterfaceMgr->SetSwitchingRenderModes(LTTRUE);
+		g_pLTClient->RunConsoleString("RestartRender");
+		g_pInterfaceMgr->SetSwitchingRenderModes(LTFALSE);
+		g_pInterfaceMgr->ScreenDimsChanged();
+	}
+}
+#endif
