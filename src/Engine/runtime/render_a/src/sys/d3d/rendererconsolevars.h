@@ -79,9 +79,6 @@ RCONVAR(g_CV_EnvBumpMapBumpScale, "EnvBumpMapBumpScale", float, 1.0f);
 
 //------------------------------
 // DOT3 world rendering 
-RCONVAR(g_CV_DOT3BumpMap, "DOT3BumpMap", int, 1);
-RCONVAR(g_CV_DOT3EnvBumpMap, "DOT3EnvBumpMap", int, 1);
-RCONVAR(g_CV_DOT3Saturate, "DOT3Saturate", int, 0);
 
 
 //------------------------------
@@ -108,7 +105,6 @@ RCONVAR(g_CV_VSyncOnFlip, "VSyncOnFlip", int, 1);
 RCONVAR(g_CV_MipMapBias, "MipMapBias", float, 0.0f);
 RCONVAR(g_CV_Trilinear, "Trilinear", int, 0);
 RCONVAR(g_CV_Anisotropic, "Anisotropic", int, 0);
-RCONVAR(g_CV_2DAnisotropic, "2DAnisotropic", int, 0);
 RCONVAR(g_CV_RefRast, "RefRast", int, 0);
 RCONVAR(g_CV_BackBufferCount, "BackBufferCount", int, 2);
 RCONVAR(g_CV_ZBitDepth, "ZBitDepth", int, 32);
@@ -119,19 +115,14 @@ RCONVAR(g_CV_ForceSWVertProcess, "ForceSWVertProcess", int, 0);
 RCONVAR(g_CV_Dither, "Dither", int, 1);
 RCONVAR(g_CV_S3TCEnable, "S3TCEnable", int, 1);
 RCONVAR(g_CV_MaxTexAspectRatio, "MaxTexAspectRatio", int, 0);
-RCONVAR(g_CV_32BitTextures, "32BitTextures", int, 1);
+RCONVAR(g_CV_32BitTextures, "32BitTextures", int, 0);
 RCONVAR(g_CV_32BitLightmaps, "32BitLightMaps", int, 1);
 RCONVAR(g_CV_MaxTextureSize, "MaxTextureSize", int, 16*1024);
 RCONVAR(g_CV_Saturate, "Saturate", int, 0);
 RCONVAR(g_CV_Bilinear, "Bilinear", int, 1);
-RCONVAR(g_CV_2DBilinear, "2DBilinear", int, 1);
 RCONVAR(g_CV_OptimizeSurfaces, "OptimizeSurfaces", int, 0);
 RCONVAR(g_CV_CullWorldTree, "CullWorldTree", int, 0);
 RCONVAR(g_CV_FarZ, "FarZ", float, 10000.0f);
-RCONVAR(g_CV_PreventFrameBuffering, "PreventFrameBuffering", int, 1);
-RCONVAR(g_CV_ShowFrameBufferingInfo, "ShowFrameBufferingInfo", int, 0);
-RCONVAR(g_CV_MultiPassLightMatch, "MultiPassLightMatch", int, 0);         // use first renderpass dynamic light on all passes
-RCONVAR(g_CV_Use0WeightsForDisable, "Use0WeightsForDisable", int, 0);
 
 //------------------------------
 // Gamma Control
@@ -142,9 +133,8 @@ RCONVAR(g_CV_GammaB, "GammaB", float, 1.0f);
 //------------------------------
 // Dynamic Lights
 RCONVAR(g_CV_DynamicLight_TextureSize, "DynamicLight_TextureSize", int, 256);
-RCONVAR(g_CV_DynamicLight_Backfacing, "DynamicLight_Backfacing", int, 1);
+RCONVAR(g_CV_DynamicLight_Backfacing, "DynamicLight_Backfacing", int, 0);
 RCONVAR(g_CV_DynamicLight_Backfacing_Error, "DynamicLight_Backfacing_Error", float, 10.0f);
-RCONVAR(g_CV_DynamicLight_Backfacing_ShowBackFaces, "DynamicLight_Backfacing_ShowBackFaces", int, 0);
 RCONVAR(g_CV_LightAddPoly, "LightAddPoly", float, 1.0f);
 RCONVAR(g_CV_DynamicLight, "DynamicLight", int, 1);
 RCONVAR(g_CV_DynamicLightWorld, "DynamicLightWorld", int, 0);
@@ -184,8 +174,6 @@ RCONVAR(g_CV_ModelApplySun, "ModelApplySun", int, 1);
 RCONVAR(g_CV_ModelSaturation, "ModelSaturation", float, 1);
 RCONVAR(g_CV_MaxModelLights, "MaxModelLights", int, 4);
 RCONVAR(g_CV_LightModels, "LightModels", int, 1);
-RCONVAR(g_CV_ModelApplyAmbient, "ModelApplyAmbient", int, 1);
-RCONVAR(g_CV_ModelLightingSkipRootNode, "ModelLightingSkipRootNode", int, 0);
 
 //------------------------------
 // Model Render Controls
@@ -198,8 +186,6 @@ RCONVAR(g_CV_ZBiasModelRSPasses, "ZBiasModelRSPasses", int, 1);
 RCONVAR(g_CV_ModelDebug_DrawBoxes, "ModelDebug_DrawBoxes", int, 0);
 RCONVAR(g_CV_ModelDebug_DrawTouchingLights, "ModelDebug_DrawTouchingLights", int, 0);
 RCONVAR(g_CV_ModelDebug_DrawSkeleton, "ModelDebug_DrawSkeleton", int, 0);
-RCONVAR(g_CV_ModelDebug_DrawOBBS, "ModelDebug_DrawOBBS", int, 0);
-RCONVAR(g_CV_ModelDebug_DrawVertexNormals, "ModelDebug_DrawVertexNormals", int, 0);
 
 //------------------------------
 // Primitive Control
@@ -245,7 +231,6 @@ RCONVAR(g_CV_SkyFarZ, "SkyFarZ", float, 10000.0f);
 RCONVAR(g_CV_EnvMapPolyGrids, "EnvMapPolyGrids", int, 1);
 RCONVAR(g_CV_BumpMapPolyGrids, "BumpMapPolyGrids", int, 1);
 RCONVAR(g_CV_FresnelPolyGrids, "FresnelPolyGrids", int, 1);
-RCONVAR(g_CV_PolyGridBufferSize, "PolyGridBufferSize", int, 2048);
 
 //------------------------------
 // VolumeEffect Settings
@@ -279,8 +264,6 @@ RCONVAR(g_CV_ScreenGlowEnablePS, "ScreenGlowEnablePS", int, 1);
 
 //------------------------------
 // Effect file settings
-RCONVAR(g_CV_Effect_ForceSoftwareShaders, "Effect_ForceSoftwareShaders", int, 0);
-RCONVAR(g_CV_Effect_DebugEffectIncludes, "Effect_DebugEffectIncludes", int, 0);
 
 #endif
 

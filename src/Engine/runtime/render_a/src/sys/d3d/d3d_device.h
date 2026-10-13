@@ -4,9 +4,9 @@
 #ifndef __D3D_DEVICE_H__
 #define __D3D_DEVICE_H__
 
-#ifndef __D3D9_H__
-#include <d3d9.h>
-#define __D3D9_H__
+#ifndef __D3D8_H__
+#include <d3d8.h>
+#define __D3D8_H__
 #endif
 
 #ifndef __RENDEROBJECT_H__
@@ -27,7 +27,7 @@ struct D3DDeviceInfo;
 struct D3DModeInfo;
 class CD3D_RenderWorld;
 
-class CDirect3DDevice9Wrapper;
+class CDirect3DDevice8Wrapper;
 
 struct ExtraDeviceCaps 
 {
@@ -41,14 +41,7 @@ struct ExtraDeviceCaps
 class CD3D_Device 
 {
 public:
-	CD3D_Device():
-	 m_pCurrentFrame(NULL),
-	 m_pPreviousFrame(NULL),
-	 m_pRenderTarget(NULL),
-	 m_pBackBuffer(NULL),
-	 m_pDefaultRenderTarget(NULL),
-	 m_pDefaultDepthStencilBuffer(NULL)
-
+	CD3D_Device()
 	{ 
 		Reset(); 
 	}
@@ -68,7 +61,6 @@ public:
 	void					Reset();			// Resets back to initial conditions (doesn't try to free anything)...
 	void					ResetDeviceVars();	// Reset all the device vars (this is a partial reset - for ALT-Tab type stuff)...
 	void					FreeAll();			// Frees all the member vars and resets afterwards...
-	void					FreeFrameTextures(); // Frees the previous frame and current frame texture buffers.
 	static CRenderObject*	CreateRenderObject(CRenderObject::RENDER_OBJECT_TYPES ObjectType);
 	static bool				DestroyRenderObject(CRenderObject* pObject);
 	CD3DRenderStyle*		CreateRenderStyle();
@@ -87,10 +79,8 @@ public:
 	static bool				End3D();			// Call when you are done rendering a frame...
 	static bool				IsIn3D();
 
-	void					PreventFrameBuffering();
-
 	// Cap info (some precomputed caps)...
-	D3DCAPS9*				GetDeviceCaps()		{ return &m_DeviceCaps; }
+	D3DCAPS8*				GetDeviceCaps()		{ return &m_DeviceCaps; }
 	ExtraDeviceCaps*		GetExtraDevCaps()	{ return &m_ExtraDevCaps; }
 	void					CheckSpecialCards();// Check for some specific cards and disable/enable stuff...
 	void					PreCalcSomeDeviceCaps();
@@ -108,25 +98,17 @@ public:
 	D3DFORMAT				GetDefaultDepthStencilFormat(uint32 iZBitDepth,uint32 iStencilBitDepth);
 
 	// Note: m_pD3DDevice is public for quick access...
-    CDirect3DDevice9Wrapper *m_pD3DDevice;		// The D3D rendering device
+    CDirect3DDevice8Wrapper *m_pD3DDevice;		// The D3D rendering device
 
 	// Pointer to the active rendering world
 	CD3D_RenderWorld		*m_pRenderWorld;
 
-	IDirect3DTexture9*		m_pCurrentFrame;
-	IDirect3DTexture9*		m_pPreviousFrame;
-	IDirect3DTexture9*		m_pRenderTarget;
-	IDirect3DSurface9*		m_pBackBuffer;
-
-	IDirect3DSurface9*		m_pDefaultRenderTarget;
-	IDirect3DSurface9*		m_pDefaultDepthStencilBuffer;
-	
 private:
 	D3DMULTISAMPLE_TYPE		GetDefaultMultiSampleType(uint32 Samples);
 	void					SetPresentationParams(D3DPRESENT_PARAMETERS& PresentationParam,D3DModeInfo* pMode);
 
 	// Device Info/Data...
-	D3DCAPS9				m_DeviceCaps;		// Device Caps...
+	D3DCAPS8				m_DeviceCaps;		// Device Caps...
 	ExtraDeviceCaps			m_ExtraDevCaps;		// Lith defined extra Caps...
 	D3DAdapterInfo*			m_pAdapter;			// My Adaptor Info Pointer (Points into g_D3DShell's device list)
     D3DDeviceInfo*			m_pDevice;			// My Device Info Pointer (Points into g_D3DShell's device list)
@@ -140,14 +122,12 @@ private:
 
 	// The critical section restricting access to the rendering device while loading
 	mutable LCriticalSection m_hLoadRenderCS;
-
-	IDirect3DQuery9*		m_pEndOfFrameQuery;
 };
 
 extern CD3D_Device g_Device;					// The global D3D Device...
 #define PD3DDEVICE (g_Device.m_pD3DDevice)		// Use for quick access to the D3DDevice...
 
-static LPDIRECT3DDEVICE9 d3d_GetD3DDevice() { return PD3DDEVICE ? PD3DDEVICE->GetDevice() : 0; }	// For the RenderStruct...
+static LPDIRECT3DDEVICE8 d3d_GetD3DDevice() { return PD3DDEVICE ? PD3DDEVICE->GetDevice() : 0; }	// For the RenderStruct...
 
 inline DWORD F2DW( FLOAT f ) { return *((DWORD*)&f); }
 

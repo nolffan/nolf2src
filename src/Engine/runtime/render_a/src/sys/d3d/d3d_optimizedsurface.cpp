@@ -33,8 +33,6 @@ static uint32 g_OldFogEnable;
 
 static LTSurfaceBlend g_Optimized2DBlend(LTSURFACEBLEND_ALPHA);
 static HLTCOLOR g_Optimized2DColor(0xFFFFFFFF);
-static DWORD g_minFilter[4] = { D3DTEXF_LINEAR,D3DTEXF_LINEAR,D3DTEXF_LINEAR,D3DTEXF_LINEAR};
-static DWORD g_magFilter[4] = { D3DTEXF_LINEAR,D3DTEXF_LINEAR,D3DTEXF_LINEAR,D3DTEXF_LINEAR};
 
 uint32 d3d_GetValidTileSize(uint32 size)
 {
@@ -387,36 +385,6 @@ bool d3d_StartOptimized2D()
 	D3D_CALL(PD3DDEVICE->SetRenderState(D3DRS_SRCBLEND, D3DBLEND_SRCALPHA));
 	D3D_CALL(PD3DDEVICE->SetRenderState(D3DRS_DESTBLEND, D3DBLEND_INVSRCALPHA));
 
-	// Possibly reset bilinear for 2d ? 
-	for(uint32 nCurrStage = 0; nCurrStage < 4; nCurrStage++)
-	{
-		// save the sampler states
-		PD3DDEVICE->GetSamplerState(nCurrStage, D3DSAMP_MINFILTER, &g_minFilter[nCurrStage]);
-		PD3DDEVICE->GetSamplerState(nCurrStage, D3DSAMP_MAGFILTER, &g_magFilter[nCurrStage]);
-
-		// check for device caps anisotropic filter for min filter
-		if ((g_Device.GetDeviceCaps()->VertexTextureFilterCaps & D3DPTFILTERCAPS_MINFANISOTROPIC) && (g_CV_2DAnisotropic.m_Val))
-		{
-			D3D_CALL(PD3DDEVICE->SetSamplerState(nCurrStage, D3DSAMP_MINFILTER, D3DTEXF_ANISOTROPIC));
-		}
-		else
-		{
-			D3D_CALL(PD3DDEVICE->SetSamplerState(nCurrStage, D3DSAMP_MINFILTER, g_CV_2DBilinear.m_Val ? D3DTEXF_LINEAR : D3DTEXF_POINT));
-		}
-
-		// check for device caps anistropic filter for mag filter
-		if ((g_Device.GetDeviceCaps()->VertexTextureFilterCaps & D3DPTFILTERCAPS_MAGFANISOTROPIC) && (g_CV_2DAnisotropic.m_Val))
-		{
-			D3D_CALL(PD3DDEVICE->SetSamplerState(nCurrStage, D3DSAMP_MAGFILTER, D3DTEXF_ANISOTROPIC));
-		}
-		else
-		{
-			D3D_CALL(PD3DDEVICE->SetSamplerState(nCurrStage, D3DSAMP_MAGFILTER, g_CV_2DBilinear.m_Val ? D3DTEXF_LINEAR : D3DTEXF_POINT));
-		}
-
-	}
-
-
 	g_bInOptimized2D = true;
 	return true;
 }
@@ -431,15 +399,6 @@ void d3d_EndOptimized2D()
 	PD3DDEVICE->SetRenderState(D3DRS_FOGENABLE, g_OldFogEnable);
 
 	D3D_CALL(PD3DDEVICE->SetRenderState(D3DRS_ALPHABLENDENABLE, FALSE));
-
-	// Set sampler states back to saved states
-	for(uint32 nCurrStage = 0; nCurrStage < 4; nCurrStage++)
-	{
-		// Restore the saved states 
-		D3D_CALL(PD3DDEVICE->SetSamplerState(nCurrStage, D3DSAMP_MINFILTER, g_minFilter[nCurrStage]));
-		D3D_CALL(PD3DDEVICE->SetSamplerState(nCurrStage, D3DSAMP_MAGFILTER, g_magFilter[nCurrStage]));
-	}
-
 
 	g_bInOptimized2D = false;
 }
@@ -562,7 +521,7 @@ void d3d_BlitToScreen3D(BlitRequest *pRequest)
 	verts[0].rhw = verts[1].rhw = verts[2].rhw = verts[3].rhw = 1.0f;
 
 	// Remember the previous texture in there.
-	LPDIRECT3DBASETEXTURE9 pOldTexture = NULL;
+	LPDIRECT3DBASETEXTURE8 pOldTexture = NULL;
 	D3D_CALL(PD3DDEVICE->GetTexture(0, &pOldTexture));
 	
 	SurfaceTile* pTile;
@@ -612,8 +571,7 @@ void d3d_BlitToScreen3D(BlitRequest *pRequest)
 
 			d3d_SetTextureDirect(pTile->m_pTexture, 0);
 
-			D3D_CALL(PD3DDEVICE->SetVertexShader(NULL));
-			D3D_CALL(PD3DDEVICE->SetFVF(TLVERTEX_FORMAT));
+			D3D_CALL(PD3DDEVICE->SetVertexShader(TLVERTEX_FORMAT));
 			hResult = D3D_CALL(PD3DDEVICE->DrawPrimitiveUP(D3DPT_TRIANGLEFAN, 2, verts, sizeof(TLVertex)));
 		}
 	}
@@ -654,7 +612,7 @@ void d3d_BlitToScreen3D_Old(BlitRequest *pRequest)
 	verts[0].rhw = verts[1].rhw = verts[2].rhw = verts[3].rhw = 1.0f;
 
 	// Remember the previous texture in there.
-	LPDIRECT3DBASETEXTURE9 pOldTexture = NULL;
+	LPDIRECT3DBASETEXTURE8 pOldTexture = NULL;
 	D3D_CALL(PD3DDEVICE->GetTexture(0, &pOldTexture));
 
 	// Draw each tile.
@@ -694,8 +652,7 @@ void d3d_BlitToScreen3D_Old(BlitRequest *pRequest)
 
 			d3d_SetTextureDirect(pTile->m_pTexture, 0);
 
-			D3D_CALL(PD3DDEVICE->SetVertexShader(NULL));
-			D3D_CALL(PD3DDEVICE->SetFVF(TLVERTEX_FORMAT));
+			D3D_CALL(PD3DDEVICE->SetVertexShader(TLVERTEX_FORMAT));
 			HRESULT hResult = D3D_CALL(PD3DDEVICE->DrawPrimitiveUP(D3DPT_TRIANGLEFAN, 2, verts, sizeof(TLVertex)));
 		}
 	}
@@ -734,7 +691,7 @@ void d3d_WarpToScreen3D(BlitRequest *pRequest)
 	VERIFY_RENDERSTATE(D3DRS_SRCBLEND, D3DBLEND_SRCALPHA);
 	VERIFY_RENDERSTATE(D3DRS_DESTBLEND, D3DBLEND_INVSRCALPHA);
 
-	LPDIRECT3DBASETEXTURE9 pOldTexture = NULL;		// Remember the previous texture so we can reset it at the end
+	LPDIRECT3DBASETEXTURE8 pOldTexture = NULL;		// Remember the previous texture so we can reset it at the end
 	D3D_CALL(PD3DDEVICE->GetTexture(0, &pOldTexture));
 
 	TLVertex verts[12];								// Set all of the verticies to the same default values for color, alpha, and rhw
@@ -788,8 +745,7 @@ void d3d_WarpToScreen3D(BlitRequest *pRequest)
 			// Set the texture to the correct tile, and draw it using the verticies
 			d3d_SetTextureDirect(pTile->m_pTexture, 0);
 
-			D3D_CALL(PD3DDEVICE->SetVertexShader(NULL));
-			D3D_CALL(PD3DDEVICE->SetFVF(TLVERTEX_FORMAT));
+			D3D_CALL(PD3DDEVICE->SetVertexShader(TLVERTEX_FORMAT));
 			HRESULT hResult = D3D_CALL(PD3DDEVICE->DrawPrimitiveUP(D3DPT_TRIANGLEFAN, 2, verts, sizeof(TLVertex)));
 
 			// Increment the X position

@@ -17,11 +17,6 @@
 
 #include "precompile.h"
 
-//IClientShell game client shell object.
-#include "iclientshell.h"
-static IClientShell *i_client_shell;
-define_holder(IClientShell, i_client_shell);
-
 #include "3d_ops.h"
 #include "de_objects.h"
 #include "d3d_draw.h"
@@ -32,45 +27,10 @@ define_holder(IClientShell, i_client_shell);
 #include "d3d_renderworld.h"
 #include "setuptouchinglights.h"
 #include "iltclient.h"
-#include "ltpixelshadermgr.h"
+#include "pixelshadermgr.h"
 #include "rendererframestats.h"
 
-#include "LTEffectImpl.h"
-#include "lteffectshadermgr.h"
-#include "ltshaderdevicestateimp.h"
 #include "rendererconsolevars.h"
-
-//Interface for the client file manager
-#include "client_filemgr.h"
-static IClientFileMgr* g_pIClientFileMgr;
-define_holder(IClientFileMgr, g_pIClientFileMgr);
-
-
-//----------------------------------------------------------------------------
-// Polygrid Effect Vertex format
-//   Uses: HW TnL, 1 texture channel, diffuse color, normal, 
-//----------------------------------------------------------------------------
-class CPolyGridEffectVertex
-{
-public:
-
-	//position
-	LTVector	m_Vec;
-
-	//normal
-	LTVector	m_Normal;
-
-	//colors
-	uint32		m_nColor;
-
-	//texture coordinates
-	float		m_fU0;
-	float		m_fV0;
-
-	LTVector	m_Tangent;
-	LTVector	m_Binormal;
-};
-
 
 //----------------------------------------------------------------------------
 // Polygrid Vertex format
@@ -425,37 +385,6 @@ static inline void GenerateNormal(char* pData, CPolyGridVertex* pVert, int32 nXO
 //Given an index for a vertex to calculate a basis space for, as well as index offsets to
 //form two basis vectors for a plane, it will calculate the space and store it in
 //the vertex of the specified index
-static inline void GenerateEffectBasisSpace(char* pData, CPolyGridEffectVertex* pVert, int32 nXOff1, int32 nXOff2, int32 nYOff1, int32 nYOff2,
-									  float fWidth, float fHeight, float fWidthTimesHeight, float fYScale)
-{
-	//sanity checks!
-	assert(nXOff1 != nXOff2);
-	assert(nYOff1 != nYOff2);
-
-	pVert->m_Tangent.x = -fWidth;
-	pVert->m_Tangent.y = ((int32)pData[nXOff1] - pData[nXOff2]) * fYScale;
-	pVert->m_Tangent.z = 0.0f;
-
-	pVert->m_Normal.x = 0.0f;
-	pVert->m_Normal.y = ((int32)pData[nYOff1] - pData[nYOff2]) * fYScale;
-	pVert->m_Normal.z = fHeight;
-
-	pVert->m_Binormal.x = pVert->m_Tangent.y * fHeight;
-	pVert->m_Binormal.y = fWidthTimesHeight;
-	pVert->m_Binormal.z = pVert->m_Normal.y * fWidth;
-
-	//normalize our normals
-	pVert->m_Binormal.Normalize();
-	pVert->m_Normal.Normalize();
-	pVert->m_Tangent.Normalize();
-
-	//just a quick check to make sure that the normal is in the right hemisphere
-	//assert(pVert->m_vBinormal.Dot(LTVector(0.0f, 1.0f, 0.0f)) > 0.0f);
-}
-
-//Given an index for a vertex to calculate a basis space for, as well as index offsets to
-//form two basis vectors for a plane, it will calculate the space and store it in
-//the vertex of the specified index
 static inline void GenerateBasisSpace(char* pData, CPolyGridBumpVertex* pVert, int32 nXOff1, int32 nXOff2, int32 nYOff1, int32 nYOff2,
 								  float fWidth, float fHeight, float fWidthTimesHeight, float fYScale)
 {
@@ -634,9 +563,9 @@ static void GeneratePolyGridFresnelAlphaAndCamera(const LTVector& vViewPos, CPol
 
 void d3d_DrawPolyGrid(const ViewParams &Params, LTObject *pObj)
 {
-	//the global pixel shader to be used for the water bumpmapping and a flag indicating if
-	//creation failed
-	bool				s_bPixelShaderFailed = false;
+	//the pixel shader to be used for the water bumpmapping. Note that this is loaded (and so
+	//referenced) each time a bumpmapped polygrid is drawn, as it was in the retail engine
+	CPixelShaderHandle	hPixelShader;
 
 	//make sure that the polygrid is valid
 	assert(pObj);
@@ -691,8 +620,6 @@ void d3d_DrawPolyGrid(const ViewParams &Params, LTObject *pObj)
 	// Set the texture if necessary.
 	SpriteTracker* pTracker;
 
-	LTPixelShader *pPixelShader = NULL;
-
 	if(pGrid->m_pSprite)
 	{
 		pTracker = &pGrid->m_SpriteTracker;
@@ -742,45 +669,17 @@ void d3d_DrawPolyGrid(const ViewParams &Params, LTObject *pObj)
 					//we now need to make sure that the bump map shader is valid
 
 					//see if we need to load it
-					if (!s_bPixelShaderFailed)
-					{
-						// Get the pixel shader.
-						pPixelShader = LTPixelShaderMgr::GetSingleton().GetPixelShader(LTPixelShader::PIXELSHADER_ENVBUMPMAP);
-						if (NULL == pPixelShader)
-						{
-							FileRef ref;
-							ref.m_FileType 	= FILE_ANYFILE;
-							ref.m_pFilename = "ps\\envbumpmap.psh";
-
-							// Try to load it.
-							ILTStream *pStream = g_pIClientFileMgr->OpenFile(&ref);
-							if (NULL != pStream)
-							{
-								if (LTPixelShaderMgr::GetSingleton().AddPixelShader(pStream, ref.m_pFilename,
-																					LTPixelShader::PIXELSHADER_ENVBUMPMAP, true))
-								{
-									pPixelShader = LTPixelShaderMgr::GetSingleton().GetPixelShader(LTPixelShader::PIXELSHADER_ENVBUMPMAP);
-								}
-
-								// Close the file.
-								pStream->Release();
-							}
-						}
-					}
+					if(!hPixelShader.IsValid())
+						hPixelShader = CPixelShaderMgr::GetSingleton().LoadPixelShader("ps\\envbumpmap.ps", true);
 
 					// See if we can continue.
-					if (NULL != pPixelShader && pPixelShader->IsValidShader())
+					if(hPixelShader.IsValid())
 					{
 						bBumpMap	= true;
 						nVertexSize = sizeof(CPolyGridBumpVertex);
 						nVertexFVF	= POLYGRIDBUMPVERTEX_FORMAT;
 						fPGUScale	= ((RTexture*)pBumpMapTex->m_pRenderData)->m_DetailTextureScale;
 						fPGVScale	= fPGUScale;
-					}
-					else
-					{
-						//we failed to create the shader, the device can't support it
-						s_bPixelShaderFailed = true;
 					}
 				}
 
@@ -792,32 +691,11 @@ void d3d_DrawPolyGrid(const ViewParams &Params, LTObject *pObj)
 				}
 				else
 				{
-					LTEffectImpl* pEffect = (LTEffectImpl*)LTEffectShaderMgr::GetSingleton().GetEffectShader(pGrid->m_nEffectShaderID);
-					if(pEffect)
+					d3d_SetTexture(pBaseTex, 0, eFS_PolyGridBaseTexMemory);
+
+					if(bEnvMap)
 					{
-						ID3DXEffect* pD3DEffect = pEffect->GetEffect();
-						if(pD3DEffect)
-						{
-							nVertexSize = sizeof(CPolyGridEffectVertex); 
-
-							RTexture* pRTexture = (RTexture*)pBaseTex->m_pRenderData;
-							pD3DEffect->SetTexture("texture0", pRTexture->m_pD3DTexture);
-
-							if(bEnvMap)
-							{
-								pRTexture = (RTexture*)pEnvMapTex->m_pRenderData;
-								pD3DEffect->SetTexture("texture1", pRTexture->m_pD3DTexture);
-							}
-
-						}
-					}else
-					{
-						d3d_SetTexture(pBaseTex, 0, eFS_PolyGridBaseTexMemory);
-
-						if(bEnvMap)
-						{
-							d3d_SetTexture(pEnvMapTex, 1, eFS_PolyGridEnvMapTexMemory);
-						}
+						d3d_SetTexture(pEnvMapTex, 1, eFS_PolyGridEnvMapTexMemory);
 					}
 				}
 			}
@@ -917,17 +795,6 @@ void d3d_DrawPolyGrid(const ViewParams &Params, LTObject *pObj)
 	float fSpacingZ		= fZInc * 2.0f;
 
 	uint32 nNumVerts;
-
-	bool bEffect = false;
-	LTEffectImpl* pEffect = (LTEffectImpl*)LTEffectShaderMgr::GetSingleton().GetEffectShader(pGrid->m_nEffectShaderID);
-	if(pEffect)
-	{
-		ID3DXEffect* pD3DEffect = pEffect->GetEffect();
-		if(pD3DEffect)
-		{
-			bEffect = true;
-		}
-	}
 
 	if(bBumpMap)
 	{
@@ -1033,122 +900,6 @@ void d3d_DrawPolyGrid(const ViewParams &Params, LTObject *pObj)
 			GeneratePolyGridVectors(pGrid, (CPolyGridBumpVertex*)g_TriVertList, GenerateBasisSpace);
 		}
 	}
-	else if(bEffect)
-	{
-		CPolyGridEffectVertex* pVertexPos = (CPolyGridEffectVertex*)g_TriVertList;
-
-		if(pGrid->m_pValidMask)
-		{
-			//this polygrid has a valid mask, meaning that we need to skip over vertices
-			//as needed
-			uint32* pCurrMask = pGrid->m_pValidMask;
-
-			//amount to adjust the mask at the end of a line
-			uint32 nMaskLineAdjust = (pGrid->m_Width % 32) ? 1 : 0;
-
-			uint32 nShift;
-			uint32 nNormalY1 = 0;
-			uint32 nNormalY2 = nWidth;
-
-			float fWidthTimesHeight = fSpacingX * fSpacingZ;
-
-			while(pDataPos < pDataEnd)
-			{
-				nShift = 0x1;
-
-				while(pDataPos < pLineDataEnd)
-				{
-					if(*pCurrMask & nShift)
-					{
-						//this is valid, add this vertex
-						d3d_SetupVertexPos(pVertexPos, fCurrX, *pDataPos * fYScale, fCurrZ, pColor[*pDataPos], fCurrU, fCurrV);
-
-						//generate a normal for it
-						GenerateEffectBasisSpace(pDataPos, pVertexPos, -1, 1, nNormalY1, nNormalY2, fSpacingX, fSpacingZ, fWidthTimesHeight, fYScale);
-
-						//move along to the next vertex
-						pVertexPos++;
-					}
-
-					pDataPos++;
-					fCurrX += fXInc;
-					fCurrU += fUInc;
-
-					if(nShift == 0x80000000)
-					{
-						pCurrMask++;
-						nShift = 1;
-					}
-					else
-					{
-						nShift <<= 1;
-					}
-				}
-
-				//reset the line
-				fCurrX = fXStart;
-
-				//update our threshold for when to move onto the next line
-				pLineDataEnd += pGrid->m_Width;
-				pCurrMask += nMaskLineAdjust;
-
-				//update our position
-				fCurrZ += fZInc;
-				fCurrU  = fStartU;
-				fCurrV += fVInc;
-
-				//update the normal offsets to ensure we don't go outside of our buffer
-				nNormalY1 = -nWidth;
-				if(pLineDataEnd >= pDataEnd)
-					nNormalY2 = 0;
-			}
-
-			nNumVerts = pVertexPos - (CPolyGridEffectVertex*)g_TriVertList;
-		}
-		else
-		{
-			nNumVerts = pGrid->m_Width * pGrid->m_Height;
-
-			while(pDataPos < pDataEnd)
-			{
-				while(pDataPos < pLineDataEnd)
-				{
-					d3d_SetupVertexPos(pVertexPos, fCurrX, *pDataPos * fYScale, fCurrZ, pColor[*pDataPos], fCurrU, fCurrV);
-
-					pDataPos++;
-					pVertexPos++;
-					fCurrX += fXInc;
-					fCurrU += fUInc;
-				}
-
-				//reset the line
-				fCurrX = fXStart;
-
-				//update our threshold for when to move onto the next line
-				pLineDataEnd += pGrid->m_Width;
-
-				//update our position
-				fCurrZ += fZInc;
-				fCurrU  = fStartU;
-				fCurrV += fVInc;
-			}
-
-			//now we need to generate the normals for the polygrid
-			LTEffectImpl* pEffect = (LTEffectImpl*)LTEffectShaderMgr::GetSingleton().GetEffectShader(pGrid->m_nEffectShaderID);
-			if(pEffect)
-			{
-				ID3DXEffect* pD3DEffect = pEffect->GetEffect();
-				if(pD3DEffect)
-				{
-					GeneratePolyGridVectors(pGrid, (CPolyGridEffectVertex*)g_TriVertList, GenerateEffectBasisSpace);
-				}
-			}
-			else
-			{
-				GeneratePolyGridVectors(pGrid, (CPolyGridVertex*)g_TriVertList, GenerateNormal);
-			}
-		}
-	}
 	else //fixed function
 	{
 		CPolyGridVertex* pVertexPos = (CPolyGridVertex*)g_TriVertList;
@@ -1250,19 +1001,7 @@ void d3d_DrawPolyGrid(const ViewParams &Params, LTObject *pObj)
 			}
 
 			//now we need to generate the normals for the polygrid
-			LTEffectImpl* pEffect = (LTEffectImpl*)LTEffectShaderMgr::GetSingleton().GetEffectShader(pGrid->m_nEffectShaderID);
-			if(pEffect)
-			{
-				ID3DXEffect* pD3DEffect = pEffect->GetEffect();
-				if(pD3DEffect)
-				{
-					GeneratePolyGridVectors(pGrid, (CPolyGridEffectVertex*)g_TriVertList, GenerateEffectBasisSpace);
-				}
-			}
-			else
-			{
-				GeneratePolyGridVectors(pGrid, (CPolyGridVertex*)g_TriVertList, GenerateNormal);
-			}
+			GeneratePolyGridVectors(pGrid, (CPolyGridVertex*)g_TriVertList, GenerateNormal);
 		}
 	}
 
@@ -1294,46 +1033,23 @@ void d3d_DrawPolyGrid(const ViewParams &Params, LTObject *pObj)
 	//setup the pixel shader if we are bumpmapping
 	if(bBumpMap)
 	{
-		assert(NULL != pPixelShader && pPixelShader->IsValidShader());
-
 		// Set the pixel shader constants.
-		float *pConstants = pPixelShader->GetConstants();
-		pConstants[0] = 0.0f;
-		pConstants[1] = 0.0f;
-		pConstants[2] = 0.0f;
-		pConstants[3] = pGrid->m_ColorA / 255.0f;
-		LTPixelShaderMgr::GetSingleton().SetPixelShaderConstants(pPixelShader);
+		float fConstants[4];
+		fConstants[0] = 0.0f;
+		fConstants[1] = 0.0f;
+		fConstants[2] = 0.0f;
+		fConstants[3] = pGrid->m_ColorA / 255.0f;
+		CPixelShaderMgr::GetSingleton().SetPixelShaderConstants(1, fConstants, 0);
 
 		// Install the pixel shader.
-		LTPixelShaderMgr::GetSingleton().InstallPixelShader(pPixelShader);
+		CPixelShaderMgr::GetSingleton().InstallPixelShader(hPixelShader);
 
 		//now actually draw the polygrid
-		D3D_CALL(PD3DDEVICE->SetVertexShader(NULL));
-		D3D_CALL(PD3DDEVICE->SetFVF(nVertexFVF));
-		
-		int nNumPolies = (pGrid->m_nIndices/3);
-
-		// Is this polygrid larger than our buffer? If so, break it into smaller patches.
-		if(nNumPolies > g_CV_PolyGridBufferSize)
-		{
-			int32 nRemainingPolies = nNumPolies;
-			uint32 nCurrentVertPosition = 0;
-
-			while(nRemainingPolies > 0)
-			{
-				uint32 nPoliesThisFrame = (nRemainingPolies > g_CV_PolyGridBufferSize) ? g_CV_PolyGridBufferSize: nRemainingPolies;
-				D3D_CALL(PD3DDEVICE->DrawIndexedPrimitiveUP(D3DPT_TRIANGLELIST,0,nNumVerts,nPoliesThisFrame,&pGrid->m_Indices[nCurrentVertPosition],D3DFMT_INDEX16,g_TriVertList, nVertexSize));
-				nCurrentVertPosition += nPoliesThisFrame*3;
-				nRemainingPolies -= nPoliesThisFrame;
-			}
-		}
-		else
-		{
-			D3D_CALL(PD3DDEVICE->DrawIndexedPrimitiveUP(D3DPT_TRIANGLELIST,0,nNumVerts,(pGrid->m_nIndices)/3,pGrid->m_Indices,D3DFMT_INDEX16,g_TriVertList, nVertexSize));
-		}
+		D3D_CALL(PD3DDEVICE->SetVertexShader(nVertexFVF));
+		D3D_CALL(PD3DDEVICE->DrawIndexedPrimitiveUP(D3DPT_TRIANGLELIST,0,nNumVerts,(pGrid->m_nIndices)/3,pGrid->m_Indices,D3DFMT_INDEX16,g_TriVertList, nVertexSize));
 
 		// Uninstall the pixel shader.
-		LTPixelShaderMgr::GetSingleton().UninstallPixelShader();
+		CPixelShaderMgr::GetSingleton().UninstallPixelShaders();
 
 		d3d_DisableTexture(0);
 		d3d_DisableTexture(3);
@@ -1341,87 +1057,9 @@ void d3d_DrawPolyGrid(const ViewParams &Params, LTObject *pObj)
 	else
 	{
 		//now actually draw the polygrid
-		D3D_CALL(PD3DDEVICE->SetVertexShader(NULL));
-		D3D_CALL(PD3DDEVICE->SetFVF(nVertexFVF));
+		D3D_CALL(PD3DDEVICE->SetVertexShader(nVertexFVF));
 
-		int nNumPolies = (pGrid->m_nIndices/3);
-
-		// Is this polygrid larger than our buffer? If so, break it into smaller patches.
-		if(nNumPolies > g_CV_PolyGridBufferSize)
-		{
-			int32 nRemainingPolies = nNumPolies;
-			uint32 nCurrentVertPosition = 0;
-
-			while(nRemainingPolies > 0)
-			{
-				uint32 nPoliesThisFrame = (nRemainingPolies > g_CV_PolyGridBufferSize) ? g_CV_PolyGridBufferSize: nRemainingPolies;
-				
-				LTEffectImpl* pEffect = (LTEffectImpl*)LTEffectShaderMgr::GetSingleton().GetEffectShader(pGrid->m_nEffectShaderID);
-				if(pEffect)
-				{
-					pEffect->UploadVertexDeclaration();
-
-					ID3DXEffect* pD3DEffect = pEffect->GetEffect();
-					if(pD3DEffect)
-					{
-						i_client_shell->OnEffectShaderSetParams(pEffect, NULL, NULL, LTShaderDeviceStateImp::GetSingleton());
-
-						UINT nPasses = 0;
-						pD3DEffect->Begin(&nPasses, 0);
-
-						for(int i = 0; i < nPasses; ++i)
-						{
-							pD3DEffect->BeginPass(i);
-							D3D_CALL(PD3DDEVICE->DrawIndexedPrimitiveUP(D3DPT_TRIANGLELIST,0,nNumVerts,nPoliesThisFrame,&pGrid->m_Indices[nCurrentVertPosition],D3DFMT_INDEX16,g_TriVertList, nVertexSize));
-							pD3DEffect->EndPass();
-						}
-
-						pD3DEffect->End();
-					}
-
-				}
-				else
-				{
-					D3D_CALL(PD3DDEVICE->DrawIndexedPrimitiveUP(D3DPT_TRIANGLELIST,0,nNumVerts,nPoliesThisFrame,&pGrid->m_Indices[nCurrentVertPosition],D3DFMT_INDEX16,g_TriVertList, nVertexSize));
-				}
-
-				nCurrentVertPosition += nPoliesThisFrame*3;
-				nRemainingPolies -= nPoliesThisFrame;
-			}
-		}
-		else
-		{
-			LTEffectImpl* pEffect = (LTEffectImpl*)LTEffectShaderMgr::GetSingleton().GetEffectShader(pGrid->m_nEffectShaderID);
-			if(pEffect)
-			{
-				pEffect->UploadVertexDeclaration();
-
-				ID3DXEffect* pD3DEffect = pEffect->GetEffect();
-				if(pD3DEffect)
-				{
-					i_client_shell->OnEffectShaderSetParams(pEffect, NULL, NULL, LTShaderDeviceStateImp::GetSingleton());
-
-					UINT nPasses = 0;
-					pD3DEffect->Begin(&nPasses, 0);
-					
-					for(int i = 0; i < nPasses; ++i)
-					{
-						pD3DEffect->BeginPass(i);
-						D3D_CALL(PD3DDEVICE->DrawIndexedPrimitiveUP(D3DPT_TRIANGLELIST,0,nNumVerts,(pGrid->m_nIndices)/3,pGrid->m_Indices,D3DFMT_INDEX16,g_TriVertList, nVertexSize));
-						pD3DEffect->EndPass();
-					}
-
-					pD3DEffect->End();
-				}
-
-			}
-			else
-			{
-				// No Effect Shader, just fixed function.
-				D3D_CALL(PD3DDEVICE->DrawIndexedPrimitiveUP(D3DPT_TRIANGLELIST,0,nNumVerts,(pGrid->m_nIndices)/3,pGrid->m_Indices,D3DFMT_INDEX16,g_TriVertList, nVertexSize));
-			}
-			
-		}
+		D3D_CALL(PD3DDEVICE->DrawIndexedPrimitiveUP(D3DPT_TRIANGLELIST,0,nNumVerts,(pGrid->m_nIndices)/3,pGrid->m_Indices,D3DFMT_INDEX16,g_TriVertList, nVertexSize));
 
 		d3d_DisableTexture(0);
 		d3d_DisableTexture(1);

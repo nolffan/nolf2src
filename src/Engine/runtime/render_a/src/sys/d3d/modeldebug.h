@@ -19,12 +19,6 @@ namespace NModelDebug
 
 	//draws the skeleton of a model
 	void DrawModelSkeleton(ModelInstance* pInstance);
-
-	//draws the vertex normals of a model
-	void DrawModelVertexNormals(ModelInstance* pInstance);
-
-	//draws the obbs of a model
-	void DrawModelOBBS( ModelInstance * pInstance );
 };
 
 

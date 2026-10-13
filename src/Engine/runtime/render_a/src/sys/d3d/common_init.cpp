@@ -62,7 +62,7 @@ void d3d_BlitFromScreen(BlitRequest *pRequest);
 bool d3d_WarpToScreen(BlitRequest *pRequest);
 void d3d_MakeScreenShot(const char *pFilename);
 void d3d_MakeCubicEnvMap(const char* pszPrefix, uint32 nSize, const SceneDesc& InSceneDesc);
-LPDIRECT3DDEVICE9 d3d_GetD3DDevice();
+LPDIRECT3DDEVICE8 d3d_GetD3DDevice();
 bool d3d_SetLightGroupColor(uint32 nID, const LTVector &vColor);
 LTRESULT d3d_SetOccluderEnabled(uint32 nID, bool bEnabled);
 LTRESULT d3d_GetOccluderEnabled(uint32 nID, bool *pEnabled);
@@ -233,7 +233,7 @@ int d3d_Init(RenderStructInit *pInit)
 		wndRect.bottom		= wndRect.top + pInit->m_Mode.m_Height;
 
 		// Figure out the full window coordinates given the client coordinates.
-		AdjustWindowRect(&wndRect, GetWindowLong(g_hWnd,GWL_STYLE), false);
+		AdjustWindowRect(&wndRect, WS_OVERLAPPEDWINDOW, false);
 
 		if (wndRect.left < 0) 
 		{

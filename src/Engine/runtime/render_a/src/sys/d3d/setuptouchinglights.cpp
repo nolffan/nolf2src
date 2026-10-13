@@ -37,7 +37,7 @@ static bool SetupLight(uint32 nLight, const LTVector& vPos, const LTVector& vCol
 	if(nLight >= MAX_LIGHTS_SUPPORTED_BY_D3D)
 		return false;
 
-	D3DLIGHT9 D3DLight; 
+	D3DLIGHT8 D3DLight; 
 	D3DLight.Type			= D3DLIGHT_POINT;
 	D3DLight.Position.x		= vPos.x; 
 	D3DLight.Position.y		= vPos.y;	

@@ -1,10 +1,5 @@
 #include "precompile.h"
 
-//IClientShell game client shell object.
-#include "iclientshell.h"
-static IClientShell *i_client_shell;
-define_holder(IClientShell, i_client_shell);
-
 #include "3d_ops.h"
 #include "common_stuff.h"
 #include "fixedpoint.h"
@@ -19,9 +14,6 @@ define_holder(IClientShell, i_client_shell);
 #include "renderstruct.h"
 #include "counter.h"
 
-#include "LTEffectImpl.h"
-#include "lteffectshadermgr.h"
-#include "ltshaderdevicestateimp.h"
 #include "rendererconsolevars.h"
 
 // ---------------------------------------------------------------- //
@@ -312,57 +304,15 @@ static PSParticle* d3d_DrawParticleBatch(LTParticleSystem *pSystem, PSParticle *
 
 	if (pCurVert != CParticleVertex::m_BatchVerts)
 	{
-		LTEffectImpl* pEffect = (LTEffectImpl*)LTEffectShaderMgr::GetSingleton().GetEffectShader(pSystem->m_nEffectShaderID);
-		if(pEffect)
-		{
-			ID3DXEffect* pD3DEffect = pEffect->GetEffect();
-			if(pD3DEffect)
-			{
-				if(pSystem->m_pCurTexture)
-				{				
-					RTexture* pRTexture = (RTexture*)pSystem->m_pCurTexture->m_pRenderData;
-					pD3DEffect->SetTexture("texture0", pRTexture->m_pD3DTexture);
-				}
-				//batch it!
-				int nParticlesDrawn = (pCurVert - CParticleVertex::m_BatchVerts) >> 2;
-
-				i_client_shell->OnEffectShaderSetParams(pEffect, NULL, NULL, LTShaderDeviceStateImp::GetSingleton());
-
-				UINT nPasses = 0;
-				pD3DEffect->Begin(&nPasses, 0);
-
-				for(UINT i = 0; i < nPasses; ++i)
-				{
-					pD3DEffect->BeginPass(i);
-					
-
-					D3D_CALL(PD3DDEVICE->DrawIndexedPrimitiveUP(D3DPT_TRIANGLELIST,
-						0,
-						pCurVert - CParticleVertex::m_BatchVerts,
-						nParticlesDrawn * 2,
-						GetParticleIndices(),
-						D3DFMT_INDEX16,
-						CParticleVertex::m_BatchVerts,
-						sizeof(CParticleVertex)));
-
-					pD3DEffect->EndPass();
-				}
-
-				pD3DEffect->End();
-			}
-		}
-		else
-		{
-			int nParticlesDrawn = (pCurVert - CParticleVertex::m_BatchVerts) >> 2;
-			D3D_CALL(PD3DDEVICE->DrawIndexedPrimitiveUP(D3DPT_TRIANGLELIST,
-				0,
-				pCurVert - CParticleVertex::m_BatchVerts,
-				nParticlesDrawn * 2,
-				GetParticleIndices(),
-				D3DFMT_INDEX16,
-				CParticleVertex::m_BatchVerts,
-				sizeof(CParticleVertex)));
-		}
+		int nParticlesDrawn = (pCurVert - CParticleVertex::m_BatchVerts) >> 2;
+		D3D_CALL(PD3DDEVICE->DrawIndexedPrimitiveUP(D3DPT_TRIANGLELIST,
+			0,
+			pCurVert - CParticleVertex::m_BatchVerts,
+			nParticlesDrawn * 2,
+			GetParticleIndices(),
+			D3DFMT_INDEX16,
+			CParticleVertex::m_BatchVerts,
+			sizeof(CParticleVertex)));
 
 	}
 
@@ -377,8 +327,7 @@ static void d3d_DrawParticles(LTParticleSystem *pSystem)
 	int nExtra		= pSystem->m_nParticles % PARTICLE_BATCH_SIZE;
 
 	//setup our vertex shader for this particle system
-	D3D_CALL(PD3DDEVICE->SetVertexShader(NULL));
-	D3D_CALL(PD3DDEVICE->SetFVF(PARTICLEVERTEX_FORMAT));
+	D3D_CALL(PD3DDEVICE->SetVertexShader(PARTICLEVERTEX_FORMAT));
 
 	// No need to set the normal and the UVs for each vertex.
     // They are the same for all vertices this frame.
@@ -534,8 +483,8 @@ void d3d_DrawParticleSystem(const ViewParams& Params, LTParticleSystem *pParticl
 
 	//don't let the texture wrap, this prevents pixels from appearring on opposite sides
 	//due to filtering
-	SamplerStateSet ssWrapModeU0(0, D3DSAMP_ADDRESSU, D3DTADDRESS_CLAMP);
-	SamplerStateSet ssWrapModeV0(0, D3DSAMP_ADDRESSV, D3DTADDRESS_CLAMP);
+	StageStateSet ssWrapModeU0(0, D3DTSS_ADDRESSU, D3DTADDRESS_CLAMP);
+	StageStateSet ssWrapModeV0(0, D3DTSS_ADDRESSV, D3DTADDRESS_CLAMP);
 
 	d3d_DrawParticles(pParticleSystem);
 

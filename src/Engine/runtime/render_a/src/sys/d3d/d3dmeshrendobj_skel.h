@@ -50,8 +50,8 @@ public:
 	void					Reset();				// Resets back to initial conditions (doesn't try to free anything)...
 	void					FreeAll();				// Frees all the member vars and resets afterwards...
 
-	void					BeginRender(D3DMATRIX* pD3DTransforms, CD3DRenderStyle* pRenderStyle, uint32 iRenderPass);
-	void					Render(ModelInstance *pInstance, D3DMATRIX* pD3DTransforms, CD3DRenderStyle* pRenderStyle, uint32 iRenderPass);
+	void					BeginRender(CD3DRenderStyle* pRenderStyle, uint32 iRenderPass);
+	void					Render(D3DMATRIX* pD3DTransforms, CD3DRenderStyle* pRenderStyle, uint32 iRenderPass);
 	void					EndRender();
 
 	bool					Load(ILTStream& pFile, LTB_Header& LTBHeader);
@@ -81,13 +81,12 @@ public:
 
 private:
 
-	inline int32		SetTransformsToBoneSet(BoneSetListItem* pBoneSet,D3DMATRIX* pTransforms, int32 nNumMatrices);
+	inline uint32		SetTransformsToBoneSet(BoneSetListItem* pBoneSet,D3DMATRIX* pTransforms, uint32 nNumMatrices);
 	inline uint32		SetMatrixPalette(uint32 MinBone,uint32 MaxBone,D3DMATRIX* pTransforms);
 
-// [dlj] remove this because DX9 doesn't have this bug
 	//cached render states
-//	DWORD					m_nPrevFogTableMode;
-//	DWORD					m_nPrevFogVertexMode;
+	DWORD					m_nPrevFogTableMode;
+	DWORD					m_nPrevFogVertexMode;
 
 	VertexBufferController	m_VBController;			// Our Vertex Buffer Controller - he ownz the buffers...
 	uint32					m_iMaxBonesPerVert;
@@ -104,8 +103,6 @@ private:
 	VERTEX_BLEND_TYPE		m_VertType;
 
 	bool						m_bSWVertProcessing;		// Created for SW Vert Processing...
-	bool						m_bSWVSBuffers;         // no vertex shader support so switch to software buffer for shaders
-
 
 	bool						m_bNonFixPipeData;		// Our mesh has non fixed function pipe data (we need to use a shader, or nothing)...
 	bool						m_bReIndexedBones;		// Are our bones re-index for our piece...

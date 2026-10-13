@@ -188,8 +188,7 @@ CUIFont* CUIFontManager::CreateFont( char const* pszFontFile,
 									char const* pszFontFace,
 								  	uint32 pointSize,
 								  	uint8  asciiStart,
-								  	uint8  asciiEnd,
-									LTFontParams* fontParams)	
+								  	uint8  asciiEnd)
 {
 
 	CUIVectorFont*	pFont;
@@ -203,7 +202,7 @@ CUIFont* CUIFontManager::CreateFont( char const* pszFontFile,
 	LT_MEM_TRACK_ALLOC(pFont = new CUIVectorFont( ),LT_MEM_TYPE_UI);	
 	if( pFont )
 	{
-		if( !pFont->Init( pszFontFile, pszFontFace, pointSize, asciiStart, asciiEnd, fontParams ))
+		if( !pFont->Init( pszFontFile, pszFontFace, pointSize, asciiStart, asciiEnd ))
 		{
 			if (!pFont->IsValid()) 
 			{
@@ -226,8 +225,7 @@ CUIFont* CUIFontManager::CreateFont( char const* pszFontFile,
 CUIFont* CUIFontManager::CreateFont( char const* pszFontFile,
 									char const* pszFontFace,
 					  				uint32 pointSize,
-					  				char*  pCharacters,
-									LTFontParams* fontParams){
+					  				char*  pCharacters){
 	CUIVectorFont*	pFont;
 
 	// Create a vector (truetype) font
@@ -239,7 +237,7 @@ CUIFont* CUIFontManager::CreateFont( char const* pszFontFile,
 	LT_MEM_TRACK_ALLOC(pFont = new CUIVectorFont( ),LT_MEM_TYPE_UI);	
 	if( pFont )
 	{
-		if( !pFont->Init( pszFontFile, pszFontFace, pointSize, pCharacters, fontParams ))
+		if( !pFont->Init( pszFontFile, pszFontFace, pointSize, pCharacters ))
 		{
 			delete pFont;
 			pFont = NULL;

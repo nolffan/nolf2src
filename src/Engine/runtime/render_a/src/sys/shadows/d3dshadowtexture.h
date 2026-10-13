@@ -2,9 +2,9 @@
 #ifndef __D3DSHADOWTEXTURE_H__
 #define __D3DSHADOWTEXTURE_H__
 
-#ifndef __D3D9_H__
-#include <d3d9.h>
-#define __D3D9_H__
+#ifndef __D3D8_H__
+#include <d3d8.h>
+#define __D3D8_H__
 #endif
 
 #define MIN_SHADOW_TEXTURE_SIZE		8
@@ -28,7 +28,7 @@ public:
 	bool				Init(uint uiSizeX, uint uiSizeY);
 	void				Term();
 
-	LPDIRECT3DTEXTURE9	m_pD3DTexture;
+	LPDIRECT3DTEXTURE8	m_pD3DTexture;
 };
 
 class D3DShadowTextureFactory;

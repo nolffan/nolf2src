@@ -91,15 +91,6 @@ bool CD3DRenderStateMgr::SetRenderStyleStates(CD3DRenderStyle* pRenderStyle, uin
 	RenderPassOp RenderPass;
 	if (!pRenderStyle->GetRenderPass(iRenderPass,&RenderPass)) return false;
 
-	bool forceAdditionalPassLighting = false;
-	if( (iRenderPass > 0) && g_CV_MultiPassLightMatch && !RenderPass.DynamicLight )
-	{
-		RenderPassOp firstRenderPass;
-		if( !pRenderStyle->GetRenderPass(0, &firstRenderPass) )
-			return false;
-		forceAdditionalPassLighting = firstRenderPass.DynamicLight;
-	}
-
 	// Dynamic Lighting...
 	if (RenderPass.DynamicLight)
 	{
@@ -109,29 +100,7 @@ bool CD3DRenderStateMgr::SetRenderStyleStates(CD3DRenderStyle* pRenderStyle, uin
 		m_Material.Emissive.r	= pRenderStyle->m_LightingMaterial.Emissive.r; m_Material.Emissive.g = pRenderStyle->m_LightingMaterial.Emissive.g; m_Material.Emissive.b = pRenderStyle->m_LightingMaterial.Emissive.b; m_Material.Emissive.a = pRenderStyle->m_LightingMaterial.Emissive.a;
 		m_Material.Specular.r	= 0;										   m_Material.Specular.g = 0;											m_Material.Specular.b = 0;											 m_Material.Specular.a = 0;
 		m_Material.Power		= 0;
-		
-		// [dlk] 5-09-2005 Added this back in. Specular in renderstyles now used.
-		m_Material.Specular.r	= pRenderStyle->m_LightingMaterial.Specular.r; m_Material.Specular.g = pRenderStyle->m_LightingMaterial.Specular.g; m_Material.Specular.b = pRenderStyle->m_LightingMaterial.Specular.b; m_Material.Specular.a = pRenderStyle->m_LightingMaterial.Specular.a;
-		m_Material.Power		= pRenderStyle->m_LightingMaterial.SpecularPower;
-		if (m_Material.Specular.r == 0 && m_Material.Specular.g == 0 && m_Material.Specular.b == 0)
-		{
-			m_Material.Power = 0.0f;
-		}
-
-		PD3DDEVICE->SetRenderState(D3DRS_SPECULARENABLE, (m_Material.Power > 0.0f) ? true : false);
-
 		PD3DDEVICE->SetMaterial(&m_Material);
-	}
-	else if( forceAdditionalPassLighting )
-	{
-		PD3DDEVICE->SetRenderState(D3DRS_LIGHTING,true);
-		m_Material.Ambient.r = m_Material.Ambient.g = m_Material.Ambient.b = m_Material.Ambient.a = 0.0f;
-		m_Material.Diffuse.r = m_Material.Diffuse.g = m_Material.Diffuse.b = m_Material.Diffuse.a = 1.0f;
-		m_Material.Emissive.r = m_Material.Emissive.g = m_Material.Emissive.b = m_Material.Emissive.a = 0.0f;
-		m_Material.Specular.r = m_Material.Specular.g = m_Material.Specular.b = m_Material.Specular.a = 0.0f;
-		m_Material.Power = 0.0f;
-
-		PD3DDEVICE->SetMaterial(&m_Material); 
 	}
 	else
 	{
@@ -226,13 +195,13 @@ bool CD3DRenderStateMgr::SetRenderStyleStates(CD3DRenderStyle* pRenderStyle, uin
 		PD3DDEVICE->SetTextureStageState(iTexStage, D3DTSS_TEXCOORDINDEX, kTables.m_nUVSource[TexStage.UVSource] | nStageMask);
 
 		//setup the UV addressing modes
-		PD3DDEVICE->SetSamplerState(iTexStage, D3DSAMP_ADDRESSU, kTables.m_nAddress[TexStage.UAddress]);
-		PD3DDEVICE->SetSamplerState(iTexStage, D3DSAMP_ADDRESSV, kTables.m_nAddress[TexStage.VAddress]);
+		PD3DDEVICE->SetTextureStageState(iTexStage, D3DTSS_ADDRESSU, kTables.m_nAddress[TexStage.UAddress]);
+		PD3DDEVICE->SetTextureStageState(iTexStage, D3DTSS_ADDRESSV, kTables.m_nAddress[TexStage.VAddress]);
 
 		//setup the texture filtering
-		PD3DDEVICE->SetSamplerState(iTexStage,D3DSAMP_MINFILTER, kTables.m_nMinFilter[TexStage.TexFilter]);
-		PD3DDEVICE->SetSamplerState(iTexStage,D3DSAMP_MAGFILTER, kTables.m_nMagFilter[TexStage.TexFilter]);
-		PD3DDEVICE->SetSamplerState(iTexStage,D3DSAMP_MIPFILTER, kTables.m_nMipFilter[TexStage.TexFilter]);
+		PD3DDEVICE->SetTextureStageState(iTexStage,D3DTSS_MINFILTER, kTables.m_nMinFilter[TexStage.TexFilter]);
+		PD3DDEVICE->SetTextureStageState(iTexStage,D3DTSS_MAGFILTER, kTables.m_nMagFilter[TexStage.TexFilter]);
+		PD3DDEVICE->SetTextureStageState(iTexStage,D3DTSS_MIPFILTER, kTables.m_nMipFilter[TexStage.TexFilter]);
 
 		if (RenderPass.TextureStages[iTexStage].UVTransform_Enable)
 		{
@@ -287,7 +256,7 @@ bool CD3DRenderStateMgr::SetRenderStyleStates(CD3DRenderStyle* pRenderStyle, uin
 
 void CD3DRenderStateMgr::SetBumpEnvMapMatrix(uint32 BumpEnvMapStage)
 {
-	D3DVIEWPORT9 vp; PD3DDEVICE->GetViewport(&vp);
+	D3DVIEWPORT8 vp; PD3DDEVICE->GetViewport(&vp);
 
 	D3DXMATRIX VS; ZeroMemory(&VS, sizeof(D3DMATRIX));
 	VS._11	= (float)vp.Width/2;						// Create view scaling matrix:

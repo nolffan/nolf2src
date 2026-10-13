@@ -10,6 +10,10 @@
 #include <stdlib.h>
 #include "ltmem.h"
 
+// true if lt mem system is initialized (never, in this form; ltmemstats.cpp
+// reads it)
+bool g_bLTMemInitialized = false;
+
 // Initializes the memory system before anything else runs, and terminates
 // it after everything else.
 class CLTMemInitialize

@@ -94,8 +94,6 @@ enum	ERendererFrameStats	{
 	//accesses the value of the specified frame stat
 	inline int32	FrameStat(ERendererFrameStats eStat)					{ return 1; }
 
-    //fills the struct with current snapshot of renderer stats
-    inline int    GetFrameStats(LTRendererStats &refStats){ return 1; }
 
 #else
 
@@ -112,8 +110,6 @@ enum	ERendererFrameStats	{
 	//accesses the value of the specified frame stat
 	int32	FrameStat(ERendererFrameStats eStat);
 
-    //fills the struct with current snapshot of renderer stats
-    int    GetFrameStats(LTRendererStats &refStats);
 
 #endif
 
