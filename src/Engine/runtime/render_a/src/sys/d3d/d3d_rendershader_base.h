@@ -962,11 +962,10 @@ private:
 
 		// Put them in order
 		TIndexList::iterator iCurIndex = aSortIndices.begin();
-		CInternalSection is;
 		for (; iCurIndex != aSortIndices.end(); ++iCurIndex)
 		{
-			// Move the section
-			aSortedSections.push_back(is);
+			// Move the section (retail: the default-constructing push_back)
+			aSortedSections.push_back();
 			aSortedSections.back() = m_aSections[iCurIndex->m_nSection];
 
 			// Adjust the RB section index
