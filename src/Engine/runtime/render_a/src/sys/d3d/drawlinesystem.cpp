@@ -54,8 +54,7 @@ static void d3d_DrawLineSystem(const ViewParams& Params, LTObject *pObject)
 	// Set states.
 	d3d_DisableTexture(0);
 
-	D3D_CALL(PD3DDEVICE->SetVertexShader(NULL));
-	D3D_CALL(PD3DDEVICE->SetFVF(LINESYSTEMVERTEX_FORMAT));
+	D3D_CALL(PD3DDEVICE->SetVertexShader(LINESYSTEMVERTEX_FORMAT));
 
 	while(pLine != &pSystem->m_LineHead)
 	{
@@ -114,8 +113,7 @@ void d3d_DrawLine(const LTVector& src, const LTVector& dest, uint32 color1, uint
 	verts[1].m_Vec			= dest;
 	verts[1].m_Color.color	= color2;
 
-	D3D_CALL(PD3DDEVICE->SetVertexShader(NULL));
-	D3D_CALL(PD3DDEVICE->SetFVF(LINESYSTEMVERTEX_FORMAT));
+	D3D_CALL(PD3DDEVICE->SetVertexShader(LINESYSTEMVERTEX_FORMAT));
 	D3D_CALL(PD3DDEVICE->DrawPrimitiveUP(D3DPT_LINELIST, 1, verts, sizeof(CLineSystemVertex))); 
 }
 

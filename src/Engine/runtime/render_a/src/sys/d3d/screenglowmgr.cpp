@@ -10,24 +10,13 @@
 #include "tagnodes.h"
 #include "setupmodel.h"
 #include "drawobjects.h"
-#include "ltpixelshadermgr.h"
-
-
-//Interface for the client file manager
-#include "client_filemgr.h"
-static IClientFileMgr* g_pIClientFileMgr;
-define_holder(IClientFileMgr, g_pIClientFileMgr);
+#include "pixelshadermgr.h"
 
 
 
 #define MIN_GLOW_TEXTURE_SIZE 16
 #define MAX_GLOW_TEXTURE_SIZE 512
 
-//------------------------
-// Local console variables
-static ConVar<int> g_CV_ScreenGlow_DrawCanvases("ScreenGlow_DrawCanvases", 1);
-
-extern void d3d_DrawSolidCanvases(const ViewParams& Params);
 extern void d3d_DrawGlowModels(const ViewParams& Params);
 extern void d3d_DrawSolidWorldModels(const ViewParams& Params);
 extern void d3d_QueueTranslucentGlowModels(const ViewParams& Params, ObjectDrawList& DrawList);
@@ -50,17 +39,17 @@ static uint32 TruncateToPowerOf2(uint32 nVal)
 
 //given a texture and the number of channels to install to, this will set that texture on channels
 //0..N
-static void InstallTexture(LPDIRECT3DTEXTURE9 pTexture, uint32 nNumChannels)
+static void InstallTexture(LPDIRECT3DTEXTURE8 pTexture, uint32 nNumChannels)
 {
 	for(uint32 nCurrChannel = 0; nCurrChannel < nNumChannels; nCurrChannel++)
 		d3d_SetTextureDirect(pTexture, nCurrChannel);
 }
 
 //installs the specified texture as a render target as well as an optional depth buffer
-static bool SetRenderTarget(LPDIRECT3DTEXTURE9 pTarget, LPDIRECT3DSURFACE9 pDepthBuffer)
+static bool SetRenderTarget(LPDIRECT3DTEXTURE8 pTarget, LPDIRECT3DSURFACE8 pDepthBuffer)
 {
 	//get the first surface from the texture
-	LPDIRECT3DSURFACE9 pRenderSurface = NULL;
+	LPDIRECT3DSURFACE8 pRenderSurface = NULL;
 	pTarget->GetSurfaceLevel(0, &pRenderSurface);
 
 	//now try and install that
@@ -176,12 +165,12 @@ bool d3d_SetNoGlowRenderStyle(const char* pszFilename)
 //
 
 CScreenGlowMgr::CScreenGlowMgr() :
-	m_nFilterSize(0),
 	m_pGlowTexture(NULL),
 	m_pDepthBuffer(NULL),
 	m_pBlendTexture(NULL),
 	m_nTextureWidth(0),
 	m_nTextureHeight(0),
+	m_nFilterSize(0),
 	m_bFailedLoadingShader(false)
 {
 }
@@ -197,18 +186,15 @@ CScreenGlowMgr& CScreenGlowMgr::GetSingleton()
 bool CScreenGlowMgr::SupportsGlowShader()
 {
 	//make sure that the shader is valid
-	if(!UpdateShader())
-		return false;
-
-	return true;
+	return UpdateShader();
 }
 
 //renders a screen glow over the screen with the specified texture dimensions
 bool CScreenGlowMgr::RenderScreenGlow(uint32 nGlowTexWidth, uint32 nGlowTexHeight, const SceneDesc& Scene)
 {
-	//handle the shader
-	if(!UpdateShader())
-		return false;
+	//handle the shader. If the device can't run it, the blur falls back to the two texture
+	//approach (see RenderSceneToTexture), so this doesn't fail the glow
+	UpdateShader();
 
 	//make sure the texture is updated
 	if(!UpdateGlowTexture(nGlowTexWidth, nGlowTexHeight))
@@ -258,49 +244,27 @@ void CScreenGlowMgr::FreeTextures()
 void CScreenGlowMgr::FreeDeviceObjects()
 {
 	FreeTextures();
+
+	//release our shader, it will be reloaded when next needed
+	if(m_hShader.IsValid())
+	{
+		CPixelShaderMgr::GetSingleton().ReleasePixelShader(m_hShader);
+		m_hShader.Invalidate();
+	}
 }
 
 //handles loading the shader if necessary or failing if the device doesn't support it
 bool CScreenGlowMgr::UpdateShader()
 {
-	// See if we already tried and failed.
-	if (m_bFailedLoadingShader)
+	//see if we need to load our shader (and haven't already tried and failed)
+	if(!m_bFailedLoadingShader && !m_hShader.IsValid())
 	{
-		return true;
+		m_hShader = CPixelShaderMgr::GetSingleton().LoadPixelShader("ps\\screenglow.ps", false);
+		if(!m_hShader.IsValid())
+			m_bFailedLoadingShader = true;
 	}
 
-	// See if our shader is valid.
-	LTPixelShader *pPixelShader = LTPixelShaderMgr::GetSingleton().GetPixelShader(LTPixelShader::PIXELSHADER_SCREENGLOW);
-	if (NULL == pPixelShader)
-	{
-		FileRef ref;
-		ref.m_FileType 	= FILE_ANYFILE;
-		ref.m_pFilename = "ps\\screenglow.psh";
-
-		// Try to load it.
-		ILTStream *pStream = g_pIClientFileMgr->OpenFile(&ref);
-		if (NULL != pStream)
-		{
-			if (LTPixelShaderMgr::GetSingleton().AddPixelShader(pStream, ref.m_pFilename,
-																LTPixelShader::PIXELSHADER_SCREENGLOW, true))
-			{
-				pPixelShader = LTPixelShaderMgr::GetSingleton().GetPixelShader(LTPixelShader::PIXELSHADER_SCREENGLOW);
-			}
-
-			// Close the file.
-			pStream->Release();
-		}
-	}
-
-	// Check the shader.
-	if (NULL != pPixelShader && pPixelShader->IsValidShader())
-	{
-		return true;
-	}
-
-	// The shader is no good.
-	m_bFailedLoadingShader = true;
-	return false;
+	return m_hShader.IsValid();
 }
 
 
@@ -346,7 +310,7 @@ bool CScreenGlowMgr::UpdateGlowTexture(uint32 nWidth, uint32 nHeight)
 
 		//now for the Z buffer
 		D3DFORMAT iDepthFormat = g_Device.GetDefaultDepthStencilFormat(g_CV_ZBitDepth,g_CV_StencilBitDepth);
-		if(FAILED(PD3DDEVICE->CreateDepthStencilSurface(nWidth, nHeight, iDepthFormat, D3DMULTISAMPLE_NONE, 0, TRUE, &m_pDepthBuffer, NULL)))
+		if(FAILED(PD3DDEVICE->CreateDepthStencilSurface(nWidth, nHeight, iDepthFormat, D3DMULTISAMPLE_NONE, &m_pDepthBuffer)))
 		{
 			dsi_ConsolePrint("ScreenGlow: Error creating %dx%d depth buffer", nWidth, nHeight);
 			FreeTextures();
@@ -374,13 +338,13 @@ bool CScreenGlowMgr::RenderSceneToTexture(const SceneDesc& Scene)
 	//it is, so now we need to install it as the render target
 
 	//save our old targets so we can restore them
-	LPDIRECT3DSURFACE9 pDepthStencilBuffer	= NULL;
-	LPDIRECT3DSURFACE9 pPrevRenderTarget	= NULL;
+	LPDIRECT3DSURFACE8 pDepthStencilBuffer	= NULL;
+	LPDIRECT3DSURFACE8 pPrevRenderTarget	= NULL;
 
 	PD3DDEVICE->GetDepthStencilSurface(&pDepthStencilBuffer);
 	PD3DDEVICE->GetRenderTarget(&pPrevRenderTarget);
 
-	D3DVIEWPORT9 oldViewportData;
+	D3DVIEWPORT8 oldViewportData;
 	PD3DDEVICE->GetViewport(&oldViewportData);
 
 	//install our target
@@ -395,7 +359,7 @@ bool CScreenGlowMgr::RenderSceneToTexture(const SceneDesc& Scene)
 		return false;
 	}
 
-	D3DVIEWPORT9 viewportData;
+	D3DVIEWPORT8 viewportData;
 	viewportData.X		= 0;
 	viewportData.Y		= 0;
 	viewportData.Width	= m_nTextureWidth;
@@ -421,35 +385,22 @@ bool CScreenGlowMgr::RenderSceneToTexture(const SceneDesc& Scene)
 	StateSet ssFogFarZ(D3DRS_FOGEND, *((uint32*)&g_CV_ScreenGlowFogFarZ.m_Val));
 	StateSet ssFogColor(D3DRS_FOGCOLOR, D3DRGB_255(0, 0, 0));
 
-	// get the far clip distance for rendering glow geometry
-	float newFarZ = g_CV_ScreenGlowFogEnable ? g_CV_ScreenGlowFogFarZ : g_CV_FarZ;
-	if( newFarZ > g_CV_FarZ )
-		newFarZ = g_CV_FarZ;
-
 	//alright, now we have our scene description, setup the frame and render away!
 	ViewParams NewViewParams;
-	d3d_InitFrustum(&NewViewParams, Scene.m_xFov, Scene.m_yFov, NEARZ, newFarZ,
+	d3d_InitFrustum(&NewViewParams, Scene.m_xFov, Scene.m_yFov, NEARZ, g_CV_FarZ,
 					0, 0, (float)m_nTextureWidth, (float)m_nTextureHeight,
 					&Scene.m_Pos, &Scene.m_Rotation, ViewParams::eRenderMode_Glow);
 	d3d_SetD3DTransformStates(NewViewParams);
 
-	//don't render the skybox during the glow pass
-	int32 nNumOldSkyObjects = g_pSceneDesc->m_nSkyObjects;
-	g_pSceneDesc->m_nSkyObjects = 0;
-
 	//first draw the main world
 	if (g_Device.m_pRenderWorld && g_CV_DrawWorld && g_have_world)
 	{
-		g_Device.m_pRenderWorld->StartFrame(NewViewParams);
 		g_Device.m_pRenderWorld->Draw(NewViewParams, false);
 	}
 
 	//now we need to draw all the objects. This includes models and world models
 	d3d_DrawSolidWorldModels(NewViewParams);
 	d3d_DrawGlowModels(NewViewParams);
-
-	if(g_CV_ScreenGlow_DrawCanvases.m_Val)
-		d3d_DrawSolidCanvases(NewViewParams);
 
 
 	//now queue up all the translucent objects
@@ -461,9 +412,6 @@ bool CScreenGlowMgr::RenderSceneToTexture(const SceneDesc& Scene)
 	d3d_SetTranslucentObjectStates();
 		s_TransDrawList.Draw(NewViewParams);
 	d3d_UnsetTranslucentObjectStates(true);
-
-	//reset the number of skybox objects
-	g_pSceneDesc->m_nSkyObjects = nNumOldSkyObjects;
 
 	//handle the blurring of the texture (we cache the result to ensure that the render target
 	//will be properly restored)
@@ -511,20 +459,13 @@ bool CScreenGlowMgr::RenderBlendedTextureDirectionPS(float fUVScale, float fUWei
 	Verts[3].m_Vec.Init(0.0f, fHeight);
 	Verts[3].m_RHW		= 1.0f;
 
-	// Get the shader.
-	LTPixelShader *pPixelShader = LTPixelShaderMgr::GetSingleton().GetPixelShader(LTPixelShader::PIXELSHADER_SCREENGLOW);
-	if (NULL == pPixelShader)
-	{
-		return false;
-	}
-
-	// Get the constants.
-	float *pConstants = pPixelShader->GetConstants();
-	float *pCurrConstant = pConstants;
-
 	//pixel shader constants
+	float fConstants[MAX_TEXTURES_PER_PASS * 4];
+
 	for(uint32 nCurrElement = 0; nCurrElement < m_nFilterSize; nCurrElement += 4)
 	{
+		float* pCurrConstant = fConstants;
+
 		//first we need to generate our UV sets and render it to the texture
 		for(uint32 nCurrStage = 0; nCurrStage < 4; nCurrStage++)
 		{
@@ -553,7 +494,7 @@ bool CScreenGlowMgr::RenderBlendedTextureDirectionPS(float fUVScale, float fUWei
 		}
 
 		// Set the constants.
-		LTPixelShaderMgr::GetSingleton().SetPixelShaderConstants(pPixelShader);
+		CPixelShaderMgr::GetSingleton().SetPixelShaderConstants(4, fConstants, 0);
 
 		//now render the quad
 		PD3DDEVICE->DrawPrimitiveUP(D3DPT_TRIANGLEFAN, 2, Verts, sizeof(CGlow4TextureVertex));
@@ -686,10 +627,10 @@ bool CScreenGlowMgr::RenderBlendedTexture(bool bUsePixelShader)
 	StateSet ss6(D3DRS_ALPHATESTENABLE, FALSE);
 
 	//setup texture clamping
-	SamplerStateSet ssWrapU0(0, D3DSAMP_ADDRESSU, D3DTADDRESS_CLAMP);
-	SamplerStateSet ssWrapV0(0, D3DSAMP_ADDRESSV, D3DTADDRESS_CLAMP);
-	SamplerStateSet ssWrapU1(1, D3DSAMP_ADDRESSU, D3DTADDRESS_CLAMP);
-	SamplerStateSet ssWrapV1(1, D3DSAMP_ADDRESSV, D3DTADDRESS_CLAMP);
+	StageStateSet ssWrapU0(0, D3DTSS_ADDRESSU, D3DTADDRESS_CLAMP);
+	StageStateSet ssWrapV0(0, D3DTSS_ADDRESSV, D3DTADDRESS_CLAMP);
+	StageStateSet ssWrapU1(1, D3DTSS_ADDRESSU, D3DTADDRESS_CLAMP);
+	StageStateSet ssWrapV1(1, D3DTSS_ADDRESSV, D3DTADDRESS_CLAMP);
 
 	//amount to adjust UVs by to group them together to avoid blocking artifacts
 	float fUVScale		= g_CV_ScreenGlowUVScale;
@@ -697,25 +638,18 @@ bool CScreenGlowMgr::RenderBlendedTexture(bool bUsePixelShader)
 	if(bUsePixelShader)
 	{
 		//enable clamping on the remaining stages
-		SamplerStateSet ssWrapU2(2, D3DSAMP_ADDRESSU, D3DTADDRESS_CLAMP);
-		SamplerStateSet ssWrapV2(2, D3DSAMP_ADDRESSV, D3DTADDRESS_CLAMP);
-		SamplerStateSet ssWrapU3(3, D3DSAMP_ADDRESSU, D3DTADDRESS_CLAMP);
-		SamplerStateSet ssWrapV3(3, D3DSAMP_ADDRESSV, D3DTADDRESS_CLAMP);
+		StageStateSet ssWrapU2(2, D3DTSS_ADDRESSU, D3DTADDRESS_CLAMP);
+		StageStateSet ssWrapV2(2, D3DTSS_ADDRESSV, D3DTADDRESS_CLAMP);
+		StageStateSet ssWrapU3(3, D3DTSS_ADDRESSU, D3DTADDRESS_CLAMP);
+		StageStateSet ssWrapV3(3, D3DTSS_ADDRESSV, D3DTADDRESS_CLAMP);
 
-
-		// Get the shader.
-		LTPixelShader *pPixelShader = LTPixelShaderMgr::GetSingleton().GetPixelShader(LTPixelShader::PIXELSHADER_SCREENGLOW);
-		if (NULL == pPixelShader)
-		{
-			return false;
-		}
 
 		// Install the pixel shader.
-		LTPixelShaderMgr::GetSingleton().InstallPixelShader(pPixelShader);
+		if(!CPixelShaderMgr::GetSingleton().InstallPixelShader(m_hShader))
+			return false;
 
 		//setup our device
-		PD3DDEVICE->SetVertexShader(NULL);
-		PD3DDEVICE->SetFVF(GLOW4TEXTUREVERTEX_FORMAT);
+		PD3DDEVICE->SetVertexShader(GLOW4TEXTUREVERTEX_FORMAT);
 
 		//put our texture into each channel
 		InstallTexture(m_pGlowTexture, 4);
@@ -739,15 +673,14 @@ bool CScreenGlowMgr::RenderBlendedTexture(bool bUsePixelShader)
 		InstallTexture(NULL, 4);
 
 		// Uninstall the pixel shader.
-		LTPixelShaderMgr::GetSingleton().UninstallPixelShader();
+		CPixelShaderMgr::GetSingleton().UninstallPixelShaders();
 	}
 	else
 	{
 		//use the 2 texture pipeline in order to support older hardware
 
 		//setup our device
-		PD3DDEVICE->SetVertexShader(NULL);
-		PD3DDEVICE->SetFVF(GLOW2TEXTUREVERTEX_FORMAT);
+		PD3DDEVICE->SetVertexShader(GLOW2TEXTUREVERTEX_FORMAT);
 
 		//setup the texture stages so we can store our two weights in the RGB for the
 		//first, and then A for the second
@@ -799,10 +732,10 @@ bool CScreenGlowMgr::DisplayBlendedTexture()
 	// Note : This has to be static so that broken drivers can DMA the vertices after the DrawPrimitive call
 	static TLVertex Verts[4];
 
-	float fX1	= (float)g_ViewParams.m_Rect.left;
-	float fY1	= (float)g_ViewParams.m_Rect.top;
-	float fX2	= (float)g_ViewParams.m_Rect.right;
-	float fY2	= (float)g_ViewParams.m_Rect.bottom;
+	float fX1	= 0.0f;
+	float fY1	= 0.0f;
+	float fX2	= g_ViewParams.m_fScreenWidth;
+	float fY2	= g_ViewParams.m_fScreenHeight;
 
 	//offset the UL by one texel in order to compensate for the rendering bias towards right pixels
 	//and the UL .5 texel which we don't want
@@ -834,8 +767,7 @@ bool CScreenGlowMgr::DisplayBlendedTexture()
 	StageStateSet tss04(1, D3DTSS_COLOROP, D3DTOP_DISABLE);
 	StageStateSet tss05(1, D3DTSS_ALPHAOP, D3DTOP_DISABLE);
 
-	D3D_CALL(PD3DDEVICE->SetVertexShader(NULL));
-	D3D_CALL(PD3DDEVICE->SetFVF(TLVERTEX_FORMAT));
+	D3D_CALL(PD3DDEVICE->SetVertexShader(TLVERTEX_FORMAT));
 	D3D_CALL(PD3DDEVICE->DrawPrimitiveUP(D3DPT_TRIANGLEFAN, 2, Verts, sizeof(TLVertex)));
 
 	d3d_SetTextureDirect(NULL, 0);
@@ -873,8 +805,7 @@ bool CScreenGlowMgr::DrawDebugTexture()
 	StageStateSet tss04(1, D3DTSS_COLOROP, D3DTOP_DISABLE);
 	StageStateSet tss05(1, D3DTSS_ALPHAOP, D3DTOP_DISABLE);
 
-	D3D_CALL(PD3DDEVICE->SetVertexShader(NULL));
-	D3D_CALL(PD3DDEVICE->SetFVF(TLVERTEX_FORMAT));
+	D3D_CALL(PD3DDEVICE->SetVertexShader(TLVERTEX_FORMAT));
 	D3D_CALL(PD3DDEVICE->DrawPrimitiveUP(D3DPT_TRIANGLEFAN, 2, Verts, sizeof(TLVertex)));
 
 	d3d_SetTextureDirect(NULL, 0);
@@ -1008,8 +939,7 @@ bool CScreenGlowMgr::DrawDebugFilter()
 	StageStateSet tss04(1, D3DTSS_COLOROP, D3DTOP_DISABLE);
 	StageStateSet tss05(1, D3DTSS_ALPHAOP, D3DTOP_DISABLE);
 
-	PD3DDEVICE->SetVertexShader(NULL);
-	PD3DDEVICE->SetFVF(TLVERTEX_FORMAT);
+	PD3DDEVICE->SetVertexShader(TLVERTEX_FORMAT);
 
 	//draw our background rectangle
 	SetupRectVerts(fLeft, fTop, fRight, fBottom, 0, 0, 0, 0, 0x22222222, Verts);

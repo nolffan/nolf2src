@@ -68,9 +68,8 @@ public:
 	//as setting up the vertex shader, the vertex buffers, etc.
 	virtual bool	BeginShader(		uint32 nVertSize,				//the size of the vertices
 										uint32 nVertType,				//the type of vertex as passed to D3D
-										IDirect3DVertexShader9 *pShader, // for DX9 FVF is separate
-										IDirect3DVertexBuffer9 *pVB,	//pointer to the vertex buffer
-										IDirect3DIndexBuffer9 *pIB,		//the index buffer
+										IDirect3DVertexBuffer8 *pVB,	//pointer to the vertex buffer
+										IDirect3DIndexBuffer8 *pIB,		//the index buffer
 										ERenderShader eShaderID			//the ID of the shader for custom setup
 									 );
 
@@ -89,7 +88,7 @@ public:
 
 	//called to set up the shadow information
 	void			SetShadowInfo(	const ViewParams& Params,			//the view params for rendering
-									IDirect3DBaseTexture9* pTexture,	//the texture for the shadow
+									IDirect3DBaseTexture8* pTexture,	//the texture for the shadow
 									const ShadowLightInfo* pInfo,		//the struct containing info for the shadow projection
 									float fXTexScale, float fYTexScale,	//scale of the texture to the area
 									bool bPerspective,					//ortho or perspective
@@ -119,7 +118,7 @@ private:
 	bool		m_bErrorOccurred;
 
 	//the texture that we are using for the actual shadow texture
-	IDirect3DBaseTexture9*	m_pShadowTexture;
+	IDirect3DBaseTexture8*	m_pShadowTexture;
 
 	//the matrix to convert the world points to the projector space
 	D3DXMATRIX				m_mWorldToProjector;
@@ -138,7 +137,7 @@ private:
 	bool					m_bBound;
 
 	// The temporary index buffer used for backface culling
-	IDirect3DIndexBuffer9*	m_pTempIB;
+	IDirect3DIndexBuffer8*	m_pTempIB;
 	uint32					m_nTempIBIndex;
 
 	//whether or not we are doing perspective or ortho projection
@@ -148,7 +147,7 @@ private:
 	float					m_fProjDist;
 
 	//texture used for fading out the shadow at the vertices
-	IDirect3DTexture9		*m_pFadeTexture;
+	IDirect3DTexture8		*m_pFadeTexture;
 
 	//the length of the fade texture
 	uint32					m_nFadeTextureX;

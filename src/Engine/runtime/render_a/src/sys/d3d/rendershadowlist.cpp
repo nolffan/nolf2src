@@ -9,7 +9,7 @@
 #include "modelshadowshader.h"
 #include "rendererframestats.h"
 #include "..\shadows\d3dshadowtexture.h"
-#include "ltpixelshadermgr.h"
+#include "pixelshadermgr.h"
 #include <algorithm>
 
 //------------------------------------------------------------------
@@ -27,10 +27,6 @@
 static ILTCommon *ilt_common_client;
 define_holder_to_instance(ILTCommon, ilt_common_client, Client);
 
-//Interface for the client file manager
-#include "client_filemgr.h"
-static IClientFileMgr* g_pIClientFileMgr;
-define_holder(IClientFileMgr, g_pIClientFileMgr);
 
 
 
@@ -151,8 +147,7 @@ static void DrawLinesFromLights(const CRelevantLightList& LightList, const LTVec
 		vVert[1].z = vToPos.z;
 		vVert[1].color = 0x00FF0000;
 
-		D3D_CALL(PD3DDEVICE->SetVertexShader(NULL));
-		D3D_CALL(PD3DDEVICE->SetFVF(BASIC_VERTEX_FLAGS));
+		D3D_CALL(PD3DDEVICE->SetVertexShader(BASIC_VERTEX_FLAGS));
 		D3D_CALL(PD3DDEVICE->DrawPrimitiveUP(D3DPT_LINELIST, 1, vVert, sizeof(BASIC_VERTEX)));
 	}
 }
@@ -183,8 +178,7 @@ static void DrawLightPlanes(const LTVector& modelPos, const LTVector& lightPos, 
 	vVert[14].x = lightPos.x; vVert[14].y = lightPos.y; vVert[14].z = lightPos.z; vVert[14].color = 0x000000FF;
 	vVert[15].x = vProjPlane_BottomLeft.x; vVert[15].y = vProjPlane_BottomLeft.y; vVert[15].z = vProjPlane_BottomLeft.z; vVert[15].color = 0x00FFFF00;
 
-	D3D_CALL(PD3DDEVICE->SetVertexShader(NULL));
-	D3D_CALL(PD3DDEVICE->SetFVF(BASIC_VERTEX_FLAGS));
+	D3D_CALL(PD3DDEVICE->SetVertexShader(BASIC_VERTEX_FLAGS));
 	D3D_CALL(PD3DDEVICE->DrawPrimitiveUP(D3DPT_LINELIST, 8, &vVert[0], sizeof(BASIC_VERTEX)));
 }
 
@@ -409,16 +403,16 @@ static void RenderModelPieces( ModelInstance* pInstance )
 				{
 				case CRenderObject::eSkelMesh	 :
 					{
-						((CD3DSkelMesh*)pLOD)->BeginRender(pD3DTransforms, pRenderStyle, nCurrPass);
-						((CD3DSkelMesh*)pLOD)->Render(pInstance, pD3DTransforms, pRenderStyle, nCurrPass);
+						((CD3DSkelMesh*)pLOD)->BeginRender(pRenderStyle, nCurrPass);
+						((CD3DSkelMesh*)pLOD)->Render(pD3DTransforms, pRenderStyle, nCurrPass);
 						((CD3DSkelMesh*)pLOD)->EndRender();
 						IncFrameStat(eFS_ModelRender_NumSkeletalPieces, 1);
 					}
 					break;
 				case CRenderObject::eRigidMesh	 :
 					{
-						((CD3DRigidMesh*)pLOD)->BeginRender(pD3DTransforms[((CD3DRigidMesh*)pLOD)->GetBoneEffector()], pRenderStyle, nCurrPass);
-						((CD3DRigidMesh*)pLOD)->Render(pInstance, pD3DTransforms[((CD3DRigidMesh*)pLOD)->GetBoneEffector()], pRenderStyle, nCurrPass);
+						((CD3DRigidMesh*)pLOD)->BeginRender(pRenderStyle, nCurrPass);
+						((CD3DRigidMesh*)pLOD)->Render(pD3DTransforms[((CD3DRigidMesh*)pLOD)->GetBoneEffector()], pRenderStyle, nCurrPass);
 						((CD3DRigidMesh*)pLOD)->EndRender();
 						IncFrameStat(eFS_ModelRender_NumRigidPieces, 1);
 					}
@@ -432,7 +426,7 @@ static void RenderModelPieces( ModelInstance* pInstance )
 						{
 							DDMatrix mD3DTrans;
 							Convert_DItoDD(mTrans, mD3DTrans);
-							((CD3DVAMesh*)pLOD)->Render(pInstance, mD3DTrans, pRenderStyle, nCurrPass);
+							((CD3DVAMesh*)pLOD)->Render(mD3DTrans, pRenderStyle, nCurrPass);
 							IncFrameStat(eFS_ModelRender_NumVertexAnimatedPieces, 1);
 						}
 					}
@@ -460,11 +454,11 @@ static void RenderModelShadow( ModelInstance* pInstance, const LTVector& vModelP
 	PD3DDEVICE->Clear(0, NULL, D3DCLEAR_TARGET, nClearColor, 1.0f, 0);
 
 	//now get our old viewport for saving
-	D3DVIEWPORT9 OldViewport;
+	D3DVIEWPORT8 OldViewport;
 	PD3DDEVICE->GetViewport(&OldViewport);
 
 	//setup our new viewport so that we won't render to the outer edge
-	D3DVIEWPORT9 NewViewport;
+	D3DVIEWPORT8 NewViewport;
 	NewViewport.X		= 1;
 	NewViewport.Y		= 1;
 	NewViewport.Width	= nShadTexSize - 2;
@@ -627,6 +621,9 @@ static void BuildShadowLightInfo( ShadowLightInfo& info, float fMaxShadowDist, b
 
 //flag indicating if we failed to load this pixel shader prior
 bool CRenderShadowList::s_bFailedPSHandle = false;
+
+//the handle to the shadow blurring pixel shader
+static CPixelShaderHandle s_hBlurPS;
 
 
 //------------------------------------------------------------------------------------------
@@ -855,43 +852,18 @@ void CRenderShadowList::RenderQueuedShadows(const ViewParams& Params)
 	//handle the actual blending
 	if(bBlurShadows)
 	{
-		// Get the pixel shader.
-		LTPixelShader *pPixelShader = LTPixelShaderMgr::GetSingleton().GetPixelShader(LTPixelShader::PIXELSHADER_SHADOWBLUR);
-		if (NULL == pPixelShader)
+		//load the pixel shader if we haven't already (and haven't failed to before)
+		if(!s_hBlurPS.IsValid() && !s_bFailedPSHandle)
 		{
-			FileRef ref;
-			ref.m_FileType 	= FILE_ANYFILE;
-			ref.m_pFilename = "ps\\blurshadow.psh";
-
-			// Try to load it.
-			ILTStream *pStream = g_pIClientFileMgr->OpenFile(&ref);
-			if (NULL != pStream)
-			{
-				if (LTPixelShaderMgr::GetSingleton().AddPixelShader(pStream, ref.m_pFilename,
-																	LTPixelShader::PIXELSHADER_SHADOWBLUR, true))
-				{
-					pPixelShader = LTPixelShaderMgr::GetSingleton().GetPixelShader(LTPixelShader::PIXELSHADER_SHADOWBLUR);
-				}
-
-				// Close the file.
-				pStream->Release();
-			}
-		}
-
-		// See if we can continue.
-		if (NULL != pPixelShader && pPixelShader->IsValidShader())
-		{
-			s_bFailedPSHandle = false;
-		}
-		else
-		{
-			s_bFailedPSHandle = true;
+			s_hBlurPS = CPixelShaderMgr::GetSingleton().LoadPixelShader("PS\\BlurShadow.ps", true);
+			if(!s_hBlurPS.IsValid())
+				s_bFailedPSHandle = true;
 		}
 	}
 
 	//we need to make sure and save our render targets
-	LPDIRECT3DSURFACE9 pDepthStencilBuffer	= NULL;
-	LPDIRECT3DSURFACE9 pPrevRenderTarget	= NULL;
+	LPDIRECT3DSURFACE8 pDepthStencilBuffer	= NULL;
+	LPDIRECT3DSURFACE8 pPrevRenderTarget	= NULL;
 	D3D_CALL(PD3DDEVICE->GetDepthStencilSurface(&pDepthStencilBuffer));
 	D3D_CALL(PD3DDEVICE->GetRenderTarget(&pPrevRenderTarget));
 
@@ -913,7 +885,7 @@ void CRenderShadowList::RenderQueuedShadows(const ViewParams& Params)
 	D3DXMatrixIdentity(&mIdentity);
 
 	//now get our old viewport for saving
-	D3DVIEWPORT9 OldViewport;
+	D3DVIEWPORT8 OldViewport;
 	PD3DDEVICE->GetViewport(&OldViewport);
 
 	// Figure out our projection matrix...
@@ -1135,7 +1107,7 @@ bool CRenderShadowList::BlurShadowTexture(uint32 nSrcTex, uint32 nDestTex)
 	if(!m_cTextureList[nSrcTex])
 		return false;
 
-	LPDIRECT3DTEXTURE9 pSrcTex = m_cTextureList[nSrcTex]->m_pD3DTexture;
+	LPDIRECT3DTEXTURE8 pSrcTex = m_cTextureList[nSrcTex]->m_pD3DTexture;
 
 	if(!pSrcTex)
 		return false;
@@ -1155,16 +1127,7 @@ bool CRenderShadowList::BlurShadowTexture(uint32 nSrcTex, uint32 nDestTex)
 	}
 
 	//determine if we can use the pixel shader version and do it in a single pass
-	bool bUsePixelShader 		= false;
-	LTPixelShader *pPixelShader = NULL;
-	if (!s_bFailedPSHandle)
-	{
-		pPixelShader = LTPixelShaderMgr::GetSingleton().GetPixelShader(LTPixelShader::PIXELSHADER_SHADOWBLUR);
-		if (NULL != pPixelShader && pPixelShader->IsValidShader())
-		{
-			bUsePixelShader = true;
-		}
-	}
+	bool bUsePixelShader = s_hBlurPS.IsValid() && g_CV_ModelShadow_Proj_EnableBlurPS.m_Val;
 
 	uint32	nNumTextures = (bUsePixelShader) ? 4 : 2;
 
@@ -1173,7 +1136,7 @@ bool CRenderShadowList::BlurShadowTexture(uint32 nSrcTex, uint32 nDestTex)
 	float fHeight	= (float)m_nTextureRes;
 
 	//and set our render target to be our destination texture
-	LPDIRECT3DSURFACE9 pTextureRenderSurface = NULL;
+	LPDIRECT3DSURFACE8 pTextureRenderSurface = NULL;
 	m_cTextureList[nDestTex]->m_pD3DTexture->GetSurfaceLevel(0, &pTextureRenderSurface);
 
 	if(pTextureRenderSurface)
@@ -1185,7 +1148,7 @@ bool CRenderShadowList::BlurShadowTexture(uint32 nSrcTex, uint32 nDestTex)
 			PD3DDEVICE->Clear(0, NULL, D3DCLEAR_TARGET, nClearColor, 1.0f, 0);
 
 			//setup our new viewport so that we won't render to the outer edge
-			D3DVIEWPORT9 NewViewport;
+			D3DVIEWPORT8 NewViewport;
 			NewViewport.X		= 1;
 			NewViewport.Y		= 1;
 			NewViewport.Width	= m_nTextureRes - 2;
@@ -1202,14 +1165,14 @@ bool CRenderShadowList::BlurShadowTexture(uint32 nSrcTex, uint32 nDestTex)
 			}
 
 			//setup texture clamping
-			SamplerStateSet ssWrapU0(0, D3DSAMP_ADDRESSU, D3DTADDRESS_CLAMP);
-			SamplerStateSet ssWrapV0(0, D3DSAMP_ADDRESSV, D3DTADDRESS_CLAMP);
-			SamplerStateSet ssWrapU1(1, D3DSAMP_ADDRESSU, D3DTADDRESS_CLAMP);
-			SamplerStateSet ssWrapV1(1, D3DSAMP_ADDRESSV, D3DTADDRESS_CLAMP);
-			SamplerStateSet ssWrapU2(2, D3DSAMP_ADDRESSU, D3DTADDRESS_CLAMP);
-			SamplerStateSet ssWrapV2(2, D3DSAMP_ADDRESSV, D3DTADDRESS_CLAMP);
-			SamplerStateSet ssWrapU3(3, D3DSAMP_ADDRESSU, D3DTADDRESS_CLAMP);
-			SamplerStateSet ssWrapV3(3, D3DSAMP_ADDRESSV, D3DTADDRESS_CLAMP);
+			StageStateSet ssWrapU0(0, D3DTSS_ADDRESSU, D3DTADDRESS_CLAMP);
+			StageStateSet ssWrapV0(0, D3DTSS_ADDRESSV, D3DTADDRESS_CLAMP);
+			StageStateSet ssWrapU1(1, D3DTSS_ADDRESSU, D3DTADDRESS_CLAMP);
+			StageStateSet ssWrapV1(1, D3DTSS_ADDRESSV, D3DTADDRESS_CLAMP);
+			StageStateSet ssWrapU2(2, D3DTSS_ADDRESSU, D3DTADDRESS_CLAMP);
+			StageStateSet ssWrapV2(2, D3DTSS_ADDRESSV, D3DTADDRESS_CLAMP);
+			StageStateSet ssWrapU3(3, D3DTSS_ADDRESSU, D3DTADDRESS_CLAMP);
+			StageStateSet ssWrapV3(3, D3DTSS_ADDRESSV, D3DTADDRESS_CLAMP);
 
 			//make sure that we don't do any Z tests though
 			StateSet ssZFunc(D3DRS_ZFUNC, D3DCMP_ALWAYS);
@@ -1222,7 +1185,6 @@ bool CRenderShadowList::BlurShadowTexture(uint32 nSrcTex, uint32 nDestTex)
 			//alright, now we setup the vertices to give info to the blend
 			if(bUsePixelShader)
 			{
-				assert(pPixelShader->IsValidShader());
 				static CBlurTextureVertex Verts[4];
 
 				//setup the positions of the four vertices
@@ -1232,15 +1194,14 @@ bool CRenderShadowList::BlurShadowTexture(uint32 nSrcTex, uint32 nDestTex)
 				Verts[3].Init(0.0f, 1.0f, fWidth, fHeight);
 
 				// Install the pixel shader.
-				LTPixelShaderMgr::GetSingleton().InstallPixelShader(pPixelShader);
+				CPixelShaderMgr::GetSingleton().InstallPixelShader(s_hBlurPS);
 
 				//render the polygon
-				PD3DDEVICE->SetVertexShader(NULL);
-				PD3DDEVICE->SetFVF(BLURTEXTUREVERTEX_FORMAT);
+				PD3DDEVICE->SetVertexShader(BLURTEXTUREVERTEX_FORMAT);
 				PD3DDEVICE->DrawPrimitiveUP(D3DPT_TRIANGLEFAN, 2, Verts, sizeof(CBlurTextureVertex));
 
 				// Uninstall the pixel shader.
-				LTPixelShaderMgr::GetSingleton().UninstallPixelShader();
+				CPixelShaderMgr::GetSingleton().UninstallPixelShaders();
 			}
 			else
 			{
@@ -1271,8 +1232,7 @@ bool CRenderShadowList::BlurShadowTexture(uint32 nSrcTex, uint32 nDestTex)
 				StateSet ss1(D3DRS_DESTBLEND, D3DBLEND_ONE);
 
 				//setup the vertex shader
-				PD3DDEVICE->SetVertexShader(NULL);
-				PD3DDEVICE->SetFVF(BLURTEXTURE2PASSVERTEX_FORMAT);
+				PD3DDEVICE->SetVertexShader(BLURTEXTURE2PASSVERTEX_FORMAT);
 
 				float fSign = 1.0f;
 				for(uint32 nPass = 0; nPass < 2; nPass++)
@@ -1369,7 +1329,7 @@ bool CRenderShadowList::RenderShadowTexture(uint32 nShadow, uint32 nTexture)
 	}
 
 	// Set the ShadowTexture as the render target...
-	LPDIRECT3DSURFACE9 pTextureRenderSurface = NULL;
+	LPDIRECT3DSURFACE8 pTextureRenderSurface = NULL;
 	D3D_CALL(m_cTextureList[nTexture]->m_pD3DTexture->GetSurfaceLevel(0, &pTextureRenderSurface));
 
 	if(pTextureRenderSurface)

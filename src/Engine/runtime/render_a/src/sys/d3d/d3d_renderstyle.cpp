@@ -130,33 +130,32 @@ bool CD3DRenderStyle::Load_LTBData(ILTStream* pFileStream)
 			}
 			if (iHasRSD3DRP)
 			{
-				// vertex shader
-				pFileStream->Read(&D3DRenderPass.bUseVertexShader, sizeof(D3DRenderPass.bUseVertexShader));
-				pFileStream->Read(&D3DRenderPass.VertexShaderID, sizeof(D3DRenderPass.VertexShaderID));
-
-				// pixel shader
-				pFileStream->Read(&D3DRenderPass.bUsePixelShader, sizeof(D3DRenderPass.bUsePixelShader));
-				pFileStream->Read(&D3DRenderPass.PixelShaderID, sizeof(D3DRenderPass.PixelShaderID));
+				// Vertex shaders aren't supported any more, but the data is still in the file
+				bool bUseVertexShader;
+				pFileStream->Read(&bUseVertexShader, sizeof(bUseVertexShader));
+				D3DRenderPass.bUseVertexShader = false;
+				pFileStream->Read(&D3DRenderPass.bExpandForSkinning, sizeof(D3DRenderPass) - offsetof(RSD3DRenderPass, bExpandForSkinning));
 
 				if (!SetRenderPass_D3DOptions(i, &D3DRenderPass))
 				{
 					return false;
 				}
+
+				if (bUseVertexShader)
+				{
+					dsi_ConsolePrint("Error: Found renderstyle using vertex shader. These are no longer supported.");
+
+					// Skip over the vertex shader data blocks
+					for (uint32 nBlock = 0; nBlock < 4; ++nBlock)
+					{
+						uint32 nBlockSize, nPos;
+						pFileStream->Read(&nBlockSize, sizeof(nBlockSize));
+						pFileStream->GetPos(&nPos);
+						pFileStream->SeekTo(nPos + nBlockSize);
+					}
+				}
 			}
 		}
-
-		RSD3DOptions rsD3DOptions;
-		LTRESULT hresult = pFileStream->Read(&rsD3DOptions,sizeof(rsD3DOptions));
-		if(hresult != LT_ERROR)
-		{
-			SetDirect3D_Options(rsD3DOptions);
-		}
-		else
-		{
-			dsi_ConsolePrint("CD3DRenderStyle::Load_LTBData : D3D Options failed to load!");
-		}
-
-
 
 		if (!Compile())
 			continue;
@@ -188,7 +187,6 @@ bool CD3DRenderStyle::IsSupportedOnDevice()
 			case RENDERSTYLE_COLOROP_MODULATE			: if (!(g_Device.GetDeviceCaps()->TextureOpCaps & D3DTEXOPCAPS_MODULATE))			 { return false; } break;
 			case RENDERSTYLE_COLOROP_MODULATE2X			: if (!(g_Device.GetDeviceCaps()->TextureOpCaps & D3DTEXOPCAPS_MODULATE2X))			 { return false; } break;
 			case RENDERSTYLE_COLOROP_MODULATEALPHA		: if (!(g_Device.GetDeviceCaps()->TextureOpCaps & D3DTEXOPCAPS_BLENDCURRENTALPHA))	 { return false; } break;
-			case RENDERSTYLE_COLOROP_MODULATETEXALPHA	: if (!(g_Device.GetDeviceCaps()->TextureOpCaps & D3DTEXOPCAPS_BLENDTEXTUREALPHA))   { return false; } break;
 			case RENDERSTYLE_COLOROP_MODULATETFACTOR	: if (!(g_Device.GetDeviceCaps()->TextureOpCaps & D3DTEXOPCAPS_BLENDFACTORALPHA))	 { return false; } break;
 			case RENDERSTYLE_COLOROP_ADD				: if (!(g_Device.GetDeviceCaps()->TextureOpCaps & D3DTEXOPCAPS_ADD))				 { return false; } break;
 			case RENDERSTYLE_COLOROP_DOTPRODUCT3		: if (!(g_Device.GetDeviceCaps()->TextureOpCaps & D3DTEXOPCAPS_DOTPRODUCT3))		 { return false; } break;
@@ -200,7 +198,6 @@ bool CD3DRenderStyle::IsSupportedOnDevice()
 			case RENDERSTYLE_ALPHAOP_SELECTARG2			: if (!(g_Device.GetDeviceCaps()->TextureOpCaps & D3DTEXOPCAPS_SELECTARG2))			 { return false; } break;
 			case RENDERSTYLE_ALPHAOP_MODULATE			: if (!(g_Device.GetDeviceCaps()->TextureOpCaps & D3DTEXOPCAPS_MODULATE))			 { return false; } break;
 			case RENDERSTYLE_ALPHAOP_MODULATEALPHA		: if (!(g_Device.GetDeviceCaps()->TextureOpCaps & D3DTEXOPCAPS_BLENDCURRENTALPHA))	 { return false; } break;
-			case RENDERSTYLE_ALPHAOP_MODULATETEXALPHA	: if (!(g_Device.GetDeviceCaps()->TextureOpCaps & D3DTEXOPCAPS_BLENDTEXTUREALPHA))   { return false; } break;
 			case RENDERSTYLE_ALPHAOP_MODULATETFACTOR	: if (!(g_Device.GetDeviceCaps()->TextureOpCaps & D3DTEXOPCAPS_BLENDFACTORALPHA))	 { return false; } break;
 			case RENDERSTYLE_ALPHAOP_ADD				: if (!(g_Device.GetDeviceCaps()->TextureOpCaps & D3DTEXOPCAPS_ADD))				 { return false; } break; } }
 	}
@@ -298,12 +295,6 @@ void CD3DRenderStyle::SetDefaults()
 
 	LT_MEM_TRACK_ALLOC(m_RenderPasses.push_back(RenderPass), LT_MEM_TYPE_RENDERER);
 
-	// D3D Options...
-	if (m_pD3DOptions)											
-	{ 
-		m_pD3DOptions->bUseEffectShader = false;
-		m_pD3DOptions->EffectShaderID = 0;
-	}
 }
 
 bool CD3DRenderStyle::Compile()

@@ -40,9 +40,7 @@ class CGenDrawPrim : public ILTDrawPrim
             m_eTestMode			= DRAWPRIM_NOALPHATEST;
             m_eFillMode			= DRAWPRIM_FILL ;
             m_eCullMode			= DRAWPRIM_CULL_NONE;
-			m_bFogEnable		= false;
 			m_bReallyClose		= false;
-			m_nEffectShaderID   = -1;
         }
 
         // Sets the current camera to use (viewport, field of view etc)
@@ -99,23 +97,10 @@ class CGenDrawPrim : public ILTDrawPrim
             return LT_OK;
         }
 
-		//set the fog enable status
-		virtual LTRESULT SetFogEnable(bool bFogEnable)
-		{
-			m_bFogEnable = bFogEnable;
-			return LT_OK;
-		}
-
         //Specifiy whether or not to be in really close space for rendering
         virtual LTRESULT SetReallyClose(bool bReallyClose)
 		{
 			m_bReallyClose = bReallyClose;
-			return LT_OK;
-		}
-
-		virtual LTRESULT SetEffectShaderID(uint32 nEffectShaderID)
-		{
-			m_nEffectShaderID = nEffectShaderID;
 			return LT_OK;
 		}
 
@@ -699,10 +684,6 @@ class CGenDrawPrim : public ILTDrawPrim
         ELTDPCullMode m_eCullMode;
 		// Really close
 		bool		 m_bReallyClose;
-		// Fog enable
-		bool		m_bFogEnable;
-		// Effect ID
-		uint32		m_nEffectShaderID;
 };
 
 #endif

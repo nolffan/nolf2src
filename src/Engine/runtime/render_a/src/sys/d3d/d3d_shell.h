@@ -21,7 +21,7 @@ struct D3DModeInfo;
 struct D3DAdapterInfo
 {
 	uint32					iAdapterNum;	// This is D3D's adapter count number (e.g. 2nd adapter)
-    D3DADAPTER_IDENTIFIER9	AdapterID;		// Adapter data
+    D3DADAPTER_IDENTIFIER8	AdapterID;		// Adapter data
     uint32					iCurrentDevice;	// Device data
     uint32					iNumDevices;
     vector<D3DDeviceInfo>	Devices;
@@ -33,7 +33,7 @@ struct D3DDeviceInfo
 {
     // Device data
     D3DDEVTYPE				DeviceType;		// Reference, HAL, etc.
-    D3DCAPS9				d3dCaps;		// Capabilities of this device
+    D3DCAPS8				d3dCaps;		// Capabilities of this device
     TCHAR*					strDesc;		// Name of this device
     BOOL					bCanDoWindowed;	// Whether this device can work in windowed mode
 
@@ -85,7 +85,7 @@ public:
 	D3DDeviceInfo*			FindDevice(const char* strDesc,D3DAdapterInfo** pAdapterInfo);
 
 	// Note: m_pD3D is public for quick access...
-    LPDIRECT3D9				m_pD3D;			// The main D3D object
+    LPDIRECT3D8				m_pD3D;			// The main D3D object
 
 private:
 	D3DDISPLAYMODE			m_DesktopFormat;// Desktop display mode (mainly for window mode)...

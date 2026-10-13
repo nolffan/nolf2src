@@ -65,7 +65,7 @@ struct SVertex_Gouraud_Texture
 	LTVector m_vPos;
 
 	uint32 m_nColor;
-	float m_fU, m_fV, m_fW;
+	float m_fU, m_fV;
 };
 
 struct CSection_Gouraud_Texture
@@ -89,7 +89,7 @@ struct CSection_Gouraud_Texture
 	bool	m_bFullbright;
 };
 
-enum { k_SVertex_Gouraud_Texture_FVF = D3DFVF_XYZ | D3DFVF_DIFFUSE | D3DFVF_TEX1 | D3DFVF_TEXCOORDSIZE3(0) };
+enum { k_SVertex_Gouraud_Texture_FVF = D3DFVF_XYZ | D3DFVF_DIFFUSE | D3DFVF_TEX1 };
 
 class CRenderShader_Gouraud_Texture : 
 	public CRenderShader_Base<
@@ -144,8 +144,8 @@ struct SVertex_Gouraud_Detail
 {
 	LTVector m_vPos;
 	uint32 m_nColor;
- 	float m_fU0, m_fV0, m_fW0;
- 	float m_fU1, m_fV1, m_fW1;
+ 	float m_fU0, m_fV0;
+ 	float m_fU1, m_fV1;
 };
 
 struct CSection_Gouraud_Detail
@@ -169,7 +169,7 @@ struct CSection_Gouraud_Detail
 	bool	m_bFullbright;
 };
 
-enum { k_SVertex_Gouraud_Detail_FVF = D3DFVF_XYZ | D3DFVF_DIFFUSE | D3DFVF_TEX2 | D3DFVF_TEXCOORDSIZE3(0) | D3DFVF_TEXCOORDSIZE3(1) };
+enum { k_SVertex_Gouraud_Detail_FVF = D3DFVF_XYZ | D3DFVF_DIFFUSE | D3DFVF_TEX2 };
 
 class CRenderShader_Gouraud_Detail : 
 	public CRenderShader_Base<
@@ -227,7 +227,7 @@ struct SVertex_Gouraud_EnvMap
 	LTVector m_vPos;
 	LTVector m_vNormal;
 	uint32 m_nColor;
-	float m_fU, m_fV, m_fW;
+	float m_fU, m_fV;
 };
 
 struct CSection_Gouraud_EnvMap
@@ -251,7 +251,7 @@ struct CSection_Gouraud_EnvMap
 	bool	m_bFullbright;
 };
 
-enum { k_SVertex_Gouraud_EnvMap_FVF = D3DFVF_XYZ | D3DFVF_NORMAL | D3DFVF_DIFFUSE | D3DFVF_TEX1 | D3DFVF_TEXCOORDSIZE3(0) };
+enum { k_SVertex_Gouraud_EnvMap_FVF = D3DFVF_XYZ | D3DFVF_NORMAL | D3DFVF_DIFFUSE | D3DFVF_TEX1 };
 
 class CRenderShader_Gouraud_EnvMap : 
 	public CRenderShader_Base<
@@ -314,8 +314,8 @@ struct SVertex_Gouraud_EnvBumpMap
 	LTVector m_vPos;
 	LTVector m_vNormal;
 	uint32 m_nColor;
-    float m_fU0, m_fV0, m_fW0;
- 	float m_fU1, m_fV1, m_fW1;
+    float m_fU0, m_fV0;
+ 	float m_fU1, m_fV1;
 };
 
 struct CSection_Gouraud_EnvBumpMap
@@ -339,7 +339,7 @@ struct CSection_Gouraud_EnvBumpMap
 	bool	m_bFullbright;
 };
 
-enum { k_SVertex_Gouraud_EnvBumpMap_FVF = D3DFVF_XYZ | D3DFVF_NORMAL | D3DFVF_DIFFUSE | D3DFVF_TEX2 | D3DFVF_TEXCOORDSIZE3(0) | D3DFVF_TEXCOORDSIZE3(1) };
+enum { k_SVertex_Gouraud_EnvBumpMap_FVF = D3DFVF_XYZ | D3DFVF_NORMAL | D3DFVF_DIFFUSE | D3DFVF_TEX2 };
    
 class CRenderShader_Gouraud_EnvBumpMap : 
 	public CRenderShader_Base<
@@ -400,8 +400,8 @@ struct SVertex_Gouraud_DualTexture
 {
 	LTVector m_vPos;
 	uint32 m_nColor;
- 	float m_fU0, m_fV0, m_fW0;
- 	float m_fU1, m_fV1, m_fW1;
+ 	float m_fU0, m_fV0;
+ 	float m_fU1, m_fV1;
 };
 
 struct CSection_Gouraud_DualTexture
@@ -427,7 +427,7 @@ struct CSection_Gouraud_DualTexture
 	bool			m_bAdditive;
 };
 
-enum { k_SVertex_Gouraud_DualTexture_FVF = D3DFVF_XYZ | D3DFVF_DIFFUSE | D3DFVF_TEX2 | D3DFVF_TEXCOORDSIZE3(0) | D3DFVF_TEXCOORDSIZE3(1) };
+enum { k_SVertex_Gouraud_DualTexture_FVF = D3DFVF_XYZ | D3DFVF_DIFFUSE | D3DFVF_TEX2 };
 
 class CRenderShader_Gouraud_DualTexture : 
 	public CRenderShader_Base<
@@ -477,291 +477,6 @@ private:
 	uint32 m_nOldColorOp1;
 	
 
-};
-
-
-
-
-//
-//---- CSection_Gouraud_DOT3BumpMap
-//
-struct SVertex_Gouraud_DOT3BumpMap
-{
-	LTVector m_vPos;
-	LTVector m_vNormal;
-	uint32 m_nColor;
-   float m_fU0, m_fV0, m_fW0;
-};
-
-struct CSection_Gouraud_DOT3BumpMap
-{
-	bool operator<(const CSection_Gouraud_DOT3BumpMap &cOther) const { return m_pTexture < cOther.m_pTexture; }
-	bool operator!=(const CSection_Gouraud_DOT3BumpMap &cOther) const { return !(*this == cOther); }
-	bool operator==(const CSection_Gouraud_DOT3BumpMap &cOther) const { 
-		return 
-			(m_pTexture == cOther.m_pTexture) && 
-			(m_nAlphaTest == cOther.m_nAlphaTest) && 
-			(m_bFullbright == cOther.m_bFullbright);
-	}
-	void SetTexture(SharedTexture *pTexture) { m_pTexture = pTexture; }
-	SharedTexture *GetTexture() { return m_pTexture; }
-
-	bool ShouldAlphaTest() const { return m_nAlphaTest != 0; }
-	bool ShouldGlow() const { return m_bFullbright; }
-
-	SharedTexture * m_pTexture;
-	uint32	m_nAlphaTest;
-	bool	m_bFullbright;
-};
-
-enum { k_SVertex_Gouraud_DOT3BumpMap_FVF = D3DFVF_XYZ | D3DFVF_NORMAL | D3DFVF_DIFFUSE | D3DFVF_TEX1 | D3DFVF_TEXCOORDSIZE3(0)};
-   
-class CRenderShader_Gouraud_DOT3BumpMap : 
-	public CRenderShader_Base<	SVertex_Gouraud_DOT3BumpMap, CSection_Gouraud_DOT3BumpMap, k_SVertex_Gouraud_DOT3BumpMap_FVF>
-{
-public:
-
-	CRenderShader_Gouraud_DOT3BumpMap()	{}
-	~CRenderShader_Gouraud_DOT3BumpMap() { s_bValidateRequired = true; }
-
-	virtual bool ValidateShader(const CRBSection &cSection);
-
-	// Count the memory used by this shader
-	virtual void GetMemStats(CMemStats_World &cMemStats) const;
-
-	// Support for determining the ID of this shader
-	virtual ERenderShader GetShaderID() const { return eShader_Gouraud_DOT3BumpMap; }
-
-protected:
-
-	// Draw the sections
-	virtual void DrawNormal(const DrawState &cState, uint32 nRenderBlock);
-
-	virtual void PreFlush();
-	virtual void FlushChangeSection(CInternalSection &cSection);
-	virtual void PreFlushBlock(CInternalSection &cSection);
-	virtual void PostFlushBlock(CInternalSection &cSection, uint32 nStartIndex, uint32 nEndIndex, uint32 nStartVertex, uint32 nEndVertex);
-	virtual void PostFlush();
-
-	// Translate a block of vertices from SRBVertex to SVertex
-	virtual void TranslateVertices(SVertex_Gouraud_DOT3BumpMap *pOut, const SRBVertex *pIn, uint32 nCount);
-
-	// Fill in an internal section from a CRBSection
-	virtual void FillSection(CSection_Gouraud_DOT3BumpMap &cInternalSection, const CRBSection &cSection);
-
-private:
-
-	// Which stage each appropriate thing is installed on
-	enum 
-	{ 		
-		knBumpStage = 0,     // Normal map
-		knTexStage = 1			// texture
-	};
-
-	static bool s_bValidateRequired, s_bValidateResult;
-
-	// Used during flush
-	uint32 m_nOldAlphaTest;
-	uint32 m_nCurAlphaTest;
-
-	// saved tfactor
-	DWORD	m_nOldTFactor;
-
-};
-
-
-// Textured+EnvMap gouraud shader
-struct SVertex_Gouraud_DOT3EnvBumpMap
-{
-	LTVector m_vPos;
-	LTVector m_vNormal;
-	uint32 m_nColor;
-   float m_fU0, m_fV0, m_fW0;       // DOT3 normal map uv
- 	float m_fU1, m_fV1, m_fW1;			// texture uv
-};
-
-
-
-
-//
-//---- CSection_Gouraud_DOT3EnvBumpMap
-//
-
-struct CSection_Gouraud_DOT3EnvBumpMap
-{
-	bool operator<(const CSection_Gouraud_DOT3EnvBumpMap &cOther) const { return m_pTexture < cOther.m_pTexture; }
-	bool operator!=(const CSection_Gouraud_DOT3EnvBumpMap &cOther) const { return !(*this == cOther); }
-	bool operator==(const CSection_Gouraud_DOT3EnvBumpMap &cOther) const { 
-		return 
-			(m_pTexture == cOther.m_pTexture) && 
-			(m_nAlphaTest == cOther.m_nAlphaTest) && 
-			(m_bFullbright == cOther.m_bFullbright);
-	}
-	void SetTexture(SharedTexture *pTexture) { m_pTexture = pTexture; }
-	SharedTexture *GetTexture() { return m_pTexture; }
-
-	bool ShouldAlphaTest() const { return m_nAlphaTest != 0; }
-	bool ShouldGlow() const { return m_bFullbright; }
-
-	SharedTexture *m_pTexture;
-	uint32	m_nAlphaTest;
-	bool	m_bFullbright;
-};
-
-enum { k_SVertex_Gouraud_DOT3EnvBumpMap_FVF = D3DFVF_XYZ | D3DFVF_NORMAL | D3DFVF_DIFFUSE | D3DFVF_TEX2 | D3DFVF_TEXCOORDSIZE3(0) | D3DFVF_TEXCOORDSIZE3(1) };
-   
-class CRenderShader_Gouraud_DOT3EnvBumpMap : 
-	public CRenderShader_Base<
-		SVertex_Gouraud_DOT3EnvBumpMap, 
-		CSection_Gouraud_DOT3EnvBumpMap, 
-		k_SVertex_Gouraud_DOT3EnvBumpMap_FVF>
-{
-public:
-
-	CRenderShader_Gouraud_DOT3EnvBumpMap()	{}
-	~CRenderShader_Gouraud_DOT3EnvBumpMap() { s_bValidateRequired = true; }
-
-	virtual bool ValidateShader(const CRBSection &cSection);
-
-	// Count the memory used by this shader
-	virtual void GetMemStats(CMemStats_World &cMemStats) const;
-
-	//Support for determining the ID of this shader
-	virtual ERenderShader GetShaderID() const { return eShader_Gouraud_DOT3EnvBumpMap; }
-
-protected:
-
-	// Draw the sections
-	virtual void DrawNormal(const DrawState &cState, uint32 nRenderBlock);
-
-	virtual void PreFlush();
-	virtual void FlushChangeSection(CInternalSection &cSection);
-	virtual void PreFlushBlock(CInternalSection &cSection);
-	virtual void PostFlushBlock(CInternalSection &cSection, 
-		uint32 nStartIndex, uint32 nEndIndex,
-		uint32 nStartVertex, uint32 nEndVertex);
-	virtual void PostFlush();
-
-	// Translate a block of vertices from SRBVertex to SVertex
-	virtual void TranslateVertices(SVertex_Gouraud_DOT3EnvBumpMap *pOut, const SRBVertex *pIn, uint32 nCount);
-
-	// Fill in an internal section from a CRBSection
-	virtual void FillSection(CSection_Gouraud_DOT3EnvBumpMap &cInternalSection, const CRBSection &cSection);
-
-private:
-	// Which stage each appropriate thing is installed on
-	enum { 
-		knTexStage = 1,
-		knBumpStage = 0,
-		knEnvMapStage = 2
-	};
-
-	static bool s_bValidateRequired, s_bValidateResult; // Hack for dealing with naughty nVidia drivers
-
-	// Used during flush
-	uint32 m_nOldAlphaTest;
-	uint32 m_nCurAlphaTest;
-	RTexture *m_pCurEnvMap;
-
-	// saved tfactor
-	DWORD	m_nOldTFactor;
-
-
-};
-
-// Textured gouraud shader
-struct SVertex_Gouraud_Effect
-{
-	LTVector m_vPos;
-	LTVector m_vNormal;
-	LTVector m_vTangent;
-	LTVector m_vBinormal;
-	uint32 m_nColor;
-	float m_fU, m_fV, m_fW;
-};
-
-struct CSection_Gouraud_Effect
-{
-	bool operator<(const CSection_Gouraud_Effect &cOther) const { return m_pTexture < cOther.m_pTexture; }
-	bool operator!=(const CSection_Gouraud_Effect &cOther) const { return !(*this == cOther); }
-	bool operator==(const CSection_Gouraud_Effect &cOther) const { 
-		return 
-			(m_pTexture == cOther.m_pTexture) && 
-			(m_nAlphaTest == cOther.m_nAlphaTest) && 
-			(m_bFullbright == cOther.m_bFullbright);
-	}
-	void SetTexture(SharedTexture *pTexture) { m_pTexture = pTexture; }
-	SharedTexture *GetTexture() { return m_pTexture; }
-
-	bool ShouldAlphaTest() const { return m_nAlphaTest != 0; }
-	bool ShouldGlow() const { return m_bFullbright; }
-
-	SharedTexture *m_pTexture;
-	uint32	m_nAlphaTest;
-	bool	m_bFullbright;
-};
-
-enum { k_SVertex_Gouraud_Effect_FVF = D3DFVF_XYZ | D3DFVF_NORMAL | D3DFVF_DIFFUSE | D3DFVF_TEX1 | D3DFVF_TEXCOORDSIZE3(0) };
-
-class CRenderShader_Gouraud_Effect : 
-	public CRenderShader_Base<
-	SVertex_Gouraud_Effect, 
-	CSection_Gouraud_Effect, 
-	k_SVertex_Gouraud_Effect_FVF>
-{
-public:
-	CRenderShader_Gouraud_Effect();
-	~CRenderShader_Gouraud_Effect();
-
-	virtual bool ValidateShader(const CRBSection &cSection);
-
-	// Count the memory used by this shader
-	virtual void GetMemStats(CMemStats_World &cMemStats) const;
-
-	// Support for determining the ID of this shader
-	virtual ERenderShader GetShaderID() const { return eShader_Gouraud_Effect; }
-
-	// This is a temporary hack
-	static void Flush(const ViewParams *pParams);
-
-protected:
-
-	// Draw the sections
-	virtual void DrawNormal(const DrawState &cState, uint32 nRenderBlock);
-
-	virtual void PreFlush();
-	virtual void FlushChangeSection(CInternalSection &cSection);
-	virtual void PreFlushBlock(CInternalSection &cSection);
-	virtual bool FlushWithEffect(CInternalSection &cSection, 
-		uint32 nStartIndex, uint32 nEndIndex,
-		uint32 nStartVertex, uint32 nEndVertex);
-	virtual void PostFlushBlock(CInternalSection &cSection, 
-		uint32 nStartIndex, uint32 nEndIndex,
-		uint32 nStartVertex, uint32 nEndVertex);
-	virtual void PostFlush();
-	virtual bool HasEffect(CInternalSection &cSection)
-	{
-		if(cSection.m_pTexture && (cSection.m_pTexture->m_nShaderID != 0))
-		{
-			return true;
-		}else
-		{
-			return false;
-		}
-	}
-
-	// Translate a block of vertices from SRBVertex to SVertex
-	virtual void TranslateVertices(SVertex_Gouraud_Effect *pOut, const SRBVertex *pIn, uint32 nCount);
-
-	// Fill in an internal section from a CRBSection
-	virtual void FillSection(CSection_Gouraud_Effect &cInternalSection, const CRBSection &cSection);
-
-	// Used during flush
-	uint32 m_nOldAlphaTest;
-	uint32 m_nCurAlphaTest;
-
-private:
-	static bool s_bValidateRequired, s_bValidateResult;
 };
 
 

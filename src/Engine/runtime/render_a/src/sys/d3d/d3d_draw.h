@@ -14,9 +14,9 @@ class IAggregateShader;
 #include "d3d_convar.h"
 #endif
 
-#ifndef __D3D9TYPES_H__
-#include <d3d9types.h>
-#define __D3D9TYPES_H__
+#ifndef __D3D8TYPES_H__
+#include <d3d8types.h>
+#define __D3D8TYPES_H__
 #endif
 
 #ifndef __D3D_DEVICE_H__
@@ -91,32 +91,6 @@ public:
 	uint32						m_Stage;
 	D3DTEXTURESTAGESTATETYPE	m_State;
 	uint32						m_OldVal;
-};
-
-
-// This can be used to set a stage sampler state, and it will automatically restore the state's
-// value in its destructor.
-class SamplerStateSet
-{
-public:
-						SamplerStateSet(uint32 stage, D3DSAMPLERSTATETYPE state, uint32 val) 
-						{
-							m_Stage = stage;
-							m_State = state;
-							PD3DDEVICE->GetSamplerState(m_Stage, m_State, (unsigned long *)&m_OldVal);
-
-							if(m_OldVal != val)
-								PD3DDEVICE->SetSamplerState(m_Stage, m_State, val); 
-						}
-
-						~SamplerStateSet() 
-						{
-							PD3DDEVICE->SetSamplerState(m_Stage, m_State, m_OldVal); 
-						}
-
-	uint32				m_Stage;
-	D3DSAMPLERSTATETYPE	m_State;
-	uint32				m_OldVal;
 };
 
 

@@ -19,9 +19,9 @@
 #include "ltrenderstyle.h"
 #endif
 
-#ifndef __D3DX9_H__
-#include <d3dx9.h>
-#define __D3DX9_H__
+#ifndef __D3DX8_H__
+#include <d3dx8.h>
+#define __D3DX8_H__
 #endif
 
 using namespace std;

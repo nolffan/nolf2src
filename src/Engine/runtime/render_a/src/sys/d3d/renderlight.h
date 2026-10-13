@@ -64,7 +64,7 @@ public:
 	void InstallLight(uint32 nSlot, const LTVector& vObjectPos, const LTVector& vObjectDims) const;
 
 	//this will convert the specified light to a light in the device format
-	void CreateDeviceLight(const LTVector& vObjectPos, const LTVector& vObjectDims, D3DLIGHT9& DevLight) const;
+	void CreateDeviceLight(const LTVector& vObjectPos, const LTVector& vObjectDims, D3DLIGHT8& DevLight) const;
 
 
 	//-------------------------
@@ -102,26 +102,26 @@ private:
 	//installers for each specific light type
 
 	//sets up the dirlight in the specified slot
-	void CreateDirLight(D3DLIGHT9& DevLight) const;
+	void CreateDirLight(D3DLIGHT8& DevLight) const;
 
 	//handles setting up the point light source
-	void CreatePointLight(const LTVector& vObjectPos, const LTVector& vObjectDims, D3DLIGHT9& DevLight) const;
-	void CreatePointLightD3D(const LTVector& vObjectPos, const LTVector& vObjectDims, D3DLIGHT9& DevLight) const;
-	void CreatePointLightQuartic(const LTVector& vObjectPos, const LTVector& vObjectDims, D3DLIGHT9& DevLight) const;
-	void CreatePointLightLinear(const LTVector& vObjectPos, const LTVector& vObjectDims, D3DLIGHT9& DevLight) const;
+	void CreatePointLight(const LTVector& vObjectPos, const LTVector& vObjectDims, D3DLIGHT8& DevLight) const;
+	void CreatePointLightD3D(const LTVector& vObjectPos, const LTVector& vObjectDims, D3DLIGHT8& DevLight) const;
+	void CreatePointLightQuartic(const LTVector& vObjectPos, const LTVector& vObjectDims, D3DLIGHT8& DevLight) const;
+	void CreatePointLightLinear(const LTVector& vObjectPos, const LTVector& vObjectDims, D3DLIGHT8& DevLight) const;
 
 	//handles setting up the point light source
-	void CreateSpotLight(const LTVector& vObjectPos, const LTVector& vObjectDims, D3DLIGHT9& DevLight) const;
+	void CreateSpotLight(const LTVector& vObjectPos, const LTVector& vObjectDims, D3DLIGHT8& DevLight) const;
 
 	//this form of installing will take a sample at the 
 	//specified viewer position and will create a dirlight of that color facing
 	//in the direction from the light to the viewer
-	void CreateSampledDirLight(const LTVector& vObjectPos, D3DLIGHT9& DevLight) const;
+	void CreateSampledDirLight(const LTVector& vObjectPos, D3DLIGHT8& DevLight) const;
 
 	//this form of installing will take a sample at the 
 	//specified viewer position and at each corner of the dimension box, and setup a directional
 	//light appropriately
-	void CreateMultiSampledDirLight(const LTVector& vObjectPos, const LTVector& vObjectDims, D3DLIGHT9& DevLight) const;
+	void CreateMultiSampledDirLight(const LTVector& vObjectPos, const LTVector& vObjectDims, D3DLIGHT8& DevLight) const;
 
 	//the type of this light
 	ELightType				m_eLightType;

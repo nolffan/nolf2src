@@ -190,13 +190,6 @@ SOURCE=..\..\model\src\sys\d3d\d3d_model_load.cpp
 # Begin Source File
 
 SOURCE=..\..\render_b\src\sys\d3d\d3ddrawprim.cpp
-
-!IF  "$(CFG)" == "Lithtech - Win32 Final"
-
-# PROP Exclude_From_Build 1
-
-!ENDIF 
-
 # End Source File
 # Begin Source File
 

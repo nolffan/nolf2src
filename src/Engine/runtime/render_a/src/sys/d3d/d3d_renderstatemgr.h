@@ -68,19 +68,11 @@ public:
 		PD3DDEVICE->SetTransform(Type,pMatrix);
 	}
 
-	inline HRESULT		SetVertexShader(HD3DVERTEXSHADER hVertShader)
-	{
-		HRESULT hr;
-		//m_VertexShader = hVertShader;
-		// right now this is only an FVF format
-		hr = PD3DDEVICE->SetVertexShader(NULL);
-		if (hr != D3D_OK) return hr;
-		return PD3DDEVICE->SetFVF(hVertShader); 
-	}
+	inline HRESULT		SetVertexShader(HD3DVERTEXSHADER hVertShader)		{ /*m_VertexShader = hVertShader;*/ return PD3DDEVICE->SetVertexShader(hVertShader); }
 
 	inline void			SetAmbientLight(float r, float g, float b)			{ /*m_AmbientLight.x = (float)r/255.0f; m_AmbientLight.y = (float)g/255.0f; m_AmbientLight.z = (float)b/255.0f;*/ PD3DDEVICE->SetRenderState(D3DRS_AMBIENT,D3DRGB_255(r,g,b)); }
-	inline void			SetMaterial(D3DMATERIAL9& Material)					{ /*m_Material = Material;*/ PD3DDEVICE->SetMaterial(&Material); }
-	inline HRESULT		SetLight(uint32 iLight, const D3DLIGHT9* pLight)	{ assert(iLight < MAX_D3DLIGHTS); /*m_Lights[iLight] = *pLight;*/ return PD3DDEVICE->SetLight(iLight,pLight); }
+	inline void			SetMaterial(D3DMATERIAL8& Material)					{ /*m_Material = Material;*/ PD3DDEVICE->SetMaterial(&Material); }
+	inline HRESULT		SetLight(uint32 iLight, const D3DLIGHT8* pLight)	{ assert(iLight < MAX_D3DLIGHTS); /*m_Lights[iLight] = *pLight;*/ return PD3DDEVICE->SetLight(iLight,pLight); }
 	inline void			LightEnable(uint32 iLight, bool bEnable)			{ assert(iLight < MAX_D3DLIGHTS); /*m_bLightEnable[iLight] = bEnable;*/ PD3DDEVICE->LightEnable(iLight,bEnable); }
 
 	// HELPER FUNCTIONS...
@@ -103,9 +95,9 @@ private:
 	D3DXMATRIX			m_Proj;
 	list<D3DXMATRIX>	m_PrevWorld;
 	HD3DVERTEXSHADER	m_VertexShader;
-	D3DMATERIAL9		m_Material;
+	D3DMATERIAL8		m_Material;
 	FourFloatVector		m_AmbientLight;
-	D3DLIGHT9			m_Lights[MAX_D3DLIGHTS];
+	D3DLIGHT8			m_Lights[MAX_D3DLIGHTS];
 	bool				m_bLightEnable[MAX_D3DLIGHTS];
 
 	// Need to put in the caching functions here...

@@ -30,7 +30,7 @@ public:
 	void					FreeAll();				// Frees all the member vars and resets afterwards...
 
 	void					UpdateVA(Model* pModel, AnimTimeRef* pAnimTimeRef);
-	void					Render(ModelInstance *pInstance, D3DMATRIX& WorldTransform, CD3DRenderStyle* pRenderStyle, uint32 iRenderPass);
+	void					Render(D3DMATRIX& WorldTransform, CD3DRenderStyle* pRenderStyle, uint32 iRenderPass);
 
 	bool					Load(ILTStream& pFile, LTB_Header& LTBHeader);
 	void					ReCreateObject();		// Create the VBs and stuff from our sys mem copies...
@@ -62,10 +62,6 @@ private:
 	uint32					m_iDupMapListCount;
 	DupMap*					m_pDupMapList;
 	bool						m_bNonFixPipeData;		// Our mesh has non fixed function pipe data (we need to use a shader, or nothing)...
-
-	bool						m_bSWVertProcessing;		// Created for SW Vert Processing...
-	bool						m_bSWVSBuffers;         // no vertex shader support so switch to software buffer for shaders
-
 
 	// Sys mem copies of our data...
 	uint8*					m_pVertData[4];
