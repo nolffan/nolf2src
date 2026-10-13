@@ -351,7 +351,12 @@ void    CScreenMulti::OnFocus(LTBOOL bFocus)
 			m_pStatusCtrl->Show(LTTRUE);
 			
 
+#ifdef NOLF2SRC_MODERN
+			// M-G5: no CD key
+			m_pCDKeyCtrl->Show(LTFALSE);
+#else
 			m_pCDKeyCtrl->Show(LTTRUE);
+#endif
 			IServerDirectory *pServerDir = g_pClientMultiplayerMgr->GetServerDir();
 			// Make a serverdir if we don't have one
 			// Note : Find a way to put this back in the game client shell!!!  It has to be
@@ -760,6 +765,13 @@ LTBOOL CScreenMulti::LaunchSierraUp()
 void CScreenMulti::RequestValidate()
 {
 	IServerDirectory *pServerDir = g_pClientMultiplayerMgr->GetServerDir();
+#ifdef NOLF2SRC_MODERN
+	// MODERN.md M-G5: no CD key. It was checked with Sierra's WON servers,
+	// which are gone; go on to the messages of the day.
+	m_pCDKeyCtrl->Show(LTFALSE);
+	RequestMOTD();
+	return;
+#endif
 	// Load the default CD key
 	pServerDir->GetCDKey(&m_sCurCDKey);
 	if (!pServerDir->SetCDKey(m_sCurCDKey.c_str()))

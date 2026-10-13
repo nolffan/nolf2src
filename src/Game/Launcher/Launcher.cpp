@@ -492,6 +492,15 @@ char CLauncherApp::CD_GetDriveLetter()
 
 char CLauncherApp::CD_GetDriveLetterWithGame(BOOL & bDisc2)
 {
+#ifdef NOLF2SRC_MODERN
+	// MODERN.md M-L3: the game never needs its disc. The installed game
+	// reads every archive from its own directory; the disc was only ever a
+	// fallback for GAME.REZ (FindRezFiles), and probing the optical drives
+	// (with OpenFile on each, an empty drive included) can stall the
+	// launcher on a machine of today. No drive is "the game disc".
+	bDisc2 = FALSE;
+	return(0);
+#endif
 	// Check if we've already found the cd-rom drive...
 	if(m_chDrive != 0)
 	{
