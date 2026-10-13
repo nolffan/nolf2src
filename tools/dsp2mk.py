@@ -2,7 +2,7 @@
 """Make rules for Monolith's Visual C++ 6 workspace, as Developer Studio
 would build it.
 
-  tools/dsp2mk.py <workspace.dsw> <config> <out.mk> <project>...
+  tools/dsp2mk.py [--have "<project>..."] <workspace.dsw> <config> <out.mk> <project>...
 
 Reads the workspace and, for each named project and every project it
 depends on (the workspace's Project_Dep_Name lines), its .dsp: the
@@ -23,9 +23,16 @@ for them, through build.mk's `compile` and `tool` macros:
                   steps on the project's output (copies into a rez
                   directory) are left out
   a library       lib <ADD LIB32> <objects>
-  a DLL or exe    link <ADD LINK32> <objects> <resources> <the .lib files
+  a DLL or exe    link <ADD LINK32> /def:<the .def file the project lists
+                  as a source, if any> <objects> <resources> <the .lib files
                   the project lists as sources> <the outputs of the library
                   projects it depends on, not already named>
+
+Files excluded from the configuration (`# PROP Exclude_From_Build 1`) are
+neither compiled nor linked. Projects named by --have (build.mk's PROJECTS:
+those an earlier workspace's rules already build, such as the libraries
+the game's and the engine's workspaces share) get no rules here, only
+their outputs, to link.
 
 Paths are as the .dsp spells them, relative to the project's directory; the
 outputs land where its Output_Dir / Intermediate_Dir / /out: say. Every
@@ -218,6 +225,10 @@ def q(w):
 
 
 def main():
+    have = set()
+    if len(sys.argv) > 2 and sys.argv[1] == "--have":
+        have = {re.sub(r"\W", "_", n).lower() for n in sys.argv[2].replace(",", " ").split()}
+        del sys.argv[1:3]
     if len(sys.argv) < 5:
         sys.exit(__doc__)
     dsw, want, out_mk = sys.argv[1], sys.argv[2], sys.argv[3]
@@ -250,12 +261,14 @@ def main():
             print(f"dsp2mk: {pname}: {dsp} is not in the source release, skipped", file=sys.stderr)
             continue
         pdir = os.path.dirname(dsp)
+        mark = len(mk)
         name, ttype, cfgname, cfg, files = parse_dsp(dsp, want)
         wdir = pdir.replace("/", "\\")
         intdir = cfg.intdir or "."
         outdir = cfg.outdir or "."
         var = re.sub(r"\W", "_", pname)
         objs, ress, libs = [], [], []
+        defs = []                   # the .def file, as the project dir sees it
         pch_objs = []               # (object, c|u|x for /Yc, /Yu, /YX) in file order
         generated = []              # the outputs of custom build steps
         # /FD (the minimal-rebuild dependency file) writes vc60.idb in the
@@ -324,6 +337,8 @@ def main():
                           f"{q(' '.join(cfg.rsc + [f'/fo{intdir}' + chr(92) + base + '.res']))}))")
             elif ext == ".lib":
                 libs.append(winjoin(wdir, src))
+            elif ext == ".def":
+                defs.append(src)
         # Sources include what the custom build steps generate (AnimationLex.cpp
         # includes AnimationLex.o), which tools/mkdeps.py cannot find before
         # it exists: every compile of the project waits for them.
@@ -350,6 +365,11 @@ def main():
             outspec = next((f[5:] for f in cfg.link if f.lower().startswith("/out:")), default)
         out = winjoin(wdir, outspec)
         outputs[key] = out
+        if re.sub(r"\W", "_", pname).lower() in have:
+            del mk[mark:]
+            pch_makers.pop(key, None)
+            print(f"dsp2mk: {pname}: built by an earlier workspace's rules -> {out}", file=sys.stderr)
+            continue
         # Developer Studio links the outputs of the library projects this one
         # depends on, after the libraries it lists as sources -- unless the
         # link line already names the library (linked through /libpath).
@@ -359,7 +379,7 @@ def main():
         for o in deplibs:
             if o.lower() not in [l.lower() for l in libs] and os.path.basename(o).lower() not in named:
                 libs.append(o)
-        prereqs = objs + ress + libs + [o for o in deplibs if o not in libs]
+        prereqs = objs + ress + libs + [o for o in deplibs if o not in libs] + [winjoin(wdir, d) for d in defs]
         rel = lambda p: ntpath.relpath(p.replace("/", "\\"), wdir)
         mk.append(f"P_{var}_OUT := {out}")
         mk.append(f"P_{var}_OBJS := {' '.join(objs)}")
@@ -370,6 +390,7 @@ def main():
         else:
             flags = without(apply_cpp(cfg.link, [], cfg.sub_link), ["/out:", "/pdb", "/debug"])
             flags.append(f"/out:{outspec}")
+            flags += [f"/def:{d}" for d in defs]
             ins = objs + ress + libs
             # Compiled with /Z7 (the debug builds), an object that uses a
             # precompiled header refers to the type information in the
