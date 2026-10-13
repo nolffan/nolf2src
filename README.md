@@ -12,6 +12,11 @@ under Wine. The aim, as for [nolfsrc](https://github.com/nolffan/nolfsrc)
 - **modern**: the same source with fixes and new features (`NOLF2SRC_MODERN`;
   `MODERN.md`), and no RAD binary: its Bink player is ours, on FFmpeg.
 
+Compiling back to the retail bytes means compiling the retail game's bugs as
+well. The ones found so far are listed in [`RETAIL_BUGS.md`](RETAIL_BUGS.md);
+their fixes go behind `NOLF2SRC_MODERN`, into the modern build only, so the
+legacy build keeps matching the retail one.
+
 <p align="center">
   <img src="screenshots/screenshot01.png" alt="The main menu, running from this build" width="49%">
   <img src="screenshots/screenshot02.png" alt="In game, running from this build" width="49%">
@@ -76,6 +81,7 @@ make            # out/nolf2-legacy-release/ and out/nolf2-legacy-release.tar.gz
 make debug      # out/nolf2-legacy-debug/: symbols, NOLF2SRC_DEBUG
 make modern     # out/nolf2-modern-release/: NOLF2SRC_MODERN (MODERN.md)
 make test       # play it under Xvfb: main menu, new game, the first level
+make test TEST_GAME=out/nolf2-modern-release   # the same, on a variant
 make help       # everything else
 ```
 
