@@ -56,7 +56,7 @@ void d3d_SetReallyClose(CReallyCloseData* pData)
 	PD3DDEVICE->GetViewport(&pData->m_OldViewport);
 
 	// view port min-max Z change for pv model.
-	D3DVIEWPORT9 ViewportData;
+	D3DVIEWPORT8 ViewportData;
 	ViewportData.X		= pData->m_OldViewport.X;
 	ViewportData.Y		= pData->m_OldViewport.Y;
 	ViewportData.Width	= pData->m_OldViewport.Width;

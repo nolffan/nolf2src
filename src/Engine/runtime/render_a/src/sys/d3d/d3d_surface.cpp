@@ -59,7 +59,7 @@ static inline void LTRectToRect(RECT *pDest, LTRect *pSrc)
 HLTBUFFER d3d_CreateSurface(int width, int height)
 {
 	HRESULT				hResult;
-	LPDIRECT3DSURFACE9	pSurface;
+	LPDIRECT3DSURFACE8	pSurface;
 	RSurface*			pRSurface;
 
 	if (!PD3DDEVICE)				return NULL;
@@ -70,7 +70,7 @@ HLTBUFFER d3d_CreateSurface(int width, int height)
 //	d3d_GetColorMasks(g_Device.GetModeInfo()->Format,iBitCount,iAlphaMask,iRedMask,iGreenMask,iBlueMask);
 //	if (iBitCount == 16) { hResult = PD3DDEVICE->CreateImageSurface(width,height,D3DFMT_A1R5G5B5,&pSurface); }
 //	else { hResult = PD3DDEVICE->CreateImageSurface(width,height,D3DFMT_A8R8G8B8,&pSurface); }
-	hResult = PD3DDEVICE->CreateOffscreenPlainSurface(width,height,g_Device.GetModeInfo()->Format, D3DPOOL_SCRATCH, &pSurface);
+	hResult = PD3DDEVICE->CreateImageSurface(width,height,g_Device.GetModeInfo()->Format,&pSurface);
 	if (hResult != D3D_OK) return NULL;
 
 	LT_MEM_TRACK_ALLOC(pRSurface = (RSurface*)dalloc_z(sizeof(RSurface)),LT_MEM_TYPE_RENDERER);
@@ -135,7 +135,7 @@ bool d3d_LockScreen(int left, int top, int right, int bottom, void **pData, long
 	g_ScreenLockRect.right	= right;
 	g_ScreenLockRect.bottom = bottom;
 
-	LPDIRECT3DSURFACE9		pBackBuffer = NULL;
+	LPDIRECT3DSURFACE8		pBackBuffer = NULL;
 	if (FAILED(PD3DDEVICE->GetBackBuffer(0,D3DBACKBUFFER_TYPE_MONO,&pBackBuffer)))	{ return false; }
 	
 	D3DLOCKED_RECT LockRect; 
@@ -154,7 +154,7 @@ void d3d_UnlockScreen()
 {
 	if (!g_bScreenLocked) return;
 
-	LPDIRECT3DSURFACE9		pBackBuffer = NULL;
+	LPDIRECT3DSURFACE8		pBackBuffer = NULL;
 	if (FAILED(PD3DDEVICE->GetBackBuffer(0,D3DBACKBUFFER_TYPE_MONO,&pBackBuffer)))	{ return; }
 	if (FAILED(pBackBuffer->UnlockRect()))											{ pBackBuffer->Release(); return; }
 
@@ -176,11 +176,11 @@ void d3d_BlitFromScreen(BlitRequest* pRequest)
 	RECT srcRect; LTRectToRect(&srcRect,  pRequest->m_pSrcRect);
 	POINT destPt; destPt.x = pRequest->m_pDestRect->left; destPt.y = pRequest->m_pDestRect->top; 
 	
-	LPDIRECT3DSURFACE9		pBackBuffer = NULL;
+	LPDIRECT3DSURFACE8		pBackBuffer = NULL;
 	if (FAILED(PD3DDEVICE->GetBackBuffer(0,D3DBACKBUFFER_TYPE_MONO,&pBackBuffer)))	{ return; }
 
 	// Copy away!
-	HRESULT hResult = PD3DDEVICE->UpdateSurface(pBackBuffer,&srcRect,pRSurface->m_pSurface,&destPt);
+	HRESULT hResult = PD3DDEVICE->CopyRects(pBackBuffer,&srcRect,1,pRSurface->m_pSurface,&destPt);
 
 	if (pBackBuffer)																{ pBackBuffer->Release(); pBackBuffer = NULL; }
 
@@ -203,7 +203,7 @@ void d3d_ReallyBlitToScreen(BlitRequest *pRequest)
 	RECT destRect; LTRectToRect(&destRect, pRequest->m_pDestRect);
 	POINT destPt;  destPt.x = pRequest->m_pDestRect->left; destPt.y = pRequest->m_pDestRect->top; 
 	
-	LPDIRECT3DSURFACE9		pBackBuffer = NULL;
+	LPDIRECT3DSURFACE8		pBackBuffer = NULL;
 	if (FAILED(PD3DDEVICE->GetBackBuffer(0,D3DBACKBUFFER_TYPE_MONO,&pBackBuffer)))	
 	{ 
 		return; 
@@ -325,7 +325,7 @@ bool d3d_GetScreenFormat(PFormat* pFormat)
 
 void d3d_MakeScreenShotBMP(const char *pFilename, uint32 nWidth, uint32 nHeight)
 {
-	LPDIRECT3DSURFACE9 pBackBuffer = NULL; D3DSURFACE_DESC SurfDesc;
+	LPDIRECT3DSURFACE8 pBackBuffer = NULL; D3DSURFACE_DESC SurfDesc;
 	if (FAILED(PD3DDEVICE->GetBackBuffer(0,D3DBACKBUFFER_TYPE_MONO,&pBackBuffer)))	{ return; }
 	pBackBuffer->GetDesc(&SurfDesc);
 
@@ -408,7 +408,7 @@ void d3d_MakeScreenShotBMP(const char *pFilename, uint32 nWidth, uint32 nHeight)
 
 void d3d_MakeScreenShotTGA(const char *pFilename, uint32 nWidth, uint32 nHeight)
 {
-	LPDIRECT3DSURFACE9 pBackBuffer = NULL; D3DSURFACE_DESC SurfDesc;
+	LPDIRECT3DSURFACE8 pBackBuffer = NULL; D3DSURFACE_DESC SurfDesc;
 	if (FAILED(PD3DDEVICE->GetBackBuffer(0,D3DBACKBUFFER_TYPE_MONO,&pBackBuffer)))	{ return; }
 	pBackBuffer->GetDesc(&SurfDesc);
 
@@ -532,7 +532,7 @@ void d3d_MakeScreenShotTGA(const char *pFilename, uint32 nWidth, uint32 nHeight)
 
 void d3d_MakeScreenShot(const char *pFilename)
 {
-	LPDIRECT3DSURFACE9 pBackBuffer = NULL; 
+	LPDIRECT3DSURFACE8 pBackBuffer = NULL; 
 	if (FAILED(PD3DDEVICE->GetBackBuffer(0,D3DBACKBUFFER_TYPE_MONO,&pBackBuffer)))	
 	{ 
 		return; 
@@ -648,9 +648,6 @@ void d3d_SwapBuffers(uint flags)
 	{
 		HRESULT hResult = PD3DDEVICE->Present(NULL,NULL,NULL,NULL); 
 	}
-
-	// prevent frame buffering
-	g_Device.PreventFrameBuffering();
 
 	ClearDirtyRects();
 }

@@ -183,8 +183,8 @@ void CRenderShader_DynamicLight::SetStates()
 			PD3DDEVICE->SetTextureStageState(0, D3DTSS_ALPHAOP, D3DTOP_SELECTARG1);
 			PD3DDEVICE->SetTextureStageState(0, D3DTSS_TEXCOORDINDEX, D3DTSS_TCI_CAMERASPACEPOSITION | 0);
 			PD3DDEVICE->SetTextureStageState(0, D3DTSS_TEXTURETRANSFORMFLAGS, D3DTTFF_COUNT2);
-			PD3DDEVICE->SetSamplerState(0, D3DSAMP_ADDRESSU, D3DTADDRESS_CLAMP);
-			PD3DDEVICE->SetSamplerState(0, D3DSAMP_ADDRESSV, D3DTADDRESS_CLAMP);
+			PD3DDEVICE->SetTextureStageState(0, D3DTSS_ADDRESSU, D3DTADDRESS_CLAMP);
+			PD3DDEVICE->SetTextureStageState(0, D3DTSS_ADDRESSV, D3DTADDRESS_CLAMP);
 			PD3DDEVICE->SetTextureStageState(1, D3DTSS_COLORARG1, D3DTA_TEXTURE);
 			PD3DDEVICE->SetTextureStageState(1, D3DTSS_COLORARG2, D3DTA_CURRENT);
 			PD3DDEVICE->SetTextureStageState(1, D3DTSS_COLOROP, D3DTOP_SELECTARG2);
@@ -193,8 +193,8 @@ void CRenderShader_DynamicLight::SetStates()
 			PD3DDEVICE->SetTextureStageState(1, D3DTSS_ALPHAOP, D3DTOP_SUBTRACT);
 			PD3DDEVICE->SetTextureStageState(1, D3DTSS_TEXCOORDINDEX, D3DTSS_TCI_CAMERASPACEPOSITION | 1);
 			PD3DDEVICE->SetTextureStageState(1, D3DTSS_TEXTURETRANSFORMFLAGS, D3DTTFF_COUNT2);
-			PD3DDEVICE->SetSamplerState(1, D3DSAMP_ADDRESSU, D3DTADDRESS_CLAMP);
-			PD3DDEVICE->SetSamplerState(1, D3DSAMP_ADDRESSV, D3DTADDRESS_CLAMP);
+			PD3DDEVICE->SetTextureStageState(1, D3DTSS_ADDRESSU, D3DTADDRESS_CLAMP);
+			PD3DDEVICE->SetTextureStageState(1, D3DTSS_ADDRESSV, D3DTADDRESS_CLAMP);
 			PD3DDEVICE->SetTextureStageState(2, D3DTSS_COLOROP, D3DTOP_DISABLE);
 			PD3DDEVICE->SetTextureStageState(2, D3DTSS_ALPHAOP, D3DTOP_DISABLE);
 		
@@ -218,7 +218,7 @@ void CRenderShader_DynamicLight::SetStates()
 	d3d_SetTextureDirect(m_pTextureZ, 0);
 	d3d_SetTextureDirect(m_pTextureXY, 1);
 
-	PD3DDEVICE->SetIndices(m_pTempIB);
+	PD3DDEVICE->SetIndices(m_pTempIB, 0);
 }
 
 void CRenderShader_DynamicLight::SaveState()
@@ -248,8 +248,8 @@ void CRenderShader_DynamicLight::SaveState()
 	PD3DDEVICE->GetTextureStageState(0, D3DTSS_ALPHAOP, &m_aSavedStates[eRS_TSS0_AOp]);
 	PD3DDEVICE->GetTextureStageState(0, D3DTSS_TEXCOORDINDEX, &m_aSavedStates[eRS_TSS0_TCI]);
 	PD3DDEVICE->GetTextureStageState(0, D3DTSS_TEXTURETRANSFORMFLAGS, &m_aSavedStates[eRS_TSS0_TTF]);
-	PD3DDEVICE->GetSamplerState(0, D3DSAMP_ADDRESSU, &m_aSavedStates[eRS_TSS0_AddrU]);
-	PD3DDEVICE->GetSamplerState(0, D3DSAMP_ADDRESSV, &m_aSavedStates[eRS_TSS0_AddrV]);
+	PD3DDEVICE->GetTextureStageState(0, D3DTSS_ADDRESSU, &m_aSavedStates[eRS_TSS0_AddrU]);
+	PD3DDEVICE->GetTextureStageState(0, D3DTSS_ADDRESSV, &m_aSavedStates[eRS_TSS0_AddrV]);
 	PD3DDEVICE->GetTextureStageState(1, D3DTSS_COLORARG1, &m_aSavedStates[eRS_TSS1_CArg1]);
 	PD3DDEVICE->GetTextureStageState(1, D3DTSS_COLORARG2, &m_aSavedStates[eRS_TSS1_CArg2]);
 	PD3DDEVICE->GetTextureStageState(1, D3DTSS_COLOROP, &m_aSavedStates[eRS_TSS1_COp]);
@@ -258,8 +258,8 @@ void CRenderShader_DynamicLight::SaveState()
 	PD3DDEVICE->GetTextureStageState(1, D3DTSS_ALPHAOP, &m_aSavedStates[eRS_TSS1_AOp]);
 	PD3DDEVICE->GetTextureStageState(1, D3DTSS_TEXCOORDINDEX, &m_aSavedStates[eRS_TSS1_TCI]);
 	PD3DDEVICE->GetTextureStageState(1, D3DTSS_TEXTURETRANSFORMFLAGS, &m_aSavedStates[eRS_TSS1_TTF]);
-	PD3DDEVICE->GetSamplerState(1, D3DSAMP_ADDRESSU, &m_aSavedStates[eRS_TSS1_AddrU]);
-	PD3DDEVICE->GetSamplerState(1, D3DSAMP_ADDRESSV, &m_aSavedStates[eRS_TSS1_AddrV]);
+	PD3DDEVICE->GetTextureStageState(1, D3DTSS_ADDRESSU, &m_aSavedStates[eRS_TSS1_AddrU]);
+	PD3DDEVICE->GetTextureStageState(1, D3DTSS_ADDRESSV, &m_aSavedStates[eRS_TSS1_AddrV]);
 	PD3DDEVICE->GetTextureStageState(2, D3DTSS_COLOROP, &m_aSavedStates[eRS_TSS2_COp]);
 	PD3DDEVICE->GetTextureStageState(2, D3DTSS_ALPHAOP, &m_aSavedStates[eRS_TSS2_AOp]);
 
@@ -284,8 +284,8 @@ void CRenderShader_DynamicLight::ResetStates()
 	PD3DDEVICE->SetTextureStageState(0, D3DTSS_ALPHAOP, m_aSavedStates[eRS_TSS0_AOp]);
 	PD3DDEVICE->SetTextureStageState(0, D3DTSS_TEXCOORDINDEX, m_aSavedStates[eRS_TSS0_TCI]);
 	PD3DDEVICE->SetTextureStageState(0, D3DTSS_TEXTURETRANSFORMFLAGS, m_aSavedStates[eRS_TSS0_TTF]);
-	PD3DDEVICE->SetSamplerState(0, D3DSAMP_ADDRESSU, m_aSavedStates[eRS_TSS0_AddrU]);
-	PD3DDEVICE->SetSamplerState(0, D3DSAMP_ADDRESSV, m_aSavedStates[eRS_TSS0_AddrV]);
+	PD3DDEVICE->SetTextureStageState(0, D3DTSS_ADDRESSU, m_aSavedStates[eRS_TSS0_AddrU]);
+	PD3DDEVICE->SetTextureStageState(0, D3DTSS_ADDRESSV, m_aSavedStates[eRS_TSS0_AddrV]);
 	PD3DDEVICE->SetTextureStageState(1, D3DTSS_COLORARG1, m_aSavedStates[eRS_TSS1_CArg1]);
 	PD3DDEVICE->SetTextureStageState(1, D3DTSS_COLORARG2, m_aSavedStates[eRS_TSS1_CArg2]);
 	PD3DDEVICE->SetTextureStageState(1, D3DTSS_COLOROP, m_aSavedStates[eRS_TSS1_COp]);
@@ -294,8 +294,8 @@ void CRenderShader_DynamicLight::ResetStates()
 	PD3DDEVICE->SetTextureStageState(1, D3DTSS_ALPHAOP, m_aSavedStates[eRS_TSS1_AOp]);
 	PD3DDEVICE->SetTextureStageState(1, D3DTSS_TEXCOORDINDEX, m_aSavedStates[eRS_TSS1_TCI]);
 	PD3DDEVICE->SetTextureStageState(1, D3DTSS_TEXTURETRANSFORMFLAGS, m_aSavedStates[eRS_TSS1_TTF]);
-	PD3DDEVICE->SetSamplerState(1, D3DSAMP_ADDRESSU, m_aSavedStates[eRS_TSS1_AddrU]);
-	PD3DDEVICE->SetSamplerState(1, D3DSAMP_ADDRESSV, m_aSavedStates[eRS_TSS1_AddrV]);
+	PD3DDEVICE->SetTextureStageState(1, D3DTSS_ADDRESSU, m_aSavedStates[eRS_TSS1_AddrU]);
+	PD3DDEVICE->SetTextureStageState(1, D3DTSS_ADDRESSV, m_aSavedStates[eRS_TSS1_AddrV]);
 	PD3DDEVICE->SetTextureStageState(2, D3DTSS_COLOROP, m_aSavedStates[eRS_TSS2_COp]);
 	PD3DDEVICE->SetTextureStageState(2, D3DTSS_ALPHAOP, m_aSavedStates[eRS_TSS2_AOp]);
 
@@ -312,7 +312,7 @@ void CRenderShader_DynamicLight::ResetStates()
 	d3d_DisableTexture(0);
 	d3d_DisableTexture(1);
 
-	PD3DDEVICE->SetIndices(m_pSavedIB);
+	PD3DDEVICE->SetIndices(m_pSavedIB, 0);
 
 	m_pCurLight = 0;
 
@@ -466,7 +466,7 @@ uint32 CRenderShader_DynamicLight::DrawTris(
 
 	uint16 *pTempIndices;
 	HRESULT hr = m_pTempIB->Lock(m_nTempIBIndex * sizeof(uint16), (k_nTempIBSize - m_nTempIBIndex) * sizeof(uint16), 
-		(void **)&pTempIndices, m_nTempIBIndex ? D3DLOCK_NOOVERWRITE : D3DLOCK_DISCARD);
+		(BYTE**)&pTempIndices, m_nTempIBIndex ? D3DLOCK_NOOVERWRITE : D3DLOCK_DISCARD);
 	if (FAILED(hr))
 	{
 		ASSERT(!"Failed on dynamic lighting index buffer lock!");
@@ -498,11 +498,11 @@ uint32 CRenderShader_DynamicLight::DrawTris(
 		if (m_nTempIBIndex == k_nTempIBSize)
 		{
 			m_pTempIB->Unlock();
-			PD3DDEVICE->SetIndices(m_pTempIB);
-			PD3DDEVICE->DrawIndexedPrimitive(D3DPT_TRIANGLELIST, 0, nVBStart, nVBCount, nBaseIndex, (m_nTempIBIndex - nBaseIndex) / 3);
+			PD3DDEVICE->SetIndices(m_pTempIB, 0);
+			PD3DDEVICE->DrawIndexedPrimitive(D3DPT_TRIANGLELIST, nVBStart, nVBCount, nBaseIndex, (m_nTempIBIndex - nBaseIndex) / 3);
 			m_nTempIBIndex = 0;
 			nBaseIndex = 0;
-			m_pTempIB->Lock(0, 0, (void **)&pTempIndices, D3DLOCK_DISCARD);
+			m_pTempIB->Lock(0, 0, (BYTE**)&pTempIndices, D3DLOCK_DISCARD);
 
 			//update our triangle count
 			IncFrameStat(eFS_DynamicLightTriangles, (m_nTempIBIndex - nBaseIndex) / 3);
@@ -525,8 +525,8 @@ uint32 CRenderShader_DynamicLight::DrawTris(
 	
 	if (nBaseIndex != m_nTempIBIndex)
 	{
-		PD3DDEVICE->SetIndices(m_pTempIB);
-		PD3DDEVICE->DrawIndexedPrimitive(D3DPT_TRIANGLELIST, 0, nVBStart, nVBCount, nBaseIndex, (m_nTempIBIndex - nBaseIndex) / 3);
+		PD3DDEVICE->SetIndices(m_pTempIB, 0);
+		PD3DDEVICE->DrawIndexedPrimitive(D3DPT_TRIANGLELIST, nVBStart, nVBCount, nBaseIndex, (m_nTempIBIndex - nBaseIndex) / 3);
 		if (m_nTempIBIndex == k_nTempIBSize)
 			m_nTempIBIndex = 0;
 

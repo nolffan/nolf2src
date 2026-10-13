@@ -322,7 +322,7 @@ bool CTextureManager::ConvertTexDataToDD(uint8* pSrcData, PFormat* SrcFormat, ui
 	D3DFORMAT D3DDstFormat = QueryDDFormat1(eDstType, nDstFlags); assert(D3DDstFormat != D3DFMT_UNKNOWN);
 	
 	// Create a quick little surface to convert into....
-	LPDIRECT3DSURFACE9 pD3DDstSurface = NULL; LPDIRECT3DTEXTURE9 pD3DDstTexture = NULL;
+	LPDIRECT3DSURFACE8 pD3DDstSurface = NULL; LPDIRECT3DTEXTURE8 pD3DDstTexture = NULL;
 	HRESULT hResult = PD3DDEVICE->CreateTexture(DstWidth,DstHeight,1,NULL,D3DDstFormat,D3DPOOL_SYSTEMMEM,&pD3DDstTexture);
 	if (hResult != D3D_OK || !pD3DDstTexture) 
 		return false;
@@ -367,7 +367,7 @@ bool CTextureManager::UploadRTexture(TextureData* pSrcTexture, uint32 iSrcLvl, R
 	if (pDstTexture->IsCubeMap()) 
 	{
 		// Cube map texture...
-		LPDIRECT3DCUBETEXTURE9 pD3DDstTexture = pDstTexture->m_pD3DCubeTexture;
+		LPDIRECT3DCUBETEXTURE8 pD3DDstTexture = pDstTexture->m_pD3DCubeTexture;
 
 		uint8* pSrcData = pSrcMip->m_Data; 
 		uint32 SrcPitch = GetPitch(D3DSrcFormat,pSrcMip->m_Width);
@@ -380,7 +380,7 @@ bool CTextureManager::UploadRTexture(TextureData* pSrcTexture, uint32 iSrcLvl, R
 
 		for (uint32 i = 0; i < 6; ++i) 
 		{
-			LPDIRECT3DSURFACE9 pDstSurface = NULL; 
+			LPDIRECT3DSURFACE8 pDstSurface = NULL; 
 
 			pD3DDstTexture->GetCubeMapSurface((D3DCUBEMAP_FACES)i,iDstLvl,&pDstSurface);
 			if (!pDstSurface) 
@@ -398,9 +398,9 @@ bool CTextureManager::UploadRTexture(TextureData* pSrcTexture, uint32 iSrcLvl, R
 	else 
 	{
 		// Normal texture..
-		LPDIRECT3DTEXTURE9 pD3DDstTexture = pDstTexture->m_pD3DTexture;
+		LPDIRECT3DTEXTURE8 pD3DDstTexture = pDstTexture->m_pD3DTexture;
 
-		LPDIRECT3DSURFACE9 pDstSurface = NULL; 
+		LPDIRECT3DSURFACE8 pDstSurface = NULL; 
 		pD3DDstTexture->GetSurfaceLevel(iDstLvl,&pDstSurface);
 		if (!pDstSurface) return false;
 
@@ -828,7 +828,7 @@ public:
 	}
 
 	//the currently installed texture
-	LPDIRECT3DBASETEXTURE9	m_pTexture;
+	LPDIRECT3DBASETEXTURE8	m_pTexture;
 
 	//the current mip map offset
 	float					m_fMipMapBias;
@@ -852,7 +852,7 @@ static void d3d_TrackTextureMemory(CTrackedTextureMem& TextureMem, ERendererFram
 }
 
 //called to do the actual texture setting
-static void d3d_InternalSetCurrentTextureDirect(LPDIRECT3DBASETEXTURE9 pTexture, uint32 nStage, float fMipMapBias, uint32 nAlphaRef)
+static void d3d_InternalSetCurrentTextureDirect(LPDIRECT3DBASETEXTURE8 pTexture, uint32 nStage, float fMipMapBias, uint32 nAlphaRef)
 {
 	//make sure that the stage is valid
 	assert(nStage < MAX_TEXTURESTAGES);
@@ -868,7 +868,7 @@ static void d3d_InternalSetCurrentTextureDirect(LPDIRECT3DBASETEXTURE9 pTexture,
 		//see if we need to modify the mipmap
 		if(fMipMapBias != StageInfo.m_fMipMapBias)
 		{
-			PD3DDEVICE->SetSamplerState(nStage, D3DSAMP_MIPMAPLODBIAS, *((DWORD*)&fMipMapBias));
+			PD3DDEVICE->SetTextureStageState(nStage, D3DTSS_MIPMAPLODBIAS, *((DWORD*)&fMipMapBias));
 			StageInfo.m_fMipMapBias = fMipMapBias;
 		}
 
@@ -928,7 +928,7 @@ bool d3d_SetTexture(SharedTexture* pTexture, uint32 iStage, ERendererFrameStats 
 }
 
 // Call to set a D3D texture 
-bool d3d_SetTextureDirect(LPDIRECT3DBASETEXTURE9 pTexture, uint32 nStage)
+bool d3d_SetTextureDirect(LPDIRECT3DBASETEXTURE8 pTexture, uint32 nStage)
 {
 	d3d_InternalSetCurrentTextureDirect(pTexture, nStage, 0.0f, ALPHAREF_NONE);
 	return true;
@@ -940,7 +940,7 @@ bool d3d_DisableTexture(uint32 nStage)
 	return true;
 }
 
-bool d3d_SetTextureDirect(LPDIRECT3DBASETEXTURE9 pTexture, uint32 nStage, CTrackedTextureMem& TextureMem, ERendererFrameStats eMemType)
+bool d3d_SetTextureDirect(LPDIRECT3DBASETEXTURE8 pTexture, uint32 nStage, CTrackedTextureMem& TextureMem, ERendererFrameStats eMemType)
 {
 	// Track texture memory usage
 	d3d_TrackTextureMemory(TextureMem, eMemType);

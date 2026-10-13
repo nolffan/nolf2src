@@ -10,7 +10,7 @@
 //-------------------------------------------------------------------------
 
 //given a light structure this will zero out all elements and setup the type field
-static void InitLightStruct(D3DLIGHT9& Light, D3DLIGHTTYPE Type)
+static void InitLightStruct(D3DLIGHT8& Light, D3DLIGHTTYPE Type)
 {
 	//clear out the struct
 	memset(&Light, 0, sizeof(Light));
@@ -18,7 +18,7 @@ static void InitLightStruct(D3DLIGHT9& Light, D3DLIGHTTYPE Type)
 }
 
 //given a color and a light, it will setup the light's color fields
-static void SetupLightColor(D3DLIGHT9& Light, const LTVector& vColor)
+static void SetupLightColor(D3DLIGHT8& Light, const LTVector& vColor)
 {
 	Light.Ambient.r = 0.0f;
 	Light.Ambient.g = 0.0f;
@@ -37,7 +37,7 @@ static void SetupLightColor(D3DLIGHT9& Light, const LTVector& vColor)
 }
 
 //given a light and a slot number, it will install the light into the device
-static void InstallLightIntoDevice(uint32 nSlot, D3DLIGHT9& Light)
+static void InstallLightIntoDevice(uint32 nSlot, D3DLIGHT8& Light)
 {
 	g_RenderStateMgr.SetLight(nSlot, &Light); 
 	g_RenderStateMgr.LightEnable(nSlot, true); 
@@ -115,7 +115,7 @@ void CRenderLight::SetupSpotLight(	 const LTVector& vLightPos,
 void CRenderLight::InstallLight(uint32 nSlot, const LTVector& vObjectPos, const LTVector& vObjectDims) const
 {
 	//get the device light
-	D3DLIGHT9 Light;
+	D3DLIGHT8 Light;
 	CreateDeviceLight(vObjectPos, vObjectDims, Light);
 
 	//install it
@@ -123,7 +123,7 @@ void CRenderLight::InstallLight(uint32 nSlot, const LTVector& vObjectPos, const 
 }
 
 //this will convert the specified light to a light in the device format
-void CRenderLight::CreateDeviceLight(const LTVector& vObjectPos, const LTVector& vObjectDims, D3DLIGHT9& DevLight) const
+void CRenderLight::CreateDeviceLight(const LTVector& vObjectPos, const LTVector& vObjectDims, D3DLIGHT8& DevLight) const
 {
 	//just dispatch to the appropriate function
 	switch(m_eLightType)
@@ -146,7 +146,7 @@ void CRenderLight::CreateDeviceLight(const LTVector& vObjectPos, const LTVector&
 	}
 }
 
-void CRenderLight::CreateDirLight(D3DLIGHT9& DevLight) const
+void CRenderLight::CreateDirLight(D3DLIGHT8& DevLight) const
 {
 	//we can represent all dir lights with hardware ones, so just
 	//ignore the attenuation model and install the token directional
@@ -156,7 +156,7 @@ void CRenderLight::CreateDirLight(D3DLIGHT9& DevLight) const
 	SetupLightColor(DevLight, m_vColor);
 }
 
-void CRenderLight::CreatePointLight(const LTVector& vObjectPos, const LTVector& vObjectDims, D3DLIGHT9& DevLight) const
+void CRenderLight::CreatePointLight(const LTVector& vObjectPos, const LTVector& vObjectDims, D3DLIGHT8& DevLight) const
 {
 	//InstallPointLightD3D(nSlot);
 	//return;
@@ -173,14 +173,14 @@ void CRenderLight::CreatePointLight(const LTVector& vObjectPos, const LTVector& 
 	}
 }
 
-void CRenderLight::CreateSpotLight(const LTVector& vObjectPos, const LTVector& vObjectDims, D3DLIGHT9& DevLight) const
+void CRenderLight::CreateSpotLight(const LTVector& vObjectPos, const LTVector& vObjectDims, D3DLIGHT8& DevLight) const
 {
 	//since we don't do any falloff of spotlights, it really doesn't matter what attenuation we use,
 	//so just install the multi-sampled light
 	CreateMultiSampledDirLight(vObjectPos, vObjectDims, DevLight);
 }
 
-void CRenderLight::CreatePointLightD3D(const LTVector& vObjectPos, const LTVector& vObjectDims, D3DLIGHT9& DevLight) const
+void CRenderLight::CreatePointLightD3D(const LTVector& vObjectPos, const LTVector& vObjectDims, D3DLIGHT8& DevLight) const
 {
 	InitLightStruct(DevLight, D3DLIGHT_POINT);
 
@@ -193,12 +193,12 @@ void CRenderLight::CreatePointLightD3D(const LTVector& vObjectPos, const LTVecto
 	SetupLightColor(DevLight, m_vColor);
 }
 
-void CRenderLight::CreatePointLightQuartic(const LTVector& vObjectPos, const LTVector& vObjectDims, D3DLIGHT9& DevLight) const
+void CRenderLight::CreatePointLightQuartic(const LTVector& vObjectPos, const LTVector& vObjectDims, D3DLIGHT8& DevLight) const
 {
 	CreateSampledDirLight(vObjectPos, DevLight);
 }
 
-void CRenderLight::CreatePointLightLinear(const LTVector& vObjectPos, const LTVector& vObjectDims, D3DLIGHT9& DevLight) const
+void CRenderLight::CreatePointLightLinear(const LTVector& vObjectPos, const LTVector& vObjectDims, D3DLIGHT8& DevLight) const
 {
 	CreateSampledDirLight(vObjectPos, DevLight);
 }
@@ -206,7 +206,7 @@ void CRenderLight::CreatePointLightLinear(const LTVector& vObjectPos, const LTVe
 //this form of installing will take a sample at the 
 //specified viewer position and will create a dirlight of that color facing
 //in the direction from the light to the viewer
-void CRenderLight::CreateSampledDirLight(const LTVector& vObjectPos, D3DLIGHT9& DevLight) const
+void CRenderLight::CreateSampledDirLight(const LTVector& vObjectPos, D3DLIGHT8& DevLight) const
 {
 	InitLightStruct(DevLight, D3DLIGHT_DIRECTIONAL);
 	SetD3DVec(DevLight.Direction, vObjectPos - m_vLightPos);
@@ -216,7 +216,7 @@ void CRenderLight::CreateSampledDirLight(const LTVector& vObjectPos, D3DLIGHT9& 
 //this form of installing will take a sample at the 
 //specified viewer position and at each corner of the dimension box, and setup a directional
 //light appropriately
-void CRenderLight::CreateMultiSampledDirLight(const LTVector& vObjectPos, const LTVector& vObjectDims, D3DLIGHT9& DevLight) const
+void CRenderLight::CreateMultiSampledDirLight(const LTVector& vObjectPos, const LTVector& vObjectDims, D3DLIGHT8& DevLight) const
 {
 	//the sample positions
 	static const float vSampleScales[][3] =		{	{ -1.0f, -1.0f, -1.0f },

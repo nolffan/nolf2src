@@ -12,17 +12,6 @@
 
 CD3D_Shell g_D3DShell;						// The global D3D Shell...
 
-D3DFORMAT gKnownFormats[] = {
-		D3DFMT_X8R8G8B8, 
-		D3DFMT_A8R8G8B8, 
-		D3DFMT_A2B10G10R10, 
-		D3DFMT_X1R5G5B5, 
-		D3DFMT_A1R5G5B5,
-		D3DFMT_R5G6B5
-};
-
-#define NUM_KNOWN_FORMATS (sizeof(gKnownFormats) / sizeof(gKnownFormats[0]))
-
 
 // Create the Sucka...
 bool CD3D_Shell::Create()
@@ -30,7 +19,7 @@ bool CD3D_Shell::Create()
 	FreeAll();								// Make sure everything is all clean before we start...
 
 	// Create the D3D Object (it lets us Query/Create devices)...
-	m_pD3D = Direct3DCreate9(D3D_SDK_VERSION);
+	m_pD3D = Direct3DCreate8(D3D_SDK_VERSION);
 	if (!m_pD3D) return false;
 
 	// Get the Desktop display mode...
@@ -83,20 +72,16 @@ bool CD3D_Shell::BuildDeviceList()
 		// Enumerate all display modes and formats on this adapter...
         vector<D3DModeInfo>		modes;	
         vector<D3DFORMAT>		formats;
+        uint32 iNumAdapterModes = m_pD3D->GetAdapterModeCount(iAdapter);
 
 		D3DDISPLAYMODE DesktopMode;		// Add the current desktop format to list of formats
         m_pD3D->GetAdapterDisplayMode(iAdapter, &DesktopMode);
 		formats.push_back(DesktopMode.Format);
 
-		// DX9 requires you to pass in modes.
-		for (uint32 iKnownModes = 0; iKnownModes< NUM_KNOWN_FORMATS; iKnownModes++)
-		{
-			uint32 iNumAdapterModes = m_pD3D->GetAdapterModeCount(iAdapter, gKnownFormats[iKnownModes]);
-
         for (uint32 iMode = 0; iMode < iNumAdapterModes; iMode++) 
 		{
 			D3DDISPLAYMODE d3dDisplayMode; // Get the display mode attributes
-				m_pD3D->EnumAdapterModes(iAdapter, gKnownFormats[iKnownModes], iMode, &d3dDisplayMode);
+			m_pD3D->EnumAdapterModes(iAdapter, iMode, &d3dDisplayMode);
 			D3DModeInfo DisplayMode; 
 			DisplayMode.Width	 = d3dDisplayMode.Width; 
 			DisplayMode.Height	 = d3dDisplayMode.Height;
@@ -132,7 +117,6 @@ bool CD3D_Shell::BuildDeviceList()
 
 				LT_MEM_TRACK_ALLOC(modes.push_back(DisplayMode), LT_MEM_TYPE_RENDERER); 
 			} 
-		}
 		}
 
         sort(modes.begin(),modes.end()); // Sort the list of display modes...
@@ -171,34 +155,8 @@ bool CD3D_Shell::BuildDeviceList()
 				else 
 				{
 					bConfirmed = true;
-					// Confirm the device for HW vertex processing or that the Intel 865
-					// which is fast enough for Tron.
-					if (Device.d3dCaps.DevCaps & D3DDEVCAPS_HWTRANSFORMANDLIGHT) 
-					{
-						bHWTnL = true;
-					}
-					else if ( AdapterInfo.AdapterID.VendorId == 0x8086 ) // Intel product
-					{
-						if( ( AdapterInfo.AdapterID.DeviceId != 0x2562 ) &&
-							( AdapterInfo.AdapterID.DeviceId != 0x1132 ) &&
-							( AdapterInfo.AdapterID.DeviceId != 0x7121 ) &&
-							( AdapterInfo.AdapterID.DeviceId != 0x7123 ) &&
-							( AdapterInfo.AdapterID.DeviceId != 0x7125 ) &&
-							( AdapterInfo.AdapterID.DeviceId != 0x7127 ) &&
-							( AdapterInfo.AdapterID.DeviceId != 0x3577 ) &&
-							( AdapterInfo.AdapterID.DeviceId != 0x3582 ) )  // Not Previous Intel Products
-						{
-							bHWTnL = true;  // Support Intel 865 and above products
-						}
-					else 
-						{
-						bHWTnL = false; 
-				}
-					}
-					else
-					{
-						bHWTnL = false; 
-					}
+					// Confirm the device for HW vertex processing...
+					bHWTnL = (Device.d3dCaps.DevCaps & D3DDEVCAPS_HWTRANSFORMANDLIGHT) ? true : false;
 				}
 
 				LT_MEM_TRACK_ALLOC(bConfirmedFormats.push_back(bConfirmed), LT_MEM_TYPE_RENDERER);
@@ -232,10 +190,8 @@ bool CD3D_Shell::BuildDeviceList()
 			}
 
             // Check if the device is compatible with the desktop display mode
-            // (which was added initially as formats[0]), second test is DX9 way
-			// of testing for windowed mode?
-            if (bConfirmedFormats[0] && (m_pD3D->CheckDeviceType(iAdapter, Device.DeviceType, 
-				DesktopMode.Format, DesktopMode.Format, TRUE) == D3D_OK))
+            // (which was added initially as formats[0])
+            if (bConfirmedFormats[0] && (Device.d3dCaps.Caps2 & D3DCAPS2_CANRENDERWINDOWED))
 			{
                 Device.bCanDoWindowed = TRUE;
                 Device.bWindowed      = TRUE; 

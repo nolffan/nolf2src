@@ -39,19 +39,19 @@
 #include "d3d_renderstatemgr.h"
 #endif
 
-#ifndef __D3D9_H__
-#include <d3d9.h>
-#define __D3D9_H__
+#ifndef __D3D8_H__
+#include <d3d8.h>
+#define __D3D8_H__
 #endif
 
-#ifndef __D3DX9_H__
-#include <d3dx9.h>
-#define __D3DX9_H__
+#ifndef __D3DX8_H__
+#include <d3dx8.h>
+#define __D3DX8_H__
 #endif
 
-#ifndef __D3D9TYPES_H__
-#include <d3d9types.h>
-#define __D3D9TYPES_H__
+#ifndef __D3D8TYPES_H__
+#include <d3d8types.h>
+#define __D3D8TYPES_H__
 #endif
 
 // Size of the draw prim vertex buffer (used when it needs to do conversions)...
@@ -193,21 +193,21 @@ class CD3DDrawPrim : public CGenDrawPrim
 	private:
 
 		//saves the current D3D state into the member variables
-		void		SaveStates(LPDIRECT3DDEVICE9 pDevice);
+		void		SaveStates(LPDIRECT3DDEVICE8 pDevice);
 
 		//sets up the appropriate state for the each section
-		void		SetClipMode(LPDIRECT3DDEVICE9 pDevice);
-		void		SetTransformMode(LPDIRECT3DDEVICE9 pDevice);
-		void		SetColorOp(LPDIRECT3DDEVICE9 pDevice);
-		void		SetBlendMode(LPDIRECT3DDEVICE9 pDevice);
-		void		SetZBufferMode(LPDIRECT3DDEVICE9 pDevice);
-		void		SetTestMode(LPDIRECT3DDEVICE9 pDevice);
-		void		SetFillMode(LPDIRECT3DDEVICE9 pDevice);
-		void		SetCullMode(LPDIRECT3DDEVICE9 pDevice);
-		void		SetFogEnable(LPDIRECT3DDEVICE9 pDevice);
-		void		SetTexture(LPDIRECT3DDEVICE9 pDevice);
-		void		SetCamera(LPDIRECT3DDEVICE9 pDevice);
-		void		SetReallyClose(LPDIRECT3DDEVICE9 pDevice);
+		void		SetClipMode(LPDIRECT3DDEVICE8 pDevice);
+		void		SetTransformMode(LPDIRECT3DDEVICE8 pDevice);
+		void		SetColorOp(LPDIRECT3DDEVICE8 pDevice);
+		void		SetBlendMode(LPDIRECT3DDEVICE8 pDevice);
+		void		SetZBufferMode(LPDIRECT3DDEVICE8 pDevice);
+		void		SetTestMode(LPDIRECT3DDEVICE8 pDevice);
+		void		SetFillMode(LPDIRECT3DDEVICE8 pDevice);
+		void		SetCullMode(LPDIRECT3DDEVICE8 pDevice);
+		void		SetFogEnable(LPDIRECT3DDEVICE8 pDevice);
+		void		SetTexture(LPDIRECT3DDEVICE8 pDevice);
+		void		SetCamera(LPDIRECT3DDEVICE8 pDevice);
+		void		SetReallyClose(LPDIRECT3DDEVICE8 pDevice);
 
 		//verifies that a render operation can take place
 		bool		VerifyValid();
@@ -234,8 +234,8 @@ class CD3DDrawPrim : public CGenDrawPrim
 		uint32		m_PrevFogMode;
 		D3DMATRIX	m_PrevTransView;
 		D3DMATRIX	m_PrevTransProj;
-		D3DVIEWPORT9 m_PrevViewport;
-		D3DVIEWPORT9 m_SavedViewport;
+		D3DVIEWPORT8 m_PrevViewport;
+		D3DVIEWPORT8 m_SavedViewport;
 		bool		m_bPrevReallyClose;
 		bool		m_bResetViewport;
 
@@ -243,9 +243,9 @@ class CD3DDrawPrim : public CGenDrawPrim
 		uint32		m_nBlockCount;
 
 		// Set the render states (and save the old ones)...
-		void		PushRenderStates(LPDIRECT3DDEVICE9 pDevice);
+		void		PushRenderStates(LPDIRECT3DDEVICE8 pDevice);
 
 		// Reset the old renderstates...
-		void		PopRenderStates(LPDIRECT3DDEVICE9 pDevice);
+		void		PopRenderStates(LPDIRECT3DDEVICE8 pDevice);
 };
 #endif // __D3DDRAWPRIM_H__

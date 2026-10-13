@@ -16,10 +16,7 @@
 #include "d3dmeshrendobj_vertanim.h"
 #include "debuggeometry.h"
 #include "d3d_renderstatemgr.h"
-#include "ltpixelshadermgr.h"
-#include "ltvertexshadermgr.h"
-#include "lteffectshadermgr.h"
-#include "rendertargetmgr.h"
+#include "pixelshadermgr.h"
 #include "d3d_renderworld.h"
 #include "screenglowmgr.h"
 #include "d3d_draw.h"
@@ -48,7 +45,7 @@ bool CD3D_Device::CreateDevice(D3DAdapterInfo* pAdapter,D3DDeviceInfo* pDevice,D
 
 	D3DPRESENT_PARAMETERS PresentationParam;
 	SetPresentationParams(PresentationParam,pMode);
-	IDirect3DDevice9 *pD3DDevice;
+	IDirect3DDevice8 *pD3DDevice;
 	HRESULT hResult = PDIRECT3D->CreateDevice(pAdapter->iAdapterNum,pDevice->DeviceType,g_hWnd,BehaviorFlags,&PresentationParam,&pD3DDevice);
 	if ((hResult != D3D_OK) || !pD3DDevice)
 	{
@@ -64,8 +61,9 @@ bool CD3D_Device::CreateDevice(D3DAdapterInfo* pAdapter,D3DDeviceInfo* pDevice,D
 	}
 
 	// Create our wrapper, which we're going to present to the world as an actual D3D device
-	LT_MEM_TRACK_ALLOC(m_pD3DDevice = new CDirect3DDevice9Wrapper,LT_MEM_TYPE_RENDERER);
+	LT_MEM_TRACK_ALLOC(m_pD3DDevice = new CDirect3DDevice8Wrapper,LT_MEM_TYPE_RENDERER);
 	m_pD3DDevice->SetDevice(pD3DDevice);
+	m_pD3DDevice->SetStates();
 
 	if (FAILED(m_pD3DDevice->GetDeviceCaps(&m_DeviceCaps)))
 	{
@@ -76,8 +74,6 @@ bool CD3D_Device::CreateDevice(D3DAdapterInfo* pAdapter,D3DDeviceInfo* pDevice,D
 	SetDefaultRenderStates();					// Set the default render states...
 	PreCalcSomeDeviceCaps();					// Do some precalcing of device caps (figure out if we can do some puff)...
 
-	m_pD3DDevice->SetStates();
-
 	// Display a warning message
 	if (m_pDevice->DeviceType == D3DDEVTYPE_REF)
 		AddDebugMessage(1,"Warning: Couldn\'t find any HAL devices, Using reference rasterizer");
@@ -87,12 +83,6 @@ bool CD3D_Device::CreateDevice(D3DAdapterInfo* pAdapter,D3DDeviceInfo* pDevice,D
 	ClearColor.dwordVal = 0;
 
 	d3d_Clear(NULL, CLEARSCREEN_SCREEN | CLEARSCREEN_RENDER, ClearColor);
-
-	//create the end of frame query events
-	PD3DDEVICE->CreateQuery(D3DQUERYTYPE_EVENT, &m_pEndOfFrameQuery);
-
-	// Initialize the render target manager.
-	CRenderTargetMgr::GetSingleton().Init();
 
 	return true;
 }
@@ -153,12 +143,6 @@ void CD3D_Device::FreeDevice()
 		m_pD3DDevice = NULL;
 	}
 
-	if( m_pEndOfFrameQuery )
-	{
-		m_pEndOfFrameQuery->Release();
-		m_pEndOfFrameQuery = NULL;
-	}
-
 	ResetDeviceVars();
 }
 
@@ -168,17 +152,8 @@ bool CD3D_Device::ReleaseDevObjects(bool bFullRelease)
 	//free the screen glow's resources
 	CScreenGlowMgr::GetSingleton().FreeDeviceObjects();
 
-	// free the vertex shaders
-	LTVertexShaderMgr::GetSingleton().FreeDeviceObjects();
-
 	// Free the pixel shaders.
-	LTPixelShaderMgr::GetSingleton().FreeDeviceObjects();
-
-	// Free the effect shaders.
-	LTEffectShaderMgr::GetSingleton().FreeDeviceObjects();
-
-	// Free the rendertarget textures and surfaces
-	CRenderTargetMgr::GetSingleton().FreeDeviceObjects();
+	CPixelShaderMgr::GetSingleton().FreeDeviceObjects();
 
 	// Notify all RenderObjects that we're going to free the device (to give up all there device stuff)
 	CRenderObject* pRenderObject = m_pRenderObjectList_Head;
@@ -190,14 +165,6 @@ bool CD3D_Device::ReleaseDevObjects(bool bFullRelease)
 
 	if (m_pRenderWorld)
 		m_pRenderWorld->Release();
-
-	if( m_pEndOfFrameQuery )
-	{
-		m_pEndOfFrameQuery->Release();
-		m_pEndOfFrameQuery = NULL;
-	}
-
-	FreeFrameTextures();
 
 	// Don't actually delete them unless we really want to
 	if (bFullRelease)
@@ -212,10 +179,7 @@ bool CD3D_Device::ReleaseDevObjects(bool bFullRelease)
 // If device we lost, restores the objects (calls ReCreateObject on all the Render Objects)...
 bool CD3D_Device::RestoreDevObjects()
 {
-	LTVertexShaderMgr::GetSingleton().RecreateVertexShaders();
-	LTPixelShaderMgr::GetSingleton().RecreatePixelShaders();
-	LTEffectShaderMgr::GetSingleton().RecreateEffectShaders();
-	CRenderTargetMgr::GetSingleton().RecreateRenderTargets();
+	CPixelShaderMgr::GetSingleton().RecreatePixelShaders();
 
 	// Notify all RenderObjects that they need to re-create themselves...
 	CRenderObject* pRenderObject = m_pRenderObjectList_Head;
@@ -237,8 +201,6 @@ void CD3D_Device::ResetDeviceVars()
 	m_pMode						= NULL;
 	m_bWindowed					= false;
 	m_bIn3D						= false;
-
-	m_pEndOfFrameQuery			= NULL;
 }
 
 // Resets back to initial conditions (doesn't try to free anything)...
@@ -255,8 +217,6 @@ void CD3D_Device::Reset()
 	m_pRenderStyleList_Head		= NULL;
 
 	m_pRenderWorld				= NULL;
-
-	FreeFrameTextures();
 }
 
 // Frees all the member vars and resets afterwards...
@@ -281,50 +241,9 @@ void CD3D_Device::FreeAll()
 	delete m_pRenderWorld;
 	m_pRenderWorld = NULL;
 
-	FreeFrameTextures();
-
 	FreeDevice();
 
 	Reset();
-}
-
-void CD3D_Device::FreeFrameTextures()
-{
-	if(m_pCurrentFrame)
-	{
-		m_pCurrentFrame->Release();
-		m_pCurrentFrame = NULL;
-	}
-
-	if(m_pPreviousFrame)
-	{
-		m_pPreviousFrame->Release();
-		m_pPreviousFrame = NULL;
-	}
-
-	if(m_pRenderTarget)
-	{
-		m_pRenderTarget->Release();
-		m_pRenderTarget = NULL;
-	}
-
-	if(m_pBackBuffer)
-	{
-		m_pBackBuffer->Release();
-		m_pBackBuffer = NULL;
-	}
-
-	if(m_pDefaultRenderTarget)
-	{
-		m_pDefaultRenderTarget->Release();
-		m_pDefaultRenderTarget = NULL;
-	}
-
-	if(m_pDefaultDepthStencilBuffer)
-	{
-		m_pDefaultDepthStencilBuffer->Release();
-		m_pDefaultDepthStencilBuffer = NULL;
-	}
 }
 
 void CD3D_Device::SetPresentationParams(D3DPRESENT_PARAMETERS& PresentationParam,D3DModeInfo* pMode)
@@ -338,7 +257,6 @@ void CD3D_Device::SetPresentationParams(D3DPRESENT_PARAMETERS& PresentationParam
 	PresentationParam.BackBufferFormat					= pMode->Format;
 	PresentationParam.BackBufferCount					= BackBufferCount;						// Number of back buffers (1 "double buffer", 2 "triple buffer", etc)
 	PresentationParam.MultiSampleType					= GetDefaultMultiSampleType(g_CV_AntiAliasFSOverSample);
-	PresentationParam.MultiSampleQuality				= 0;
 	PresentationParam.SwapEffect						= SwapEffect;
 	PresentationParam.hDeviceWindow						= g_hWnd;
 	PresentationParam.Windowed							= g_bRunWindowed;
@@ -346,7 +264,7 @@ void CD3D_Device::SetPresentationParams(D3DPRESENT_PARAMETERS& PresentationParam
 	PresentationParam.AutoDepthStencilFormat			= GetDefaultDepthStencilFormat(g_CV_ZBitDepth,g_CV_StencilBitDepth);
 	PresentationParam.Flags								= D3DPRESENTFLAG_LOCKABLE_BACKBUFFER;	// puffs, but need it for the console (should get rid of this eventually)...
 	PresentationParam.FullScreen_RefreshRateInHz		= D3DPRESENT_RATE_DEFAULT; //D3DPRESENT_RATE_UNLIMITED
-	PresentationParam.PresentationInterval				= g_CV_VSyncOnFlip.m_Val ? D3DPRESENT_INTERVAL_DEFAULT : D3DPRESENT_INTERVAL_IMMEDIATE;
+	PresentationParam.FullScreen_PresentationInterval	= (g_bRunWindowed || g_CV_VSyncOnFlip.m_Val) ? D3DPRESENT_INTERVAL_DEFAULT : D3DPRESENT_INTERVAL_IMMEDIATE;
 }
 
 // Go for the best one that works and fallback till we find one...
@@ -396,7 +314,7 @@ D3DFORMAT CD3D_Device::GetDefaultDepthStencilFormat(uint32 iZBitDepth,uint32 iSt
 D3DMULTISAMPLE_TYPE CD3D_Device::GetDefaultMultiSampleType(uint32 Samples)
 {
 	D3DMULTISAMPLE_TYPE MultiSampleType = (D3DMULTISAMPLE_TYPE)Samples;
-	if (PDIRECT3D->CheckDeviceMultiSampleType(m_pAdapter->iAdapterNum,m_pDevice->DeviceType,m_pMode->Format,g_bRunWindowed,MultiSampleType, NULL) != D3D_OK) 
+	if (PDIRECT3D->CheckDeviceMultiSampleType(m_pAdapter->iAdapterNum,m_pDevice->DeviceType,m_pMode->Format,g_bRunWindowed,MultiSampleType) != D3D_OK) 
 	{
 		if ((uint32)MultiSampleType > 0)
 			return GetDefaultMultiSampleType((uint32)MultiSampleType-1); else return (D3DMULTISAMPLE_TYPE)0;
@@ -412,12 +330,6 @@ void CD3D_Device::PreCalcSomeDeviceCaps()
 	if (!m_pD3DDevice)
 		return;
 
-	// Fix some issues on ATI cards
-	if( m_pAdapter->AdapterID.VendorId == 0x1002 )
-	{
-		g_pStruct->RunConsoleString( "Use0WeightsForDisable 1" );
-	}
-
 	// Check for TableFog...
 	if ((m_DeviceCaps.RasterCaps & D3DPRASTERCAPS_FOGTABLE) && ((m_DeviceCaps.RasterCaps & D3DPRASTERCAPS_ZFOG) || (m_DeviceCaps.RasterCaps & D3DPRASTERCAPS_WFOG)) && g_CV_TableFog.m_Val)
 	{
@@ -429,7 +341,7 @@ void CD3D_Device::PreCalcSomeDeviceCaps()
 	}
 
 	// Check for stencil buffer & get the format...
-	LPDIRECT3DSURFACE9 pDepthStencilBuffer = NULL;
+	LPDIRECT3DSURFACE8 pDepthStencilBuffer = NULL;
 	D3D_CALL(m_pD3DDevice->GetDepthStencilSurface(&pDepthStencilBuffer));
 	if (pDepthStencilBuffer)
 	{
@@ -470,13 +382,12 @@ void CD3D_Device::SetDefaultRenderStates()
 		D3D_CALL(m_pD3DDevice->SetRenderState(D3DRS_FOGTABLEMODE,  D3DFOG_NONE));
 	}
 
-//	D3D_CALL(m_pD3DDevice->SetRenderState(D3DRS_EDGEANTIALIAS, FALSE));
+	D3D_CALL(m_pD3DDevice->SetRenderState(D3DRS_EDGEANTIALIAS, FALSE));
 	D3D_CALL(m_pD3DDevice->SetRenderState(D3DRS_CULLMODE, D3DCULL_NONE));
 	D3D_CALL(m_pD3DDevice->SetRenderState(D3DRS_ZENABLE, D3DZB_TRUE));
 	D3D_CALL(m_pD3DDevice->SetRenderState(D3DRS_ZWRITEENABLE, TRUE));
 	D3D_CALL(m_pD3DDevice->SetRenderState(D3DRS_ZFUNC, D3DCMP_LESSEQUAL));
-	D3D_CALL(m_pD3DDevice->SetRenderState(D3DRS_SLOPESCALEDEPTHBIAS, F2DW(0.0f)));
-	D3D_CALL(m_pD3DDevice->SetRenderState(D3DRS_DEPTHBIAS, F2DW(0.0f)));
+	D3D_CALL(m_pD3DDevice->SetRenderState(D3DRS_ZBIAS, 0));
 	D3D_CALL(m_pD3DDevice->SetRenderState(D3DRS_SPECULARENABLE, FALSE));
 	D3D_CALL(m_pD3DDevice->SetRenderState(D3DRS_SHADEMODE, D3DSHADE_GOURAUD));
 	D3D_CALL(m_pD3DDevice->SetRenderState(D3DRS_DITHERENABLE, TRUE));
@@ -493,7 +404,7 @@ void CD3D_Device::SetDefaultRenderStates()
 	D3D_CALL(m_pD3DDevice->SetRenderState(D3DRS_CLIPPING, TRUE));
 
 	// HW Transform & Light...
-	D3D_CALL(m_pD3DDevice->SetSoftwareVertexProcessing(((g_Device.GetDeviceCaps()->DevCaps & D3DDEVCAPS_HWTRANSFORMANDLIGHT) == 0) ? 1 : 0));
+	D3D_CALL(m_pD3DDevice->SetRenderState(D3DRS_SOFTWAREVERTEXPROCESSING, ((g_Device.GetDeviceCaps()->DevCaps & D3DDEVCAPS_HWTRANSFORMANDLIGHT) == 0) ? 1 : 0));
 
 	// Setup Material (for D3D lighting)...
 	D3D_CALL(m_pD3DDevice->SetRenderState(D3DRS_LIGHTING,FALSE));
@@ -507,32 +418,22 @@ void CD3D_Device::SetDefaultRenderStates()
 	{
 		D3D_CALL(m_pD3DDevice->SetTextureStageState(nCurrStage, D3DTSS_TEXCOORDINDEX, D3DTSS_TCI_PASSTHRU | nCurrStage));
 		D3D_CALL(m_pD3DDevice->SetTextureStageState(nCurrStage, D3DTSS_TEXTURETRANSFORMFLAGS, D3DTTFF_DISABLE));
-		D3D_CALL(m_pD3DDevice->SetSamplerState(nCurrStage, D3DSAMP_ADDRESSU, D3DTADDRESS_WRAP));
-		D3D_CALL(m_pD3DDevice->SetSamplerState(nCurrStage, D3DSAMP_ADDRESSV, D3DTADDRESS_WRAP));
+		D3D_CALL(m_pD3DDevice->SetTextureStageState(nCurrStage, D3DTSS_ADDRESSU, D3DTADDRESS_WRAP));
+		D3D_CALL(m_pD3DDevice->SetTextureStageState(nCurrStage, D3DTSS_ADDRESSV, D3DTADDRESS_WRAP));
 
-		D3D_CALL(PD3DDEVICE->SetSamplerState(nCurrStage, D3DSAMP_MAXANISOTROPY, g_CV_Anisotropic.m_Val ? g_CV_Anisotropic.m_Val : 1));
-
-		// check for device caps anisotropic filter for min filter
-		if ((m_DeviceCaps.VertexTextureFilterCaps & D3DPTFILTERCAPS_MINFANISOTROPIC) && (g_CV_Anisotropic.m_Val))
+		if (g_CV_Anisotropic.m_Val)
 		{
-			D3D_CALL(PD3DDEVICE->SetSamplerState(nCurrStage, D3DSAMP_MINFILTER, D3DTEXF_ANISOTROPIC));
+			D3D_CALL(PD3DDEVICE->SetTextureStageState(nCurrStage, D3DTSS_MINFILTER, D3DTEXF_ANISOTROPIC));
+			D3D_CALL(PD3DDEVICE->SetTextureStageState(nCurrStage, D3DTSS_MAGFILTER, D3DTEXF_ANISOTROPIC));
+			D3D_CALL(PD3DDEVICE->SetTextureStageState(nCurrStage, D3DTSS_MAXANISOTROPY, g_CV_Anisotropic.m_Val));
 		}
 		else
 		{
-			D3D_CALL(PD3DDEVICE->SetSamplerState(nCurrStage, D3DSAMP_MINFILTER, g_CV_Bilinear.m_Val ? D3DTEXF_LINEAR : D3DTEXF_POINT));
+			D3D_CALL(PD3DDEVICE->SetTextureStageState(nCurrStage, D3DTSS_MINFILTER, g_CV_Bilinear.m_Val ? D3DTEXF_LINEAR : D3DTEXF_POINT));
+			D3D_CALL(PD3DDEVICE->SetTextureStageState(nCurrStage, D3DTSS_MAGFILTER, g_CV_Bilinear.m_Val ? D3DTEXF_LINEAR : D3DTEXF_POINT));
 		}
 
-		// check for device cpas anistropic filter for mag filter
-		if ((m_DeviceCaps.VertexTextureFilterCaps & D3DPTFILTERCAPS_MAGFANISOTROPIC) && (g_CV_Anisotropic.m_Val))
-		{
-			D3D_CALL(PD3DDEVICE->SetSamplerState(nCurrStage, D3DSAMP_MAGFILTER, D3DTEXF_ANISOTROPIC));
-		}
-		else
-		{
-			D3D_CALL(PD3DDEVICE->SetSamplerState(nCurrStage, D3DSAMP_MAGFILTER, g_CV_Bilinear.m_Val ? D3DTEXF_LINEAR : D3DTEXF_POINT));
-		}
-
-		D3D_CALL(PD3DDEVICE->SetSamplerState(nCurrStage, D3DSAMP_MIPFILTER, g_CV_Trilinear.m_Val ? D3DTEXF_LINEAR : D3DTEXF_POINT));
+		D3D_CALL(PD3DDEVICE->SetTextureStageState(nCurrStage, D3DTSS_MIPFILTER, g_CV_Trilinear.m_Val ? D3DTEXF_LINEAR : D3DTEXF_POINT));
 
 		d3d_DisableTexture(nCurrStage);
 	}
@@ -555,7 +456,7 @@ void CD3D_Device::SetDefaultRenderStates()
 	D3D_CALL(m_pD3DDevice->SetRenderState(D3DRS_ALPHAREF, 0));
 
 	// Setup the Material...This should be set on the per piece basis, but for the fall release I'm just setting it the once and moving on...
-	D3DMATERIAL9 Material;
+	D3DMATERIAL8 Material;
 	D3DCOLORVALUE MatColor1; MatColor1.r = 1.0f; MatColor1.g = 1.0f; MatColor1.b = 1.0f; MatColor1.a = 1.0f;
 	D3DCOLORVALUE MatColor2; MatColor2.r = 0.0f; MatColor2.g = 0.0f; MatColor2.b = 0.0f; MatColor2.a = 0.0f;
 	Material.Diffuse  = MatColor1; Material.Ambient  = MatColor1;
@@ -574,7 +475,7 @@ void CD3D_Device::SetupViewport(uint32 iLeft, uint32 iRight, uint32 iTop, uint32
 	m_rcViewport.top	= iTop;
 	m_rcViewport.bottom = iBottom;
 
-	D3DVIEWPORT9 viewportData;
+	D3DVIEWPORT8 viewportData;
 	viewportData.X		= m_rcViewport.left;
 	viewportData.Y		= m_rcViewport.top;
 	viewportData.Width	= m_rcViewport.right  - m_rcViewport.left;
@@ -726,8 +627,8 @@ bool CD3D_Device::Standby()
 	if (PD3DDEVICE)
 	{
 		// Make sure nothing's still stuck between D3D's teeth.
-		PD3DDEVICE->SetStreamSource(0, 0, 0, 0);
-		PD3DDEVICE->SetIndices(0);
+		PD3DDEVICE->SetStreamSource(0, 0, 0);
+		PD3DDEVICE->SetIndices(0, 0);
 	}
 
 	return g_Device.GetDeviceInfo() != 0;
@@ -744,9 +645,6 @@ bool CD3D_Device::Start3D()
 
 	HRESULT hResult = D3D_CALL(g_Device.m_pD3DDevice->BeginScene());
 	g_Device.m_bIn3D = (hResult == D3D_OK);
-
-	D3D_CALL(g_Device.m_pD3DDevice->SetVertexShader(NULL));
-	D3D_CALL(g_Device.m_pD3DDevice->SetFVF(D3DFVF_XYZ));
 
 	return g_Device.m_bIn3D;
 }
@@ -816,54 +714,4 @@ bool CD3D_Device::LoadWorldData(ILTStream *pStream)
 		delete m_pRenderWorld;
 	LT_MEM_TRACK_ALLOC(m_pRenderWorld = new CD3D_RenderWorld,LT_MEM_TYPE_RENDERER);
 	return m_pRenderWorld->Load(pStream);
-}
-
-
-void CD3D_Device::PreventFrameBuffering()
-{
-	if (!g_CV_PreventFrameBuffering)
-		return;
-
-	// Check for frame buffer prevention support
-	if (!m_pEndOfFrameQuery)
-	{
-		static bool bKillFrameBufferPrevention = false;
-		if (bKillFrameBufferPrevention)
-			return;
-		HRESULT hr = PD3DDEVICE->CreateQuery(D3DQUERYTYPE_EVENT, &m_pEndOfFrameQuery);
-		if (FAILED(hr))
-		{
-			dsi_ConsolePrint("Frame buffer prevention not available.");
-			bKillFrameBufferPrevention = true;
-			return;
-		}
-		ASSERT(m_pEndOfFrameQuery);
-	}
-
-	uint nStartTime = timeGetTime();
-
-	// Wait until the previous frame is done
-	HRESULT hr;
-	BOOL bStatus;
-	for(;;)
-	{
-		hr = m_pEndOfFrameQuery->GetData(&bStatus, sizeof(bStatus), D3DGETDATA_FLUSH);
-		if (!SUCCEEDED(hr) || ((hr == S_OK) && bStatus))
-			break;
-		// Yield a timeslice
-		Sleep(0);
-		// Don't wait for more than 1 second.
-		if ((timeGetTime() - nStartTime) > 1000)
-			break;
-	}
-
-	// Show stats if necessary
-	if (g_CV_ShowFrameBufferingInfo)
-	{
-		uint nTotalTicks = timeGetTime() - nStartTime;
-		dsi_ConsolePrint("Buffered frame delay: %3dms", nTotalTicks);
-	}
-
-	// Issue the query for the next frame
-	m_pEndOfFrameQuery->Issue(D3DISSUE_END);
 }

@@ -32,7 +32,7 @@ struct CSection_Lightmap
 	bool ShouldAlphaTest() const { return false; }
 	bool ShouldGlow() const { return false; }
 
-	IDirect3DTexture9 *m_pLMTexture;
+	IDirect3DTexture8 *m_pLMTexture;
 
 	CTrackedTextureMem	m_TextureMem;
 };

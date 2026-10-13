@@ -6,11 +6,8 @@
 #include "ltb.h"
 #include "d3d_device.h"
 #include "d3d_renderstatemgr.h"
-#include "ltvertexshadermgr.h"
-#include "ltpixelshadermgr.h"
 #include "d3d_renderstyle.h"
 #include "de_objects.h"
-#include "ltshaderdevicestateimp.h"
 #include "rendererconsolevars.h"
 
 
@@ -345,8 +342,8 @@ void CD3DRigidMesh::EndRender()
 	}
 
 
-	PD3DDEVICE->SetStreamSource(0, 0, 0, 0);
-	PD3DDEVICE->SetIndices(0);
+	PD3DDEVICE->SetStreamSource(0, 0, 0);
+	PD3DDEVICE->SetIndices(0, 0);
 
 	// Uninstall the vertex shader.
 	if (NULL != m_pVertexShader)

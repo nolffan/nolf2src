@@ -32,12 +32,9 @@ define_holder(IClientShell, i_client_shell);
 #include "d3d_renderworld.h"
 #include "setuptouchinglights.h"
 #include "iltclient.h"
-#include "ltpixelshadermgr.h"
+#include "pixelshadermgr.h"
 #include "rendererframestats.h"
 
-#include "LTEffectImpl.h"
-#include "lteffectshadermgr.h"
-#include "ltshaderdevicestateimp.h"
 #include "rendererconsolevars.h"
 
 //Interface for the client file manager
@@ -1308,8 +1305,7 @@ void d3d_DrawPolyGrid(const ViewParams &Params, LTObject *pObj)
 		LTPixelShaderMgr::GetSingleton().InstallPixelShader(pPixelShader);
 
 		//now actually draw the polygrid
-		D3D_CALL(PD3DDEVICE->SetVertexShader(NULL));
-		D3D_CALL(PD3DDEVICE->SetFVF(nVertexFVF));
+		D3D_CALL(PD3DDEVICE->SetVertexShader(nVertexFVF));
 		
 		int nNumPolies = (pGrid->m_nIndices/3);
 
@@ -1341,8 +1337,7 @@ void d3d_DrawPolyGrid(const ViewParams &Params, LTObject *pObj)
 	else
 	{
 		//now actually draw the polygrid
-		D3D_CALL(PD3DDEVICE->SetVertexShader(NULL));
-		D3D_CALL(PD3DDEVICE->SetFVF(nVertexFVF));
+		D3D_CALL(PD3DDEVICE->SetVertexShader(nVertexFVF));
 
 		int nNumPolies = (pGrid->m_nIndices/3);
 

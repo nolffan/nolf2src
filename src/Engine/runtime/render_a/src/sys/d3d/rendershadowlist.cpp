@@ -9,7 +9,7 @@
 #include "modelshadowshader.h"
 #include "rendererframestats.h"
 #include "..\shadows\d3dshadowtexture.h"
-#include "ltpixelshadermgr.h"
+#include "pixelshadermgr.h"
 #include <algorithm>
 
 //------------------------------------------------------------------
@@ -151,8 +151,7 @@ static void DrawLinesFromLights(const CRelevantLightList& LightList, const LTVec
 		vVert[1].z = vToPos.z;
 		vVert[1].color = 0x00FF0000;
 
-		D3D_CALL(PD3DDEVICE->SetVertexShader(NULL));
-		D3D_CALL(PD3DDEVICE->SetFVF(BASIC_VERTEX_FLAGS));
+		D3D_CALL(PD3DDEVICE->SetVertexShader(BASIC_VERTEX_FLAGS));
 		D3D_CALL(PD3DDEVICE->DrawPrimitiveUP(D3DPT_LINELIST, 1, vVert, sizeof(BASIC_VERTEX)));
 	}
 }
@@ -183,8 +182,7 @@ static void DrawLightPlanes(const LTVector& modelPos, const LTVector& lightPos, 
 	vVert[14].x = lightPos.x; vVert[14].y = lightPos.y; vVert[14].z = lightPos.z; vVert[14].color = 0x000000FF;
 	vVert[15].x = vProjPlane_BottomLeft.x; vVert[15].y = vProjPlane_BottomLeft.y; vVert[15].z = vProjPlane_BottomLeft.z; vVert[15].color = 0x00FFFF00;
 
-	D3D_CALL(PD3DDEVICE->SetVertexShader(NULL));
-	D3D_CALL(PD3DDEVICE->SetFVF(BASIC_VERTEX_FLAGS));
+	D3D_CALL(PD3DDEVICE->SetVertexShader(BASIC_VERTEX_FLAGS));
 	D3D_CALL(PD3DDEVICE->DrawPrimitiveUP(D3DPT_LINELIST, 8, &vVert[0], sizeof(BASIC_VERTEX)));
 }
 
@@ -460,11 +458,11 @@ static void RenderModelShadow( ModelInstance* pInstance, const LTVector& vModelP
 	PD3DDEVICE->Clear(0, NULL, D3DCLEAR_TARGET, nClearColor, 1.0f, 0);
 
 	//now get our old viewport for saving
-	D3DVIEWPORT9 OldViewport;
+	D3DVIEWPORT8 OldViewport;
 	PD3DDEVICE->GetViewport(&OldViewport);
 
 	//setup our new viewport so that we won't render to the outer edge
-	D3DVIEWPORT9 NewViewport;
+	D3DVIEWPORT8 NewViewport;
 	NewViewport.X		= 1;
 	NewViewport.Y		= 1;
 	NewViewport.Width	= nShadTexSize - 2;
@@ -890,8 +888,8 @@ void CRenderShadowList::RenderQueuedShadows(const ViewParams& Params)
 	}
 
 	//we need to make sure and save our render targets
-	LPDIRECT3DSURFACE9 pDepthStencilBuffer	= NULL;
-	LPDIRECT3DSURFACE9 pPrevRenderTarget	= NULL;
+	LPDIRECT3DSURFACE8 pDepthStencilBuffer	= NULL;
+	LPDIRECT3DSURFACE8 pPrevRenderTarget	= NULL;
 	D3D_CALL(PD3DDEVICE->GetDepthStencilSurface(&pDepthStencilBuffer));
 	D3D_CALL(PD3DDEVICE->GetRenderTarget(&pPrevRenderTarget));
 
@@ -913,7 +911,7 @@ void CRenderShadowList::RenderQueuedShadows(const ViewParams& Params)
 	D3DXMatrixIdentity(&mIdentity);
 
 	//now get our old viewport for saving
-	D3DVIEWPORT9 OldViewport;
+	D3DVIEWPORT8 OldViewport;
 	PD3DDEVICE->GetViewport(&OldViewport);
 
 	// Figure out our projection matrix...
@@ -1135,7 +1133,7 @@ bool CRenderShadowList::BlurShadowTexture(uint32 nSrcTex, uint32 nDestTex)
 	if(!m_cTextureList[nSrcTex])
 		return false;
 
-	LPDIRECT3DTEXTURE9 pSrcTex = m_cTextureList[nSrcTex]->m_pD3DTexture;
+	LPDIRECT3DTEXTURE8 pSrcTex = m_cTextureList[nSrcTex]->m_pD3DTexture;
 
 	if(!pSrcTex)
 		return false;
@@ -1173,7 +1171,7 @@ bool CRenderShadowList::BlurShadowTexture(uint32 nSrcTex, uint32 nDestTex)
 	float fHeight	= (float)m_nTextureRes;
 
 	//and set our render target to be our destination texture
-	LPDIRECT3DSURFACE9 pTextureRenderSurface = NULL;
+	LPDIRECT3DSURFACE8 pTextureRenderSurface = NULL;
 	m_cTextureList[nDestTex]->m_pD3DTexture->GetSurfaceLevel(0, &pTextureRenderSurface);
 
 	if(pTextureRenderSurface)
@@ -1185,7 +1183,7 @@ bool CRenderShadowList::BlurShadowTexture(uint32 nSrcTex, uint32 nDestTex)
 			PD3DDEVICE->Clear(0, NULL, D3DCLEAR_TARGET, nClearColor, 1.0f, 0);
 
 			//setup our new viewport so that we won't render to the outer edge
-			D3DVIEWPORT9 NewViewport;
+			D3DVIEWPORT8 NewViewport;
 			NewViewport.X		= 1;
 			NewViewport.Y		= 1;
 			NewViewport.Width	= m_nTextureRes - 2;
@@ -1202,14 +1200,14 @@ bool CRenderShadowList::BlurShadowTexture(uint32 nSrcTex, uint32 nDestTex)
 			}
 
 			//setup texture clamping
-			SamplerStateSet ssWrapU0(0, D3DSAMP_ADDRESSU, D3DTADDRESS_CLAMP);
-			SamplerStateSet ssWrapV0(0, D3DSAMP_ADDRESSV, D3DTADDRESS_CLAMP);
-			SamplerStateSet ssWrapU1(1, D3DSAMP_ADDRESSU, D3DTADDRESS_CLAMP);
-			SamplerStateSet ssWrapV1(1, D3DSAMP_ADDRESSV, D3DTADDRESS_CLAMP);
-			SamplerStateSet ssWrapU2(2, D3DSAMP_ADDRESSU, D3DTADDRESS_CLAMP);
-			SamplerStateSet ssWrapV2(2, D3DSAMP_ADDRESSV, D3DTADDRESS_CLAMP);
-			SamplerStateSet ssWrapU3(3, D3DSAMP_ADDRESSU, D3DTADDRESS_CLAMP);
-			SamplerStateSet ssWrapV3(3, D3DSAMP_ADDRESSV, D3DTADDRESS_CLAMP);
+			StageStateSet ssWrapU0(0, D3DTSS_ADDRESSU, D3DTADDRESS_CLAMP);
+			StageStateSet ssWrapV0(0, D3DTSS_ADDRESSV, D3DTADDRESS_CLAMP);
+			StageStateSet ssWrapU1(1, D3DTSS_ADDRESSU, D3DTADDRESS_CLAMP);
+			StageStateSet ssWrapV1(1, D3DTSS_ADDRESSV, D3DTADDRESS_CLAMP);
+			StageStateSet ssWrapU2(2, D3DTSS_ADDRESSU, D3DTADDRESS_CLAMP);
+			StageStateSet ssWrapV2(2, D3DTSS_ADDRESSV, D3DTADDRESS_CLAMP);
+			StageStateSet ssWrapU3(3, D3DTSS_ADDRESSU, D3DTADDRESS_CLAMP);
+			StageStateSet ssWrapV3(3, D3DTSS_ADDRESSV, D3DTADDRESS_CLAMP);
 
 			//make sure that we don't do any Z tests though
 			StateSet ssZFunc(D3DRS_ZFUNC, D3DCMP_ALWAYS);
@@ -1235,8 +1233,7 @@ bool CRenderShadowList::BlurShadowTexture(uint32 nSrcTex, uint32 nDestTex)
 				LTPixelShaderMgr::GetSingleton().InstallPixelShader(pPixelShader);
 
 				//render the polygon
-				PD3DDEVICE->SetVertexShader(NULL);
-				PD3DDEVICE->SetFVF(BLURTEXTUREVERTEX_FORMAT);
+				PD3DDEVICE->SetVertexShader(BLURTEXTUREVERTEX_FORMAT);
 				PD3DDEVICE->DrawPrimitiveUP(D3DPT_TRIANGLEFAN, 2, Verts, sizeof(CBlurTextureVertex));
 
 				// Uninstall the pixel shader.
@@ -1271,8 +1268,7 @@ bool CRenderShadowList::BlurShadowTexture(uint32 nSrcTex, uint32 nDestTex)
 				StateSet ss1(D3DRS_DESTBLEND, D3DBLEND_ONE);
 
 				//setup the vertex shader
-				PD3DDEVICE->SetVertexShader(NULL);
-				PD3DDEVICE->SetFVF(BLURTEXTURE2PASSVERTEX_FORMAT);
+				PD3DDEVICE->SetVertexShader(BLURTEXTURE2PASSVERTEX_FORMAT);
 
 				float fSign = 1.0f;
 				for(uint32 nPass = 0; nPass < 2; nPass++)
@@ -1369,7 +1365,7 @@ bool CRenderShadowList::RenderShadowTexture(uint32 nShadow, uint32 nTexture)
 	}
 
 	// Set the ShadowTexture as the render target...
-	LPDIRECT3DSURFACE9 pTextureRenderSurface = NULL;
+	LPDIRECT3DSURFACE8 pTextureRenderSurface = NULL;
 	D3D_CALL(m_cTextureList[nTexture]->m_pD3DTexture->GetSurfaceLevel(0, &pTextureRenderSurface));
 
 	if(pTextureRenderSurface)

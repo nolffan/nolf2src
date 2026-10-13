@@ -135,7 +135,7 @@ void CRelevantLightList::CreateDeviceLightList(CDeviceLightList& DevLightList) c
 
 	for(uint32 nCurrLight = 0; nCurrLight < m_nNumLights; nCurrLight++)
 	{
-		D3DLIGHT9* pDevLight = DevLightList.AddNewLight();
+		D3DLIGHT8* pDevLight = DevLightList.AddNewLight();
 
 		if(!pDevLight)
 		{

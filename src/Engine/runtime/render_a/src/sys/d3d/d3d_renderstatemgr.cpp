@@ -226,13 +226,13 @@ bool CD3DRenderStateMgr::SetRenderStyleStates(CD3DRenderStyle* pRenderStyle, uin
 		PD3DDEVICE->SetTextureStageState(iTexStage, D3DTSS_TEXCOORDINDEX, kTables.m_nUVSource[TexStage.UVSource] | nStageMask);
 
 		//setup the UV addressing modes
-		PD3DDEVICE->SetSamplerState(iTexStage, D3DSAMP_ADDRESSU, kTables.m_nAddress[TexStage.UAddress]);
-		PD3DDEVICE->SetSamplerState(iTexStage, D3DSAMP_ADDRESSV, kTables.m_nAddress[TexStage.VAddress]);
+		PD3DDEVICE->SetTextureStageState(iTexStage, D3DTSS_ADDRESSU, kTables.m_nAddress[TexStage.UAddress]);
+		PD3DDEVICE->SetTextureStageState(iTexStage, D3DTSS_ADDRESSV, kTables.m_nAddress[TexStage.VAddress]);
 
 		//setup the texture filtering
-		PD3DDEVICE->SetSamplerState(iTexStage,D3DSAMP_MINFILTER, kTables.m_nMinFilter[TexStage.TexFilter]);
-		PD3DDEVICE->SetSamplerState(iTexStage,D3DSAMP_MAGFILTER, kTables.m_nMagFilter[TexStage.TexFilter]);
-		PD3DDEVICE->SetSamplerState(iTexStage,D3DSAMP_MIPFILTER, kTables.m_nMipFilter[TexStage.TexFilter]);
+		PD3DDEVICE->SetTextureStageState(iTexStage,D3DTSS_MINFILTER, kTables.m_nMinFilter[TexStage.TexFilter]);
+		PD3DDEVICE->SetTextureStageState(iTexStage,D3DTSS_MAGFILTER, kTables.m_nMagFilter[TexStage.TexFilter]);
+		PD3DDEVICE->SetTextureStageState(iTexStage,D3DTSS_MIPFILTER, kTables.m_nMipFilter[TexStage.TexFilter]);
 
 		if (RenderPass.TextureStages[iTexStage].UVTransform_Enable)
 		{
@@ -287,7 +287,7 @@ bool CD3DRenderStateMgr::SetRenderStyleStates(CD3DRenderStyle* pRenderStyle, uin
 
 void CD3DRenderStateMgr::SetBumpEnvMapMatrix(uint32 BumpEnvMapStage)
 {
-	D3DVIEWPORT9 vp; PD3DDEVICE->GetViewport(&vp);
+	D3DVIEWPORT8 vp; PD3DDEVICE->GetViewport(&vp);
 
 	D3DXMATRIX VS; ZeroMemory(&VS, sizeof(D3DMATRIX));
 	VS._11	= (float)vp.Width/2;						// Create view scaling matrix:

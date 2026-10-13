@@ -4,7 +4,7 @@
 #ifndef __PRECOMPILE_H__
 #define __PRECOMPILE_H__
 
-#define DIRECT3D_VERSION        0x0900
+#define DIRECT3D_VERSION        0x0800
 
 #ifndef __BDEFS_H__
 #include "bdefs.h"
@@ -14,25 +14,25 @@
 #include "ltbasedefs.h"
 #endif
 
-#ifndef __D3D9_H__
-#include <d3d9.h>
-#define __D3D9_H__
+#ifndef __D3D8_H__
+#include <d3d8.h>
+#define __D3D8_H__
 #endif
 
-#ifndef __D3D9TYPES_H__
-#include <d3d9types.h>
-#define __D3D9TYPES_H__
+#ifndef __D3D8TYPES_H__
+#include <d3d8types.h>
+#define __D3D8TYPES_H__
 #endif
 
-#ifndef __D3DX9_H__
-#include <d3dx9.h>
-#define __D3DX9_H__
+#ifndef __D3DX8_H__
+#include <d3dx8.h>
+#define __D3DX8_H__
 #endif
 
 
-#ifndef __D3D9CAPS_H__
-#include <d3d9caps.h>
-#define __D3D9CAPS_H__
+#ifndef __D3D8CAPS_H__
+#include <d3d8caps.h>
+#define __D3D8CAPS_H__
 #endif
 
 #ifndef __D3D_DEFS_H__

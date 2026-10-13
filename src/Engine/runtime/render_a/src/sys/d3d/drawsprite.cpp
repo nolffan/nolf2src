@@ -18,9 +18,6 @@ define_holder(IClientShell, i_client_shell);
 #include "renderstruct.h"
 #include "counter.h"
 
-#include "LTEffectImpl.h"
-#include "lteffectshadermgr.h"
-#include "ltshaderdevicestateimp.h"
 #include "rendererconsolevars.h"
 
 //------------------------------------------------------------------
@@ -367,8 +364,7 @@ static void d3d_DrawRotatableSprite(const ViewParams& Params, SpriteInstance *pI
 	}
 	else
 	{	
-		D3D_CALL(PD3DDEVICE->SetVertexShader(NULL));
-		D3D_CALL(PD3DDEVICE->SetFVF(SPRITEVERTEX_FORMAT));
+		D3D_CALL(PD3DDEVICE->SetVertexShader(SPRITEVERTEX_FORMAT));
 		D3D_CALL(PD3DDEVICE->DrawPrimitiveUP(D3DPT_TRIANGLEFAN, nPoints-2, pPoints, sizeof(CSpriteVertex)));
 	}
 
@@ -496,8 +492,7 @@ static void d3d_DrawSprite(const ViewParams& Params, SpriteInstance *pInstance, 
 	}
 	else
 	{	
-		D3D_CALL(PD3DDEVICE->SetVertexShader(NULL));
-		D3D_CALL(PD3DDEVICE->SetFVF(SPRITEVERTEX_FORMAT));
+		D3D_CALL(PD3DDEVICE->SetVertexShader(SPRITEVERTEX_FORMAT));
 		D3D_CALL(PD3DDEVICE->DrawPrimitiveUP(D3DPT_TRIANGLEFAN, 2, SpriteVerts, sizeof(CSpriteVertex)));
 	}
 
@@ -532,8 +527,8 @@ void d3d_DrawSprite(const ViewParams& Params, LTObject *pObj)
 		StateSet ssCullMode(D3DRS_CULLMODE, D3DCULL_NONE);
 
 		//clamp the texture coordinates so that we don't have to worry about wrap around
-		SamplerStateSet ssWrapModeU0(0, D3DSAMP_ADDRESSU, D3DTADDRESS_CLAMP);
-		SamplerStateSet ssWrapModeV0(0, D3DSAMP_ADDRESSV, D3DTADDRESS_CLAMP);
+		StageStateSet ssWrapModeU0(0, D3DTSS_ADDRESSU, D3DTADDRESS_CLAMP);
+		StageStateSet ssWrapModeV0(0, D3DTSS_ADDRESSV, D3DTADDRESS_CLAMP);
 
 		CSpriteMultiplySS ssMultiply;
 

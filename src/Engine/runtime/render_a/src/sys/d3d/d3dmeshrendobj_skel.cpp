@@ -8,13 +8,8 @@
 #include "d3d_texture.h"
 #include "d3d_renderstatemgr.h"
 #include "d3d_draw.h"
-#include "ltvertexshadermgr.h"
-#include "ltpixelshadermgr.h"
 #include "de_objects.h"
-#include "ltshaderdevicestateimp.h"
 #include "rendererconsolevars.h"
-#include "LTEffectImpl.h"
-#include "lteffectshadermgr.h"
 #include <set>
 #include <vector>
 
@@ -724,8 +719,8 @@ void CD3DSkelMesh::EndRender()
 //	PD3DDEVICE->SetRenderState(D3DRS_FOGTABLEMODE, m_nPrevFogTableMode);
 //	PD3DDEVICE->SetRenderState(D3DRS_FOGVERTEXMODE, m_nPrevFogVertexMode);
 
-	PD3DDEVICE->SetStreamSource(0, 0, 0, 0);
-	PD3DDEVICE->SetIndices(0);
+	PD3DDEVICE->SetStreamSource(0, 0, 0);
+	PD3DDEVICE->SetIndices(0, 0);
 
 	// Uninstall the vertex shader.
 	if (NULL != m_pVertexShader)

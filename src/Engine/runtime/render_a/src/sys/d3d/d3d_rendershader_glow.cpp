@@ -7,15 +7,14 @@
 #include "texturescriptinstance.h"
 
 //indicates that a new shader is being started
-bool CRenderShader_Glow::BeginNewShader(uint32 nFVF, uint32 nVertSize, IDirect3DIndexBuffer9* pIB, IDirect3DVertexBuffer9* pVB)
+bool CRenderShader_Glow::BeginNewShader(uint32 nFVF, uint32 nVertSize, IDirect3DIndexBuffer8* pIB, IDirect3DVertexBuffer8* pVB)
 {
 	// Set up our call
 	if (pIB)
-		PD3DDEVICE->SetIndices(pIB);
-	PD3DDEVICE->SetVertexShader(NULL);
-	PD3DDEVICE->SetFVF(nFVF);
+		PD3DDEVICE->SetIndices(pIB, 0);
+	PD3DDEVICE->SetVertexShader(nFVF);
 	if (pVB)
-		PD3DDEVICE->SetStreamSource(0, pVB, 0, nVertSize);
+		PD3DDEVICE->SetStreamSource(0, pVB, nVertSize);
 
 	return true;
 }
@@ -45,8 +44,7 @@ void CRenderShader_Glow::DrawGlow(SharedTexture* pTexture, CTextureScriptInstanc
 		pTexEffect->Install(1, eChannel);
 
 	//now render away
-	PD3DDEVICE->DrawIndexedPrimitive(	D3DPT_TRIANGLELIST, 
-										0, nVertStart, nVertCount,
+	PD3DDEVICE->DrawIndexedPrimitive(	D3DPT_TRIANGLELIST, nVertStart, nVertCount,
 										nIndexStart, nTriCount);
 
 	//remove the texture script
@@ -74,8 +72,7 @@ void CRenderShader_Glow::DrawBlack(uint32 nVertStart, uint32 nVertCount, uint32 
 	StageStateSet tss11(1, D3DTSS_ALPHAOP, D3DTOP_DISABLE);
 
 	//now render away
-	PD3DDEVICE->DrawIndexedPrimitive(	D3DPT_TRIANGLELIST, 
-										0, nVertStart, nVertCount,
+	PD3DDEVICE->DrawIndexedPrimitive(	D3DPT_TRIANGLELIST, nVertStart, nVertCount,
 										nIndexStart, nTriCount);
 }
 

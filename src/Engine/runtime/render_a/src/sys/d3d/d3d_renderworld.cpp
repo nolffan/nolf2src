@@ -238,8 +238,7 @@ void CD3D_RenderWorld::DrawOccluder(const COccludee::COutline &cOutline)
 		aOccluderBuffer[nFillLoop].m_nColor = 0xFF202020;
 	}
 
-	PD3DDEVICE->SetVertexShader(NULL);
-	PD3DDEVICE->SetFVF(D3DFVF_XYZ | D3DFVF_DIFFUSE);
+	PD3DDEVICE->SetVertexShader(D3DFVF_XYZ | D3DFVF_DIFFUSE);
 	PD3DDEVICE->DrawPrimitiveUP(D3DPT_TRIANGLEFAN, cOutline.size() - 2, aOccluderBuffer, sizeof(SOccluderVert));
 }
 

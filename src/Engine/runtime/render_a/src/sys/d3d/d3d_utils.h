@@ -3,13 +3,13 @@
 #ifndef __D3D_UTILS_H__
 #define __D3D_UTILS_H__
 
-#ifndef __D3D9TYPES_H__
-#include <d3d9types.h>
-#define __D3D9TYPES_H__
+#ifndef __D3D8TYPES_H__
+#include <d3d8types.h>
+#define __D3D8TYPES_H__
 #endif
 
 #ifndef _DXERR9_H_
-#include <dxerr9.h>
+#include <dxerr8.h>
 #endif
 
 #ifndef __COMMON_STUFF_H__
@@ -153,11 +153,11 @@ inline void GetVertexFlags_and_Size(VERTEX_BLEND_TYPE VertBlendType, uint32 iVer
 #ifdef _DEBUG
 #define OUTPUT_D3D_ERROR(iLevel,hResult)					\
 	{														\
-	const TCHAR *dx9ErrString;								\
-	dx9ErrString = DXGetErrorString9(hResult);				\
-	AddDebugMessage(iLevel,dx9ErrString);					\
-	dx9ErrString = DXGetErrorDescription9(hResult);			\
-	AddDebugMessage(iLevel,dx9ErrString);					\
+	const TCHAR *dx8ErrString;								\
+	dx8ErrString = DXGetErrorString8(hResult);				\
+	AddDebugMessage(iLevel,dx8ErrString);					\
+	dx8ErrString = DXGetErrorDescription8(hResult);			\
+	AddDebugMessage(iLevel,dx8ErrString);					\
 	}
 #else
 #define OUTPUT_D3D_ERROR(iLevel,hResult)

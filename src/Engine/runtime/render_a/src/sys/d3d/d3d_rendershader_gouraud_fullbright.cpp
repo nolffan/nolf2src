@@ -81,9 +81,8 @@ void CRenderShader_Gouraud_Texture_Fullbright::DrawNormal(const DrawState &cStat
 	if (bDrawingLights)
 	{
 		// Set up our call
-		PD3DDEVICE->SetIndices(m_pIB);
-		PD3DDEVICE->SetVertexShader(NULL);
-		PD3DDEVICE->SetFVF(k_SVertex_Gouraud_Texture_FVF);
+		PD3DDEVICE->SetIndices(m_pIB, 0);
+		PD3DDEVICE->SetVertexShader(k_SVertex_Gouraud_Texture_FVF);
 
 		DWORD nFogEnabled;
 		PD3DDEVICE->GetRenderState(D3DRS_FOGENABLE, &nFogEnabled);
@@ -127,8 +126,7 @@ void CRenderShader_Gouraud_Texture_Fullbright::DrawNormal(const DrawState &cStat
 					cSection.m_pTextureEffect->Install(1, TSChannel_Base);
 
 				// Draw it
-				PD3DDEVICE->DrawIndexedPrimitive(D3DPT_TRIANGLELIST, 
-					0, cSection.m_nStartVertex, cSection.m_nVertexCount,
+				PD3DDEVICE->DrawIndexedPrimitive(D3DPT_TRIANGLELIST, cSection.m_nStartVertex, cSection.m_nVertexCount,
 					cSection.m_nStartIndex, cSection.m_nTriCount);
 
 				// Count the tris
@@ -138,8 +136,7 @@ void CRenderShader_Gouraud_Texture_Fullbright::DrawNormal(const DrawState &cStat
 				PD3DDEVICE->SetRenderState(D3DRS_SRCBLEND, D3DBLEND_SRCALPHA);
 				PD3DDEVICE->SetRenderState(D3DRS_DESTBLEND, D3DBLEND_INVSRCALPHA);
 
-				PD3DDEVICE->DrawIndexedPrimitive(D3DPT_TRIANGLELIST, 
-					0, cSection.m_nStartVertex, cSection.m_nVertexCount,
+				PD3DDEVICE->DrawIndexedPrimitive(D3DPT_TRIANGLELIST, cSection.m_nStartVertex, cSection.m_nVertexCount,
 					cSection.m_nStartIndex, cSection.m_nTriCount);
 
 				// Count the extra fullbright pass
@@ -158,8 +155,8 @@ void CRenderShader_Gouraud_Texture_Fullbright::DrawNormal(const DrawState &cStat
 		if (nFogEnabled)
 			DrawFogPass(nRenderBlock);
 
-		PD3DDEVICE->SetStreamSource(0, 0, 0, 0);
-		PD3DDEVICE->SetIndices(0);
+		PD3DDEVICE->SetStreamSource(0, 0, 0);
+		PD3DDEVICE->SetIndices(0, 0);
 	}
 	else
 	{
@@ -326,9 +323,8 @@ void CRenderShader_Gouraud_Detail_Fullbright::DrawNormal(const DrawState &cState
 	if (bDrawingLights)
 	{
 		// Set up our call
-		PD3DDEVICE->SetIndices(m_pIB);
-		PD3DDEVICE->SetVertexShader(NULL);
-		PD3DDEVICE->SetFVF(k_SVertex_Gouraud_Detail_FVF);
+		PD3DDEVICE->SetIndices(m_pIB, 0);
+		PD3DDEVICE->SetVertexShader(k_SVertex_Gouraud_Detail_FVF);
 
 		DWORD nFogEnabled;
 		PD3DDEVICE->GetRenderState(D3DRS_FOGENABLE, &nFogEnabled);
@@ -376,8 +372,7 @@ void CRenderShader_Gouraud_Detail_Fullbright::DrawNormal(const DrawState &cState
 					cSection.m_pTextureEffect->Install(2, TSChannel_Base, TSChannel_Detail);
 
 				// Draw it
-				PD3DDEVICE->DrawIndexedPrimitive(D3DPT_TRIANGLELIST, 
-					0, cSection.m_nStartVertex, cSection.m_nVertexCount,
+				PD3DDEVICE->DrawIndexedPrimitive(D3DPT_TRIANGLELIST, cSection.m_nStartVertex, cSection.m_nVertexCount,
 					cSection.m_nStartIndex, cSection.m_nTriCount);
 
 				// Count it
@@ -391,8 +386,7 @@ void CRenderShader_Gouraud_Detail_Fullbright::DrawNormal(const DrawState &cState
 					PD3DDEVICE->SetRenderState(D3DRS_DESTBLEND, D3DBLEND_INVSRCALPHA);
 
 					// Draw it
-					PD3DDEVICE->DrawIndexedPrimitive(D3DPT_TRIANGLELIST, 
-						0, cSection.m_nStartVertex, cSection.m_nVertexCount,
+					PD3DDEVICE->DrawIndexedPrimitive(D3DPT_TRIANGLELIST, cSection.m_nStartVertex, cSection.m_nVertexCount,
 						cSection.m_nStartIndex, cSection.m_nTriCount);
 
 					PD3DDEVICE->SetRenderState(D3DRS_SRCBLEND, D3DBLEND_DESTCOLOR);
@@ -412,8 +406,8 @@ void CRenderShader_Gouraud_Detail_Fullbright::DrawNormal(const DrawState &cState
 		if (nFogEnabled)
 			DrawFogPass(nRenderBlock);
 
-		PD3DDEVICE->SetStreamSource(0, 0, 0, 0);
-		PD3DDEVICE->SetIndices(0);
+		PD3DDEVICE->SetStreamSource(0, 0, 0);
+		PD3DDEVICE->SetIndices(0, 0);
 	}
 	else
 	{
@@ -600,9 +594,8 @@ void CRenderShader_Gouraud_EnvMap_Fullbright::DrawNormal(const DrawState &cState
 	if (bDrawingLights)
 	{
 		// Set up our call
-		PD3DDEVICE->SetIndices(m_pIB);
-		PD3DDEVICE->SetVertexShader(NULL);
-		PD3DDEVICE->SetFVF(k_SVertex_Gouraud_EnvMap_FVF);
+		PD3DDEVICE->SetIndices(m_pIB, 0);
+		PD3DDEVICE->SetVertexShader(k_SVertex_Gouraud_EnvMap_FVF);
 
 		DWORD nFogEnabled;
 		PD3DDEVICE->GetRenderState(D3DRS_FOGENABLE, &nFogEnabled);
@@ -663,8 +656,7 @@ void CRenderShader_Gouraud_EnvMap_Fullbright::DrawNormal(const DrawState &cState
 					cSection.m_pTextureEffect->Install(2, TSChannel_Base, TSChannel_EnvMap);
 
 				// Draw it
-				PD3DDEVICE->DrawIndexedPrimitive(D3DPT_TRIANGLELIST, 
-					0, cSection.m_nStartVertex, cSection.m_nVertexCount,
+				PD3DDEVICE->DrawIndexedPrimitive(D3DPT_TRIANGLELIST, cSection.m_nStartVertex, cSection.m_nVertexCount,
 					cSection.m_nStartIndex, cSection.m_nTriCount);
 
 				// Count it
@@ -678,8 +670,7 @@ void CRenderShader_Gouraud_EnvMap_Fullbright::DrawNormal(const DrawState &cState
 					PD3DDEVICE->SetRenderState(D3DRS_DESTBLEND, D3DBLEND_INVSRCALPHA);
 
 					// Draw it
-					PD3DDEVICE->DrawIndexedPrimitive(D3DPT_TRIANGLELIST, 
-						0, cSection.m_nStartVertex, cSection.m_nVertexCount,
+					PD3DDEVICE->DrawIndexedPrimitive(D3DPT_TRIANGLELIST, cSection.m_nStartVertex, cSection.m_nVertexCount,
 						cSection.m_nStartIndex, cSection.m_nTriCount);
 
 					PD3DDEVICE->SetRenderState(D3DRS_SRCBLEND, D3DBLEND_DESTCOLOR);
@@ -702,8 +693,8 @@ void CRenderShader_Gouraud_EnvMap_Fullbright::DrawNormal(const DrawState &cState
 		// Make sure to turn off the transform
 		d3d_UnsetEnvMapTransform(1);
 
-		PD3DDEVICE->SetStreamSource(0, 0, 0, 0);
-		PD3DDEVICE->SetIndices(0);
+		PD3DDEVICE->SetStreamSource(0, 0, 0);
+		PD3DDEVICE->SetIndices(0, 0);
 	}
 	else
 	{

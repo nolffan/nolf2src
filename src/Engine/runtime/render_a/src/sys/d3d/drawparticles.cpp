@@ -19,9 +19,6 @@ define_holder(IClientShell, i_client_shell);
 #include "renderstruct.h"
 #include "counter.h"
 
-#include "LTEffectImpl.h"
-#include "lteffectshadermgr.h"
-#include "ltshaderdevicestateimp.h"
 #include "rendererconsolevars.h"
 
 // ---------------------------------------------------------------- //
@@ -377,8 +374,7 @@ static void d3d_DrawParticles(LTParticleSystem *pSystem)
 	int nExtra		= pSystem->m_nParticles % PARTICLE_BATCH_SIZE;
 
 	//setup our vertex shader for this particle system
-	D3D_CALL(PD3DDEVICE->SetVertexShader(NULL));
-	D3D_CALL(PD3DDEVICE->SetFVF(PARTICLEVERTEX_FORMAT));
+	D3D_CALL(PD3DDEVICE->SetVertexShader(PARTICLEVERTEX_FORMAT));
 
 	// No need to set the normal and the UVs for each vertex.
     // They are the same for all vertices this frame.
@@ -534,8 +530,8 @@ void d3d_DrawParticleSystem(const ViewParams& Params, LTParticleSystem *pParticl
 
 	//don't let the texture wrap, this prevents pixels from appearring on opposite sides
 	//due to filtering
-	SamplerStateSet ssWrapModeU0(0, D3DSAMP_ADDRESSU, D3DTADDRESS_CLAMP);
-	SamplerStateSet ssWrapModeV0(0, D3DSAMP_ADDRESSV, D3DTADDRESS_CLAMP);
+	StageStateSet ssWrapModeU0(0, D3DTSS_ADDRESSU, D3DTADDRESS_CLAMP);
+	StageStateSet ssWrapModeV0(0, D3DTSS_ADDRESSV, D3DTADDRESS_CLAMP);
 
 	d3d_DrawParticles(pParticleSystem);
 

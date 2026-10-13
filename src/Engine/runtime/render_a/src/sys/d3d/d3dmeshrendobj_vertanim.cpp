@@ -10,13 +10,8 @@
 #include "d3d_device.h"
 #include "d3d_texture.h"
 #include "d3d_renderstatemgr.h"
-#include "ltvertexshadermgr.h"
-#include "ltpixelshadermgr.h"
 #include "de_objects.h"
-#include "ltshaderdevicestateimp.h"
 #include "rendererconsolevars.h"
-#include "LTEffectImpl.h"
-#include "lteffectshadermgr.h"
 
 
 //IClientShell game client shell object.
@@ -366,8 +361,8 @@ void CD3DVAMesh::Render(ModelInstance *pInstance, D3DMATRIX& WorldTransform, CD3
 		}
 	}
 
-	PD3DDEVICE->SetStreamSource(0, 0, 0, 0);
-	PD3DDEVICE->SetIndices(0);
+	PD3DDEVICE->SetStreamSource(0, 0, 0);
+	PD3DDEVICE->SetIndices(0, 0);
 
 	// Uninstall the vertex shader.
 	if (NULL != m_pVertexShader)

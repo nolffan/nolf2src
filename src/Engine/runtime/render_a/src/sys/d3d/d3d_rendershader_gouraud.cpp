@@ -20,9 +20,6 @@ define_holder(IClientShell, i_client_shell);
 
 #include "d3d_rendershader_dynamiclight.h"
 
-#include "LTEffectImpl.h"
-#include "lteffectshadermgr.h"
-#include "ltshaderdevicestateimp.h"
 #include "rendererconsolevars.h"
 
 #include <algorithm>
@@ -70,9 +67,8 @@ void CRenderShader_Gouraud::TranslateVertices(SVertex_Gouraud *pOut, const SRBVe
 void CRenderShader_Gouraud::DrawLights(const DrawState &cState, uint32 nRenderBlock)
 {
 	// Set up our call
-	PD3DDEVICE->SetIndices(m_pIB);
-	PD3DDEVICE->SetVertexShader(NULL);
-	PD3DDEVICE->SetFVF(k_SVertex_Gouraud_FVF);
+	PD3DDEVICE->SetIndices(m_pIB, 0);
+	PD3DDEVICE->SetVertexShader(k_SVertex_Gouraud_FVF);
 
 	d3d_DisableTexture(0);
 
@@ -95,8 +91,7 @@ void CRenderShader_Gouraud::DrawLights(const DrawState &cState, uint32 nRenderBl
 		ChangeSection(cSection);
 
 		// Draw it
-		PD3DDEVICE->DrawIndexedPrimitive(D3DPT_TRIANGLELIST, 
-			0, cSection.m_nStartVertex, cSection.m_nVertexCount, 
+		PD3DDEVICE->DrawIndexedPrimitive(D3DPT_TRIANGLELIST, cSection.m_nStartVertex, cSection.m_nVertexCount, 
 			cSection.m_nStartIndex, cSection.m_nTriCount);
 
 		// Count it
@@ -109,8 +104,8 @@ void CRenderShader_Gouraud::DrawLights(const DrawState &cState, uint32 nRenderBl
 
 	DrawLightList(cState, nRenderBlock);
 
-	PD3DDEVICE->SetStreamSource(0, 0, 0, 0);
-	PD3DDEVICE->SetIndices(0);
+	PD3DDEVICE->SetStreamSource(0, 0, 0);
+	PD3DDEVICE->SetIndices(0, 0);
 }
 
 void CRenderShader_Gouraud::DrawNormal(const DrawState &cState, uint32 nRenderBlock)
@@ -241,9 +236,8 @@ void CRenderShader_Gouraud_Texture::DrawNormal(const DrawState &cState, uint32 n
 	if (ShouldDrawLights(cState))
 	{
 		// Set up our call
-		PD3DDEVICE->SetIndices(m_pIB);
-		PD3DDEVICE->SetVertexShader(NULL);
-		PD3DDEVICE->SetFVF(k_SVertex_Gouraud_Texture_FVF);
+		PD3DDEVICE->SetIndices(m_pIB, 0);
+		PD3DDEVICE->SetVertexShader(k_SVertex_Gouraud_Texture_FVF);
 
 		DWORD nFogEnabled;
 		PD3DDEVICE->GetRenderState(D3DRS_FOGENABLE, &nFogEnabled);
@@ -292,8 +286,7 @@ void CRenderShader_Gouraud_Texture::DrawNormal(const DrawState &cState, uint32 n
 				IncFrameStat(eFS_ShaderDrawPrim, 1);
 
 				// Just Draw it
-				PD3DDEVICE->DrawIndexedPrimitive(D3DPT_TRIANGLELIST, 
-						0, cSection.m_nStartVertex, cSection.m_nVertexCount,
+				PD3DDEVICE->DrawIndexedPrimitive(D3DPT_TRIANGLELIST, cSection.m_nStartVertex, cSection.m_nVertexCount,
 						cSection.m_nStartIndex, cSection.m_nTriCount);
 
 				IncFrameStat(eFS_WorldTriangles, cSection.m_nTriCount);
@@ -311,8 +304,8 @@ void CRenderShader_Gouraud_Texture::DrawNormal(const DrawState &cState, uint32 n
 		if (nFogEnabled)
 			DrawFogPass(nRenderBlock);
 
-		PD3DDEVICE->SetStreamSource(0, 0, 0, 0);
-		PD3DDEVICE->SetIndices(0);
+		PD3DDEVICE->SetStreamSource(0, 0, 0);
+		PD3DDEVICE->SetIndices(0, 0);
 	}
 	else
 	{
@@ -369,8 +362,7 @@ void CRenderShader_Gouraud_Texture::PostFlushBlock(CInternalSection &cSection,
 		StageStateSet state2over(0, D3DTSS_COLOROP, D3DTOP_SELECTARG1);
 
 		uint32 nNumTris = (nEndIndex - nStartIndex) / 3; 
-		PD3DDEVICE->DrawIndexedPrimitive(D3DPT_TRIANGLELIST, 
-			0, nStartVertex, nEndVertex - nStartVertex,
+		PD3DDEVICE->DrawIndexedPrimitive(D3DPT_TRIANGLELIST, nStartVertex, nEndVertex - nStartVertex,
 			nStartIndex, nNumTris);
 
 		IncFrameStat(eFS_WorldTriangles, nNumTris);
@@ -577,9 +569,8 @@ void CRenderShader_Gouraud_Detail::DrawNormal(const DrawState &cState, uint32 nR
 	if (ShouldDrawLights(cState))
 	{
 		// Set up our call
-		PD3DDEVICE->SetIndices(m_pIB);
-		PD3DDEVICE->SetVertexShader(NULL);
-		PD3DDEVICE->SetFVF(k_SVertex_Gouraud_Detail_FVF);
+		PD3DDEVICE->SetIndices(m_pIB, 0);
+		PD3DDEVICE->SetVertexShader(k_SVertex_Gouraud_Detail_FVF);
 
 		DWORD nFogEnabled;
 		PD3DDEVICE->GetRenderState(D3DRS_FOGENABLE, &nFogEnabled);
@@ -634,8 +625,7 @@ void CRenderShader_Gouraud_Detail::DrawNormal(const DrawState &cState, uint32 nR
 				IncFrameStat(eFS_ShaderDrawPrim, 1);
 
 				// Draw it
-				PD3DDEVICE->DrawIndexedPrimitive(D3DPT_TRIANGLELIST, 
-					0, cSection.m_nStartVertex, cSection.m_nVertexCount,
+				PD3DDEVICE->DrawIndexedPrimitive(D3DPT_TRIANGLELIST, cSection.m_nStartVertex, cSection.m_nVertexCount,
 					cSection.m_nStartIndex, cSection.m_nTriCount);
 
 				IncFrameStat(eFS_WorldTriangles, cSection.m_nTriCount);
@@ -655,8 +645,8 @@ void CRenderShader_Gouraud_Detail::DrawNormal(const DrawState &cState, uint32 nR
 		if (nFogEnabled)
 			DrawFogPass(nRenderBlock);
 
-		PD3DDEVICE->SetStreamSource(0, 0, 0, 0);
-		PD3DDEVICE->SetIndices(0);
+		PD3DDEVICE->SetStreamSource(0, 0, 0);
+		PD3DDEVICE->SetIndices(0, 0);
 	}
 	else
 	{
@@ -727,8 +717,7 @@ void CRenderShader_Gouraud_Detail::PostFlushBlock(CInternalSection &cSection,
 		StageStateSet state15over(1, D3DTSS_ALPHAOP, D3DTOP_DISABLE);
 
 		uint32 nNumTris = (nEndIndex - nStartIndex) / 3; 
-		PD3DDEVICE->DrawIndexedPrimitive(D3DPT_TRIANGLELIST, 
-			0, nStartVertex, nEndVertex - nStartVertex,
+		PD3DDEVICE->DrawIndexedPrimitive(D3DPT_TRIANGLELIST, nStartVertex, nEndVertex - nStartVertex,
 			nStartIndex, nNumTris);
 
 		IncFrameStat(eFS_WorldTriangles, nNumTris);
@@ -958,9 +947,8 @@ void CRenderShader_Gouraud_EnvMap::DrawNormal(const DrawState &cState, uint32 nR
 			nStage1Op = g_CV_EnvMapAdd.m_Val ? D3DTOP_ADDSIGNED : D3DTOP_MODULATE;
 
 		// Set up our call
-		PD3DDEVICE->SetIndices(m_pIB);
-		PD3DDEVICE->SetVertexShader(NULL);
-		PD3DDEVICE->SetFVF(k_SVertex_Gouraud_EnvMap_FVF);
+		PD3DDEVICE->SetIndices(m_pIB, 0);
+		PD3DDEVICE->SetVertexShader(k_SVertex_Gouraud_EnvMap_FVF);
 
 		DWORD nFogEnabled;
 		PD3DDEVICE->GetRenderState(D3DRS_FOGENABLE, &nFogEnabled);
@@ -1018,8 +1006,7 @@ void CRenderShader_Gouraud_EnvMap::DrawNormal(const DrawState &cState, uint32 nR
 				IncFrameStat(eFS_ShaderDrawPrim, 1);
 
 				// Draw it
-				PD3DDEVICE->DrawIndexedPrimitive(D3DPT_TRIANGLELIST, 
-					0, cSection.m_nStartVertex, cSection.m_nVertexCount,
+				PD3DDEVICE->DrawIndexedPrimitive(D3DPT_TRIANGLELIST, cSection.m_nStartVertex, cSection.m_nVertexCount,
 					cSection.m_nStartIndex, cSection.m_nTriCount);
 
 				IncFrameStat(eFS_WorldTriangles, cSection.m_nTriCount);
@@ -1045,8 +1032,8 @@ void CRenderShader_Gouraud_EnvMap::DrawNormal(const DrawState &cState, uint32 nR
 		mIdentity.Identity();
 		PD3DDEVICE->SetTransform(D3DTS_TEXTURE1, (D3DMATRIX*)&mIdentity);
 
-		PD3DDEVICE->SetStreamSource(0, 0, 0, 0);
-		PD3DDEVICE->SetIndices(0);
+		PD3DDEVICE->SetStreamSource(0, 0, 0);
+		PD3DDEVICE->SetIndices(0, 0);
 	}
 	else
 	{
@@ -1134,8 +1121,7 @@ void CRenderShader_Gouraud_EnvMap::PostFlushBlock(CInternalSection &cSection,
 		StageStateSet state15over(1, D3DTSS_ALPHAOP, D3DTOP_DISABLE);
 
 		uint32 nNumTris = (nEndIndex - nStartIndex) / 3; 
-		PD3DDEVICE->DrawIndexedPrimitive(D3DPT_TRIANGLELIST, 
-			0, nStartVertex, nEndVertex - nStartVertex,
+		PD3DDEVICE->DrawIndexedPrimitive(D3DPT_TRIANGLELIST, nStartVertex, nEndVertex - nStartVertex,
 			nStartIndex, nNumTris);
 
 		IncFrameStat(eFS_WorldTriangles, nNumTris);
@@ -1350,9 +1336,8 @@ void CRenderShader_Gouraud_EnvBumpMap::DrawNormal(const DrawState &cState, uint3
 	if (ShouldDrawLights(cState))
 	{
 		// Set up our call
-		PD3DDEVICE->SetIndices(m_pIB);
-		PD3DDEVICE->SetVertexShader(NULL);
-		PD3DDEVICE->SetFVF(k_SVertex_Gouraud_EnvBumpMap_FVF);
+		PD3DDEVICE->SetIndices(m_pIB, 0);
+		PD3DDEVICE->SetVertexShader(k_SVertex_Gouraud_EnvBumpMap_FVF);
 
 		// Find the operation we want to use to blend the environment map
 		DWORD nEnvBlendOp = g_CV_EnvMapAdd.m_Val ? D3DTOP_ADDSIGNED : D3DTOP_MODULATE;
@@ -1426,8 +1411,7 @@ void CRenderShader_Gouraud_EnvBumpMap::DrawNormal(const DrawState &cState, uint3
 				IncFrameStat(eFS_ShaderDrawPrim, 1);
 
 				// Draw it
-				PD3DDEVICE->DrawIndexedPrimitive(D3DPT_TRIANGLELIST, 
-					0, cSection.m_nStartVertex, cSection.m_nVertexCount,
+				PD3DDEVICE->DrawIndexedPrimitive(D3DPT_TRIANGLELIST, cSection.m_nStartVertex, cSection.m_nVertexCount,
 					cSection.m_nStartIndex, cSection.m_nTriCount);
 
 				IncFrameStat(eFS_WorldTriangles, cSection.m_nTriCount);
@@ -1455,8 +1439,8 @@ void CRenderShader_Gouraud_EnvBumpMap::DrawNormal(const DrawState &cState, uint3
 		mIdentity.Identity();
 		PD3DDEVICE->SetTransform(D3DTS_TEXTURE1, (D3DMATRIX*)&mIdentity);
 
-		PD3DDEVICE->SetStreamSource(0, 0, 0, 0);
-		PD3DDEVICE->SetIndices(0);
+		PD3DDEVICE->SetStreamSource(0, 0, 0);
+		PD3DDEVICE->SetIndices(0, 0);
 	}
 	else
 	{
@@ -1565,8 +1549,7 @@ void CRenderShader_Gouraud_EnvBumpMap::PostFlushBlock(CInternalSection &cSection
 		StageStateSet state15over(1, D3DTSS_ALPHAOP, D3DTOP_DISABLE);
 
 		uint32 nNumTris = (nEndIndex - nStartIndex) / 3; 
-		PD3DDEVICE->DrawIndexedPrimitive(D3DPT_TRIANGLELIST, 
-			0, nStartVertex, nEndVertex - nStartVertex,
+		PD3DDEVICE->DrawIndexedPrimitive(D3DPT_TRIANGLELIST, nStartVertex, nEndVertex - nStartVertex,
 			nStartIndex, nNumTris);
 
 		IncFrameStat(eFS_WorldTriangles, nNumTris);
@@ -1756,9 +1739,8 @@ void CRenderShader_Gouraud_DualTexture::DrawNormal(const DrawState &cState, uint
 	if (ShouldDrawLights(cState) || s_bTwoPass)
 	{
 		// Set up our call
-		PD3DDEVICE->SetIndices(m_pIB);
-		PD3DDEVICE->SetVertexShader(NULL);
-		PD3DDEVICE->SetFVF(k_SVertex_Gouraud_DualTexture_FVF);
+		PD3DDEVICE->SetIndices(m_pIB, 0);
+		PD3DDEVICE->SetVertexShader(k_SVertex_Gouraud_DualTexture_FVF);
 
 		DWORD nFogEnabled;
 		PD3DDEVICE->GetRenderState(D3DRS_FOGENABLE, &nFogEnabled);
@@ -1820,8 +1802,7 @@ void CRenderShader_Gouraud_DualTexture::DrawNormal(const DrawState &cState, uint
 				IncFrameStat(eFS_ShaderDrawPrim, 1);
 
 				// Draw it
-				PD3DDEVICE->DrawIndexedPrimitive(D3DPT_TRIANGLELIST, 
-					0, cSection.m_nStartVertex, cSection.m_nVertexCount,
+				PD3DDEVICE->DrawIndexedPrimitive(D3DPT_TRIANGLELIST, cSection.m_nStartVertex, cSection.m_nVertexCount,
 					cSection.m_nStartIndex, cSection.m_nTriCount);
 
 				IncFrameStat(eFS_WorldTriangles, cSection.m_nTriCount);
@@ -1840,8 +1821,8 @@ void CRenderShader_Gouraud_DualTexture::DrawNormal(const DrawState &cState, uint
 		if (nFogEnabled)
 			DrawFogPass(nRenderBlock);
 
-		PD3DDEVICE->SetStreamSource(0, 0, 0, 0);
-		PD3DDEVICE->SetIndices(0);
+		PD3DDEVICE->SetStreamSource(0, 0, 0);
+		PD3DDEVICE->SetIndices(0, 0);
 	}
 	else
 	{
@@ -2089,9 +2070,8 @@ void CRenderShader_Gouraud_DOT3BumpMap::DrawNormal(const DrawState &cState, uint
 	if (ShouldDrawLights(cState))
 	{
 		// Set up our call
-		PD3DDEVICE->SetIndices(m_pIB);
-		PD3DDEVICE->SetVertexShader(NULL);
-		PD3DDEVICE->SetFVF(k_SVertex_Gouraud_DOT3BumpMap_FVF);
+		PD3DDEVICE->SetIndices(m_pIB, 0);
+		PD3DDEVICE->SetVertexShader(k_SVertex_Gouraud_DOT3BumpMap_FVF);
 
 
 		DWORD nFogEnabled;
@@ -2166,8 +2146,7 @@ void CRenderShader_Gouraud_DOT3BumpMap::DrawNormal(const DrawState &cState, uint
 				IncFrameStat(eFS_ShaderDrawPrim, 1);
 
 				// Draw it
-				PD3DDEVICE->DrawIndexedPrimitive(D3DPT_TRIANGLELIST, 
-					0, cSection.m_nStartVertex, cSection.m_nVertexCount,
+				PD3DDEVICE->DrawIndexedPrimitive(D3DPT_TRIANGLELIST, cSection.m_nStartVertex, cSection.m_nVertexCount,
 					cSection.m_nStartIndex, cSection.m_nTriCount);
 
 				IncFrameStat(eFS_WorldTriangles, cSection.m_nTriCount);
@@ -2192,8 +2171,8 @@ void CRenderShader_Gouraud_DOT3BumpMap::DrawNormal(const DrawState &cState, uint
 		if (nFogEnabled)
 			DrawFogPass(nRenderBlock);
 
-		PD3DDEVICE->SetStreamSource(0, 0, 0, 0);
-		PD3DDEVICE->SetIndices(0);
+		PD3DDEVICE->SetStreamSource(0, 0, 0);
+		PD3DDEVICE->SetIndices(0, 0);
 	}
 	else
 	{
@@ -2293,7 +2272,7 @@ void CRenderShader_Gouraud_DOT3BumpMap::PostFlushBlock(CInternalSection &cSectio
 
 		uint32 nNumTris = (nEndIndex - nStartIndex) / 3; 
 
-		PD3DDEVICE->DrawIndexedPrimitive(D3DPT_TRIANGLELIST, 0, nStartVertex, nEndVertex - nStartVertex, nStartIndex, nNumTris);
+		PD3DDEVICE->DrawIndexedPrimitive(D3DPT_TRIANGLELIST, nStartVertex, nEndVertex - nStartVertex, nStartIndex, nNumTris);
 
 		IncFrameStat(eFS_WorldTriangles, nNumTris);
 	}
@@ -2531,9 +2510,8 @@ void CRenderShader_Gouraud_DOT3EnvBumpMap::DrawNormal(const DrawState &cState, u
 	if (ShouldDrawLights(cState))
 	{
 		// Set up our call
-		PD3DDEVICE->SetIndices(m_pIB);
-		PD3DDEVICE->SetVertexShader(NULL);
-		PD3DDEVICE->SetFVF(k_SVertex_Gouraud_DOT3EnvBumpMap_FVF);
+		PD3DDEVICE->SetIndices(m_pIB, 0);
+		PD3DDEVICE->SetVertexShader(k_SVertex_Gouraud_DOT3EnvBumpMap_FVF);
 
 		// Find the operation we want to use to blend the environment map
 		DWORD nEnvBlendOp = g_CV_EnvMapAdd.m_Val ? D3DTOP_ADDSIGNED : D3DTOP_MODULATE;
@@ -2626,8 +2604,7 @@ void CRenderShader_Gouraud_DOT3EnvBumpMap::DrawNormal(const DrawState &cState, u
 				IncFrameStat(eFS_ShaderDrawPrim, 1);
 
 				// Draw it
-				PD3DDEVICE->DrawIndexedPrimitive(D3DPT_TRIANGLELIST, 
-					0, cSection.m_nStartVertex, cSection.m_nVertexCount,
+				PD3DDEVICE->DrawIndexedPrimitive(D3DPT_TRIANGLELIST, cSection.m_nStartVertex, cSection.m_nVertexCount,
 					cSection.m_nStartIndex, cSection.m_nTriCount);
 
 				IncFrameStat(eFS_WorldTriangles, cSection.m_nTriCount);
@@ -2663,8 +2640,8 @@ void CRenderShader_Gouraud_DOT3EnvBumpMap::DrawNormal(const DrawState &cState, u
 
 		PD3DDEVICE->SetTransform((D3DTRANSFORMSTATETYPE)(D3DTS_TEXTURE0+knEnvMapStage), (D3DMATRIX*)&mIdentity);
 
-		PD3DDEVICE->SetStreamSource(0, 0, 0, 0);
-		PD3DDEVICE->SetIndices(0);
+		PD3DDEVICE->SetStreamSource(0, 0, 0);
+		PD3DDEVICE->SetIndices(0, 0);
 	}
 	else
 	{
@@ -2781,8 +2758,7 @@ void CRenderShader_Gouraud_DOT3EnvBumpMap::PostFlushBlock(CInternalSection &cSec
 		StageStateSet state15over(1, D3DTSS_ALPHAOP, D3DTOP_DISABLE);
 
 		uint32 nNumTris = (nEndIndex - nStartIndex) / 3; 
-		PD3DDEVICE->DrawIndexedPrimitive(D3DPT_TRIANGLELIST, 
-			0, nStartVertex, nEndVertex - nStartVertex,
+		PD3DDEVICE->DrawIndexedPrimitive(D3DPT_TRIANGLELIST, nStartVertex, nEndVertex - nStartVertex,
 			nStartIndex, nNumTris);
 
 		IncFrameStat(eFS_WorldTriangles, nNumTris);
@@ -3111,8 +3087,7 @@ bool CRenderShader_Gouraud_Effect::FlushWithEffect(CInternalSection &cSection,
 			pEffect->BeginPass(iPass);
 
 			// Draw it
-			PD3DDEVICE->DrawIndexedPrimitive(D3DPT_TRIANGLELIST,
-				0, nStartVertex, nNumVerts,
+			PD3DDEVICE->DrawIndexedPrimitive(D3DPT_TRIANGLELIST, nStartVertex, nNumVerts,
 				nStartIndex, nNumTris);
 
 			DEBUG_PRINT(2,("Brush Section: (%p) Start: (%d) Verts: (%d) sIdx: (%d) Tris: (%d)", &cSection, nStartVertex, nNumVerts, nStartIndex, nNumTris));
@@ -3141,8 +3116,7 @@ void CRenderShader_Gouraud_Effect::PostFlushBlock(CInternalSection &cSection,
 		StageStateSet state2over(0, D3DTSS_COLOROP, D3DTOP_SELECTARG1);
 
 		uint32 nNumTris = (nEndIndex - nStartIndex) / 3; 
-		PD3DDEVICE->DrawIndexedPrimitive(D3DPT_TRIANGLELIST, 
-			0, nStartVertex, nEndVertex - nStartVertex,
+		PD3DDEVICE->DrawIndexedPrimitive(D3DPT_TRIANGLELIST, nStartVertex, nEndVertex - nStartVertex,
 			nStartIndex, nNumTris);
 
 		IncFrameStat(eFS_WorldTriangles, nNumTris);

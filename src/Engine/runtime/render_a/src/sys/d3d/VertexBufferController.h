@@ -38,8 +38,8 @@ public:
 	uint32							getVertexFormat(uint32 iStreamNum)			{ return m_VertexFVFFlags[iStreamNum]; } 
 
 private:
-	LPDIRECT3DVERTEXBUFFER9			m_pVB_VertStream[VERTEXBUFFER_STREAMCOUNT];	// Handles to the vertex buffers...
-	LPDIRECT3DINDEXBUFFER9			m_pVB_Index;
+	LPDIRECT3DVERTEXBUFFER8			m_pVB_VertStream[VERTEXBUFFER_STREAMCOUNT];	// Handles to the vertex buffers...
+	LPDIRECT3DINDEXBUFFER8			m_pVB_Index;
 
 	void*							m_pVert_Data[VERTEXBUFFER_STREAMCOUNT];		// Data (for when you lock stuff)...
 	uint16*							m_pIndex_Data;

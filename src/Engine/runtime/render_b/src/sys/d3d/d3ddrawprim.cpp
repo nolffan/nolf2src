@@ -23,9 +23,6 @@ define_holder(IClientShell, i_client_shell);
 #include "d3d_viewparams.h"
 #include "common_draw.h"
 
-#include "LTEffectImpl.h"
-#include "lteffectshadermgr.h"
-#include "ltshaderdevicestateimp.h"
 #include "rendererconsolevars.h"
 
 #ifndef __ILTTEXINTERFACE_H__
@@ -243,7 +240,7 @@ LTRESULT CD3DDrawPrim::SetFogEnable(bool bFogEnable)
 }
 
 //saves the current D3D state into the member variables
-void CD3DDrawPrim::SaveStates(LPDIRECT3DDEVICE9 pDevice)
+void CD3DDrawPrim::SaveStates(LPDIRECT3DDEVICE8 pDevice)
 {
 	// Save the render states...
 	pDevice->GetTextureStageState(0,D3DTSS_COLOROP,(unsigned long*)&m_PrevColorOp);
@@ -268,7 +265,7 @@ void CD3DDrawPrim::SaveStates(LPDIRECT3DDEVICE9 pDevice)
 
 
 //sets up the appropriate state for the each section
-void CD3DDrawPrim::SetClipMode(LPDIRECT3DDEVICE9 pDevice)
+void CD3DDrawPrim::SetClipMode(LPDIRECT3DDEVICE8 pDevice)
 {
 	switch (m_eClipType) 
 	{
@@ -282,7 +279,7 @@ void CD3DDrawPrim::SetClipMode(LPDIRECT3DDEVICE9 pDevice)
 	} 
 
 }
-void CD3DDrawPrim::SetTexture(LPDIRECT3DDEVICE9 pDevice)
+void CD3DDrawPrim::SetTexture(LPDIRECT3DDEVICE8 pDevice)
 {
 	if (m_pTexture) 
 	{
@@ -309,7 +306,7 @@ void CD3DDrawPrim::SetTexture(LPDIRECT3DDEVICE9 pDevice)
 	}
 }
 
-void CD3DDrawPrim::SetReallyClose(LPDIRECT3DDEVICE9 pDevice)
+void CD3DDrawPrim::SetReallyClose(LPDIRECT3DDEVICE8 pDevice)
 {
 	SetCamera(pDevice);
 	SetTransformMode(pDevice);
@@ -321,10 +318,10 @@ LTRESULT CD3DDrawPrim::SetEffectShaderID(uint32 nEffectShaderID)
 	return LT_OK;
 }
 
-void CD3DDrawPrim::SetCamera(LPDIRECT3DDEVICE9 pDevice)
+void CD3DDrawPrim::SetCamera(LPDIRECT3DDEVICE8 pDevice)
 {
 	// Check the current viewport, may need to get changed...
-	D3DVIEWPORT9 PrevViewport;
+	D3DVIEWPORT8 PrevViewport;
 	pDevice->GetViewport(&PrevViewport);
 
 	float MinZ = (m_bReallyClose) ? 0.0f : m_PrevViewport.MinZ;
@@ -340,7 +337,7 @@ void CD3DDrawPrim::SetCamera(LPDIRECT3DDEVICE9 pDevice)
 			((pCamera->m_Right - pCamera->m_Left) != (int)PrevViewport.Width) || 
 			((pCamera->m_Bottom - pCamera->m_Top) != (int)PrevViewport.Height)) 
 		{
-			D3DVIEWPORT9 vp;
+			D3DVIEWPORT8 vp;
 			vp.MinZ = MinZ; 
 			vp.MaxZ = MaxZ;
 
@@ -359,7 +356,7 @@ void CD3DDrawPrim::SetCamera(LPDIRECT3DDEVICE9 pDevice)
 	{
 		if (0 != PrevViewport.X || 0 != PrevViewport.Y || g_ScreenWidth != PrevViewport.Width || g_ScreenHeight != PrevViewport.Height) 
 		{
-			D3DVIEWPORT9 vp;
+			D3DVIEWPORT8 vp;
 			vp.MinZ = MinZ; 
 			vp.MaxZ = MaxZ;
 
@@ -376,7 +373,7 @@ void CD3DDrawPrim::SetCamera(LPDIRECT3DDEVICE9 pDevice)
 	}
 }
 
-void CD3DDrawPrim::SetTransformMode(LPDIRECT3DDEVICE9 pDevice)
+void CD3DDrawPrim::SetTransformMode(LPDIRECT3DDEVICE8 pDevice)
 {
 	D3DXMATRIX mIdentity; 
 	D3DXMatrixIdentity(&mIdentity);
@@ -395,10 +392,10 @@ void CD3DDrawPrim::SetTransformMode(LPDIRECT3DDEVICE9 pDevice)
 		// [RP] 4/24/02 - The viewport minZ & maxZ needs to be changed for accurately
 		// setting the position for a reallyclose primitive.
 
-		D3DVIEWPORT9 curVP;
+		D3DVIEWPORT8 curVP;
 		PD3DDEVICE->GetViewport(&curVP);
 
-		D3DVIEWPORT9 ViewportData;
+		D3DVIEWPORT8 ViewportData;
 		ViewportData.X		= curVP.X;	
 		ViewportData.Y		= curVP.Y;
 		ViewportData.Width	= curVP.Width;
@@ -470,7 +467,7 @@ void CD3DDrawPrim::SetTransformMode(LPDIRECT3DDEVICE9 pDevice)
 	}
 }
 
-void CD3DDrawPrim::SetColorOp(LPDIRECT3DDEVICE9 pDevice)
+void CD3DDrawPrim::SetColorOp(LPDIRECT3DDEVICE8 pDevice)
 {
 	switch (m_ColorOp) 
 	{
@@ -496,7 +493,7 @@ void CD3DDrawPrim::SetColorOp(LPDIRECT3DDEVICE9 pDevice)
 	}
 }
 
-void CD3DDrawPrim::SetBlendMode(LPDIRECT3DDEVICE9 pDevice)
+void CD3DDrawPrim::SetBlendMode(LPDIRECT3DDEVICE8 pDevice)
 {
 	switch (m_BlendMode) 
 	{
@@ -559,7 +556,7 @@ void CD3DDrawPrim::SetBlendMode(LPDIRECT3DDEVICE9 pDevice)
 	}
 }
 
-void CD3DDrawPrim::SetZBufferMode(LPDIRECT3DDEVICE9 pDevice)
+void CD3DDrawPrim::SetZBufferMode(LPDIRECT3DDEVICE8 pDevice)
 {
 	switch (m_eZBufferMode) 
 	{
@@ -582,7 +579,7 @@ void CD3DDrawPrim::SetZBufferMode(LPDIRECT3DDEVICE9 pDevice)
 
 }
 
-void CD3DDrawPrim::SetTestMode(LPDIRECT3DDEVICE9 pDevice)
+void CD3DDrawPrim::SetTestMode(LPDIRECT3DDEVICE8 pDevice)
 {
 	switch (m_eTestMode) 
 	{
@@ -620,7 +617,7 @@ void CD3DDrawPrim::SetTestMode(LPDIRECT3DDEVICE9 pDevice)
 
 }
 
-void CD3DDrawPrim::SetFillMode(LPDIRECT3DDEVICE9 pDevice)
+void CD3DDrawPrim::SetFillMode(LPDIRECT3DDEVICE8 pDevice)
 {
 	switch (m_eFillMode) 
 	{
@@ -634,7 +631,7 @@ void CD3DDrawPrim::SetFillMode(LPDIRECT3DDEVICE9 pDevice)
 
 }
 
-void CD3DDrawPrim::SetCullMode(LPDIRECT3DDEVICE9 pDevice)
+void CD3DDrawPrim::SetCullMode(LPDIRECT3DDEVICE8 pDevice)
 {
 	switch (m_eCullMode) 
 	{
@@ -648,13 +645,13 @@ void CD3DDrawPrim::SetCullMode(LPDIRECT3DDEVICE9 pDevice)
 	}
 }
 
-void CD3DDrawPrim::SetFogEnable(LPDIRECT3DDEVICE9 pDevice)
+void CD3DDrawPrim::SetFogEnable(LPDIRECT3DDEVICE8 pDevice)
 {
 	pDevice->SetRenderState(D3DRS_FOGENABLE, m_bFogEnable);
 }
 
 // Set the render states (and save the old ones)...
-void CD3DDrawPrim::PushRenderStates(LPDIRECT3DDEVICE9 pDevice)
+void CD3DDrawPrim::PushRenderStates(LPDIRECT3DDEVICE8 pDevice)
 {
 
 	//saves the current D3D state into the member variables
@@ -697,7 +694,7 @@ void CD3DDrawPrim::PushRenderStates(LPDIRECT3DDEVICE9 pDevice)
 }
 
 // Reset the old renderstates...
-void CD3DDrawPrim::PopRenderStates(LPDIRECT3DDEVICE9 pDevice) 
+void CD3DDrawPrim::PopRenderStates(LPDIRECT3DDEVICE8 pDevice) 
 {
 	pDevice->SetTextureStageState(0,D3DTSS_COLOROP,m_PrevColorOp);
 	pDevice->SetRenderState(D3DRS_ALPHABLENDENABLE,m_PrevAlphaBlendEnable);
@@ -784,7 +781,7 @@ void CD3DDrawPrim::RestoreViewport( void )
 
 // Draw primitive calls (triangles)
 LTRESULT CD3DDrawPrim::DrawPrim(LT_POLYGT3 *pPrim, uint32 nCount) {
-	LPDIRECT3DDEVICE9 pDevice = r_GetRenderStruct()->GetD3DDevice();
+	LPDIRECT3DDEVICE8 pDevice = r_GetRenderStruct()->GetD3DDevice();
 	if (!pDevice) return LT_ERROR;
 	CAutoDrawPrimBlock AutoDPBlock(this);
 
@@ -842,7 +839,7 @@ LTRESULT CD3DDrawPrim::DrawPrim(LT_POLYGT3 *pPrim, uint32 nCount) {
 }
 
 LTRESULT CD3DDrawPrim::DrawPrim(LT_POLYFT3 *pPrim, uint32 nCount) {
-	LPDIRECT3DDEVICE9 pDevice = r_GetRenderStruct()->GetD3DDevice();
+	LPDIRECT3DDEVICE8 pDevice = r_GetRenderStruct()->GetD3DDevice();
 	if (!pDevice) return LT_ERROR;
 	CAutoDrawPrimBlock AutoDPBlock(this);
 
@@ -922,7 +919,7 @@ LTRESULT CD3DDrawPrim::DrawPrim(LT_POLYFT3 *pPrim, uint32 nCount) {
 }
 
 LTRESULT CD3DDrawPrim::DrawPrim(LT_POLYG3 *pPrim, uint32 nCount) {
-	LPDIRECT3DDEVICE9 pDevice = r_GetRenderStruct()->GetD3DDevice();
+	LPDIRECT3DDEVICE8 pDevice = r_GetRenderStruct()->GetD3DDevice();
 	if (!pDevice) return LT_ERROR;
 	CAutoDrawPrimBlock AutoDPBlock(this);
 
@@ -976,7 +973,7 @@ LTRESULT CD3DDrawPrim::DrawPrim(LT_POLYG3 *pPrim, uint32 nCount) {
 }
 
 LTRESULT CD3DDrawPrim::DrawPrim(LT_POLYF3 *pPrim, uint32 nCount) {
-	LPDIRECT3DDEVICE9 pDevice = r_GetRenderStruct()->GetD3DDevice();
+	LPDIRECT3DDEVICE8 pDevice = r_GetRenderStruct()->GetD3DDevice();
 	if (!pDevice) return LT_ERROR;
 	CAutoDrawPrimBlock AutoDPBlock(this);
 
@@ -1051,7 +1048,7 @@ LTRESULT CD3DDrawPrim::DrawPrim(LT_POLYF3 *pPrim, uint32 nCount) {
 
 // Draw primitive calls (quadrilaterals)
 LTRESULT CD3DDrawPrim::DrawPrim(LT_POLYGT4 *pPrim, uint32 nCount) {
-	LPDIRECT3DDEVICE9 pDevice = r_GetRenderStruct()->GetD3DDevice();
+	LPDIRECT3DDEVICE8 pDevice = r_GetRenderStruct()->GetD3DDevice();
 	if (!pDevice) return LT_ERROR;
 	CAutoDrawPrimBlock AutoDPBlock(this);
 
@@ -1150,7 +1147,7 @@ LTRESULT CD3DDrawPrim::DrawPrim(LT_POLYGT4 *pPrim, uint32 nCount) {
 
 // special version added by adam s. for optimized wide font rendering
 LTRESULT CD3DDrawPrim::DrawPrim(LT_POLYGT4 **ppPrim, uint32 nCount) {
-	LPDIRECT3DDEVICE9 pDevice = r_GetRenderStruct()->GetD3DDevice();
+	LPDIRECT3DDEVICE8 pDevice = r_GetRenderStruct()->GetD3DDevice();
 	if (!pDevice) return LT_ERROR;
 	CAutoDrawPrimBlock AutoDPBlock(this);
 
@@ -1248,7 +1245,7 @@ LTRESULT CD3DDrawPrim::DrawPrim(LT_POLYGT4 **ppPrim, uint32 nCount) {
 
 
 LTRESULT CD3DDrawPrim::DrawPrim(LT_POLYFT4 *pPrim, uint32 nCount) {
-	LPDIRECT3DDEVICE9 pDevice = r_GetRenderStruct()->GetD3DDevice();
+	LPDIRECT3DDEVICE8 pDevice = r_GetRenderStruct()->GetD3DDevice();
 	if (!pDevice) return LT_ERROR;
 	CAutoDrawPrimBlock AutoDPBlock(this);
 
@@ -1293,7 +1290,7 @@ LTRESULT CD3DDrawPrim::DrawPrim(LT_POLYFT4 *pPrim, uint32 nCount) {
 }
 
 LTRESULT CD3DDrawPrim::DrawPrim(LT_POLYG4 *pPrim, uint32 nCount) {
-	LPDIRECT3DDEVICE9 pDevice = r_GetRenderStruct()->GetD3DDevice();
+	LPDIRECT3DDEVICE8 pDevice = r_GetRenderStruct()->GetD3DDevice();
 	if (!pDevice) return LT_ERROR;
 	CAutoDrawPrimBlock AutoDPBlock(this);
 
@@ -1333,7 +1330,7 @@ LTRESULT CD3DDrawPrim::DrawPrim(LT_POLYG4 *pPrim, uint32 nCount) {
 }
 
 LTRESULT CD3DDrawPrim::DrawPrim(LT_POLYF4 *pPrim, uint32 nCount) {
-	LPDIRECT3DDEVICE9 pDevice = r_GetRenderStruct()->GetD3DDevice();
+	LPDIRECT3DDEVICE8 pDevice = r_GetRenderStruct()->GetD3DDevice();
 	if (!pDevice) return LT_ERROR;
 	CAutoDrawPrimBlock AutoDPBlock(this);
 
@@ -1378,7 +1375,7 @@ LTRESULT CD3DDrawPrim::DrawPrim(LT_POLYF4 *pPrim, uint32 nCount) {
 // Draw primitives using lines (Note: nCount is Line count).
 LTRESULT CD3DDrawPrim::DrawPrim (LT_LINEGT *pPrim, uint32 nCount)
 {
-	LPDIRECT3DDEVICE9 pDevice = r_GetRenderStruct()->GetD3DDevice();
+	LPDIRECT3DDEVICE8 pDevice = r_GetRenderStruct()->GetD3DDevice();
 	if (!pDevice) return LT_ERROR;
 	CAutoDrawPrimBlock AutoDPBlock(this);
 
@@ -1430,7 +1427,7 @@ LTRESULT CD3DDrawPrim::DrawPrim (LT_LINEGT *pPrim, uint32 nCount)
 
 LTRESULT CD3DDrawPrim::DrawPrim (LT_LINEFT *pPrim, uint32 nCount)
 {
-	LPDIRECT3DDEVICE9 pDevice = r_GetRenderStruct()->GetD3DDevice();
+	LPDIRECT3DDEVICE8 pDevice = r_GetRenderStruct()->GetD3DDevice();
 	if (!pDevice) return LT_ERROR;
 	CAutoDrawPrimBlock AutoDPBlock(this);
 
@@ -1500,7 +1497,7 @@ LTRESULT CD3DDrawPrim::DrawPrim (LT_LINEFT *pPrim, uint32 nCount)
 
 LTRESULT CD3DDrawPrim::DrawPrim (LT_LINEG *pPrim, uint32 nCount)
 {
-	LPDIRECT3DDEVICE9 pDevice = r_GetRenderStruct()->GetD3DDevice();
+	LPDIRECT3DDEVICE8 pDevice = r_GetRenderStruct()->GetD3DDevice();
 	if (!pDevice) return LT_ERROR;
 	CAutoDrawPrimBlock AutoDPBlock(this);
 
@@ -1550,7 +1547,7 @@ LTRESULT CD3DDrawPrim::DrawPrim (LT_LINEG *pPrim, uint32 nCount)
 
 LTRESULT CD3DDrawPrim::DrawPrim (LT_LINEF *pPrim, uint32 nCount)
 {
-	LPDIRECT3DDEVICE9 pDevice = r_GetRenderStruct()->GetD3DDevice();
+	LPDIRECT3DDEVICE8 pDevice = r_GetRenderStruct()->GetD3DDevice();
 	if (!pDevice) return LT_ERROR;
 	CAutoDrawPrimBlock AutoDPBlock(this);
 
@@ -1617,7 +1614,7 @@ LTRESULT CD3DDrawPrim::DrawPrim (LT_LINEF *pPrim, uint32 nCount)
 // Draw primitives using points (Note: nCount is Point count).
 LTRESULT CD3DDrawPrim::DrawPrimPoint (LT_VERTGT *pVerts, uint32 nCount)
 {
-	LPDIRECT3DDEVICE9 pDevice = r_GetRenderStruct()->GetD3DDevice();
+	LPDIRECT3DDEVICE8 pDevice = r_GetRenderStruct()->GetD3DDevice();
 	if (!pDevice) return LT_ERROR;
 	CAutoDrawPrimBlock AutoDPBlock(this);
 
@@ -1664,7 +1661,7 @@ LTRESULT CD3DDrawPrim::DrawPrimPoint (LT_VERTGT *pVerts, uint32 nCount)
 
 LTRESULT CD3DDrawPrim::DrawPrimPoint (LT_VERTG *pVerts, uint32 nCount)
 {
-	LPDIRECT3DDEVICE9 pDevice = r_GetRenderStruct()->GetD3DDevice();
+	LPDIRECT3DDEVICE8 pDevice = r_GetRenderStruct()->GetD3DDevice();
 	if (!pDevice) return LT_ERROR;
 	CAutoDrawPrimBlock AutoDPBlock(this);
 
@@ -1709,7 +1706,7 @@ LTRESULT CD3DDrawPrim::DrawPrimPoint (LT_VERTG *pVerts, uint32 nCount)
 
 // Draw primitive calls using triangle fans
 LTRESULT CD3DDrawPrim::DrawPrimFan(LT_VERTGT *pVerts, uint32 nCount) {
-	LPDIRECT3DDEVICE9 pDevice = r_GetRenderStruct()->GetD3DDevice();
+	LPDIRECT3DDEVICE8 pDevice = r_GetRenderStruct()->GetD3DDevice();
 	if (!pDevice) return LT_ERROR;
 	CAutoDrawPrimBlock AutoDPBlock(this);
 
@@ -1760,7 +1757,7 @@ LTRESULT CD3DDrawPrim::DrawPrimFan(LT_VERTGT *pVerts, uint32 nCount) {
 }
 
 LTRESULT CD3DDrawPrim::DrawPrimFan(LT_VERTFT *pVerts, uint32 nCount, LT_VERTRGBA rgba) {
-	LPDIRECT3DDEVICE9 pDevice = r_GetRenderStruct()->GetD3DDevice();
+	LPDIRECT3DDEVICE8 pDevice = r_GetRenderStruct()->GetD3DDevice();
 	if (!pDevice) return LT_ERROR;
 	CAutoDrawPrimBlock AutoDPBlock(this);
 
@@ -1831,7 +1828,7 @@ LTRESULT CD3DDrawPrim::DrawPrimFan(LT_VERTFT *pVerts, uint32 nCount, LT_VERTRGBA
 }
 
 LTRESULT CD3DDrawPrim::DrawPrimFan(LT_VERTG *pVerts, uint32 nCount) {
-	LPDIRECT3DDEVICE9 pDevice = r_GetRenderStruct()->GetD3DDevice();
+	LPDIRECT3DDEVICE8 pDevice = r_GetRenderStruct()->GetD3DDevice();
 	if (!pDevice) return LT_ERROR;
 	CAutoDrawPrimBlock AutoDPBlock(this);
 
@@ -1880,7 +1877,7 @@ LTRESULT CD3DDrawPrim::DrawPrimFan(LT_VERTG *pVerts, uint32 nCount) {
 }
 
 LTRESULT CD3DDrawPrim::DrawPrimFan(LT_VERTF *pVerts, uint32 nCount, LT_VERTRGBA rgba) {
-	LPDIRECT3DDEVICE9 pDevice = r_GetRenderStruct()->GetD3DDevice();
+	LPDIRECT3DDEVICE8 pDevice = r_GetRenderStruct()->GetD3DDevice();
 	if (!pDevice) return LT_ERROR;
 	CAutoDrawPrimBlock AutoDPBlock(this);
 
@@ -1948,7 +1945,7 @@ LTRESULT CD3DDrawPrim::DrawPrimFan(LT_VERTF *pVerts, uint32 nCount, LT_VERTRGBA 
 
 // Draw primitive calls using triangle strips
 LTRESULT CD3DDrawPrim::DrawPrimStrip(LT_VERTGT *pVerts, uint32 nCount) {
-	LPDIRECT3DDEVICE9 pDevice = r_GetRenderStruct()->GetD3DDevice();
+	LPDIRECT3DDEVICE8 pDevice = r_GetRenderStruct()->GetD3DDevice();
 	if (!pDevice) return LT_ERROR;
 	CAutoDrawPrimBlock AutoDPBlock(this);
 
@@ -1992,7 +1989,7 @@ LTRESULT CD3DDrawPrim::DrawPrimStrip(LT_VERTGT *pVerts, uint32 nCount) {
 }
 
 LTRESULT CD3DDrawPrim::DrawPrimStrip(LT_VERTFT *pVerts, uint32 nCount, LT_VERTRGBA rgba) {
-	LPDIRECT3DDEVICE9 pDevice = r_GetRenderStruct()->GetD3DDevice();
+	LPDIRECT3DDEVICE8 pDevice = r_GetRenderStruct()->GetD3DDevice();
 	if (!pDevice) return LT_ERROR;
 	CAutoDrawPrimBlock AutoDPBlock(this);
 
@@ -2049,7 +2046,7 @@ LTRESULT CD3DDrawPrim::DrawPrimStrip(LT_VERTFT *pVerts, uint32 nCount, LT_VERTRG
 }
 
 LTRESULT CD3DDrawPrim::DrawPrimStrip(LT_VERTG *pVerts, uint32 nCount) {
-	LPDIRECT3DDEVICE9 pDevice = r_GetRenderStruct()->GetD3DDevice();
+	LPDIRECT3DDEVICE8 pDevice = r_GetRenderStruct()->GetD3DDevice();
 	if (!pDevice) return LT_ERROR;
 	CAutoDrawPrimBlock AutoDPBlock(this);
 
@@ -2092,7 +2089,7 @@ LTRESULT CD3DDrawPrim::DrawPrimStrip(LT_VERTG *pVerts, uint32 nCount) {
 }
 
 LTRESULT CD3DDrawPrim::DrawPrimStrip(LT_VERTF *pVerts, uint32 nCount, LT_VERTRGBA rgba) {
-	LPDIRECT3DDEVICE9 pDevice = r_GetRenderStruct()->GetD3DDevice();
+	LPDIRECT3DDEVICE8 pDevice = r_GetRenderStruct()->GetD3DDevice();
 	if (!pDevice) return LT_ERROR;
 	CAutoDrawPrimBlock AutoDPBlock(this);
 

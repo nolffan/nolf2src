@@ -26,11 +26,11 @@ void d3d_DrawSkyObjects(const ViewParams& SkyParams)
 		 the end.
 
 	//preserve our old viewport
-	D3DVIEWPORT9 cOldViewport;
+	D3DVIEWPORT8 cOldViewport;
 	PD3DDEVICE->GetViewport(&cOldViewport);
 
 	//setup our new viewport that matches our sky dimensions
-	D3DVIEWPORT9 cViewPort;
+	D3DVIEWPORT8 cViewPort;
 	cViewPort.X			= SkyParams.m_Rect.left;
 	cViewPort.Y			= SkyParams.m_Rect.top;
 	cViewPort.Width		= SkyParams.m_Rect.right - SkyParams.m_Rect.left;

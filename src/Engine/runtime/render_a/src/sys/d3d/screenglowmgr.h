@@ -83,9 +83,9 @@ private:
 	};
 
 	//the glow texture
-	LPDIRECT3DTEXTURE9	m_pGlowTexture;
-	LPDIRECT3DTEXTURE9	m_pBlendTexture;
-	LPDIRECT3DSURFACE9	m_pDepthBuffer;
+	LPDIRECT3DTEXTURE8	m_pGlowTexture;
+	LPDIRECT3DTEXTURE8	m_pBlendTexture;
+	LPDIRECT3DSURFACE8	m_pDepthBuffer;
 
 	//the dimensions of the texture
 	uint32				m_nTextureWidth;

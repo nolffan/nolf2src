@@ -736,8 +736,7 @@ void CD3D_RenderBlock::DrawWireframeBounds()
 	StageStateSet state4(1, D3DTSS_COLOROP, D3DTOP_DISABLE);
 	StageStateSet state5(1, D3DTSS_ALPHAOP, D3DTOP_DISABLE);
 
-	PD3DDEVICE->SetVertexShader(NULL);
-	PD3DDEVICE->SetFVF(D3DFVF_XYZ);
+	PD3DDEVICE->SetVertexShader(D3DFVF_XYZ);
 	PD3DDEVICE->DrawIndexedPrimitiveUP(D3DPT_LINELIST, 0, 8, 12, 
 		(void*)aBlockIndices, D3DFMT_INDEX16, 
 		(void*)aBlockData, sizeof(LTVector));

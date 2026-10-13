@@ -39,7 +39,7 @@ bool CRenderShader_Lightmap::ValidateShader(const CRBSection &cSection)
 	if (!pFormat)
 		return false;
 
-	IDirect3DTexture9 *pTempTexture;
+	IDirect3DTexture8 *pTempTexture;
 	if (!SUCCEEDED(PD3DDEVICE->CreateTexture(256, 256, 1, 0,
 		pFormat->m_PF, D3DPOOL_MANAGED, &pTempTexture)))
 		return false;
@@ -54,8 +54,8 @@ bool CRenderShader_Lightmap::ValidateShader(const CRBSection &cSection)
 	StageStateSet state10(1, D3DTSS_COLOROP, D3DTOP_DISABLE);
 	StageStateSet state11(1, D3DTSS_ALPHAOP, D3DTOP_DISABLE);
 
-	SamplerStateSet stateWrap0(0, D3DSAMP_ADDRESSU, D3DTADDRESS_CLAMP);
-	SamplerStateSet stateWrap1(0, D3DSAMP_ADDRESSV, D3DTADDRESS_CLAMP);
+	StageStateSet stateWrap0(0, D3DTSS_ADDRESSU, D3DTADDRESS_CLAMP);
+	StageStateSet stateWrap1(0, D3DTSS_ADDRESSV, D3DTADDRESS_CLAMP);
 
 	d3d_SetTextureDirect(pTempTexture, 0);
 
@@ -237,9 +237,8 @@ void CRenderShader_Lightmap::UpdateLightmap_Internal(const CRBSection &cSection,
 void CRenderShader_Lightmap::DrawLights(const DrawState &cState, uint32 nRenderBlock)
 {
 	// Set up our call
-	PD3DDEVICE->SetIndices(m_pIB);
-	PD3DDEVICE->SetVertexShader(NULL);
-	PD3DDEVICE->SetFVF(k_SVertex_Lightmap_FVF);
+	PD3DDEVICE->SetIndices(m_pIB, 0);
+	PD3DDEVICE->SetVertexShader(k_SVertex_Lightmap_FVF);
 
 	PreFlush();
 
@@ -260,8 +259,7 @@ void CRenderShader_Lightmap::DrawLights(const DrawState &cState, uint32 nRenderB
 		IncFrameStat(eFS_ShaderDrawPrim, 1);
 
 		// Draw it
-		PD3DDEVICE->DrawIndexedPrimitive(D3DPT_TRIANGLELIST,
-			0, cSection.m_nStartVertex, cSection.m_nVertexCount,
+		PD3DDEVICE->DrawIndexedPrimitive(D3DPT_TRIANGLELIST, cSection.m_nStartVertex, cSection.m_nVertexCount,
 			cSection.m_nStartIndex, cSection.m_nTriCount);
 
 		// Count it
@@ -277,8 +275,8 @@ void CRenderShader_Lightmap::DrawLights(const DrawState &cState, uint32 nRenderB
 	PostFlush();
 
 	// Don't leak the VB or IB
-	PD3DDEVICE->SetStreamSource(0, 0, 0, 0);
-	PD3DDEVICE->SetIndices(0);
+	PD3DDEVICE->SetStreamSource(0, 0, 0);
+	PD3DDEVICE->SetIndices(0, 0);
 }
 
 void CRenderShader_Lightmap::DrawNormal(const DrawState &cState, uint32 nRenderBlock)
@@ -303,8 +301,8 @@ void CRenderShader_Lightmap::PreFlush()
 	PD3DDEVICE->SetTextureStageState(0, D3DTSS_ALPHAARG1, D3DTA_TEXTURE);
 	PD3DDEVICE->SetTextureStageState(0, D3DTSS_ALPHAARG2, D3DTA_DIFFUSE);
 	PD3DDEVICE->SetTextureStageState(0, D3DTSS_ALPHAOP, D3DTOP_SELECTARG1);
-	PD3DDEVICE->SetSamplerState(0, D3DSAMP_ADDRESSU, D3DTADDRESS_CLAMP);
-	PD3DDEVICE->SetSamplerState(0, D3DSAMP_ADDRESSV, D3DTADDRESS_CLAMP);
+	PD3DDEVICE->SetTextureStageState(0, D3DTSS_ADDRESSU, D3DTADDRESS_CLAMP);
+	PD3DDEVICE->SetTextureStageState(0, D3DTSS_ADDRESSV, D3DTADDRESS_CLAMP);
 	PD3DDEVICE->SetTextureStageState(1, D3DTSS_COLOROP, D3DTOP_DISABLE);
 	PD3DDEVICE->SetTextureStageState(1, D3DTSS_ALPHAOP, D3DTOP_DISABLE);
 }
@@ -335,8 +333,8 @@ void CRenderShader_Lightmap::PostFlush()
 	d3d_DisableTexture(0);
 
 	// Restore the wrapping mode
-	PD3DDEVICE->SetSamplerState(0, D3DSAMP_ADDRESSU, D3DTADDRESS_WRAP);
-	PD3DDEVICE->SetSamplerState(0, D3DSAMP_ADDRESSV, D3DTADDRESS_WRAP);
+	PD3DDEVICE->SetTextureStageState(0, D3DTSS_ADDRESSU, D3DTADDRESS_WRAP);
+	PD3DDEVICE->SetTextureStageState(0, D3DTSS_ADDRESSV, D3DTADDRESS_WRAP);
 }
 
 void CRenderShader_Lightmap::DebugTri(
@@ -389,8 +387,7 @@ void CRenderShader_Lightmap::DebugTri(
 	aTriVerts[2].m_vPos.z = 0.0f;
 	aTriVerts[2].m_fRHW = 0.0f;
 
-	PD3DDEVICE->SetVertexShader(NULL);
-	PD3DDEVICE->SetFVF(D3DFVF_XYZRHW);
+	PD3DDEVICE->SetVertexShader(D3DFVF_XYZRHW);
 
 	StateSet stateAlpha(D3DRS_ALPHABLENDENABLE, TRUE);
 	StateSet stateSrcBlend(D3DRS_SRCBLEND, D3DBLEND_INVDESTCOLOR);
@@ -556,8 +553,7 @@ void CRenderShader_Lightmap_Texture::PostFlushBlock(CInternalSection &cSection,
 
 		// Draw it
 		uint32 nNumTris = (nEndIndex - nStartIndex) / 3;
-		PD3DDEVICE->DrawIndexedPrimitive(D3DPT_TRIANGLELIST,
-			0, nStartVertex, nEndVertex - nStartVertex,
+		PD3DDEVICE->DrawIndexedPrimitive(D3DPT_TRIANGLELIST, nStartVertex, nEndVertex - nStartVertex,
 			nStartIndex, nNumTris);
 
 		IncFrameStat(eFS_WorldTriangles, nNumTris);
@@ -656,8 +652,7 @@ void CRenderShader_Lightmap_Texture::DebugTri(
 	aTriVerts[2].m_vPos.z = 0.0f;
 	aTriVerts[2].m_fRHW = 0.0f;
 
-	PD3DDEVICE->SetVertexShader(NULL);
-	PD3DDEVICE->SetFVF(D3DFVF_XYZRHW);
+	PD3DDEVICE->SetVertexShader(D3DFVF_XYZRHW);
 
 	StateSet stateAlpha(D3DRS_ALPHABLENDENABLE, TRUE);
 	StateSet stateSrcBlend(D3DRS_SRCBLEND, D3DBLEND_INVDESTCOLOR);
@@ -875,8 +870,7 @@ void CRenderShader_Lightmap_Texture_Detail::PostFlushBlock(CInternalSection &cSe
 
 		// Draw it
 		uint32 nNumTris = (nEndIndex - nStartIndex) / 3;
-		PD3DDEVICE->DrawIndexedPrimitive(D3DPT_TRIANGLELIST,
-			0, nStartVertex, nEndVertex - nStartVertex,
+		PD3DDEVICE->DrawIndexedPrimitive(D3DPT_TRIANGLELIST, nStartVertex, nEndVertex - nStartVertex,
 			nStartIndex, nNumTris);
 
 		IncFrameStat(eFS_WorldTriangles, nNumTris);
@@ -1089,8 +1083,7 @@ void CRenderShader_Lightmap_Texture_EnvMap::PostFlushBlock(CInternalSection &cSe
 
 		// Draw it
 		uint32 nNumTris = (nEndIndex - nStartIndex) / 3;
-		PD3DDEVICE->DrawIndexedPrimitive(D3DPT_TRIANGLELIST,
-			0, nStartVertex, nEndVertex - nStartVertex,
+		PD3DDEVICE->DrawIndexedPrimitive(D3DPT_TRIANGLELIST, nStartVertex, nEndVertex - nStartVertex,
 			nStartIndex, nNumTris);
 
 		IncFrameStat(eFS_WorldTriangles, nNumTris);
@@ -1391,8 +1384,7 @@ void CRenderShader_Lightmap_Texture_EnvBumpMap::PostFlushBlock(CInternalSection 
 
 		// Draw it
 		uint32 nNumTris = (nEndIndex - nStartIndex) / 3;
-		PD3DDEVICE->DrawIndexedPrimitive(D3DPT_TRIANGLELIST,
-			0, nStartVertex, nEndVertex - nStartVertex,
+		PD3DDEVICE->DrawIndexedPrimitive(D3DPT_TRIANGLELIST, nStartVertex, nEndVertex - nStartVertex,
 			nStartIndex, nNumTris);
 
 		IncFrameStat(eFS_WorldTriangles, nNumTris);
@@ -1864,8 +1856,7 @@ void CRenderShader_Lightmap_Texture_DOT3BumpMap::PostFlushBlock(CInternalSection
 
 		// Draw it
 		uint32 nNumTris = (nEndIndex - nStartIndex) / 3;
-		PD3DDEVICE->DrawIndexedPrimitive(D3DPT_TRIANGLELIST,
-			0, nStartVertex, nEndVertex - nStartVertex,
+		PD3DDEVICE->DrawIndexedPrimitive(D3DPT_TRIANGLELIST, nStartVertex, nEndVertex - nStartVertex,
 			nStartIndex, nNumTris);
 
 		IncFrameStat(eFS_WorldTriangles, nNumTris);
@@ -2203,8 +2194,7 @@ void CRenderShader_Lightmap_Texture_DOT3EnvBumpMap::PostFlushBlock(CInternalSect
 
 		// Draw it
 		uint32 nNumTris = (nEndIndex - nStartIndex) / 3;
-		PD3DDEVICE->DrawIndexedPrimitive(D3DPT_TRIANGLELIST,
-			0, nStartVertex, nEndVertex - nStartVertex,
+		PD3DDEVICE->DrawIndexedPrimitive(D3DPT_TRIANGLELIST, nStartVertex, nEndVertex - nStartVertex,
 			nStartIndex, nNumTris);
 
 		IncFrameStat(eFS_WorldTriangles, nNumTris);

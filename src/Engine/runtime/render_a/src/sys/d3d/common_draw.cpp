@@ -7,8 +7,6 @@
 #include "FixedPoint.h"
 #include "de_mainworld.h"
 #include "rendererframestats.h"
-#include "rendertargetmgr.h"
-#include "rendertarget.h"
 
 //------------------------------------------------------------------
 //------------------------------------------------------------------

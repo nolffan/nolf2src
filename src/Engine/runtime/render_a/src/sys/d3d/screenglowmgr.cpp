@@ -10,7 +10,7 @@
 #include "tagnodes.h"
 #include "setupmodel.h"
 #include "drawobjects.h"
-#include "ltpixelshadermgr.h"
+#include "pixelshadermgr.h"
 
 
 //Interface for the client file manager
@@ -50,17 +50,17 @@ static uint32 TruncateToPowerOf2(uint32 nVal)
 
 //given a texture and the number of channels to install to, this will set that texture on channels
 //0..N
-static void InstallTexture(LPDIRECT3DTEXTURE9 pTexture, uint32 nNumChannels)
+static void InstallTexture(LPDIRECT3DTEXTURE8 pTexture, uint32 nNumChannels)
 {
 	for(uint32 nCurrChannel = 0; nCurrChannel < nNumChannels; nCurrChannel++)
 		d3d_SetTextureDirect(pTexture, nCurrChannel);
 }
 
 //installs the specified texture as a render target as well as an optional depth buffer
-static bool SetRenderTarget(LPDIRECT3DTEXTURE9 pTarget, LPDIRECT3DSURFACE9 pDepthBuffer)
+static bool SetRenderTarget(LPDIRECT3DTEXTURE8 pTarget, LPDIRECT3DSURFACE8 pDepthBuffer)
 {
 	//get the first surface from the texture
-	LPDIRECT3DSURFACE9 pRenderSurface = NULL;
+	LPDIRECT3DSURFACE8 pRenderSurface = NULL;
 	pTarget->GetSurfaceLevel(0, &pRenderSurface);
 
 	//now try and install that
@@ -374,13 +374,13 @@ bool CScreenGlowMgr::RenderSceneToTexture(const SceneDesc& Scene)
 	//it is, so now we need to install it as the render target
 
 	//save our old targets so we can restore them
-	LPDIRECT3DSURFACE9 pDepthStencilBuffer	= NULL;
-	LPDIRECT3DSURFACE9 pPrevRenderTarget	= NULL;
+	LPDIRECT3DSURFACE8 pDepthStencilBuffer	= NULL;
+	LPDIRECT3DSURFACE8 pPrevRenderTarget	= NULL;
 
 	PD3DDEVICE->GetDepthStencilSurface(&pDepthStencilBuffer);
 	PD3DDEVICE->GetRenderTarget(&pPrevRenderTarget);
 
-	D3DVIEWPORT9 oldViewportData;
+	D3DVIEWPORT8 oldViewportData;
 	PD3DDEVICE->GetViewport(&oldViewportData);
 
 	//install our target
@@ -395,7 +395,7 @@ bool CScreenGlowMgr::RenderSceneToTexture(const SceneDesc& Scene)
 		return false;
 	}
 
-	D3DVIEWPORT9 viewportData;
+	D3DVIEWPORT8 viewportData;
 	viewportData.X		= 0;
 	viewportData.Y		= 0;
 	viewportData.Width	= m_nTextureWidth;
@@ -686,10 +686,10 @@ bool CScreenGlowMgr::RenderBlendedTexture(bool bUsePixelShader)
 	StateSet ss6(D3DRS_ALPHATESTENABLE, FALSE);
 
 	//setup texture clamping
-	SamplerStateSet ssWrapU0(0, D3DSAMP_ADDRESSU, D3DTADDRESS_CLAMP);
-	SamplerStateSet ssWrapV0(0, D3DSAMP_ADDRESSV, D3DTADDRESS_CLAMP);
-	SamplerStateSet ssWrapU1(1, D3DSAMP_ADDRESSU, D3DTADDRESS_CLAMP);
-	SamplerStateSet ssWrapV1(1, D3DSAMP_ADDRESSV, D3DTADDRESS_CLAMP);
+	StageStateSet ssWrapU0(0, D3DTSS_ADDRESSU, D3DTADDRESS_CLAMP);
+	StageStateSet ssWrapV0(0, D3DTSS_ADDRESSV, D3DTADDRESS_CLAMP);
+	StageStateSet ssWrapU1(1, D3DTSS_ADDRESSU, D3DTADDRESS_CLAMP);
+	StageStateSet ssWrapV1(1, D3DTSS_ADDRESSV, D3DTADDRESS_CLAMP);
 
 	//amount to adjust UVs by to group them together to avoid blocking artifacts
 	float fUVScale		= g_CV_ScreenGlowUVScale;
@@ -697,10 +697,10 @@ bool CScreenGlowMgr::RenderBlendedTexture(bool bUsePixelShader)
 	if(bUsePixelShader)
 	{
 		//enable clamping on the remaining stages
-		SamplerStateSet ssWrapU2(2, D3DSAMP_ADDRESSU, D3DTADDRESS_CLAMP);
-		SamplerStateSet ssWrapV2(2, D3DSAMP_ADDRESSV, D3DTADDRESS_CLAMP);
-		SamplerStateSet ssWrapU3(3, D3DSAMP_ADDRESSU, D3DTADDRESS_CLAMP);
-		SamplerStateSet ssWrapV3(3, D3DSAMP_ADDRESSV, D3DTADDRESS_CLAMP);
+		StageStateSet ssWrapU2(2, D3DTSS_ADDRESSU, D3DTADDRESS_CLAMP);
+		StageStateSet ssWrapV2(2, D3DTSS_ADDRESSV, D3DTADDRESS_CLAMP);
+		StageStateSet ssWrapU3(3, D3DTSS_ADDRESSU, D3DTADDRESS_CLAMP);
+		StageStateSet ssWrapV3(3, D3DTSS_ADDRESSV, D3DTADDRESS_CLAMP);
 
 
 		// Get the shader.
@@ -714,8 +714,7 @@ bool CScreenGlowMgr::RenderBlendedTexture(bool bUsePixelShader)
 		LTPixelShaderMgr::GetSingleton().InstallPixelShader(pPixelShader);
 
 		//setup our device
-		PD3DDEVICE->SetVertexShader(NULL);
-		PD3DDEVICE->SetFVF(GLOW4TEXTUREVERTEX_FORMAT);
+		PD3DDEVICE->SetVertexShader(GLOW4TEXTUREVERTEX_FORMAT);
 
 		//put our texture into each channel
 		InstallTexture(m_pGlowTexture, 4);
@@ -746,8 +745,7 @@ bool CScreenGlowMgr::RenderBlendedTexture(bool bUsePixelShader)
 		//use the 2 texture pipeline in order to support older hardware
 
 		//setup our device
-		PD3DDEVICE->SetVertexShader(NULL);
-		PD3DDEVICE->SetFVF(GLOW2TEXTUREVERTEX_FORMAT);
+		PD3DDEVICE->SetVertexShader(GLOW2TEXTUREVERTEX_FORMAT);
 
 		//setup the texture stages so we can store our two weights in the RGB for the
 		//first, and then A for the second
@@ -834,8 +832,7 @@ bool CScreenGlowMgr::DisplayBlendedTexture()
 	StageStateSet tss04(1, D3DTSS_COLOROP, D3DTOP_DISABLE);
 	StageStateSet tss05(1, D3DTSS_ALPHAOP, D3DTOP_DISABLE);
 
-	D3D_CALL(PD3DDEVICE->SetVertexShader(NULL));
-	D3D_CALL(PD3DDEVICE->SetFVF(TLVERTEX_FORMAT));
+	D3D_CALL(PD3DDEVICE->SetVertexShader(TLVERTEX_FORMAT));
 	D3D_CALL(PD3DDEVICE->DrawPrimitiveUP(D3DPT_TRIANGLEFAN, 2, Verts, sizeof(TLVertex)));
 
 	d3d_SetTextureDirect(NULL, 0);
@@ -873,8 +870,7 @@ bool CScreenGlowMgr::DrawDebugTexture()
 	StageStateSet tss04(1, D3DTSS_COLOROP, D3DTOP_DISABLE);
 	StageStateSet tss05(1, D3DTSS_ALPHAOP, D3DTOP_DISABLE);
 
-	D3D_CALL(PD3DDEVICE->SetVertexShader(NULL));
-	D3D_CALL(PD3DDEVICE->SetFVF(TLVERTEX_FORMAT));
+	D3D_CALL(PD3DDEVICE->SetVertexShader(TLVERTEX_FORMAT));
 	D3D_CALL(PD3DDEVICE->DrawPrimitiveUP(D3DPT_TRIANGLEFAN, 2, Verts, sizeof(TLVertex)));
 
 	d3d_SetTextureDirect(NULL, 0);
@@ -1008,8 +1004,7 @@ bool CScreenGlowMgr::DrawDebugFilter()
 	StageStateSet tss04(1, D3DTSS_COLOROP, D3DTOP_DISABLE);
 	StageStateSet tss05(1, D3DTSS_ALPHAOP, D3DTOP_DISABLE);
 
-	PD3DDEVICE->SetVertexShader(NULL);
-	PD3DDEVICE->SetFVF(TLVERTEX_FORMAT);
+	PD3DDEVICE->SetVertexShader(TLVERTEX_FORMAT);
 
 	//draw our background rectangle
 	SetupRectVerts(fLeft, fTop, fRight, fBottom, 0, 0, 0, 0, 0x22222222, Verts);

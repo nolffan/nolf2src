@@ -16,9 +16,6 @@ define_holder(IClientShell, i_client_shell);
 #include "devicelightlist.h"
 #include "renderstylemap.h"
 #include "rendererframestats.h"
-#include "LTEffectImpl.h"
-#include "lteffectshadermgr.h"
-#include "ltshaderdevicestateimp.h"
 #include "rendererconsolevars.h"
 #include <algorithm>
 
@@ -387,7 +384,7 @@ void CRenderModelPieceList::RenderPieceList(float fAlpha)
 	CDeviceLightList*		pPrevLightList		= NULL;
 	bool					bPrevPieceScaled	= false;
 
-	LPDIRECT3DBASETEXTURE9	PrevTextureList[MAX_PIECE_TEXTURES];
+	LPDIRECT3DBASETEXTURE8	PrevTextureList[MAX_PIECE_TEXTURES];
 
 	//save the depth bias so we can restore it later
 	DWORD					nOldDepthBias;
