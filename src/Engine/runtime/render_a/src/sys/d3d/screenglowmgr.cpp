@@ -464,8 +464,6 @@ bool CScreenGlowMgr::RenderBlendedTextureDirectionPS(float fUVScale, float fUWei
 
 	for(uint32 nCurrElement = 0; nCurrElement < m_nFilterSize; nCurrElement += 4)
 	{
-		float* pCurrConstant = fConstants;
-
 		//first we need to generate our UV sets and render it to the texture
 		for(uint32 nCurrStage = 0; nCurrStage < 4; nCurrStage++)
 		{
@@ -487,10 +485,10 @@ bool CScreenGlowMgr::RenderBlendedTextureDirectionPS(float fUVScale, float fUWei
 
 			//setup our pixel shader constants so it can weight the pixels by the right amount
 			float fPixelWeight = Element.m_fWeight;
-			*pCurrConstant++ = fPixelWeight;
-			*pCurrConstant++ = fPixelWeight;
-			*pCurrConstant++ = fPixelWeight;
-			*pCurrConstant++ = fPixelWeight;
+			fConstants[nCurrStage * 4 + 0] = fPixelWeight;
+			fConstants[nCurrStage * 4 + 1] = fPixelWeight;
+			fConstants[nCurrStage * 4 + 2] = fPixelWeight;
+			fConstants[nCurrStage * 4 + 3] = fPixelWeight;
 		}
 
 		// Set the constants.
@@ -670,8 +668,6 @@ bool CScreenGlowMgr::RenderBlendedTexture(bool bUsePixelShader)
 
 		RenderBlendedTextureDirectionPS(fUVScale, 0.0f, 1.0f);
 
-		InstallTexture(NULL, 4);
-
 		// Uninstall the pixel shader.
 		CPixelShaderMgr::GetSingleton().UninstallPixelShaders();
 	}
@@ -719,8 +715,6 @@ bool CScreenGlowMgr::RenderBlendedTexture(bool bUsePixelShader)
 		InstallTexture(m_pBlendTexture, 2);
 
 		RenderBlendedTextureDirection2Texture(fUVScale, 0.0f, 1.0f);
-
-		InstallTexture(NULL, 2);
 	}
 
 	return true;
@@ -770,7 +764,7 @@ bool CScreenGlowMgr::DisplayBlendedTexture()
 	D3D_CALL(PD3DDEVICE->SetVertexShader(TLVERTEX_FORMAT));
 	D3D_CALL(PD3DDEVICE->DrawPrimitiveUP(D3DPT_TRIANGLEFAN, 2, Verts, sizeof(TLVertex)));
 
-	d3d_SetTextureDirect(NULL, 0);
+	// (retail leaves the glow texture set: no d3d_SetTextureDirect(NULL, 0) here)
 
 	return true;
 }
@@ -808,7 +802,6 @@ bool CScreenGlowMgr::DrawDebugTexture()
 	D3D_CALL(PD3DDEVICE->SetVertexShader(TLVERTEX_FORMAT));
 	D3D_CALL(PD3DDEVICE->DrawPrimitiveUP(D3DPT_TRIANGLEFAN, 2, Verts, sizeof(TLVertex)));
 
-	d3d_SetTextureDirect(NULL, 0);
 
 	return true;
 }
