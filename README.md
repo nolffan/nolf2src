@@ -54,13 +54,13 @@ is the whole game.
 | `snddrv.dll` | the sound driver | 194 / 236 | 35,073 / 35,599 bytes | `███████████████████░` 98.5% | 0 | 0 |
 | `NOLF2.exe` | the launcher | 309 / 406 | 49,095 / 49,876 bytes | `███████████████████░` 98.4% | 1 | 8 |
 | `NOLF2Srv.exe` | the dedicated server | 468 / 587 | 85,760 / 86,985 bytes | `███████████████████░` 98.5% | 2 | 9 |
-| `CShell.dll` | the game: client | 5,234 / 7,222 | 1,217,050 / 1,326,196 bytes | `██████████████████░░` 91.7% | 8 | 14 |
-| `Object.lto` | the game: server objects | 9,253 / 13,253 | 1,872,993 / 1,909,614 bytes | `███████████████████░` 98.0% | 4 | 15 |
+| `CShell.dll` | the game: client | 5,414 / 7,218 | 1,305,485 / 1,326,186 bytes | `███████████████████░` 98.4% | 1 | 8 |
+| `Object.lto` | the game: server objects | 9,254 / 13,253 | 1,873,159 / 1,909,614 bytes | `███████████████████░` 98.0% | 4 | 15 |
 | `ClientFx.fxd` | the game: client effects | 385 / 497 | 119,616 / 121,011 bytes | `███████████████████░` 98.8% | 1 | 3 |
 | `ltmsg.dll` | the engine's messages, not in the total | 5 / 5 resources | 2,054 / 2,054 bytes | `████████████████████` 100.0% | 0 | -- |
 | `CRes.dll` | the game's client resources, not in the total | 484 / 484 resources | 622,940 / 622,940 bytes | `████████████████████` 100.0% | 0 | -- |
 | `SRes.dll` | the game's server resources, not in the total | no resources | -- | -- | -- | -- |
-| **All** | | **24,252 / 33,081** | **4,860,397 / 5,273,741 bytes** | `██████████████████░░` **92.1%** | **224** | **2,459** |
+| **All** | | **24,433 / 33,077** | **4,948,998 / 5,273,731 bytes** | `██████████████████░░` **93.8%** | **217** | **2,453** |
 <!-- progress:end -->
 
 Every function in that table is recorded in `progress/identical.txt`, and
