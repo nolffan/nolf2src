@@ -592,7 +592,7 @@ public:
 	virtual void UpdateGUID(LTGUID &cGUID);
 	
 	enum {
-		UNCONNECTED_DATA_TOKEN = 0x9919D9C7, // Packet identifier for unconnected communication
+		UNCONNECTED_DATA_TOKEN = 0x01337F10, // Packet identifier for unconnected communication (NOLF2's; Jupiter's is 0x9919D9C7)
 		UNCONNECTED_MSG_QUERY = 0,
 		UNCONNECTED_MSG_QUERY_RESPONSE = 1,
 		UNCONNECTED_MSG_CONNECT = 2,
