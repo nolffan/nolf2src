@@ -12,7 +12,8 @@ its source files, the files excluded from that configuration, per-file
 compiler settings and custom build steps. It writes build/build.mk's rules
 for them, through build.mk's `compile` and `tool` macros:
 
-  every .c/.cpp   cl <the project's ADD CPP, with the file's own ADD CPP
+  every .c/.cpp   cl (or the compiler in the make variable CL_<project>,
+                  where build.mk sets one) <the project's ADD CPP, with the file's own ADD CPP
                   and SUBTRACT CPP applied, less /FD> /Fp"<intdir>\\<project>.pch"
                   /Fo"<intdir>\\" <source>, in the project's directory
   every .rc       rc <ADD RSC> /fo"<intdir>\\<name>.res" <source>
@@ -309,7 +310,7 @@ def main():
                 base = os.path.splitext(ntpath.basename(src))[0]
                 obj = winjoin(wdir, f"{intdir}\\{base}.obj")
                 objs.append(obj)
-                mk.append(f"$(eval $(call compile,{obj},{pdir},{q(src)},$(ENV_GAME),$(CL),"
+                mk.append(f"$(eval $(call compile,{obj},{pdir},{q(src)},$(ENV_GAME),$(or $(CL_{var}),$(CL)),"
                           f"{q(' '.join(cmd))},wine-drives))")
                 if pch:
                     kind = next(f[2] for f in flags if f[:3] in ("/Yc", "/Yu", "/YX")).lower()

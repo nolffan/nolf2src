@@ -72,6 +72,13 @@ PROJECTS_WANTED := ClientShellDLL Object ClientFxDLL ClientRes ServerRes ServerA
 # rez/ (build/all.sh does, first).
 SERVERDIR_WANTED := ServerDir
 
+# The engine's sound driver, SndDrv.dll, of which Monolith's release has
+# nothing: src/Engine/snddrv/snddrv.dsw (written for this project) builds it
+# from its reconstruction, with the ltmem library it links
+# (src/libs/ltmem/) and EAX's GUIDs (eaxguid), which the retail Rich header
+# says cl 12.00.8168 compiled: CL_eaxguid.
+SNDDRV_WANTED := snddrv
+
 # ---------------------------------------------------------------------------
 # Wine and the toolchains
 export WINEDEBUG := -all
@@ -92,6 +99,7 @@ CL      := $(VC8966)/BIN/cl.exe
 LINK    := $(VC8966)/BIN/link.exe
 LIBEXE  := $(VC8966)/BIN/lib.exe
 RC      := $(VC9782)/Common/MSDev98/Bin/RC.EXE
+CL_eaxguid := $(TC)/msvc-6.00-8168/BIN/cl.exe
 
 # Windows paths: src/ is S:, toolchains/ T:, the rest Z:
 wz = z:$(subst /,\,$(1))
@@ -207,8 +215,14 @@ $(error tools/dsp2mk.py failed: $(file <$(DEPDIR)/dsp2mk-serverdir.log))
 endif
 include $(DEPDIR)/serverdir.mk
 
+DSP_OK := $(shell python3 tools/dsp2mk.py src/Engine/snddrv/snddrv.dsw Final $(DEPDIR)/snddrv.mk $(SNDDRV_WANTED) 2>$(DEPDIR)/dsp2mk-snddrv.log && echo ok)
+ifneq ($(DSP_OK),ok)
+$(error tools/dsp2mk.py failed: $(file <$(DEPDIR)/dsp2mk-snddrv.log))
+endif
+include $(DEPDIR)/snddrv.mk
+
 .PHONY: all game
-all game: $(PROJECTS_WANTED) $(SERVERDIR_WANTED)
+all game: $(PROJECTS_WANTED) $(SERVERDIR_WANTED) $(SNDDRV_WANTED)
 
 # ---------------------------------------------------------------------------
 # The rules all compiles and tools share

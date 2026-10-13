@@ -41,9 +41,11 @@
 #                         Object.lto, ClientFx.fxd, CRes.dll, SRes.dll and
 #                         the dedicated server NOLF2Srv.exe, Final
 #                         configuration; and ServerDir.dll
-#                         (src/Game/Libs/ServerDir/ServerDir.dsw), built
-#                         but not yet put in the game: step 2b's retail one
-#                         is, until the built one is shown to work.
+#                         (src/Game/Libs/ServerDir/ServerDir.dsw) and the
+#                         sound driver SndDrv.dll (src/Engine/snddrv/
+#                         snddrv.dsw), built but not yet put in the game:
+#                         step 2b's retail ones are, until the built ones
+#                         are shown to work.
 #   4. assemble           the built binaries into out/nolf2-legacy-release/: the
 #                         game DLLs in the custom/ rez directory, last in the
 #                         rez stack (nolf2cmds.txt), the dedicated server
@@ -113,6 +115,9 @@ done
 SERVERDIR=src/Game/built/Final/libs/ServerDir/ServerDir.dll
 [ -f "$SERVERDIR" ] || { echo "error: $SERVERDIR was not built" >&2; exit 1; }
 echo "   $SERVERDIR built (not in the game yet: the retail one is)"
+SNDDRV=src/Engine/built/Final/snddrv/SndDrv.dll
+[ -f "$SNDDRV" ] || { echo "error: $SNDDRV was not built" >&2; exit 1; }
+echo "   $SNDDRV built (not in the game yet: the retail one is)"
 
 step "4. assemble: the built binaries -> $OUT"
 for ((i = 0; i < ${#BUILT[@]}; i += 2)); do

@@ -148,7 +148,9 @@ TARGETS = [
          third_party=["WONAPI.lib"]),
     dict(label="snddrv.dll", what="the sound driver", kind="image",
          shipped=REFERENCE + "/snddrv.dll", stem="snddrv",
-         built=None, optional=True,
+         # src/Engine/snddrv/snddrv.dsw: the reconstruction (s_dx8.cpp,
+         # parsewavefile.cpp, counter.cpp) and src/libs/ltmem/ltmem.cpp
+         built="src/Engine/built/Final/snddrv/SndDrv.dll",
          # msvcrt.lib from __aulldiv at 0x1000a220 (ulldiv, lldiv, llmul,
          # ehvec*, atonexit, crtdll); 0x1000a1e0..0x1000a21f, an atexit
          # registration and two delete wrappers, are its own
