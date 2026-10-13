@@ -57,8 +57,6 @@ ILTStream &operator>>(ILTStream &stream, SRBVertex &sVert)
 	stream >> sVert.m_fV1;
 	stream >> sVert.m_nColor;
 	stream >> sVert.m_vNormal;
-	stream >> sVert.m_vTangent;
-	stream >> sVert.m_vBinormal;
 	return stream;
 }
 

@@ -72,8 +72,8 @@ struct SRBVertex
 	float m_fU1, m_fV1;
 	uint32 m_nColor;
 	LTVector m_vNormal;
-	LTVector m_vTangent;
-	LTVector m_vBinormal;
+	// nolf2src: NOLF2's world vertex ends here (44 bytes, as the retail
+	// loader reads it); Jupiter added a tangent and a binormal.
 };
 
 // Geometry-only n-gon w/ a pre-stored plane and bounds
