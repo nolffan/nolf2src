@@ -53,9 +53,10 @@ Background, in this directory:
 | 4 | `client`: the exe's own objects (`client/`, `kernel/src`, input, DirectMusic, video, console) with the server objects at `/O2` | 2 (3 helps) | done: no client stubs, Bink at run time; Lithtech.exe is `/O2 /Ob2` without `/GX`; the built exe reaches the main menu under Wine (`+DisableSound 1`) |
 | 5 | `libs`: `rezmgr`, `stdlith`/`lith`, `ltmem`, `iltsound`, `ui` (Lib_UI) | 2 | done: no stubs left; fonts and the mem command as 2002 had them; the libraries' flags and link order as retail's |
 | 6 | `render`: `render_b` (drawprim, texinterface) and `render_a` back-ported from D3D9 to D3D8 | 2 | done: all of it compiles for D3D8 and links; a device comes up under Wine (tools/rendertest); not yet seen in the game |
-| 7 | `boot`: the built `Lithtech.exe` in the game under Wine: to the menu, then a level; snddrv/ServerDir/ltmsg built ones in | 3–6 | todo |
-| 8 | `modern`: the modern build of the engine (FFmpeg Bink, fixes) | 7 | todo |
+| 7 | `boot`: the built `Lithtech.exe` in the game under Wine: to the menu, then a level; snddrv/ServerDir/ltmsg built ones in | 3–6 | done: every engine binary in the game is built (no retail engine left); `make test` plays from the main menu into C01S01 with sound (null ALSA device); `make modern` builds and runs the same |
+| 8 | `modern`: the modern build of the engine (FFmpeg Bink, fixes) | 7 | done: no RAD binary in the modern build (Bink on FFmpeg; NOLF2 has no Miles); the launcher installed in both builds; Hor+, widescreen modes, the launcher's server name (`MODERN.md`) |
 | 9 | `match`: byte-matching passes per module, ratcheted by `make progress` | 3–6 | ongoing |
+| 10 | `release`: public archives built by GitHub Actions, as nolfsrc does (its commits "Install scripts that copy the game's data out of the player's discs", "Package each game directory as a -private and a -public archive", "Build switches for CI: NOLF_ARCHIVES and IMAGE_BUILD", "CI: build the four public archives on GitHub Actions", "CI: check the release build for byte regressions", "CI: upload each archive unzipped") | 7, 8 and everything ported | todo |
 
 ## Notes per package
 
@@ -525,3 +526,147 @@ addresses):
 **Left.** Seeing the menu and a level drawn by this renderer (needs 4 and
 5); retail comparison of the files listed as only compiled; byte
 matching (431 renderer functions are near).
+
+### 7. boot
+
+**Installed.** `build/all.sh` assembles the built `Lithtech.exe`,
+`server.dll`, `snddrv.dll` (from `SndDrv.dll`), `ServerDir.dll` and
+`ltmsg.dll`; the `retailengine` step is gone from `retailextract.py`, and
+the audit fails on any PE file that is neither `built` nor
+`THIRD-PARTY` (a stale `RETAIL` manifest row included): 11 built, 5
+third-party (binkw32, MFC42, MFC42U, MSVCP60, Msvcrt). Each built binary
+was tried against the retail one in the same game directory before it
+went in: none is kept retail.
+- `ServerDir.dll` crashed on Multiplayer (Internet) > Cooperative: the
+  SDK's `LoadDirServerList` passes a null `FILE*` to `fgets` when there is
+  no `sierraup.cfg` (the game directory has none; it is the Sierra
+  updater's). Retail checks (0x1000c1c6) and returns:
+  `src/nolf2src/jupiter/serverdir2-sierraup.patch`. Now it shows the
+  directory-server error, as retail's does; the text differs (retail:
+  "Error retrieving latest version information
+  (WS_ServerReq_NoServersSpecified)", ours the code alone: 1.3 takes the
+  status strings from CRes, `IDS_WON_VERSION_*`; the SDK's are
+  hard-coded). With the Sierra/WON master servers long gone, nothing
+  further can be tested there.
+- `snddrv.dll` (built) and the retail one behave the same: driver up,
+  DirectSound buffers, the menu and level sounds mixed.
+
+**Sound in the container.** Wine's winealsa needs an ALSA device; the
+container has none, so `snddrv.dll`'s Init failed. `tools/playtest.sh`
+now writes an `asound.conf` in the run directory (the system
+`alsa.conf`, then `pcm.!default { type null }`) and sets
+`ALSA_CONFIG_PATH` when there is no `/dev/snd`: Wine picks winealsa
+(winepulse has no server), DirectSound mixes into the null device, the
+engine runs with sound on. No `+DisableSound 1` anywhere.
+
+**Display.** Full screen (`++windowed 0`) on an Xvfb screen of exactly
+the mode (640x480; `PLAYTEST_RES` resizes both): the engine wants a
+display mode of the window's size even windowed, and Xvfb lists only
+its own; windowed, Wine's frame shrinks the client area to 634x448 and
+the page no longer maps 1:1. `PLAYTEST_WINDOWED=1` gives a window,
+`PLAYTEST_ARGS` adds engine arguments.
+
+**make test** plays `tools/playtest-newgame.txt` on
+`out/nolf2-legacy-release` (out/play/test/): main menu, Single player >
+New game > Normal, loading screen and opening cinematic (skipped),
+control with the HUD, look, walk, the in-game menu and back. A run whose
+`skipcine` never sees the HUD is now judged NO HUD (a failure). Also
+passing on the built engine: `tools/playtest-basic.txt` from
+`+runworld` C01S01 (move, jump, duck, fire, weapons, F6 quicksave writes
+`Save/.../QuickSave`, F9 quickload); its in-game-menu waits went from 2
+to 3 s (the menu slides in; at 2 s the second Escape was lost). Bink
+movies also play with the retail `binkw32.dll` (`PLAYTEST_ARGS="+DisableMovies 0"`:
+the legal screen, the intro movies); the tests keep them off for timing.
+
+**The level stall** (the reason this package was waiting) was the
+renderer's 68-byte Jupiter world vertex, fixed in package 3 (merged
+here). Before that merge, for the record: with the retail `server.dll`
+too it stalled, and a winedbg `bt all` showed the main thread in the
+engine's main loop (DirectInput polling) and CShell's loading-screen
+thread in its Sleep loop: the load had not failed, the client was
+never told it was in the world. The quickest way to see such a hang:
+in the container, run the game under xvfb-run in the background, then
+`winedbg --command "info proc"` for its Windows pid and
+`printf 'attach 0x<pid>\nbt all\ndetach\n' | winedbg` (Wine's own
+frames come with source lines).
+
+**Modern.** `make modern` builds the engine with `/D NOLF2SRC_MODERN`
+(every engine object's command line has it; there is no
+`NOLF2SRC_MODERN` code in the engine yet) and installs it like the
+legacy build; `playtest-newgame.txt` passes on
+`out/nolf2-modern-release`. For package 8: the modern build still ships
+retail's `binkw32.dll` and the Microsoft runtime DLLs: an FFmpeg-based
+Bink player as nolfsrc's `ext/` (build/ext.sh, Zig as the
+cross-compiler, already in the image) to replace binkw32; whatever
+`NOLF2SRC_MODERN` fixes the engine wants (resolutions beyond Xvfb-style
+mode lists, widescreen menus as nolfsrc's M-P3-01 and the `modern`
+mapping in playtest.sh); `sierraup.cfg`-free server listing (the WON
+directory servers are dead).
+
+**Score.** `make progress` (check): Lithtech.exe 5,342 -> 5,509
+identical, server.dll 1,909 -> 2,399, ServerDir.dll 201 -> 207 (the
+patch above matches retail's). It FAILs on two counts, neither from this
+package: `sub_4aa8b0` (`CLTCommonServer::SetObjectFlags`, package 3's
+known register tie-break) and ServerDir.dll unwritten 129 -> 131 (already
+seen by package 4, before any change here). The coordinator's
+progress-update needs `ACCEPT_LOSSES=1`.
+
+**Left.** A client joining a dedicated server (ours or retail's) and
+LAN play; the launcher `NOLF2.exe` is still not put in the game; the
+ServerDir status strings from CRes; longer play (later levels, a whole
+mission) under `make test`.
+
+### 8. modern
+
+**Middleware.** `make modern` ships no RAD binary. `ext/ffmpeg` is FFmpeg
+n8.1.3 as a submodule (nolfsrc's pin; `.gitmodules`, shallow), and
+`build/ext.sh` builds its Bink decoders and our player on them
+(`src/modern/binkw32/`, nolfsrc's player plus `BinkDX8SurfaceType` and the
+D3D8 surface formats NOLF2's engine uses) with `zig cc` into `out/ext/`;
+`variant.sh` sets `NOLF2_MIDDLEWARE=open`, `all.sh` step 2 installs it
+(`retailextract.py openruntime`, audited as `EXT`) and only the Microsoft
+runtime from retail. The engine looks up twelve Bink entry points at run
+time (`binkvideomgrimpl.cpp`); no game DLL imports Bink. No OpenMiles:
+nothing in NOLF2 loads `mss32.dll` (snddrv.dll is DirectSound). The movies
+play (`tools/playtest-movies.txt`, about 80 s of logos to the menu; the
+same with RAD's DLL); `run.sh` turns them on when `MANIFEST.txt` lists our
+binkw32. **For the coordinator:** the main checkout needs `git submodule
+update --init ext/ffmpeg` before `make modern`; `tools/agentwt.sh` now
+hard-links `ext/ffmpeg` into new worktrees (this one was populated the
+same way, from nolfsrc's checkout of the same commit).
+
+**Launcher.** `NOLF2.exe` is installed in both builds, with
+`run-launcher.sh` (registry values the installer wrote: `InstallDir`, and
+`UpdateCommandLine1` = `-rez Update_v1x3.rez -rez custom`, since the
+launcher puts `custom` before the update's zeroed DLLs). Tested in a fresh
+prefix under Xvfb, both builds: detail dialog, then the game to the main
+menu. In a prefix that already has a profile the launcher passes no
+resolution, and the engine takes `autoexec.cfg`'s 800x600, which an Xvfb
+of another size does not list (M-E2) -- a test-harness limit, not seen on
+a desktop. The build container's prefix is shared (`out/wineprefix`):
+give launcher tests their own `WINEPREFIX`.
+
+**Fixes** (`MODERN.md`, each tested in `make modern` + playtest against
+the release build): M-E1 Hor+ in `CClientMgr::Render`, world views only
+(`DRAWMODE_NORMAL`; the interface's RenderObjects art stays with the
+stretched 2D layout); M-G1 wide modes in the Display screen and the
+launcher; M-L2 the launcher's `NOLF2Srv.exe`. `releasesrc.py diff` is
+empty; no file of net's or rendermatch's was touched (M-E2 is in
+render_a and left for later).
+
+**jupitersrc.** `src/Game/Libs/` (fetched SDK source) is hard-linked
+between worktrees, and `tools/jupitersrc.py` wrote through the links: the
+net worktree (without the sierraup patch) unpatched `CServerDir_Titan.cpp`
+for every tree, and `make progress` here lost six ServerDir.dll
+functions. It now replaces files instead. Other worktrees keep sharing
+until they take this commit; rebuild ServerDir after merging.
+
+**Score.** `make progress` (check) passes: no recorded function lost,
+NOLF2.exe 309 as before. `make test` passes on the release build;
+`playtest-newgame.txt` and `playtest-movies.txt` pass on the modern one.
+
+**Left** (`MODERN.md`, todo): menus and HUD in a centred 4:3 area (M-G2;
+then `PLAYTEST_MAP=modern`), windowed mode at any size (M-E2, render_a),
+raw mouse input (M-E3), high-frame-rate checks before a default
+`MaxFPS` (M-E4), drawing the console (M-E5), Internet play without the
+WON servers (M-E6), an FOV option (M-G4).

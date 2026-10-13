@@ -442,7 +442,13 @@ BEGIN
     IDS_APPCD2CHECK         "\\DATA\\GAME2.REZ"
     IDS_REZBASE             "GAME"
     IDS_SETUPEXE            "SETUP.EXE"
+#ifdef NOLF2SRC_MODERN
+    // MODERN.md M-L2: the dedicated server is NOLF2Srv.exe; retail names
+    // "NOLF2Svr.EXE", so -goserver never found it
+    IDS_SERVEREXE           "NOLF2Srv.exe"
+#else
     IDS_SERVEREXE           "NOLF2Svr.EXE"
+#endif
     IDS_LANGUAGE            "English"
     IDS_INSERTCD2           "Please remove the No One Lives Forever Disc 2 from your drive and replace it with the No One Lives Forever Disc 1."
     IDS_INSERTCD            "Please insert the No One Lives Forever 2 Disc 1 into your drive."

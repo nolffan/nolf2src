@@ -13,7 +13,7 @@
 # Save/), no logs, no player profiles but the shipped default one,
 # autoexec.cfg as the shipped one (autoexec.cfg.retail),
 # nolf2cmds.txt as the build writes it (build/nolf2cmds.sh), and none of
-# the per-machine state run.sh creates. The archive is written beside and renamed into
+# the per-machine state run.sh and run-launcher.sh create. The archive is written beside and renamed into
 # place, so a failed run never leaves a truncated one, and a plain .tar an
 # older build made is removed with it.
 set -e
@@ -36,7 +36,7 @@ bash "$HERE/nolf2cmds.sh" > "$PARENT/$STAGE/nolf2cmds.txt"
 
 tar -C "$PARENT" -h -cf - \
     --exclude="$NAME/Save/*" --exclude="$NAME/Profiles/*" --exclude="$NAME/autoexec.cfg" --exclude="$NAME/nolf2cmds.txt" \
-    --exclude='*.log' --exclude=run-cmds.txt --exclude=cd --exclude='*.part' \
+    --exclude='*.log' --exclude=run-cmds.txt --exclude=launchcmds.txt --exclude=cd --exclude='*.part' \
     --transform="s|^$STAGE/|$NAME/|" \
     "$NAME" "$STAGE/autoexec.cfg" "$STAGE/Profiles/Default.prf" "$STAGE/nolf2cmds.txt" |
     gzip -6 > "$PKG.part"
