@@ -314,10 +314,10 @@ private:
 	};
 
 	// class CRezItmChunkList
-	class CRezItmChunkList : public CLTBaseList
+	class CRezItmChunkList : public CBaseList
 	{
 	public:
-   	  CRezItmChunk* GetFirst() { return (CRezItmChunk*)CLTBaseList::GetFirst(); };
+   	  CRezItmChunk* GetFirst() { return (CRezItmChunk*)CBaseList::GetFirst(); };
 	};
 
 	// alloc and dealloc rez items

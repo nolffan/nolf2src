@@ -5,9 +5,9 @@
 #include "pixelformat.h"
 #endif
 
-#ifndef __D3D9_H__
-#include <d3d9.h>
-#define __D3D9_H__
+#ifndef __D3D8_H__
+#include <d3d8.h>
+#define __D3D8_H__
 #endif
 
 #ifndef __D3DDDSTRUCTS_H__
@@ -216,7 +216,7 @@ struct RenderStruct
         int             (*Init)(RenderStructInit *pInit);   // Returns RENDER_OK for success, or an error code.
         void            (*Term)(bool bFullTerm);
 
-        IDirect3DDevice9* (*GetD3DDevice)(); // Note: In spring the renderer will link directly with the engine.
+        IDirect3DDevice8* (*GetD3DDevice)(); // Note: In spring the renderer will link directly with the engine.
                             //  RenderStruct will go away - the renderer will be the only thing that
                             //  needs d3d. The DrawPrim interface lives in the engine for now (and it needs the Device).
 

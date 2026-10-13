@@ -496,9 +496,6 @@ LTRESULT ILTModel::AddTracker(HOBJECT hModel, ANIMTRACKERID TrackerID)
 	//we need to re-evaluate the nodes since we have changed the tracker
 	pModel->ResetCachedTransformNodeStates();
 
-	//The tracker is now dirty.
-	pTracker->m_bDirty = true;
-
     return LT_OK;
 }
 
@@ -588,9 +585,6 @@ LTRESULT ILTModel::SetCurAnim(HOBJECT hModel, ANIMTRACKERID TrackerID,
 	//we need to re-evaluate the nodes since we have changed the tracker
 	pModel->ResetCachedTransformNodeStates();
 
-	//The tracker is now dirty.
-	pTracker->m_bDirty = true;
-
 	return LT_OK;
 }
 
@@ -608,9 +602,6 @@ LTRESULT ILTModel::ResetAnim(HOBJECT hModel, ANIMTRACKERID TrackerID)
 
 	//we need to re-evaluate the nodes since we have changed the tracker
 	pModel->ResetCachedTransformNodeStates();
-
-	//The tracker is now dirty.
-	pTracker->m_bDirty = true;
 
     return LT_OK;
 }
@@ -643,9 +634,6 @@ LTRESULT ILTModel::SetLooping(HOBJECT hModel, ANIMTRACKERID TrackerID, bool bLoo
 
 	trk_Loop(pTracker, bLooping != 0);
 
-	//The tracker is now dirty.
-	pTracker->m_bDirty = true;
-
     return LT_OK;
 }
 
@@ -676,9 +664,6 @@ LTRESULT ILTModel::SetPlaying(HOBJECT hModel, ANIMTRACKERID TrackerID, bool bPla
     CHECK_PARAMS2(pTracker);
 
     trk_Play(pTracker, bPlaying != 0);
-
-	//The tracker is now dirty.
-	pTracker->m_bDirty = true;
 
     return LT_OK;
 }
@@ -758,9 +743,6 @@ LTRESULT ILTModel::SetCurAnimTime(
 	//we need to re-evaluate the nodes since we have changed the tracker
 	pModel->ResetCachedTransformNodeStates();
 
-	//The tracker is now dirty.
-	pTracker->m_bDirty = true;
-
 	return LT_OK;
 }
 
@@ -779,9 +761,6 @@ LTRESULT ILTModel::SetHintNode(
 
     pTracker->m_hHintNode = hNode;
 
-	//The tracker is now dirty.
-	pTracker->m_bDirty = true;
-
 	return LT_OK;
 }
 
@@ -797,9 +776,6 @@ LTRESULT ILTModel::SetAnimRate( HOBJECT hModel, ANIMTRACKERID TrackerID, float f
     CHECK_PARAMS2(pTracker);
 
 	pTracker->m_RateModifier = fRate;
-
-	//The tracker is now dirty.
-	pTracker->m_bDirty = true;
 
     return LT_OK;
 }
@@ -851,9 +827,6 @@ LTRESULT ILTModel::SetWeightSet(HOBJECT hModel, ANIMTRACKERID TrackerID,
 
 	//we need to re-evaluate the nodes since we have changed the tracker
 	pModel->ResetCachedTransformNodeStates();
-
-	//The tracker is now dirty.
-	pTracker->m_bDirty = true;
 
 	return LT_OK;
 }

@@ -89,17 +89,17 @@ private:
 ////////////////////////////////////////////////////////////////////////////
 // class CLoadDirByClassItem
 ////////////////////////////////////////////////////////////////////////////
-class CLoadDirByClassList : public CLTBaseList
+class CLoadDirByClassList : public CBaseList
 {
 public:
 	CLoadDirByClassList() { InitializeCriticalSection(&m_CriticalSection); };
 	~CLoadDirByClassList() { RemoveAllItems(); DeleteCriticalSection(&m_CriticalSection); };
 
 	// get the first item in the list
-	CLoadDirByClassItem* GetFirst() { return (CLoadDirByClassItem*)CLTBaseList::GetFirst(); };
+	CLoadDirByClassItem* GetFirst() { return (CLoadDirByClassItem*)CBaseList::GetFirst(); };
 
 	// get the last item in the list
-	CLoadDirByClassItem* GetLast() { return (CLoadDirByClassItem*)CLTBaseList::GetLast(); };
+	CLoadDirByClassItem* GetLast() { return (CLoadDirByClassItem*)CBaseList::GetLast(); };
 
 	// find the path item that contains the correct path for the given class id
 	// if it can't find the requisted class ID it checks for the any class id
@@ -256,17 +256,17 @@ private:
 ////////////////////////////////////////////////////////////////////////////
 // class CLoadDirByClassItem
 ////////////////////////////////////////////////////////////////////////////
-class CFileStreamList : public CLTBaseList
+class CFileStreamList : public CBaseList
 {
 public:
 	CFileStreamList() { InitializeCriticalSection(&m_CriticalSection); };
 	~CFileStreamList() { RemoveAllItems(); DeleteCriticalSection(&m_CriticalSection); };
 
 	// get the first item in the list
-	CFileStreamItem* GetFirst() { return (CFileStreamItem*)CLTBaseList::GetFirst(); };
+	CFileStreamItem* GetFirst() { return (CFileStreamItem*)CBaseList::GetFirst(); };
 
 	// get the last item in the list
-	CFileStreamItem* GetLast() { return (CFileStreamItem*)CLTBaseList::GetLast(); };
+	CFileStreamItem* GetLast() { return (CFileStreamItem*)CBaseList::GetLast(); };
 
 	// add an item to the list
 	void AddItem(CLTDMFileStream* pFileStream);

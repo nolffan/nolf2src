@@ -673,9 +673,7 @@ public :
 
 	CDIModelDrawable()
 		: m_pUsedNodeList(NULL),
-		  m_UsedNodeListSize(0),
-		  m_pVertexShader(NULL),
-		  m_pPixelShader(NULL)
+		  m_UsedNodeListSize(0)
 	{
 	}
 
@@ -707,11 +705,6 @@ public :
 
 	uint8*					m_pUsedNodeList; // most distal nodes used by this mesh.
 	uint8				 	m_UsedNodeListSize;
-
-protected:
-
-	LTVertexShader*			m_pVertexShader;	// temporary pointer to shader used during rendering
-	LTPixelShader*			m_pPixelShader;		// temporary pointer to shader used during rendering
 };
 
 //  ----------------------------------------------------------------

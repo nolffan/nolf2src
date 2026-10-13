@@ -10,13 +10,13 @@
 #undef BOOL
 
 #ifndef __D3D_H__
-#include <d3d9.h>
+#include <d3d8.h>
 #define __D3D_H__
 #endif
 
-#ifndef __D3D9TYPES_H__
-#include <d3d9types.h>
-#define __D3D9TYPES_H__
+#ifndef __D3D8TYPES_H__
+#include <d3d8types.h>
+#define __D3D8TYPES_H__
 #endif
 
 //#include "de_world.h"	// I admit that this is ugly, but I needed to define this in two places to avoid some header dependency problems (it's also defined in DDStructDefines.h). If you're reading this, I truly am sorry. -JE

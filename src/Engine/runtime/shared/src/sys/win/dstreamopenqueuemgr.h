@@ -108,27 +108,27 @@ private:
 ////////////////////////////////////////////////////////////////////////////
 // class CDStreamOpenQueueList
 ////////////////////////////////////////////////////////////////////////////
-class CDStreamOpenQueueList : public CLTBaseList
+class CDStreamOpenQueueList : public CBaseList
 {
 public:
     // version of all the base functions that set our number of items counter
-    CDStreamOpenQueueList() { m_nNumItems = 0; CLTBaseList::CLTBaseList(); };
-    void Insert(CBaseListItem* pItem) { m_nNumItems++; CLTBaseList::Insert(pItem); };         
-    void InsertFirst(CBaseListItem* pItem) { m_nNumItems++; CLTBaseList::InsertFirst(pItem); };                               
-    void InsertLast(CBaseListItem* pItem) { m_nNumItems++; CLTBaseList::InsertLast(pItem); };
-    void InsertAfter(CBaseListItem* pBeforeItem, CBaseListItem* pNewItem) { m_nNumItems++; CLTBaseList::InsertAfter(pBeforeItem, pNewItem); };
-    void InsertBefore(CBaseListItem* pAfterItem, CBaseListItem* pNewItem) { m_nNumItems++; CLTBaseList::InsertBefore(pAfterItem, pNewItem); };
-    void Delete(CBaseListItem* pItem) { m_nNumItems--; CLTBaseList::Delete(pItem); };                                 
-    void FastDeleteAll() { m_nNumItems = 0; CLTBaseList::FastDeleteAll(); };
+    CDStreamOpenQueueList() { m_nNumItems = 0; CBaseList::CBaseList(); };
+    void Insert(CBaseListItem* pItem) { m_nNumItems++; CBaseList::Insert(pItem); };         
+    void InsertFirst(CBaseListItem* pItem) { m_nNumItems++; CBaseList::InsertFirst(pItem); };                               
+    void InsertLast(CBaseListItem* pItem) { m_nNumItems++; CBaseList::InsertLast(pItem); };
+    void InsertAfter(CBaseListItem* pBeforeItem, CBaseListItem* pNewItem) { m_nNumItems++; CBaseList::InsertAfter(pBeforeItem, pNewItem); };
+    void InsertBefore(CBaseListItem* pAfterItem, CBaseListItem* pNewItem) { m_nNumItems++; CBaseList::InsertBefore(pAfterItem, pNewItem); };
+    void Delete(CBaseListItem* pItem) { m_nNumItems--; CBaseList::Delete(pItem); };                                 
+    void FastDeleteAll() { m_nNumItems = 0; CBaseList::FastDeleteAll(); };
 
     // get the number of items in the list
     unsigned int GetNumItems() { return m_nNumItems; };
 
     // get the first item in the list
-    CDStreamOpenQueueItem* GetFirst() { return (CDStreamOpenQueueItem*)CLTBaseList::GetFirst(); };
+    CDStreamOpenQueueItem* GetFirst() { return (CDStreamOpenQueueItem*)CBaseList::GetFirst(); };
 
     // get the last item in the list
-    CDStreamOpenQueueItem* GetLast() { return (CDStreamOpenQueueItem*)CLTBaseList::GetLast(); };
+    CDStreamOpenQueueItem* GetLast() { return (CDStreamOpenQueueItem*)CBaseList::GetLast(); };
 
 private:
     // number of items in the list

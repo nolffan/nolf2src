@@ -3,7 +3,6 @@
 #include "videomgr.h"
 
 #include "binkvideomgrimpl.h"
-#include "dshowvideomgrimpl.h"
 
 extern int32 g_CV_VideoDebug;
 
@@ -58,7 +57,6 @@ void VideoMgr::OnRenderTerm()
 VideoMgr* CreateVideoMgr( const char *pszName )
 {
 	bool want_bink    = (stricmp( pszName, "BINK" ) == 0);
-	bool want_dshow   = (stricmp( pszName, "DIRECTSHOW" ) == 0);
 
 	// load bink
 
@@ -101,28 +99,6 @@ VideoMgr* CreateVideoMgr( const char *pszName )
 #endif
 
 	}
-	else if ( want_dshow )
-	{
-		VideoMgr* pVidMgr;
-
-		LT_MEM_TRACK_ALLOC(pVidMgr = new DShowVideoMgr(),LT_MEM_TYPE_MISC);
-
-		if( pVidMgr )
-		{
-			if(((DShowVideoMgr*)pVidMgr)->Init() == LT_OK)
-			{
-				//success, give them back the video manager
-				return pVidMgr;
-			}
-
-			//we failed to initialize
-			delete pVidMgr;
-			pVidMgr = NULL;
-		}
-
-
-	}
-
   
 	return LTNULL;
 }

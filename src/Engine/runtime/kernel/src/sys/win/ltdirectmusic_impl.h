@@ -397,14 +397,14 @@ public:
 
 
 	// class for list of segment items
-	class CCommandItemList : public CLTBaseList
+	class CCommandItemList : public CBaseList
 	{
 	public:
 		// get the first item in the list
-		CCommandItem* GetFirst() { return (CCommandItem*)CLTBaseList::GetFirst(); };
+		CCommandItem* GetFirst() { return (CCommandItem*)CBaseList::GetFirst(); };
 
 		// get the last item in the list
-		CCommandItem* GetLast() { return (CCommandItem*)CLTBaseList::GetLast(); };
+		CCommandItem* GetLast() { return (CCommandItem*)CBaseList::GetLast(); };
 	};
 
 
@@ -482,14 +482,14 @@ public:
 
 
 	// class for list of segment items
-	class CSegmentList : public CLTBaseList
+	class CSegmentList : public CBaseList
 	{
 	public:
 		// get the first item in the list
-		CSegment* GetFirst() { return (CSegment*)CLTBaseList::GetFirst(); };
+		CSegment* GetFirst() { return (CSegment*)CBaseList::GetFirst(); };
 
 		// get the last item in the list
-		CSegment* GetLast() { return (CSegment*)CLTBaseList::GetLast(); };
+		CSegment* GetLast() { return (CSegment*)CBaseList::GetLast(); };
 
 		// find the segment object that has the given name
 		CSegment* Find(const char* sName);
@@ -551,14 +551,14 @@ public:
 
 
 	// class for list of segment items
-	class CSegmentStateList : public CLTBaseList
+	class CSegmentStateList : public CBaseList
 	{
 	public:
 		// get the first item in the list
-		CSegmentState* GetFirst() { return (CSegmentState*)CLTBaseList::GetFirst(); };
+		CSegmentState* GetFirst() { return (CSegmentState*)CBaseList::GetFirst(); };
 
 		// get the last item in the list
-		CSegmentState* GetLast() { return (CSegmentState*)CLTBaseList::GetLast(); };
+		CSegmentState* GetLast() { return (CSegmentState*)CBaseList::GetLast(); };
 
 		// find the segment object that has the given name
 		CSegmentState* Find(const char* sName);
@@ -620,14 +620,14 @@ public:
 
 
 	// class for list of band items
-	class CBandList : public CLTBaseList
+	class CBandList : public CBaseList
 	{
 	public:
 		// get the first item in the list
-		CBand* GetFirst() { return (CBand*)CLTBaseList::GetFirst(); };
+		CBand* GetFirst() { return (CBand*)CBaseList::GetFirst(); };
 
 		// get the last item in the list
-		CBand* GetLast() { return (CBand*)CLTBaseList::GetLast(); };
+		CBand* GetLast() { return (CBand*)CBaseList::GetLast(); };
 	};
 
 
@@ -680,14 +680,14 @@ public:
 	
 	
 	// class for list of style items
-	class CStyleList : public CLTBaseList
+	class CStyleList : public CBaseList
 	{
 	public:
 		// get the first item in the list
-		CStyle* GetFirst() { return (CStyle*)CLTBaseList::GetFirst(); };
+		CStyle* GetFirst() { return (CStyle*)CBaseList::GetFirst(); };
 	
 		// get the last item in the list
-		CStyle* GetLast() { return (CStyle*)CLTBaseList::GetLast(); };
+		CStyle* GetLast() { return (CStyle*)CBaseList::GetLast(); };
 
 		// find the style object that has the given name
 		CStyle* Find(const char* sName);
@@ -728,14 +728,14 @@ public:
 	
 	
 	// class for list of DLSBank items
-	class CDLSBankList : public CLTBaseList
+	class CDLSBankList : public CBaseList
 	{
 	public:
 		// get the first item in the list
-		CDLSBank* GetFirst() { return (CDLSBank*)CLTBaseList::GetFirst(); };
+		CDLSBank* GetFirst() { return (CDLSBank*)CBaseList::GetFirst(); };
 	
 		// get the last item in the list
-		CDLSBank* GetLast() { return (CDLSBank*)CLTBaseList::GetLast(); };
+		CDLSBank* GetLast() { return (CDLSBank*)CBaseList::GetLast(); };
 	};
 
 
