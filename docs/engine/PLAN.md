@@ -59,7 +59,7 @@ Background, in this directory:
 | 9a | `net`: multiplayer with the built engine (dedicated server and client over UDP); kernel/net and the server-side modules matched | 3, 7 | done: our Lithtech.exe joins our NOLF2Srv.exe/server.dll (and retail's server.dll) over loopback, `tools/mptest.sh`; server.dll +102, Lithtech.exe +104 identical |
 | 9b | `rendermatch`: render_a/render_b structures and file formats against retail, the renderer in the game, byte matching | 6, 7 | done: layouts and loaders fixed (below); Lithtech.exe 5,509 -> 5,792 identical |
 | 9c | `cshell`: the game DLLs (`CShell.dll`, `Object.lto`, `ClientFx.fxd`) against retail: what the source release does not have of 1.3 | 9 | done: one layout (CInterfaceTimer) was most of CShell's gap; CShell.dll 5,234 -> 5,414 identical (91.7% -> 98.4% of its bytes), Object.lto 9,253 -> 9,254; the rest is listed below |
-| 10 | `release`: public archives built by GitHub Actions, as nolfsrc does (its commits "Install scripts that copy the game's data out of the player's discs", "Package each game directory as a -private and a -public archive", "Build switches for CI: NOLF_ARCHIVES and IMAGE_BUILD", "CI: build the four public archives on GitHub Actions", "CI: check the release build for byte regressions", "CI: upload each archive unzipped") | 7, 8 and everything ported | done: -private / -public archives, install scripts from the player's installed NOLF2, the workflow (not yet run on GitHub); ServerDir.dll's score made reproducible by package 11 |
+| 10 | `release`: public archives built by GitHub Actions, as nolfsrc does (its commits "Install scripts that copy the game's data out of the player's discs", "Package each game directory as a -private and a -public archive", "Build switches for CI: NOLF_ARCHIVES and IMAGE_BUILD", "CI: build the four public archives on GitHub Actions", "CI: check the release build for byte regressions", "CI: upload each archive unzipped") | 7, 8 and everything ported | done: -private / -public archives, install scripts from the player's own disc images (EU or USA) and 1.3 update, linux-run*.sh, the workflow as nolfsrc's now (prepare + four parallel jobs; not yet run on GitHub); ServerDir.dll's score made reproducible by package 11 |
 | 11 | `bugs`: the variants (debug, modern, modern-debug) checked to build the whole game, engine included, and to play; `RETAIL_BUGS.md`; the safe fixes in the modern build | 7, 8 | done: every variant builds every binary with its define and passes the playtest; 48 entries listed, 23 of them fixed in the modern build (three only on one side: see the notes) (M-G5..M-G16, M-L3, M-E7..M-E12) |
 
 ## Notes per package
@@ -1023,40 +1023,74 @@ Done: nolfsrc's release pattern, for NOLF2 (`BUILDING.md`, "Archives";
 - `build/package.sh` writes `out/<name>-private.tar.gz` (the whole game
   directory, 0.9 GB) and `-public.tar.gz` (4.6 MB for the legacy release
   build): the same without every file `MANIFEST.txt` lists as `data` or
-  `THIRD-PARTY`, with `linux-install.sh` and `windows-install.bat`.
+  `THIRD-PARTY` (listed in the stage's `disc-files.txt`), with
+  `linux-install.sh` and `windows-install.bat`.
   `NOLF2_ARCHIVES` (default `private public`) picks them; `IMAGE_BUILD=0`
   makes `make image` take the docker image as it is.
-- `tools/mkinstall.py` writes the install scripts. Unlike nolfsrc's, they
-  read the player's *installed* NOLF2 (1.3, English: EU and USA install
-  the same files), not the disc images: NOLF2's setup keeps its files in
-  compressed InstallShield cabinets and the 1.3 update in a
-  self-extractor, so only an install has them as they are. Each file is
-  byte ranges of an installed file plus zeros (the retail DLLs blanked in
-  GAME2.REZ, GAMEDLL.REZ, Update_v1x3.rez), checked by SHA-256. Flags:
-  the Microsoft runtime is optional (a Windows install keeps it in
-  system32; under Wine only `run-launcher.sh` needs MFC42), and the
-  shipped settings (`autoexec.cfg`, `Default.prf`) fall back to the
-  player's own. Linux finds the install in the Wine registry
-  (`$WINEPREFIX`, `~/.wine`), the .bat in HKLM's InstallDir.
+- `tools/mkinstall.py` writes the install scripts. As nolfsrc's (its
+  8a94af5, 9b6f580, b850912, 1792b21) they read the player's own *disc
+  images*, nothing installed: both discs of the European or the USA
+  release (`.iso`, redump `.bin`/`.cue` or `.zip`; MODE1 tracks on the
+  European discs, MODE2 on the USA ones) and Sierra's
+  `nolf2-update_1x3.exe`. (This replaces the first version, which read an
+  installed NOLF2 through the Wine registry or InstallDir.) NOLF2's files
+  are in InstallShield 6 cabinets spanning both discs (`data1.hdr`,
+  `data1.cab`..`data3.cab`; GAME2.REZ is split across `data2.cab` on disc 1
+  and `data3.cab` on disc 2), each file a run of 32 KB chunks, a 16-bit
+  length and a raw deflate stream ending in a final block; only
+  `Data/GAME.REZ` is stored plainly. mkinstall parses `data1.hdr` itself
+  (file table, volume headers for split files), finds each retail file by
+  its MD5 and size, and records the byte ranges of the image, per release
+  (the cabinets differ between EU and USA and lie at other offsets). The
+  update is a self-extractor whose overlay is one Microsoft cabinet (one
+  MSZIP folder, 29.5 MB unpacked) holding its own IS6 setup; the list
+  records the cabinet's offset and the unpacked folder's SHA-256, and the
+  ranges of the update's files in it. Every way is read back and checked
+  here against `rez/games/nolf2-eu-1.3/`. Output files are then the retail
+  file in order with `C`/`Z`/`L` runs (the retail DLLs blanked in
+  GAME2.REZ, GAMEDLL.REZ, Update_v1x3.rez), each checked by SHA-256; no
+  optional or player's-own files any more. The scripts need an inflater
+  only: `python3`'s zlib on Linux (bash and coreutils find, convert and
+  check the images, as nolfsrc's), .NET's `DeflateStream` in Windows
+  PowerShell 5.1 (MSZIP's 32 KB history is put in front as a stored
+  block). redump's other USA disc 2 dump, `(Alt)`, has `data3.cab` at the
+  same offset; it is recorded by size and SHA-256 (`ALIASES`). The list is
+  about 13 KB.
+- `make retail` also fetches the USA discs (`build/retail.sh`'s
+  `retail_discs`), as mkinstall needs both releases' images; without them
+  the public archive is skipped (an error with `NOLF2_ARCHIVES`).
+- The run scripts are `linux-run.sh` and `linux-run-launcher.sh`, as in
+  nolfsrc; `build/all.sh` removes the old names from a game directory.
+- `make debug`/`make modern-debug` were broken on master by package 11's
+  `tools/anonns.py` (with /Z7 the debug records hold the namespace names,
+  with relocations after them; the tool refuses). Only the release build is
+  pinned now (`build/build.mk`): variants are never scored.
 - `tools/retailextract.py resources` hard-links the retail files it does
   not change (Engine/GAME/SOUND.REZ, the movies): a game directory is
   1.2 GB instead of 1.8.
-- `.github/workflows/public-archives.yml`: the four builds with
-  `NOLF2_ARCHIVES=public`, `make progress` after the release build, the
-  four public archives uploaded unzipped; the disc zips and the SDK image
-  cached on `rez/isos/SHA256SUMS`. actionlint passes it.
+- `.github/workflows/public-archives.yml`, as nolfsrc's now: a job
+  "prepare" fetches the EU and USA disc zips and the SDK image only on a
+  cache miss (keyed on `rez/isos/SHA256SUMS`) and writes the docker layer
+  cache; then four build jobs (a matrix, fail-fast off) each build one
+  variant with `NOLF2_ARCHIVES=public` (no private archive is made) and
+  upload its `-public.tar.gz` itself (upload-artifact v7, `archive:
+  false`); the legacy release job runs `make progress`. actionlint passes
+  it.
 
-Tested here, in a fresh worktree with `NOLF2_ARCHIVES=public` (the CI
-commands): `make`, `make debug`, `make modern`, `make modern-debug` build
-the four public archives (4.6, 21, 5.5 and 22 MB). The legacy release
-one, unpacked in an empty directory and installed by `linux-install.sh`
-from `rez/games/nolf2-eu-1.3` (found through a Wine registry), is the
-built game directory byte for byte and passes the `make test` playtest
-(menu, new game, C01S01); the modern one installs byte for byte too. The
-.bat's PowerShell ran under PowerShell 7.4 on Linux with the same result;
-Windows PowerShell 5.1 and the .bat wrapper itself were not run. Not
-tested: the workflow on GitHub (the runner's disk, the 6-hour limit, the
-caches, upload-artifact v7).
+Tested here with `NOLF2_ARCHIVES=public IMAGE_BUILD=0` (the CI switches):
+`make`, `make debug`, `make modern`, `make modern-debug` write the four
+public archives (4.6, 22, 5.5 and 23 MB) and no private one. Each was
+unpacked into an empty directory and installed from the redump images:
+legacy release by `linux-install.sh` finding the European `.zip`s and the
+update in the directory above it; legacy debug from the USA disc 1 `.zip`
+and the USA disc 2 `(Alt)` `.cue`/`.bin`; modern release by the .bat's
+PowerShell (PowerShell 7.4 on Linux) from the USA disc 1 `.iso` and disc 2
+`.zip`; modern debug from the European `.iso`s, then run again (all
+kept). Each installed directory is the built game directory byte for byte
+(`diff -r`, only the two install scripts extra), no temporary `.iso` is
+left, and each passes the `make test` playtest (menu, new game, C01S01).
+Not run: Windows PowerShell 5.1 and the .bat wrapper itself, the workflow
+on GitHub (runner disk, caches, upload-artifact v7).
 
 **`make progress` is not reproducible for `ServerDir.dll`** (found here;
 the CI step will fail on it). VC6 names an anonymous namespace
