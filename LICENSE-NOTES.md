@@ -30,3 +30,38 @@ The modern build's `binkw32.dll` is FFmpeg (LGPL-2.1-or-later), statically
 linked with our player. The LGPL asks that whoever receives it can rebuild
 it against a modified FFmpeg, which `build/ext.sh` and the source here
 allow.
+
+## The archives
+
+Each game directory is packaged twice (`build/package.sh`; `BUILDING.md`).
+This says what each holds; it is not legal advice and grants nothing.
+
+**`<directory>-private.tar.gz`** is the whole game directory: everything in
+the table above, the retail game's data and the third-party runtime
+included. Those are Monolith Productions', Fox Interactive's and Sierra's,
+RAD Game Tools' and Microsoft's, under the terms the retail game came with:
+the private archive is for your own machines, and for others developing on
+the build who have the game, not for handing out.
+
+**`<directory>-public.tar.gz`** holds only what the build made and the
+project's own files, none of the retail game's:
+
+| In it | Whose | Terms |
+|---|---|---|
+| `Lithtech.exe`, `server.dll` | built here from the LithTech Jupiter engine source (Monolith Productions / LithTech, Inc.) | as the engine source above: no licence is declared for it |
+| `custom/` (`cshell.dll`, `object.lto`, `clientfx.fxd`, `cres.dll`, `sres.dll`), `NOLF2.exe`, `NOLF2Srv.exe` | built here from Monolith's *No One Lives Forever 2* source release | Monolith's terms for that release (`src/Engine/sdk/Legal.txt`) |
+| `ServerDir.dll` | built here from the LithTech Jupiter SDK's source (WONAPI, with GameSpy's query reporting; `CServerDir_Titan`) | as the SDK above: licensed to engine licensees, not released |
+| `snddrv.dll`, `ltmsg.dll` | built here from this project's reconstructions (Monolith's code in substance; `ltmsg.dll`'s strings are the retail DLL's) | as above |
+| `binkw32.dll` (modern builds only) | our Bink player statically linked with FFmpeg | LGPL-2.1-or-later (FFmpeg); the source is `src/modern/binkw32/` and `ext/ffmpeg`, rebuilt by `build/ext.sh` |
+| `.pdb`, `.map` (debug builds only) | the linker's, for the binaries above | as those binaries |
+| `run.sh`, `run-launcher.sh`, `linux-install.sh`, `windows-install.bat`, `nolf2cmds.txt`, `MANIFEST.txt` | written for this project (the install scripts by `tools/mkinstall.py`, with the sizes and SHA-256 of the retail files they read) | no licence is declared |
+
+It has no `.rez` archive, movie, setting or profile of the retail game, no
+RAD Bink and no Microsoft runtime DLL. The install scripts copy those from
+the player's own installed NOLF2 (updated to 1.3, English) into the
+directory, on the player's machine; nothing of them is in the archive. So
+the public archive is the one meant for other people -- but its binaries
+are still built from Monolith's source, the LithTech engine source and the
+Jupiter SDK, whose terms no licence here overrides: work them out before
+distributing it, as the tables above say. The GitHub Actions workflow
+(`.github/workflows/public-archives.yml`) makes only public archives.
