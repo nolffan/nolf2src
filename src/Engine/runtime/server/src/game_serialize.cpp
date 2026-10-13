@@ -302,46 +302,15 @@ namespace
 {
 
 // Objects larger than this size are considered "suspicious" and spit out a warning.
-const uint32 	k_nSuspiciousObjectSize = 0x10000; // 64k
+// nolf2src: retail compares the message sizes in bits (64k bytes).
+const uint32 	k_nSuspiciousObjectSize = 0x80000;
 
 //////////////////////////////////////////////////////////////////////////////
 // Internal serialization buffer
-// This is a static buffer used by the serialization routines so they can
-// avoid allocations from the stack without having to constantly hit the heap
+// nolf2src: NOLF2 kept it in a vector, sized as each message needs it and
+// emptied when a save or a restore is done (Jupiter's own buffer came later).
 
-uint8* 			s_pTempBuffer 		= NULL;
-unsigned		s_nTempBufferSize 	= k_nSuspiciousObjectSize;
-
-void DeleteTempBuffer()
-{
-	// Delete the old buffer.
-	if (LTNULL != s_pTempBuffer)
-	{
-		delete [] s_pTempBuffer;
-		s_pTempBuffer = LTNULL;
-	}
-}
-
-void CreateTempBuffer(unsigned BufSize)
-{
-	DeleteTempBuffer();
-
-	// Allocate the new buffer.
-	LT_MEM_TRACK_ALLOC(s_pTempBuffer = new uint8[BufSize], LT_MEM_TYPE_MISC);
-	ASSERT(LTNULL != s_pTempBuffer);
-
-	// Reset the buffer size.
-	s_nTempBufferSize = BufSize;
-}
-
-void AdjustTempBufferSize(unsigned NewBufSize)
-{
-	if (NewBufSize > s_nTempBufferSize)
-	{
-		DeleteTempBuffer();
-		CreateTempBuffer(NewBufSize);
-	}
-}
+std::vector<uint8>	s_cTempBuffer;
 
 
 } // unnamed namespace
@@ -373,6 +342,10 @@ static void sm_SaveObjectData(LTObject *pObj, ILTStream *pStream, uint32 dwParam
 	// Dump it into the serialization buffer
 	uint32 nSpecialEffectLen = pObj->sd->m_cSpecialEffectMsg.Size();
 	uint32 nObjectMsgLen = cSaveMessage.Size();
+
+	// Make sure our buffer is large enough.
+	s_cTempBuffer.resize((LTMAX(nSpecialEffectLen, nObjectMsgLen) + 7) / 8);
+	uint8 *pTempBuffer = s_cTempBuffer.begin();
 
 	if ((nSpecialEffectLen + nObjectMsgLen) > k_nSuspiciousObjectSize)
 	{
@@ -498,11 +471,8 @@ static void sm_SaveObjectData(LTObject *pObj, ILTStream *pStream, uint32 dwParam
 		uint16 nTemp = (uint16)nSpecialEffectLen;
         GS_STREAM_WRITE(nTemp);
 
-		// Make sure our buffer is large enough.
-		AdjustTempBufferSize(nSpecialEffectLen);
-
-		pObj->sd->m_cSpecialEffectMsg.PeekData(s_pTempBuffer, nSpecialEffectLen);
-        pStream->Write(s_pTempBuffer, (nSpecialEffectLen + 7) / 8);
+		pObj->sd->m_cSpecialEffectMsg.PeekData(pTempBuffer, nSpecialEffectLen);
+        pStream->Write(pTempBuffer, (nSpecialEffectLen + 7) / 8);
     }
 
 	//write out the animation trackers if applicable
@@ -584,14 +554,11 @@ static void sm_SaveObjectData(LTObject *pObj, ILTStream *pStream, uint32 dwParam
     GS_STREAM_WRITE(curPos);
     pStream->SeekTo(curPos);
 
-	// Make sure our buffer is large enough.
-	AdjustTempBufferSize(nObjectMsgLen);
-
 	// Write out the object save packet
 	CPacket_Read cSaveMessage_Read(cSaveMessage.GetPacket());
-	cSaveMessage_Read.ReadData(s_pTempBuffer, nObjectMsgLen);
+	cSaveMessage_Read.ReadData(pTempBuffer, nObjectMsgLen);
 	GS_STREAM_WRITE(nObjectMsgLen);
-	pStream->Write(s_pTempBuffer, (nObjectMsgLen + 7) / 8);
+	pStream->Write(pTempBuffer, (nObjectMsgLen + 7) / 8);
 
     pStream->WriteVal((uint32)GAMESERIALIZE_CRC);
 
@@ -745,13 +712,15 @@ static LTRESULT sm_CreateNextObject(ILTStream *pStream,
 	    uint16 messageLen;
         GS_STREAM_READ(messageLen);
 
-		// Make sure our buffer is large enough.
-		AdjustTempBufferSize(messageLen);
+		int nMessageBytes = ((int)messageLen + 7) / 8;
 
-		uint32 nMessageBytes = (messageLen + 7) / 8;
-		pStream->Read(s_pTempBuffer, nMessageBytes);
+		// Make sure our buffer is large enough.
+		s_cTempBuffer.resize(nMessageBytes);
+		uint8 *pTempBuffer = s_cTempBuffer.begin();
+
+		pStream->Read(pTempBuffer, nMessageBytes);
 		CPacket_Write cTempMsg;
-		cTempMsg.WriteData(s_pTempBuffer, messageLen);
+		cTempMsg.WriteData(pTempBuffer, messageLen);
 		pObj->sd->m_cSpecialEffectMsg = CPacket_Read(cTempMsg);
     }
 
@@ -898,13 +867,15 @@ static LTRESULT sm_RestoreNextObject(ILTStream *pStream, LTObject *pObj, uint32 
 	uint32 nObjectMsgLen;
 	GS_STREAM_READ(nObjectMsgLen);
 
-	// Make sure our buffer is large enough.
-	AdjustTempBufferSize(nObjectMsgLen);
-
 	uint32 nObjectMsgBytes = (nObjectMsgLen + 7) / 8;
-	pStream->Read(s_pTempBuffer, nObjectMsgBytes);
+
+	// Make sure our buffer is large enough.
+	s_cTempBuffer.resize(nObjectMsgBytes);
+	uint8 *pTempBuffer = s_cTempBuffer.begin();
+
+	pStream->Read(pTempBuffer, nObjectMsgBytes);
 	CPacket_Write cTempMsg;
-	cTempMsg.WriteData(s_pTempBuffer, nObjectMsgLen);
+	cTempMsg.WriteData(pTempBuffer, nObjectMsgLen);
 
     // Tell them to process their serialize message.
 	// Make sure nobody tries to free this message, since it's not allocated dynamically
@@ -1102,16 +1073,10 @@ void sm_SaveObjects(ILTStream *pStream, ObjectList *pList, uint32 dwParam, uint3
     int nObjects;
 	int i;
 
-	// Create the temporary buffer.
-	CreateTempBuffer(s_nTempBufferSize);
-
 	// Make the actual list of ones we're going to save.
     LT_MEM_TRACK_ALLOC(pObjects = new LTObject*[pList->m_nInList],LT_MEM_TYPE_MISC);
     if (!pObjects)
 	{
-		// Free the temporary buffer.
-		DeleteTempBuffer();
-
 		return;
 	}
 
@@ -1200,7 +1165,10 @@ void sm_SaveObjects(ILTStream *pStream, ObjectList *pList, uint32 dwParam, uint3
     delete [] pObjects;
 
 	// Free the temporary buffer.
-	DeleteTempBuffer();
+	{
+		std::vector<uint8> cEmpty;
+		s_cTempBuffer.swap(cEmpty);
+	}
 }
 
 LTRESULT sm_RestoreConsoleVars(ILTStream *pStream)
@@ -1235,9 +1203,6 @@ LTRESULT sm_RestoreObjects(ILTStream *pStream, uint32 dwParam, uint32 flags)
     LTObject **pObjects;
     int i, objectCount;
 
-	// Create the temporary buffer.
-	CreateTempBuffer(s_nTempBufferSize);
-
 	// Load version
     GS_STREAM_READ(g_dwSaveFileVersion);
     GS_STREAM_READ(objectCount);
@@ -1268,17 +1233,11 @@ LTRESULT sm_RestoreObjects(ILTStream *pStream, uint32 dwParam, uint32 flags)
 	// here on.
     if( g_dwSaveFileVersion != 2001 && g_dwSaveFileVersion != 2002 )
 	{
-		// Delete our temporary buffer.
-		DeleteTempBuffer();
-
 		RETURN_ERROR(1, sm_RestoreObjects, LT_INVALIDVERSION);
     }
 
 	if (sm_RestoreConsoleVars(pStream) != LT_OK)
 	{
-		// Delete our temporary buffer.
-		DeleteTempBuffer();
-
 		RETURN_ERROR(1, sm_RestoreObjects, LT_INVALIDFILE);
 	}
 
@@ -1335,7 +1294,10 @@ LTRESULT sm_RestoreObjects(ILTStream *pStream, uint32 dwParam, uint32 flags)
     dfree(pObjects);
 
 	// Delete our temporary buffer.
-	DeleteTempBuffer();
+	{
+		std::vector<uint8> cEmpty;
+		s_cTempBuffer.swap(cEmpty);
+	}
 
     if (dResult != LT_OK && dResult != LT_FINISHED)
 	{// Was there an error?

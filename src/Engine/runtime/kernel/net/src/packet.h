@@ -3,6 +3,7 @@
 #define __NEWPACKET_H__
 
 #include "ltbasetypes.h"
+#include <new>
 
 // forward declarations
 class CPacket_Read;
@@ -412,16 +413,12 @@ class CPacket_Read
 	
 public:
 
+	// nolf2src: in NOLF2 the constructors did the work themselves (the
+	// shorter ones delegating to the others with a placement new), which is
+	// what kept VC6 from expanding them in line; Jupiter moved it into Init.
 	CPacket_Read()
-		: m_nStart(0)
 	{
-#ifdef _MSC_VER
-		Init(CPacket_Write());
-#else	
-		CPacket_Write cPacketWrite;
-		Init(cPacketWrite);
-#endif
-
+		new (this) CPacket_Read(CPacket_Write());
 	}
 	
 	// Create a packet reader based on the data in a packet writer.
@@ -430,15 +427,24 @@ public:
 	explicit CPacket_Read(CPacket_Write &cOther)
 		: m_nStart(0)
 	{
-		Init(cOther);
+		cOther.Flush();
+		m_pData = cOther.m_pData;
+		if (m_pData)
+		{
+			m_nSize = m_pData->Size();
+			m_pData->IncRef();
+		}
+		else
+		{
+			m_nSize = 0;
+		}
+		cOther.Reset();
+		SeekTo(0);
 	}
 	
 	CPacket_Read(const CPacket_Read &cOther, uint32 nStart = 0)
-		: m_pData(cOther.m_pData),
-		  m_nStart(cOther.m_nStart + nStart),
-		  m_nSize(cOther.Size())
 	{
-		Init(cOther, nStart, cOther.Size());
+		new (this) CPacket_Read(cOther, nStart, cOther.Size());
 	}
 	
 	// Create a packet reader from another packet reader.  Starts the new reader
@@ -449,7 +455,28 @@ public:
 		  m_nStart(cOther.m_nStart + nStart),
 		  m_nSize(nSize)
 	{
-		Init(cOther, nStart, nSize);
+		// Do some range checking...
+		uint32 nOtherEnd = cOther.m_nSize + cOther.m_nStart;
+		if (m_nStart > nOtherEnd)
+		{
+			m_nSize = 0;
+			m_nStart = nOtherEnd;
+		}
+
+		m_nSize = LTMIN(m_nSize, cOther.m_nSize - (m_nStart - cOther.m_nStart));
+
+		if (m_pData)
+		{
+			m_pData->IncRef();
+		}
+		if ((cOther.m_nOffset + cOther.m_nStart) > m_nStart)
+		{
+			SeekTo((cOther.m_nOffset + cOther.m_nStart) - m_nStart);
+		}
+		else
+		{
+			SeekTo(0);
+		}
 	}
 		
 	~CPacket_Read()
@@ -570,48 +597,6 @@ public:
 	
 private:
 
-	void Init(CPacket_Write &cOther)
-	{
-		cOther.Flush();
-		m_pData = cOther.m_pData;
-		if (m_pData)
-		{
-			m_nSize = m_pData->Size();
-			m_pData->IncRef();
-		}
-		else
-		{
-			m_nSize = 0;
-		}
-		cOther.Reset();
-		SeekTo(0);
-	}
-	
-	void Init(const CPacket_Read &cOther, uint32 nStart, uint32 nSize)
-	{
-		// Do some range checking...
-		if (m_nStart > (cOther.m_nStart + cOther.m_nSize))
-		{
-			m_nStart = (cOther.m_nStart + cOther.m_nSize);
-			m_nSize = 0;
-		}
-
-		m_nSize = LTMIN(m_nSize, cOther.m_nSize - (m_nStart - cOther.m_nStart));
-
-		if (m_pData)
-		{
-			m_pData->IncRef();
-		}
-		if ((cOther.m_nOffset + cOther.m_nStart) > m_nStart)
-		{
-			SeekTo((cOther.m_nOffset + cOther.m_nStart) - m_nStart);
-		}
-		else
-		{
-			SeekTo(0);
-		}
-	}
-	
 	// Refresh the current iterator position and read buffer
 	void RefreshIterator() 
 	{
