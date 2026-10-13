@@ -576,7 +576,7 @@ int RunClientApp(HINSTANCE hInstance) {
 
     pGlob->m_hMainWnd = CreateWindow (pGlob->m_WndClassName,			// window class name
                 pGlob->m_WndCaption,											// window caption
-                WS_CAPTION,														// window style
+                WS_CAPTION | WS_MAXIMIZEBOX,								// window style
                 ((screenRect.right - screenRect.left) - 320) / 2,		// initial x position
                 ((screenRect.bottom - screenRect.top) - 200) / 2,		// initial y position
                 320,													// initial x size

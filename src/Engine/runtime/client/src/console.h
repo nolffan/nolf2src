@@ -43,10 +43,6 @@ void con_CycleCommandsBack();
 void con_CycleCommandsForward();
 
 
-// Draw the console	
-void con_Draw();
-void con_DrawSmall(int nLines);
-
 // Print strings to the console.
 void con_PrintString(CONCOLOR theColor, int filterLevel, const char *pMsg);
 void con_Printf(CONCOLOR theColor, int filterLevel, const char *pMsg, ...);

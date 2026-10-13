@@ -36,12 +36,7 @@
 
 #include "collision.h"
 
-#include "ltrendererstats.h"
-#include "rendererframestats.h"
 
-#include "ltvertexshadermgr.h"
-#include "ltpixelshadermgr.h"
-#include "lteffectshadermgr.h"
 #include "ltinfo_impl.h"
 
 //------------------------------------------------------------------
@@ -358,20 +353,6 @@ class CLTClient : public ILTClient {
 	virtual void SetModelLooping(HLOCALOBJ hObj, bool bLoop);
 	virtual HMODELANIM GetAnimIndex(HOBJECT hObj, const char *pAnimName);
 
-	// vertex shaders
-	virtual bool				AddVertexShader(const char *pFileName, int VertexShaderID,
-												const uint32 *pVertexElements, uint32 VertexElementsSize,
-												bool bCompileShader);
-	virtual void				RemoveVertexShader(int VertexShaderID);
-	virtual void				RemoveAllVertexShaders();
-	virtual LTVertexShader*		GetVertexShader(int VertexShaderID);
-
-	// pixel shaders
-	virtual bool				AddPixelShader(const char *pFileName, int PixelShaderID, bool bCompileShader);
-	virtual void				RemovePixelShader(int PixelShaderID);
-	virtual void				RemoveAllPixelShaders();
-	virtual LTPixelShader*		GetPixelShader(int PixelShaderID);
-
 	virtual void CPrint(const char *pMsg, ...);
 
 	virtual uint32 GetPointContainers(const LTVector *pPoint, HLOCALOBJ *pList, uint32 maxListSize);
@@ -438,7 +419,6 @@ class CLTClient : public ILTClient {
 	virtual LTRESULT ProcessAttachments(HOBJECT pObj);
 
 	virtual LTRESULT GetSpriteControl(HLOCALOBJ hObj, ILTSpriteControl* &pControl);
-	virtual LTRESULT SetSpriteEffectShaderID(HLOCALOBJ hObj, uint32 EffectShaderID);
 
 	virtual LTRESULT GetCanvasFn(HOBJECT hCanvas, CanvasDrawFn &fn, void* &pUserData);
 	virtual LTRESULT SetCanvasFn(HOBJECT hCanvas, CanvasDrawFn fn, void* pUserData);
@@ -446,9 +426,6 @@ class CLTClient : public ILTClient {
 	virtual LTRESULT SetCanvasRadius(HOBJECT hCanvas, float radius);
 
 	virtual LTRESULT GetMaxRadiusInPoly(const HPOLY hPoly, const LTVector& vPos, float& fMaxRadius);
-
-    //Renderer Stats
-    virtual LTRESULT GetRendererStats(LTRendererStats &refStats);
 
 	//Object Render Groups
 	virtual LTRESULT SetObjectRenderGroup(HOBJECT hObj, uint32 nGroup);
@@ -881,13 +858,6 @@ LTRESULT CLTClient::GetSpriteControl(HLOCALOBJ hObj, ILTSpriteControl* &pControl
 	return LT_OK;
 }
 
-LTRESULT CLTClient::SetSpriteEffectShaderID(HLOCALOBJ hObj, uint32 EffectShaderID)
-{
-	CHECK_PARAMS(hObj && hObj->m_ObjectType == OT_SPRITE, CLTClient::SetSpriteEffectShaderID);
-	((SpriteInstance*)hObj)->m_nEffectShaderID = EffectShaderID;
-	return LT_OK;
-}
-
 LTRESULT CLTClient::GetCanvasFn(HOBJECT hCanvas, CanvasDrawFn &fn, void* &pUserData)
 {
 	FN_NAME(CLTClient::GetCanvasFn);
@@ -1077,79 +1047,6 @@ void CLTClient::SetModelLooping(HLOCALOBJ hObj, bool bLoop)
 HMODELANIM CLTClient::GetAnimIndex(HOBJECT hObj, const char *pAnimName)
 {
 	return ic_GetAnimIndex(hObj, pAnimName);
-}
-
-bool CLTClient::AddVertexShader(const char *pFileName, int VertexShaderID,
-								const uint32 *pVertexElements, uint32 VertexElementsSize, bool bCompileShader)
-{
-	bool bSuccess = false;
-
-	// Open the vertex shader.
-	ILTStream *pStream = NULL;
-	if (OpenFile(pFileName, &pStream) == LT_OK)
-	{
-		bSuccess = LTVertexShaderMgr::GetSingleton().AddVertexShader(pStream, pFileName, VertexShaderID,
-																	 (D3DVERTEXELEMENT9*)pVertexElements,
-																	 VertexElementsSize, bCompileShader);
-	}
-
-	// Close the file.
-	if (pStream != NULL)
-	{
-		pStream->Release();
-	}
-
-	return bSuccess;
-}
-
-void CLTClient::RemoveVertexShader(int VertexShaderID)
-{
-	LTVertexShaderMgr::GetSingleton().RemoveVertexShader(VertexShaderID);
-}
-
-void CLTClient::RemoveAllVertexShaders()
-{
-	LTVertexShaderMgr::GetSingleton().RemoveAllVertexShaders();
-}
-
-LTVertexShader* CLTClient::GetVertexShader(int VertexShaderID)
-{
-	return LTVertexShaderMgr::GetSingleton().GetVertexShader(VertexShaderID);
-}
-
-bool CLTClient::AddPixelShader(const char *pFileName, int PixelShaderID, bool bCompileShader)
-{
-	bool bSuccess = false;
-
-	// Open the pixel shader.
-	ILTStream *pStream = NULL;
-	if (OpenFile(pFileName, &pStream) == LT_OK)
-	{
-		bSuccess = LTPixelShaderMgr::GetSingleton().AddPixelShader(pStream, pFileName, PixelShaderID, bCompileShader);
-	}
-
-	// Close the file.
-	if (pStream != NULL)
-	{
-		pStream->Release();
-	}
-
-	return bSuccess;
-}
-
-void CLTClient::RemovePixelShader(int PixelShaderID)
-{
-	LTPixelShaderMgr::GetSingleton().RemovePixelShader(PixelShaderID);
-}
-
-void CLTClient::RemoveAllPixelShaders()
-{
-	LTPixelShaderMgr::GetSingleton().RemoveAllPixelShaders();
-}
-
-LTPixelShader* CLTClient::GetPixelShader(int PixelShaderID)
-{
-	return LTPixelShaderMgr::GetSingleton().GetPixelShader(PixelShaderID);
 }
 
 void CLTClient::CPrint(const char *pMsg, ...)
@@ -1586,21 +1483,6 @@ LTRESULT CLTClient::SetTextureEffectVar(uint32 nID, uint32 nVar, float fVal)
 		return LT_ERROR;
 
 	return LT_OK;
-}
-
-LTRESULT CLTClient::GetRendererStats(LTRendererStats &refStats)
-{
-
-	if (!r_GetRenderStruct())
-		return LT_ERROR;
-
-    // Fill our stats struct
-    if(GetFrameStats(refStats))
-    {
-        return LT_ERROR;
-    }
-
-    return LT_OK;
 }
 
 //Object Render Groups
@@ -2815,19 +2697,6 @@ LTRESULT ci_SortParticles(HLOCALOBJ hSystem, const LTVector& vDir, uint32 nNumIt
 	return LT_OK;
 }
 
-LTRESULT ci_SetParticleSystemEffectShaderID(HLOCALOBJ hObj, uint32 EffectShaderID)
-{
-	LTParticleSystem *pSystem = (LTParticleSystem*)hObj;
-	if (!pSystem || pSystem->m_ObjectType != OT_PARTICLESYSTEM)
-	{
-		RETURN_ERROR(1, CLTClient::SetParticleSystemEffectShaderID, LT_INVALIDPARAMS);
-	}
-
-	pSystem->m_nEffectShaderID = EffectShaderID;
-
-	return LT_OK;
-}
-
 
 bool ci_SetupVolumeEffect(HLOCALOBJ hObj, VolumeEffectInfo& info)
 {
@@ -2838,19 +2707,6 @@ bool ci_SetupVolumeEffect(HLOCALOBJ hObj, VolumeEffectInfo& info)
 	return ve_Init( pVE, &info );
 }
 
-
-LTRESULT ci_SetVolumeEffectEffectShaderID(HLOCALOBJ hObj, uint32 EffectShaderID)
-{
-	LTVolumeEffect* pVE = (LTVolumeEffect*)hObj;
-	if( !pVE || pVE->m_ObjectType != OT_VOLUMEEFFECT )
-	{
-			RETURN_ERROR(1, CLTClient::SetVolumeEffectEffectShaderID, LT_INVALIDPARAMS);
-	}
-
-	pVE->m_nEffectShaderID = EffectShaderID;
-
-	return LT_OK;
-}
 
 bool ci_GetParticleBlockersInAABB(const LTVector& pos, const LTVector& dims, std::vector<uint32>& indices)
 {
@@ -2977,19 +2833,6 @@ LTRESULT ci_GetPolyGridInfo(HLOCALOBJ hObj, char **pBytes, uint32 *pWidth, uint3
 	*pWidth = pGrid->m_Width;
 	*pHeight = pGrid->m_Height;
 	*pColorTable = pGrid->m_ColorTable;
-	return LT_OK;
-}
-
-LTRESULT ci_SetPolyGridEffectShaderID(HLOCALOBJ hObj, uint32 EffectShaderID)
-{
-	LTPolyGrid *pGrid = (LTPolyGrid*)hObj;
-	if (!pGrid || pGrid->m_ObjectType != OT_POLYGRID)
-	{
-		RETURN_ERROR_PARAM(1, CLTClient::SetPolygridEffectShaderID, LT_INVALIDPARAMS, "invalid PolyGrid");
-	}
-
-	pGrid->m_nEffectShaderID = EffectShaderID;
-
 	return LT_OK;
 }
 
@@ -3371,7 +3214,6 @@ void CLTClient::InitFunctionPointers()
 	GetParticles = ci_GetParticles;
 	RemoveParticle = ci_RemoveParticle;
 	OptimizeParticles = ci_OptimizeParticles;
-	SetParticleSystemEffectShaderID = ci_SetParticleSystemEffectShaderID;
 
 	GetNextLine = linesystem_GetNextLine;
 	GetLineInfo = linesystem_GetLineInfo;
@@ -3380,7 +3222,6 @@ void CLTClient::InitFunctionPointers()
 	RemoveLine = linesystem_RemoveLine;
 
 	SetupVolumeEffect = ci_SetupVolumeEffect;
-	SetVolumeEffectEffectShaderID = ci_SetVolumeEffectEffectShaderID;
 
 	GetParticleBlockersInAABB = ci_GetParticleBlockersInAABB;
 	GetParticleBlockerEdgesXZ = ci_GetParticleBlockerEdgesXZ;
@@ -3391,7 +3232,6 @@ void CLTClient::InitFunctionPointers()
 	GetPolyGridTextureInfo = ci_GetPolyGridTextureInfo;
 	SetPolyGridTextureInfo = ci_SetPolyGridTextureInfo;
 	GetPolyGridInfo = ci_GetPolyGridInfo;
-	SetPolyGridEffectShaderID = ci_SetPolyGridEffectShaderID;
 
 	GetLightColor = ci_GetLightColor;
 	SetLightColor = ci_SetLightColor;

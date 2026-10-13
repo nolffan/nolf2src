@@ -416,7 +416,6 @@ public:
 	virtual LH3DPOBJECT	Open3DListener( LHPROVIDER hLib ) = 0;
 	virtual void		Close3DListener( LH3DPOBJECT hListener ) = 0;
 	virtual void		SetListenerDoppler( LH3DPOBJECT hListener, float fDoppler ) = 0;
-	virtual void		CommitDeferred() = 0;
 
 	// 3d sound object functions
 	virtual void		Set3DPosition( LH3DPOBJECT hObj, float fX, float fY, float fZ) = 0;

@@ -181,22 +181,6 @@ void _GetRModeFromConsoleVariables(RMode *pMode)
 }
 
 
-void MaybeDrawConsole()
-{
-    RenderStruct *pStruct;
-
-    if (g_CV_ForceConsole)
-    {
-        pStruct = r_GetRenderStruct();
-        if (pStruct->m_bInitted && g_CV_ForceConsole)
-        {
-            con_Draw();
-            pStruct->SwapBuffers(0);
-        }
-    }
-}
-
-
 //
 // CClientMgr
 //
@@ -351,30 +335,8 @@ LTRESULT CClientMgr::Init(const char *resTrees[MAX_RESTREES], uint32 nResTrees, 
     // properly initialized.
 
 
-//
-//	!!!!! BINK IS NOT ENABLED
-//
-//		IHAVEPURCHASEDBINK Define that allows bink video player to function. ( Separate license/SDK available from rad game tools http://www.radgametools.com/)
-//
-//		You must recompile Exe_Lithtech with IHAVEPURCHASEDBINK defined in the project settings: 
-//
-//    From the SDK you purchased from bink place bink.h rad.h radbase.h and smack.h into the Engine/runtime/kernel/src/sys/win directory.
-// 	Also requires bink32.dll in your path when running 
-//
-
-#if defined( IHAVEPURCHASEDBINK )
 
     m_pVideoMgr = CreateVideoMgr("BINK");
-
-#else
-
-//
-//---- NOTE: Directshow video not available in version 68 or lower 
-// 
-
-	 m_pVideoMgr = CreateVideoMgr("DIRECTSHOW");
-
-#endif
 
     // Tell the video stuff.
     if (m_pVideoMgr) 
@@ -634,19 +596,7 @@ void CClientMgr::EndShell()
 {
     if (m_pCurShell)
     {
-		if (m_bInCurShellUpdate)
-		{
-			// Don't delete the old shell yet -- we may still have it on the
-			// call stack.  As we may be starting a new shell however, store
-			// off a pointer to it to be deleted later.
-			ASSERT(m_pOldShell == NULL);
-			m_pCurShell->Term();
-			m_pOldShell = m_pCurShell;
-		}
-		else
-		{
         delete m_pCurShell;
-		}
         m_pCurShell = NULL;
     }
 	// Set us back to the default net handler
@@ -873,21 +823,7 @@ LTRESULT CClientMgr::Update()
     // Update client shells.
     if (m_pCurShell)
     {
-		// Insure that the shell doesn't delete itself while updating.
-		// EndShell switches on these bools to determine if it should delay
-		// the deletion of m_pCurShell or if it should do it immediately.
-		m_bInCurShellUpdate = true;
         dResult = m_pCurShell->Update();
-		m_bInCurShellUpdate = false;
-
-		// A shell was deleted this update.  Delete it now that we know it 
-		// is off the call stack
-		if (m_pOldShell != NULL)
-		{
-			delete m_pOldShell;
-			m_pOldShell = NULL;
-		}
-
         if (dResult != LT_OK)
             return ProcessError(dResult);
     }
@@ -958,9 +894,6 @@ LTRESULT CClientMgr::Update()
 
 	ctik_ShowTickStatus();
     mw_ShowMemoryWatches();
-
-    // For debugging...
-    MaybeDrawConsole();
 
     cm_HandleMaxFPS(frameTicks);                    // Lock framerate if they want.
 
@@ -1194,8 +1127,6 @@ void cm_Init()
 
     g_pClientMgr->m_bNotifyRemoves = true;
     g_pClientMgr->m_pCurShell = NULL;
-    g_pClientMgr->m_pOldShell = NULL;
-    g_pClientMgr->m_bInCurShellUpdate = false;
     g_pClientMgr->m_hShellModule = NULL;
     g_pClientMgr->m_hClientResourceModule = NULL;
     g_pClientMgr->m_hLocalizedClientResourceModule = NULL;
@@ -1256,7 +1187,6 @@ void cm_Init()
 }
 
 CClientMgr::~CClientMgr() {
-	ASSERT(m_pOldShell == NULL);    
 }
 
 void CClientMgr::Term()
@@ -1280,12 +1210,6 @@ void CClientMgr::Term()
 #ifdef COMPILE_JUPITER_EVAL
 	m_WaterMark.Term();
 #endif // COMPILE_JUPITER_EVAL
-
-	if (m_pOldShell != NULL)
-	{
-		delete m_pOldShell;
-		m_pOldShell = NULL;
-	}
 
     TermClientShellDE();
 

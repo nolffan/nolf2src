@@ -6,24 +6,12 @@
 #include "clientmgr.h"
 #include "interface_helpers.h"
 #include "colorops.h"
-#include <d3d9.h>
+#include <d3d8.h>
 
 //this needs to come last since the bink headers cause conflicts with a lot of other headers
 #include "binkvideomgrimpl.h"
 
 
-//
-//	!!!!! BINK IS NOT ENABLED
-//
-//		IHAVEPURCHASEDBINK Define that allows bink video player to function. ( Separate license/SDK available from rad game tools http://www.radgametools.com/)
-//
-//		You must recompile Exe_Lithtech with IHAVEPURCHASEDBINK defined in the project settings: 
-//
-//    From the SDK you purchased from bink place bink.h rad.h radbase.h and smack.h into the Engine/runtime/kernel/src/sys/win directory.
-// 	Also requires bink32.dll in your path when running 
-//
-
-#if defined( IHAVEPURCHASEDBINK )
 
 
 //--------------------------------------------------------------------------------
@@ -257,7 +245,7 @@ bool BinkVideoInst::ClearSurface()
 		return false;
 
 	//get the actual surface
-	IDirect3DSurface9*	pSurface;
+	IDirect3DSurface8*	pSurface;
 
 	if(FAILED(m_pTexture->GetSurfaceLevel(0, &pSurface)))
 	{
@@ -298,11 +286,6 @@ bool BinkVideoInst::ClearSurface()
 	return true;	
 }
 
-//the correspoinding bink format
-uint32		nBinkFormatList[] = {	BINKSURFACE32,
-									BINKSURFACE565,
-									BINKSURFACE24 };
-
 LTRESULT BinkVideoInst::InitScreen()
 {
 	// clean old data //
@@ -316,7 +299,7 @@ LTRESULT BinkVideoInst::InitScreen()
 	}
 
 	// We want to get the rendering device and create a texture that will fit the movie
-	IDirect3DDevice9* pD3DDevice = r_GetRenderStruct()->GetD3DDevice();
+	IDirect3DDevice8* pD3DDevice = r_GetRenderStruct()->GetD3DDevice();
 	//make sure that the device is properly setup
 	if(!pD3DDevice)
 	{ 
@@ -330,7 +313,7 @@ LTRESULT BinkVideoInst::InitScreen()
 	D3DFORMAT TexFormat = r_GetRenderStruct()->GetTextureDDFormat1(BPP_32, 0);
 
 	//now try and actually allocate this texture
-	if(FAILED(pD3DDevice->CreateTexture(nTexWidth, nTexHeight, 1, 0, TexFormat, D3DPOOL_MANAGED, &m_pTexture, NULL)))
+	if(FAILED(pD3DDevice->CreateTexture(nTexWidth, nTexHeight, 1, 0, TexFormat, D3DPOOL_MANAGED, &m_pTexture)))
 	{
 		//we may want to put a fallback for cards that don't support dynamic textures, but I don't
 		//think we will run across any of those...
@@ -355,9 +338,6 @@ LTRESULT BinkVideoInst::InitScreen()
 	//save our dimensions
 	m_nTextureWidth = nTexWidth;
 	m_nTextureHeight = nTexHeight;
-
-	//save our bink image format
-	m_BufferFormat = nBinkFormatList[0];
 
 	// decompress next frame so that we will be ready on our first update
     m_pMgr->m_BinkDoFrame( m_bnk );
@@ -433,7 +413,7 @@ LTRESULT BinkVideoInst::UpdateOnScreen()
 	}
 
 	// We want to get the rendering device
-	IDirect3DDevice9* pD3DDevice = r_GetRenderStruct()->GetD3DDevice();
+	IDirect3DDevice8* pD3DDevice = r_GetRenderStruct()->GetD3DDevice();
 	//make sure that the device is properly setup
 	if(!pD3DDevice)
 	{ 
@@ -448,7 +428,7 @@ LTRESULT BinkVideoInst::UpdateOnScreen()
 	m_pMgr->m_BinkCheckCursorFn((HWND)dsi_GetMainWindow(), 0, 0, m_bnk->Width, m_bnk->Height);
 
 	//get the surface that we will be rendering to
-	IDirect3DSurface9*	pSurface;
+	IDirect3DSurface8*	pSurface;
 	if(FAILED(m_pTexture->GetSurfaceLevel(0, &pSurface)))
 	{
 		RETURN_ERROR_PARAM(1, BinkVideoInst::InitScreen, LT_ERROR, "Error obtaining the video texture surface"); 
@@ -464,7 +444,7 @@ LTRESULT BinkVideoInst::UpdateOnScreen()
 
 
 	//figure out what format we need bink to decompress to
-//	int32 nBinkFormat = m_pMgr->m_BinkDX8SurfaceTypeFn(pSurface);
+	int32 nBinkFormat = m_pMgr->m_BinkDX8SurfaceTypeFn(pSurface);
 
 
     // copy bink's decompressed pixels to destination
@@ -472,7 +452,7 @@ LTRESULT BinkVideoInst::UpdateOnScreen()
 							LockedRect.Pitch,
 							m_bnk->Height,
 							0, 0,
-							m_BufferFormat );
+							nBinkFormat );
 
 	//we are done with our surface handle
 	pSurface->UnlockRect();
@@ -490,7 +470,7 @@ LTRESULT BinkVideoInst::UpdateOnScreen()
 		r_GetRenderStruct()->Start3D();
 
 		//setup a full screen display
-		D3DVIEWPORT9 vp;
+		D3DVIEWPORT8 vp;
 		vp.X = 0;
 		vp.Y = 0;
 		vp.Width = r_GetRenderStruct()->m_Width;
@@ -512,8 +492,7 @@ LTRESULT BinkVideoInst::UpdateOnScreen()
 	hr = pD3DDevice->SetTexture(0, m_pTexture);
 
 	//setup our vertices
-	hr = pD3DDevice->SetVertexShader(NULL);
-	hr = pD3DDevice->SetFVF(VIDEOVERTEX_FVF);
+	hr = pD3DDevice->SetVertexShader(VIDEOVERTEX_FVF);
 
 	//we now need to figure out the position and dimensions of the video since we want to 
 	//maintain the aspect ratio
@@ -597,6 +576,3 @@ LTRESULT BinkVideoInst::UpdateOnScreen()
 	return LT_OK;
 }
 
-
-
-#endif

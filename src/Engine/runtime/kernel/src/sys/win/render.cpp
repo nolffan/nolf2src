@@ -500,11 +500,6 @@ static void r_ConsolePrint(char *pMsg, ...)
 	con_WhitePrintf(msg);
 }
 
-void r_GenericTextPrint(char *pMsg, const LTRect *pRect, uint32 textColor)
-{
-	GETCONSOLE()->DrawTextLine(pMsg,pRect,textColor);
-}
-
 HLTPARAM r_GetParameter(char *pName)
 {
 	return (HLTPARAM)cc_FindConsoleVar(&g_ClientConsoleState, pName);

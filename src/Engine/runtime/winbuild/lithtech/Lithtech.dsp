@@ -50,7 +50,7 @@ RSC=rc.exe
 # PROP Intermediate_Dir "..\..\..\built\Final\Lithtech"
 # PROP Target_Dir ""
 # ADD BASE CPP /nologo /W3 /GX /O2 /D "WIN32" /D "NDEBUG" /D "_WINDOWS" /D "_MBCS" /YX /FD /c
-# ADD CPP /nologo /MD /W3 /GX /O2 /I "..\..\..\..\libs\STLPort-4.0\stlport" /I "..\..\client\src" /I "..\..\shared\src" /I "..\..\kernel\src" /I "..\..\kernel\mem\src" /I "..\..\world\src" /I "..\..\kernel\io\src" /I "..\..\kernel\net\src" /I "..\..\model\src" /I "..\..\sound\src" /I "..\..\shared\src\sys\win" /I "..\..\lithtemplate" /I "..\..\physics\src" /I "..\..\render_b\src" /I "..\..\ui\src" /I "..\..\controlfilemgr" /I "..\..\server\src" /I "..\..\kernel\src\sys\win" /I "..\..\kernel\io\src\sys\win" /I "..\..\kernel\mem\src\sys\win" /I "..\..\kernel\net\src\sys\win" /I "..\..\client\src\sys\win" /I "..\..\render_a\src\sys\d3d" /I "..\..\..\sdk\inc" /I "..\..\..\sdk\inc\physics" /I "..\..\..\..\libs\stdlith" /I "..\..\..\..\libs\lith" /I "..\..\..\libs\rezmgr" /D "WIN32" /D "NDEBUG" /D "_WINDOWS" /D "_MBCS" /D "_FINAL" /D "__D3D" /D "__D3DREND" /D "DE_CLIENT_COMPILE" /D "DE_LOCAL_SERVERBIND" /D "DIRECTENGINE_COMPILE" /D "DSNDMGR_NO_MFC" /D "MODEL_SUPPORT_ABC" /FD /c
+# ADD CPP /nologo /MD /W3 /O2 /Ob2 /I "..\..\..\..\libs\STLPort-4.0\stlport" /I "..\..\client\src" /I "..\..\shared\src" /I "..\..\kernel\src" /I "..\..\kernel\mem\src" /I "..\..\world\src" /I "..\..\kernel\io\src" /I "..\..\kernel\net\src" /I "..\..\model\src" /I "..\..\sound\src" /I "..\..\shared\src\sys\win" /I "..\..\lithtemplate" /I "..\..\physics\src" /I "..\..\render_b\src" /I "..\..\ui\src" /I "..\..\controlfilemgr" /I "..\..\server\src" /I "..\..\kernel\src\sys\win" /I "..\..\kernel\io\src\sys\win" /I "..\..\kernel\mem\src\sys\win" /I "..\..\kernel\net\src\sys\win" /I "..\..\client\src\sys\win" /I "..\..\render_a\src\sys\d3d" /I "..\..\..\sdk\inc" /I "..\..\..\sdk\inc\physics" /I "..\..\..\..\libs\stdlith" /I "..\..\..\..\libs\lith" /I "..\..\..\libs\rezmgr" /D "WIN32" /D "NDEBUG" /D "_WINDOWS" /D "_MBCS" /D "_FINAL" /D "__D3D" /D "__D3DREND" /D "DE_CLIENT_COMPILE" /D "DE_LOCAL_SERVERBIND" /D "DIRECTENGINE_COMPILE" /D "DSNDMGR_NO_MFC" /D "MODEL_SUPPORT_ABC" /FD /c
 # ADD BASE MTL /nologo /D "NDEBUG" /mktyplib203 /win32
 # ADD MTL /nologo /D "NDEBUG" /mktyplib203 /win32
 # ADD BASE RSC /l 0x409 /d "NDEBUG"
@@ -89,12 +89,6 @@ SOURCE=..\..\kernel\src\sys\win\bindmgr.cpp
 
 SOURCE=..\..\kernel\src\sys\win\binkvideomgrimpl.cpp
 
-!IF  "$(CFG)" == "Lithtech - Win32 Final"
-
-# PROP Exclude_From_Build 1
-
-!ENDIF 
-
 # End Source File
 # Begin Source File
 
@@ -123,12 +117,6 @@ SOURCE=..\..\client\src\client_ticks.cpp
 # Begin Source File
 
 SOURCE=..\..\client\src\clientde_impl.cpp
-
-!IF  "$(CFG)" == "Lithtech - Win32 Final"
-
-# PROP Exclude_From_Build 1
-
-!ENDIF 
 
 # End Source File
 # Begin Source File
@@ -270,26 +258,10 @@ SOURCE=..\..\shared\src\ftserv.cpp
 # Begin Source File
 
 SOURCE=..\..\world\src\fullintersectline.cpp
-
-!IF  "$(CFG)" == "Lithtech - Win32 Final"
-
-# ADD CPP /Ob2
-# SUBTRACT CPP /GX
-
-!ENDIF 
-
 # End Source File
 # Begin Source File
 
 SOURCE=..\..\server\src\game_serialize.cpp
-
-!IF  "$(CFG)" == "Lithtech - Win32 Final"
-
-# ADD CPP /Ob2
-# SUBTRACT CPP /GX
-
-!ENDIF 
-
 # End Source File
 # Begin Source File
 
@@ -437,19 +409,15 @@ SOURCE=..\..\shared\src\lttimer.cpp
 # End Source File
 # Begin Source File
 
+SOURCE=..\..\client\src\memorywatch.cpp
+# End Source File
+# Begin Source File
+
 SOURCE=..\..\model\src\model.cpp
 # End Source File
 # Begin Source File
 
 SOURCE=..\..\model\src\model_load.cpp
-
-!IF  "$(CFG)" == "Lithtech - Win32 Final"
-
-# ADD CPP /Ob2
-# SUBTRACT CPP /GX
-
-!ENDIF 
-
 # End Source File
 # Begin Source File
 
@@ -530,14 +498,6 @@ SOURCE=..\..\server\src\s_intersect.cpp
 # Begin Source File
 
 SOURCE=..\..\server\src\s_net.cpp
-
-!IF  "$(CFG)" == "Lithtech - Win32 Final"
-
-# ADD CPP /Ob2
-# SUBTRACT CPP /GX
-
-!ENDIF 
-
 # End Source File
 # Begin Source File
 
@@ -671,22 +631,10 @@ SOURCE=..\..\sound\src\wave.cpp
 
 SOURCE=..\..\client\src\sys\win\winclientde_impl.cpp
 
-!IF  "$(CFG)" == "Lithtech - Win32 Final"
-
-# PROP Exclude_From_Build 1
-
-!ENDIF 
-
 # End Source File
 # Begin Source File
 
 SOURCE=..\..\client\src\sys\win\winconsole_impl.cpp
-
-!IF  "$(CFG)" == "Lithtech - Win32 Final"
-
-# PROP Exclude_From_Build 1
-
-!ENDIF 
 
 # End Source File
 # Begin Source File
@@ -784,10 +732,6 @@ SOURCE=..\..\sound\src\soundmgr.cpp
 # Begin Source File
 
 SOURCE=..\..\client\src\client_iltvideomgr.cpp
-# End Source File
-# Begin Source File
-
-SOURCE=..\..\client\src\nolf2src_client_stubs.cpp
 # End Source File
 # Begin Source File
 
