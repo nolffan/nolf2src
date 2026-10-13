@@ -5,6 +5,10 @@
 #	include "renderstylemap.h"
 #endif
 
+#ifndef __PIXELSHADERMGR_H__
+#	include "pixelshadermgr.h"
+#endif
+
 class ViewParams;
 
 class CScreenGlowMgr
@@ -66,7 +70,7 @@ private:
 	//updates the gaussian element list
 	bool	UpdateGaussianFilter();
 
-	//handles loading the shader if necessary or failing if the device doesn't support it
+	//handles loading the shader if necessary, returns false if the device doesn't support it
 	bool	UpdateShader();
 
 	//prevent instantiation
@@ -90,6 +94,9 @@ private:
 	//the dimensions of the texture
 	uint32				m_nTextureWidth;
 	uint32				m_nTextureHeight;
+
+	//the pixel shader used for blurring the glow texture
+	CPixelShaderHandle	m_hShader;
 
 	//our list of gaussian elements
 	SGaussianElement	m_GaussianFilter[MAX_FILTER_SIZE];

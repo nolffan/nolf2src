@@ -1,10 +1,5 @@
 #include "precompile.h"
 
-//IClientShell game client shell object.
-#include "iclientshell.h"
-static IClientShell *i_client_shell;
-define_holder(IClientShell, i_client_shell);
-
 #include "3d_ops.h"
 #include "common_stuff.h"
 #include "fixedpoint.h"
@@ -309,57 +304,15 @@ static PSParticle* d3d_DrawParticleBatch(LTParticleSystem *pSystem, PSParticle *
 
 	if (pCurVert != CParticleVertex::m_BatchVerts)
 	{
-		LTEffectImpl* pEffect = (LTEffectImpl*)LTEffectShaderMgr::GetSingleton().GetEffectShader(pSystem->m_nEffectShaderID);
-		if(pEffect)
-		{
-			ID3DXEffect* pD3DEffect = pEffect->GetEffect();
-			if(pD3DEffect)
-			{
-				if(pSystem->m_pCurTexture)
-				{				
-					RTexture* pRTexture = (RTexture*)pSystem->m_pCurTexture->m_pRenderData;
-					pD3DEffect->SetTexture("texture0", pRTexture->m_pD3DTexture);
-				}
-				//batch it!
-				int nParticlesDrawn = (pCurVert - CParticleVertex::m_BatchVerts) >> 2;
-
-				i_client_shell->OnEffectShaderSetParams(pEffect, NULL, NULL, LTShaderDeviceStateImp::GetSingleton());
-
-				UINT nPasses = 0;
-				pD3DEffect->Begin(&nPasses, 0);
-
-				for(UINT i = 0; i < nPasses; ++i)
-				{
-					pD3DEffect->BeginPass(i);
-					
-
-					D3D_CALL(PD3DDEVICE->DrawIndexedPrimitiveUP(D3DPT_TRIANGLELIST,
-						0,
-						pCurVert - CParticleVertex::m_BatchVerts,
-						nParticlesDrawn * 2,
-						GetParticleIndices(),
-						D3DFMT_INDEX16,
-						CParticleVertex::m_BatchVerts,
-						sizeof(CParticleVertex)));
-
-					pD3DEffect->EndPass();
-				}
-
-				pD3DEffect->End();
-			}
-		}
-		else
-		{
-			int nParticlesDrawn = (pCurVert - CParticleVertex::m_BatchVerts) >> 2;
-			D3D_CALL(PD3DDEVICE->DrawIndexedPrimitiveUP(D3DPT_TRIANGLELIST,
-				0,
-				pCurVert - CParticleVertex::m_BatchVerts,
-				nParticlesDrawn * 2,
-				GetParticleIndices(),
-				D3DFMT_INDEX16,
-				CParticleVertex::m_BatchVerts,
-				sizeof(CParticleVertex)));
-		}
+		int nParticlesDrawn = (pCurVert - CParticleVertex::m_BatchVerts) >> 2;
+		D3D_CALL(PD3DDEVICE->DrawIndexedPrimitiveUP(D3DPT_TRIANGLELIST,
+			0,
+			pCurVert - CParticleVertex::m_BatchVerts,
+			nParticlesDrawn * 2,
+			GetParticleIndices(),
+			D3DFMT_INDEX16,
+			CParticleVertex::m_BatchVerts,
+			sizeof(CParticleVertex)));
 
 	}
 

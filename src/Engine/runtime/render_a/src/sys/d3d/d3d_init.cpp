@@ -59,28 +59,17 @@ void d3d_ReadExtraConsoleVariables()
 
 	for(uint32 nCurrStage = 0; nCurrStage < 4; nCurrStage++)
 	{
-		D3D_CALL(PD3DDEVICE->SetTextureStageState(nCurrStage, D3DTSS_MAXANISOTROPY, g_CV_Anisotropic.m_Val ? g_CV_Anisotropic.m_Val : 1));
-
-		// check for device caps anisotropic filter for min filter
-		if ((g_Device.GetDeviceCaps()->TextureFilterCaps & D3DPTFILTERCAPS_MINFANISOTROPIC) && (g_CV_Anisotropic.m_Val))
+		if (g_CV_Anisotropic.m_Val)
 		{
 			D3D_CALL(PD3DDEVICE->SetTextureStageState(nCurrStage, D3DTSS_MINFILTER, D3DTEXF_ANISOTROPIC));
+			D3D_CALL(PD3DDEVICE->SetTextureStageState(nCurrStage, D3DTSS_MAGFILTER, D3DTEXF_ANISOTROPIC));
+			D3D_CALL(PD3DDEVICE->SetTextureStageState(nCurrStage, D3DTSS_MAXANISOTROPY, g_CV_Anisotropic.m_Val));
 		}
 		else
 		{
 			D3D_CALL(PD3DDEVICE->SetTextureStageState(nCurrStage, D3DTSS_MINFILTER, g_CV_Bilinear.m_Val ? D3DTEXF_LINEAR : D3DTEXF_POINT));
-		}
-
-		// check for device cpas anistropic filter for mag filter
-		if ((g_Device.GetDeviceCaps()->TextureFilterCaps & D3DPTFILTERCAPS_MAGFANISOTROPIC) && (g_CV_Anisotropic.m_Val))
-		{
-			D3D_CALL(PD3DDEVICE->SetTextureStageState(nCurrStage, D3DTSS_MAGFILTER, D3DTEXF_ANISOTROPIC));
-		}
-		else 
-		{
 			D3D_CALL(PD3DDEVICE->SetTextureStageState(nCurrStage, D3DTSS_MAGFILTER, g_CV_Bilinear.m_Val ? D3DTEXF_LINEAR : D3DTEXF_POINT));
 		}
-
 
 		D3D_CALL(PD3DDEVICE->SetTextureStageState(nCurrStage, D3DTSS_MIPFILTER, g_CV_Trilinear.m_Val ? D3DTEXF_LINEAR : D3DTEXF_POINT));
 	}

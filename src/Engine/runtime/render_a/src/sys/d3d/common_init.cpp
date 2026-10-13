@@ -233,7 +233,7 @@ int d3d_Init(RenderStructInit *pInit)
 		wndRect.bottom		= wndRect.top + pInit->m_Mode.m_Height;
 
 		// Figure out the full window coordinates given the client coordinates.
-		AdjustWindowRect(&wndRect, GetWindowLong(g_hWnd,GWL_STYLE), false);
+		AdjustWindowRect(&wndRect, WS_OVERLAPPEDWINDOW, false);
 
 		if (wndRect.left < 0) 
 		{

@@ -1,10 +1,5 @@
 #include "precompile.h"
 
-//IClientShell game client shell object.
-#include "iclientshell.h"
-static IClientShell *i_client_shell;
-define_holder(IClientShell, i_client_shell);
-
 #include "d3d_draw.h"
 #include "3d_ops.h"
 #include "d3d_texture.h"
@@ -245,23 +240,6 @@ static void DrawDynamicParticles(const ViewParams& Params, LTVolumeEffect* pEffe
 			{
 				d3d_DisableTexture( 0 );
 			}
-			else
-			{
-				//if it passed and we have an Associated Effect, we need to upload the texture to the effect
-				LTEffectImpl* pEffectShader = (LTEffectImpl*)LTEffectShaderMgr::GetSingleton().GetEffectShader(pEffect->m_nEffectShaderID);
-				if(pEffectShader)
-				{
-					ID3DXEffect* pD3DEffect = pEffectShader->GetEffect();
-					if(pD3DEffect)
-					{
-						if(pEffect->m_DPTexture)
-						{				
-							RTexture* pRTexture = (RTexture*)pEffect->m_DPTexture->m_pRenderData;
-							pD3DEffect->SetTexture("texture0", pRTexture->m_pD3DTexture);
-						}
-					}
-				}
-			}
 		}
 
 		// render trilist
@@ -276,44 +254,9 @@ static void DrawDynamicParticles(const ViewParams& Params, LTVolumeEffect* pEffe
 				return;
 			}
 
-			LTEffectImpl* pEffectShader = (LTEffectImpl*)LTEffectShaderMgr::GetSingleton().GetEffectShader(pEffect->m_nEffectShaderID);
-			if(pEffectShader)
+			if(FAILED( PD3DDEVICE->DrawPrimitive( D3DPT_TRIANGLELIST, g_nDynamicParticleVBIndex, numTris ) ))
 			{
-				ID3DXEffect* pD3DEffect = pEffectShader->GetEffect();
-				if(pD3DEffect)
-				{
-					bool bFailed = false;
-
-					i_client_shell->OnEffectShaderSetParams(pEffectShader, NULL, NULL, LTShaderDeviceStateImp::GetSingleton());
-
-					UINT nPasses = 0;
-					pD3DEffect->Begin(&nPasses, 0);
-
-					for(UINT i = 0; i < nPasses; ++i)
-					{
-						pD3DEffect->BeginPass(i);
-
-						if(FAILED( PD3DDEVICE->DrawPrimitive( D3DPT_TRIANGLELIST, g_nDynamicParticleVBIndex, numTris ) ))
-						{
-							bFailed = true;
-						}
-
-						pD3DEffect->EndPass();
-					}
-
-					pD3DEffect->End();
-
-					if(bFailed)
-					{
-						return;
-					}
-				}
-			}	
-			else
-			{	if(FAILED( PD3DDEVICE->DrawPrimitive( D3DPT_TRIANGLELIST, g_nDynamicParticleVBIndex, numTris ) ))
-				{
-					return;
-				}
+				return;
 			}
 
 
@@ -328,46 +271,10 @@ static void DrawDynamicParticles(const ViewParams& Params, LTVolumeEffect* pEffe
 			{
 				return;
 			}
-			
-			LTEffectImpl* pEffectShader = (LTEffectImpl*)LTEffectShaderMgr::GetSingleton().GetEffectShader(pEffect->m_nEffectShaderID);
-			if(pEffectShader)			
+
+			if(FAILED( PD3DDEVICE->DrawIndexedPrimitive( D3DPT_TRIANGLELIST, g_nDynamicParticleVBIndex, curFilled, (g_nDynamicParticleVBIndex/4)*6, numTris ) ) )
 			{
-				ID3DXEffect* pD3DEffect = pEffectShader->GetEffect();
-				if(pD3DEffect)
-				{
-					bool bFailed = false;
-
-					i_client_shell->OnEffectShaderSetParams(pEffectShader, NULL, NULL, LTShaderDeviceStateImp::GetSingleton());
-
-					UINT nPasses = 0;
-					pD3DEffect->Begin(&nPasses, 0);
-
-					for(UINT i = 0; i < nPasses; ++i)
-					{
-						pD3DEffect->BeginPass(i);
-
-						if(FAILED( PD3DDEVICE->DrawIndexedPrimitive( D3DPT_TRIANGLELIST, g_nDynamicParticleVBIndex, curFilled, (g_nDynamicParticleVBIndex/4)*6, numTris ) ) )
-						{
-							bFailed = true;
-						}
-
-						pD3DEffect->EndPass();
-					}
-
-					pD3DEffect->End();
-
-					if(bFailed)
-					{
-						return;
-					}
-				}
-			}
-			else
-			{			
-				if(FAILED( PD3DDEVICE->DrawIndexedPrimitive( D3DPT_TRIANGLELIST, g_nDynamicParticleVBIndex, curFilled, (g_nDynamicParticleVBIndex/4)*6, numTris ) ) )
-				{
-					return;
-				}
+				return;
 			}
 
 			IncFrameStat(eFS_VolumeEffectTriangles, numTris);
