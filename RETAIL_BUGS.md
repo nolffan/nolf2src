@@ -36,6 +36,7 @@ NOLF2 no longer has are listed at the end, so nobody looks again.
 * [A step in a client effect's colour keys sets alpha from red, and red not at all](#a-step-in-a-client-effects-colour-keys-sets-alpha-from-red-and-red-not-at-all)
 * [Unique player names are not unique](#unique-player-names-are-not-unique)
 * [`CString::Left` leaves the length of the whole string](#cstringleft-leaves-the-length-of-the-whole-string)
+* [`CLTTransform::Inverse` returns its input](#clttransforminverse-returns-its-input)
 * [`StopSecondary` and `StopMotif` can loop for ever](#stopsecondary-and-stopmotif-can-loop-for-ever)
 * [`FACEOBJECT` normalises a zero vector](#faceobject-normalises-a-zero-vector)
 * [`Body::FaceDir` and `FacePos` test for zero before flattening](#bodyfacedir-and-facepos-test-for-zero-before-flattening)
@@ -277,6 +278,74 @@ not have. `GetLTExeVersion` fails, the failure is ignored
 (`CClientMgr::Init`), and the `LTVersionInfo` keeps the `0xFFFFFFFF` its
 constructor set: the console's `version` and the log line "LithTech build
 4294967295.4294967295 initialized" print that.
+
+### Mouse look overshoots, unevenly, and more at high frame rates
+`input_ReadInput`, `0x4319b0` (lithtech.exe) · `src/Engine/runtime/kernel/src/sys/win/input.cpp`
+
+Not fixed yet: MODERN.md M-E3.
+
+The system mouse is read one DirectInput event at a time (`nEvents = 1`,
+"fixes the USB mouse lockups"; x and y are separate events), and after each
+event, and once more after the empty read that ends the loop, every trigger
+is run and adds its current value to the frame's axis offsets. A relative
+axis's value is its *last* event (not the sum of the frame's), blended 12%
+(`InputRate` / 100) toward the mean of its last three, and it is only
+replaced by a zero once `GetTickCount` has moved more than `InputRate` / 10
+ms past that event, a test made once a frame. So:
+- an x event is added again on every y event's pass of the same frame:
+  moving diagonally roughly doubles the horizontal turn;
+- a value is added again on every frame until a tick goes by: the faster
+  the frame rate, the more times;
+- slow motion (few events a frame) is amplified more than fast motion.
+
+A model of the function (byte-identical to retail), fed an even sweep,
+turns the view by these multiples of the mouse's motion: 1.06 at 60 frames
+a second with a 1000 Hz mouse moving fast, 1.6 moving slowly, 2.1
+diagonally; at 144 frames, 1.15, 2.4 and 2.2; at 300 frames with a 125 Hz
+mouse, 2.9 and 3.8 diagonally. In 2002, at 30 frames a second and a 125 Hz
+mouse, it was a steady 1.2. Today's frame rates (the release build has no
+frame limit: `MaxFPS` works only outside the final build) make the look
+speed change with speed, direction and frame time, which reads as a mouse
+that jumps about. The fix is to add up each look axis's events over the
+frame and use that once.
+
+### `CLTTransform::Inverse` returns its input
+`0x10047c91` (server.dll) · `src/Engine/runtime/shared/src/transformlt_impl.cpp`
+
+> **FIXED in the modern build** (`NOLF2SRC_MODERN`): the inverse matrix is
+> converted back. The release build keeps the retail call. No `MODERN.md`
+> entry: nothing in the game calls it.
+
+It turns the transform into a matrix, inverts that into `mInverse`, and then
+converts the *original* matrix back into `inverse` (`lea -0x40(%ebp)` at
+`0x10047cb3` is `mTransform`, not `mInverse`), so `inverse` comes back
+equal to `transform`.
+
+### The multiplayer timer runs on while paused
+`CInterfaceTimer::Draw`, `0x100eb260` (CShell.dll) ·
+`src/Game/ClientShellDLL/ClientShellShared/InterfaceTimer.cpp`, `InterfaceTimer.h`
+
+Not fixed yet: `CShell.dll`.
+
+The timer works out the time left from the game time on every draw and
+never reads the pause flag the server sends with it
+(`CInterfaceMgr::HandleDisplayTimerMsg`; `SetTime` stores the flag, at
+`0x1005c484` and `0x10063f4e`, and nothing reads it), so a paused round's
+timer keeps counting down on screen. The source release fixes it: it keeps
+the time left (`m_fTimeLeft`) while paused. Retail's class has no such
+member, which is how the reconstruction matches.
+
+### Possibly: an armed bomb deactivates after a stopped defuse
+`Bombable::HandleStoppedMsg`, `0x101d45b0` (Object.lto) ·
+`src/Game/ObjectDLL/ObjectShared/Bombable.cpp`
+
+Not fixed: not seen in the game yet.
+
+When a defuse is interrupted and the bomb is still armed, retail sets
+`m_bCanDeactivate` (the store at `0x101d4640`); planting cleared it so that
+`Prop::Update` keeps the object updating for the countdown. The source
+release does not set it there. If it matters, an armed bomb whose defuse
+was stopped may stop updating, and its countdown with it.
 
 ---
 

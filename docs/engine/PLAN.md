@@ -757,13 +757,7 @@ Lithtech.exe 5509 -> 5613 (against this branch's recorded baseline).
 
 #### net: retail bugs
 
-- **`CLTTransform::Inverse` returns its input.** Retail (server.dll
-  0x10047c91; `lea -0x40(%ebp)` at 0x10047cb3 is `mTransform`, not
-  `mInverse`) inverts the matrix, then converts the original matrix back
-  into `inverse`, so `inverse` comes back equal to `transform`. The
-  release build reproduces it. Under `NOLF2SRC_MODERN` the result is the
-  real inverse (`shared/src/transformlt_impl.cpp`). Nothing in the game
-  calls it.
+`CLTTransform::Inverse` returns its input: now in `RETAIL_BUGS.md`.
 
 ### 9b. rendermatch
 
@@ -906,19 +900,8 @@ servers.
 
 ### cshell: retail bugs
 
-- **The multiplayer timer runs on while paused.** Retail's
-  `CInterfaceTimer` (CShell 0x100eb260) computes the time left from the
-  game time on every draw and never reads the pause flag the server sends
-  (`CInterfaceMgr::HandleDisplayTimerMsg`; the flag is stored at 0x1005c484/0x10063f4e and
-  read nowhere), so a paused round's timer keeps counting down on screen.
-  The source release fixes it (`m_fTimeLeft`, kept while paused). The
-  release build reproduces it.
-- **Possibly: an armed bomb deactivates after a stopped defuse.** Retail's
-  `Bombable::HandleStoppedMsg` (Object.lto 0x101d45b0) sets
-  `m_bCanDeactivate` when a defuse is interrupted with the bomb still
-  armed, which planting clears so that `Prop::Update` keeps the object
-  updating for the countdown; the source release does not set it. Not
-  checked in the game. The release build reproduces it.
+The multiplayer timer that runs on while paused, and possibly an armed
+bomb that deactivates after a stopped defuse: now in `RETAIL_BUGS.md`.
 
 ### 11. bugs
 
