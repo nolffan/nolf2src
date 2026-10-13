@@ -1127,7 +1127,7 @@ void CPlayerMover::CollideWithAABB(const LTVector &vAABBCenter, const LTVector &
 		// Check final candidate actually inside box
 		bool bIntersect = (MaxT[nWhichPlane] > 0.0f) && (MaxT[nWhichPlane] < 1.0f);
 
-		for(int i=0;bIntersect && i<3;i++)
+		for(i=0;bIntersect && i<3;i++)
 		{
 			if(i!=nWhichPlane)
 			{

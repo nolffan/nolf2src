@@ -789,8 +789,7 @@ LTRESULT Model::Load(ModelLoadRequest *pRequest, const char* pFilename)
 				{
 					error_val = 30;
 					buffer256 error_string("Model::Load Error Incorrect LTB file type (%d)!!! \n", LTBHeader.m_iFileType);
-					dsi_ConsolePrint(error_string);
-					
+
 #if !defined(__LINUX)
 				    OutputDebugString(error_string);
 #endif
