@@ -17,6 +17,7 @@ directory lists every file; `tools/retailextract.py audit` every binary):
 |---|---|---|
 | the game DLLs, the dedicated server | built here from Monolith's source | `src/` |
 | the game data: `.rez` archives, movies, configs | Monolith Productions / Fox Interactive / Sierra | the retail game (the retail game DLLs inside the archives are zeroed) |
-| `ltmsg.dll`, the engine's messages | built here from a reconstruction (its strings are the retail DLL's) | `src/Engine/ltmsg/` |
-| the engine: `Lithtech.exe`, `server.dll`, `ServerDir.dll`, `snddrv.dll` | Monolith Productions | the retail game, until it is built here (`ServerDir.dll` is built, from the Jupiter SDK's source, `snddrv.dll` from its reconstruction, and `Lithtech.exe` and `server.dll`, partly stubbed, from the LithTech Jupiter engine source in `src/Engine/runtime/`, but none of them is put in the game yet) |
+| the engine: `Lithtech.exe`, `server.dll` | built here from the LithTech Jupiter engine source, back-ported to 2002 (Monolith Productions / LithTech, Inc.) | `src/Engine/runtime/`, `src/Engine/libs/rezmgr/` |
+| `snddrv.dll`, the sound driver; `ltmsg.dll`, the engine's messages | built here from reconstructions (Monolith Productions' code in substance; ltmsg's strings are the retail DLL's) | `src/Engine/snddrv/`, `src/Engine/ltmsg/` |
+| `ServerDir.dll`, the server directory | built here from the LithTech Jupiter SDK's source, fetched at build time (WONAPI, CServerDir_Titan) and patched to 1.3 | `src/Game/Libs/ServerDir/`, `src/nolf2src/jupiter/` |
 | `binkw32.dll` (Bink), the Microsoft C++ and MFC runtime DLLs | RAD Game Tools, Microsoft | the retail game |
