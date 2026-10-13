@@ -1024,6 +1024,9 @@
 #define IDS_MODERN_FRAMELIMIT           31006
 #define IDS_HELP_MODERN_FRAMELIMIT      31007
 #define IDS_MODERN_UNLIMITED            31008
+#define IDS_HELP_MODERN_ANTIALIAS       31009
+#define IDS_MODERN_CINEMATICS43         31010
+#define IDS_HELP_MODERN_CINEMATICS43    31011
 #endif
 
 // Next default values for new objects

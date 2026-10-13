@@ -5012,6 +5012,21 @@ void CInterfaceMgr::UpdateLetterBox()
 	rcDest.Init(0, dwHeight - nBorderSize, dwWidth, dwHeight);
  	g_pLTClient->ScaleSurfaceToSurfaceTransparent(hScreen, m_hLetterBoxSurface,
 	   &rcDest, &rcSrc, hTransColor);
+#ifdef NOLF2SRC_MODERN
+	// MODERN.md M-G36: with Cinematics43 set, a wide screen shows the
+	// cutscenes as they were framed, in the centred 4:3 area (M-E1 widened
+	// the view): cover the sides too.
+	int nSide = (int)g_pInterfaceResMgr->GetXOffset();
+	if (nSide > 0 && GetConsoleInt("Cinematics43",0))
+	{
+		rcDest.Init(0, nBorderSize, nSide, dwHeight - nBorderSize);
+		g_pLTClient->ScaleSurfaceToSurfaceTransparent(hScreen, m_hLetterBoxSurface,
+		   &rcDest, &rcSrc, hTransColor);
+		rcDest.Init(dwWidth - nSide, nBorderSize, dwWidth, dwHeight - nBorderSize);
+		g_pLTClient->ScaleSurfaceToSurfaceTransparent(hScreen, m_hLetterBoxSurface,
+		   &rcDest, &rcSrc, hTransColor);
+	}
+#endif
 /*
 	if (m_nBorderSize == 0)
 	{

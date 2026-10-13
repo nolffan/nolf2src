@@ -197,7 +197,15 @@ LTBOOL CScreenPerformance::Build()
 
 		pCtrl = CreateCycle(IDS_ANISOTROPIC, IDS_HELP_ANISOTROPIC,listGap,&m_sCfg.nSettings[kPerform_AnisotropicFiltering]);
 		pCtrl->AddString(szOff);
+#ifdef NOLF2SRC_MODERN
+		// MODERN.md M-G45: the degree (PerformanceMgr maps it)
+		pCtrl->AddString("2x");
+		pCtrl->AddString("4x");
+		pCtrl->AddString("8x");
+		pCtrl->AddString("16x");
+#else
 		pCtrl->AddString(szOn);
+#endif
 		pCtrl->SetFont(NULL,nListFontSize);
 		m_pDisplay->AddControl(pCtrl);	
 		

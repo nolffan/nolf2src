@@ -40,7 +40,14 @@ LTBOOL CGameSettings::Init (ILTClient* pClientDE, CGameClientShell* pClientShell
 	m_pClientDE = pClientDE;
 	m_pClientShell = pClientShell;
 
+#ifdef NOLF2SRC_MODERN
+	// MODERN.md M-E3: with each mouse count now counted once, the slider's
+	// lowest setting is lower, for the high-resolution mice of today (0:
+	// 0.0005 radians a count; each step still 0.001125)
+	g_vtMouseScaleBase.Init(g_pLTClient, "MouseScaleBase", NULL, 0.0005f);
+#else
 	g_vtMouseScaleBase.Init(g_pLTClient, "MouseScaleBase", NULL, 0.00125f);
+#endif
 	g_vtMouseScaleInc.Init(g_pLTClient, "MouseScaleIncrement", NULL, 0.001125f);
 
 	// check if gore is allowed

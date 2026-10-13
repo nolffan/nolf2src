@@ -28,6 +28,46 @@
 extern uint32 g_ScreenWidth;
 extern uint32 g_ScreenHeight;
 
+#ifdef NOLF2SRC_MODERN
+// MODERN.md M-E13, the Modernizer's known issue K1: screen-space primitives
+// are placed at whole pixel coordinates, which in Direct3D are pixel
+// centres, so a quad's edge cuts its edge pixels in half. Without
+// antialiasing the rasteriser takes a centre on a left or top edge in and
+// nothing shows; multisampled, the edge pixels are half covered and every 2D
+// item's left and top edges blend with what is behind them, as if moved half
+// a pixel. With a multisampled target the vertices move by half a pixel to
+// put the edges between pixels (the same pixels are covered, wholly).
+static bool s_bModernHalfPixel = false;
+
+static void ModernCheckHalfPixel(LPDIRECT3DDEVICE8 pDevice)
+{
+	s_bModernHalfPixel = false;
+	IDirect3DSurface8* pTarget = NULL;
+	if (!pDevice || FAILED(pDevice->GetRenderTarget(&pTarget)) || !pTarget)
+		return;
+	D3DSURFACE_DESC Desc;
+	if (SUCCEEDED(pTarget->GetDesc(&Desc)))
+		s_bModernHalfPixel = (Desc.MultiSampleType != D3DMULTISAMPLE_NONE);
+	pTarget->Release();
+}
+
+static void ModernPixelAlign(DRAWPRIM_D3DTRANS* pVert, DRAWPRIM_D3DTRANS* pEnd)
+{
+	if (!s_bModernHalfPixel) return;
+	for (; pVert < pEnd; ++pVert) { pVert->x -= 0.5f; pVert->y -= 0.5f; }
+}
+
+static void ModernPixelAlign(DRAWPRIM_D3DTRANS_TEX* pVert, DRAWPRIM_D3DTRANS_TEX* pEnd)
+{
+	if (!s_bModernHalfPixel) return;
+	for (; pVert < pEnd; ++pVert) { pVert->x -= 0.5f; pVert->y -= 0.5f; }
+}
+
+#define MODERN_PIXEL_ALIGN(pBegin, pEnd)	ModernPixelAlign((pBegin), (pEnd))
+#else
+#define MODERN_PIXEL_ALIGN(pBegin, pEnd)
+#endif
+
 
 //------------------------------------------------------------------------------
 //Utility classes
@@ -82,6 +122,9 @@ LTRESULT CD3DDrawPrim::BeginDrawPrim()
 		return LT_OK;
 
 	PushRenderStates(r_GetRenderStruct()->GetD3DDevice());
+#ifdef NOLF2SRC_MODERN
+	ModernCheckHalfPixel(r_GetRenderStruct()->GetD3DDevice());
+#endif
 
 	//success
 	return LT_OK;
@@ -733,7 +776,7 @@ LTRESULT CD3DDrawPrim::DrawPrim(LT_POLYGT3 *pPrim, uint32 nCount) {
 
 				--nCount; nDstBufSize -= 3; ++nDrawCount; ++pSrcPtr; }
 
-			hRes = pDevice->DrawPrimitiveUP(D3DPT_TRIANGLELIST, nDrawCount, m_VertTransBufT, sizeof(DRAWPRIM_D3DTRANS_TEX)); 
+			MODERN_PIXEL_ALIGN(m_VertTransBufT, pDstPtr); hRes = pDevice->DrawPrimitiveUP(D3DPT_TRIANGLELIST, nDrawCount, m_VertTransBufT, sizeof(DRAWPRIM_D3DTRANS_TEX)); 
 			if (hRes != D3D_OK) 
 				return LT_ERROR; 
 	} }
@@ -807,7 +850,7 @@ LTRESULT CD3DDrawPrim::DrawPrim(LT_POLYFT3 *pPrim, uint32 nCount) {
 
 				--nCount; nDstBufSize -= 3; ++nDrawCount; ++pSrcPtr; }
 
-			hRes = pDevice->DrawPrimitiveUP(D3DPT_TRIANGLELIST, nDrawCount, m_VertTransBufT, sizeof(DRAWPRIM_D3DTRANS_TEX));
+			MODERN_PIXEL_ALIGN(m_VertTransBufT, pDstPtr); hRes = pDevice->DrawPrimitiveUP(D3DPT_TRIANGLELIST, nDrawCount, m_VertTransBufT, sizeof(DRAWPRIM_D3DTRANS_TEX));
 			if (hRes != D3D_OK) 
 				return LT_ERROR; 
 	} }
@@ -855,7 +898,7 @@ LTRESULT CD3DDrawPrim::DrawPrim(LT_POLYG3 *pPrim, uint32 nCount) {
 
 				--nCount; nDstBufSize -= 3; ++nDrawCount; ++pSrcPtr; }
 
-			hRes = pDevice->DrawPrimitiveUP(D3DPT_TRIANGLELIST, nDrawCount, m_VertTransBuf, sizeof(DRAWPRIM_D3DTRANS));
+			MODERN_PIXEL_ALIGN(m_VertTransBuf, pDstPtr); hRes = pDevice->DrawPrimitiveUP(D3DPT_TRIANGLELIST, nDrawCount, m_VertTransBuf, sizeof(DRAWPRIM_D3DTRANS));
 			if (hRes != D3D_OK) 
 				return LT_ERROR; 
 	} }
@@ -923,7 +966,7 @@ LTRESULT CD3DDrawPrim::DrawPrim(LT_POLYF3 *pPrim, uint32 nCount) {
 
 				--nCount; nDstBufSize -= 3; ++nDrawCount; ++pSrcPtr; }
 
-			hRes = pDevice->DrawPrimitiveUP(D3DPT_TRIANGLELIST, nDrawCount, m_VertTransBuf, sizeof(DRAWPRIM_D3DTRANS)); 
+			MODERN_PIXEL_ALIGN(m_VertTransBuf, pDstPtr); hRes = pDevice->DrawPrimitiveUP(D3DPT_TRIANGLELIST, nDrawCount, m_VertTransBuf, sizeof(DRAWPRIM_D3DTRANS)); 
 			if (hRes != D3D_OK)
 				return LT_ERROR;
 	} }
@@ -999,7 +1042,7 @@ LTRESULT CD3DDrawPrim::DrawPrim(LT_POLYGT4 *pPrim, uint32 nCount) {
 					++pDstPtr;
 
 					--nCount; nDstBufSize -= 6; nDrawCount += 2; ++pSrcPtr; }
-				hRes = pDevice->DrawPrimitiveUP(D3DPT_TRIANGLELIST, nDrawCount, m_VertTransBufT, sizeof(DRAWPRIM_D3DTRANS_TEX));
+				MODERN_PIXEL_ALIGN(m_VertTransBufT, pDstPtr); hRes = pDevice->DrawPrimitiveUP(D3DPT_TRIANGLELIST, nDrawCount, m_VertTransBufT, sizeof(DRAWPRIM_D3DTRANS_TEX));
 				if (hRes != D3D_OK)
 				{
 					return LT_ERROR;
@@ -1013,7 +1056,7 @@ LTRESULT CD3DDrawPrim::DrawPrim(LT_POLYGT4 *pPrim, uint32 nCount) {
   					m_VertTransBufT[i].rgba = RGBA_MAKE(pPrimPtr->verts[i].rgba.r,pPrimPtr->verts[i].rgba.g,pPrimPtr->verts[i].rgba.b,pPrimPtr->verts[i].rgba.a);
   					m_VertTransBufT[i].u	= pPrimPtr->verts[i].u; m_VertTransBufT[i].v = pPrimPtr->verts[i].v; }
 
-  			hRes = pDevice->DrawPrimitiveUP(D3DPT_TRIANGLEFAN, 2, m_VertTransBufT, sizeof(DRAWPRIM_D3DTRANS_TEX));
+  			MODERN_PIXEL_ALIGN(m_VertTransBufT, m_VertTransBufT + 4); hRes = pDevice->DrawPrimitiveUP(D3DPT_TRIANGLEFAN, 2, m_VertTransBufT, sizeof(DRAWPRIM_D3DTRANS_TEX));
 			if (hRes != D3D_OK) 
 				return LT_ERROR;
 			--nCount; ++pPrimPtr; } }
@@ -1054,7 +1097,7 @@ LTRESULT CD3DDrawPrim::DrawPrim(LT_POLYFT4 *pPrim, uint32 nCount) {
 				m_VertTransBufT[i].x	= pPrimPtr->verts[i].x; m_VertTransBufT[i].y = pPrimPtr->verts[i].y; m_VertTransBufT[i].z = pPrimPtr->verts[i].z; m_VertTransBufT[i].rhw = 1.0f;
 				m_VertTransBufT[i].rgba = RGBA_MAKE(pPrimPtr->rgba.r,pPrimPtr->rgba.g,pPrimPtr->rgba.b,pPrimPtr->rgba.a);
 				m_VertTransBufT[i].u	= pPrimPtr->verts[i].u; m_VertTransBufT[i].v = pPrimPtr->verts[i].v; }
-			hRes = pDevice->DrawPrimitiveUP(D3DPT_TRIANGLEFAN, 2, m_VertTransBufT, sizeof(DRAWPRIM_D3DTRANS_TEX));
+			MODERN_PIXEL_ALIGN(m_VertTransBufT, m_VertTransBufT + 4); hRes = pDevice->DrawPrimitiveUP(D3DPT_TRIANGLEFAN, 2, m_VertTransBufT, sizeof(DRAWPRIM_D3DTRANS_TEX));
 			if (hRes != D3D_OK)
 				return LT_ERROR; 
 			--nCount; ++pPrimPtr; }
@@ -1089,7 +1132,7 @@ LTRESULT CD3DDrawPrim::DrawPrim(LT_POLYG4 *pPrim, uint32 nCount) {
 			for (int i=0;i<4;++i) {
 				m_VertTransBuf[i].x	= pPrimPtr->verts[i].x; m_VertTransBuf[i].y = pPrimPtr->verts[i].y; m_VertTransBuf[i].z = pPrimPtr->verts[i].z; m_VertTransBuf[i].rhw = 1.0f;
 				m_VertTransBuf[i].rgba = RGBA_MAKE(pPrimPtr->verts[i].rgba.r,pPrimPtr->verts[i].rgba.g,pPrimPtr->verts[i].rgba.b,pPrimPtr->verts[i].rgba.a); }
-			hRes = pDevice->DrawPrimitiveUP(D3DPT_TRIANGLEFAN, 2, m_VertTransBuf, sizeof(DRAWPRIM_D3DTRANS));
+			MODERN_PIXEL_ALIGN(m_VertTransBuf, m_VertTransBuf + 4); hRes = pDevice->DrawPrimitiveUP(D3DPT_TRIANGLEFAN, 2, m_VertTransBuf, sizeof(DRAWPRIM_D3DTRANS));
 			if (hRes != D3D_OK)
 				return LT_ERROR; 
 			--nCount; ++pPrimPtr; }
@@ -1126,7 +1169,7 @@ LTRESULT CD3DDrawPrim::DrawPrim(LT_POLYF4 *pPrim, uint32 nCount) {
 			for (int i=0;i<4;++i) {
 				m_VertTransBuf[i].x	= pPrimPtr->verts[i].x; m_VertTransBuf[i].y = pPrimPtr->verts[i].y; m_VertTransBuf[i].z = pPrimPtr->verts[i].z; m_VertTransBuf[i].rhw = 1.0f;
 				m_VertTransBuf[i].rgba = RGBA_MAKE(pPrimPtr->rgba.r,pPrimPtr->rgba.g,pPrimPtr->rgba.b,pPrimPtr->rgba.a); }
-			hRes = pDevice->DrawPrimitiveUP(D3DPT_TRIANGLEFAN, 2, m_VertTransBuf, sizeof(DRAWPRIM_D3DTRANS));
+			MODERN_PIXEL_ALIGN(m_VertTransBuf, m_VertTransBuf + 4); hRes = pDevice->DrawPrimitiveUP(D3DPT_TRIANGLEFAN, 2, m_VertTransBuf, sizeof(DRAWPRIM_D3DTRANS));
 			if (hRes != D3D_OK)
 				return LT_ERROR; 
 			--nCount; ++pPrimPtr; }
@@ -1174,7 +1217,7 @@ LTRESULT CD3DDrawPrim::DrawPrim (LT_LINEGT *pPrim, uint32 nCount)
 
 				--nCount; nDstBufSize -= 2; ++nDrawCount; ++pSrcPtr; }
 
-			hRes = pDevice->DrawPrimitiveUP(D3DPT_LINELIST, nDrawCount, m_VertTransBufT, sizeof(DRAWPRIM_D3DTRANS_TEX)); 
+			MODERN_PIXEL_ALIGN(m_VertTransBufT, pDstPtr); hRes = pDevice->DrawPrimitiveUP(D3DPT_LINELIST, nDrawCount, m_VertTransBufT, sizeof(DRAWPRIM_D3DTRANS_TEX)); 
 			if (hRes != D3D_OK)
 				return LT_ERROR;
 	} }
@@ -1238,7 +1281,7 @@ LTRESULT CD3DDrawPrim::DrawPrim (LT_LINEFT *pPrim, uint32 nCount)
 
 				--nCount; nDstBufSize -= 2; ++nDrawCount; ++pSrcPtr; }
 
-			hRes = pDevice->DrawPrimitiveUP(D3DPT_LINELIST, nDrawCount, m_VertTransBufT, sizeof(DRAWPRIM_D3DTRANS_TEX)); 
+			MODERN_PIXEL_ALIGN(m_VertTransBufT, pDstPtr); hRes = pDevice->DrawPrimitiveUP(D3DPT_LINELIST, nDrawCount, m_VertTransBufT, sizeof(DRAWPRIM_D3DTRANS_TEX)); 
 			if (hRes != D3D_OK)
 				return LT_ERROR;
 	} }
@@ -1282,7 +1325,7 @@ LTRESULT CD3DDrawPrim::DrawPrim (LT_LINEG *pPrim, uint32 nCount)
 
 				--nCount; nDstBufSize -= 2; ++nDrawCount; ++pSrcPtr; }
 
-			hRes = pDevice->DrawPrimitiveUP(D3DPT_LINELIST, nDrawCount, m_VertTransBuf, sizeof(DRAWPRIM_D3DTRANS)); 
+			MODERN_PIXEL_ALIGN(m_VertTransBuf, pDstPtr); hRes = pDevice->DrawPrimitiveUP(D3DPT_LINELIST, nDrawCount, m_VertTransBuf, sizeof(DRAWPRIM_D3DTRANS)); 
 			if (hRes != D3D_OK)
 				return LT_ERROR;
 	} }
@@ -1342,7 +1385,7 @@ LTRESULT CD3DDrawPrim::DrawPrim (LT_LINEF *pPrim, uint32 nCount)
 
 				--nCount; nDstBufSize -= 2; ++nDrawCount; ++pSrcPtr; }
 
-			hRes = pDevice->DrawPrimitiveUP(D3DPT_LINELIST, nDrawCount, m_VertTransBuf, sizeof(DRAWPRIM_D3DTRANS)); 
+			MODERN_PIXEL_ALIGN(m_VertTransBuf, pDstPtr); hRes = pDevice->DrawPrimitiveUP(D3DPT_LINELIST, nDrawCount, m_VertTransBuf, sizeof(DRAWPRIM_D3DTRANS)); 
 			if (hRes != D3D_OK)
 				return LT_ERROR;
 	} }
@@ -1384,7 +1427,7 @@ LTRESULT CD3DDrawPrim::DrawPrimPoint (LT_VERTGT *pVerts, uint32 nCount)
 
 				--nCount; --nDstBufSize; ++nDrawCount; ++pSrcPtr; }
 
-			hRes = pDevice->DrawPrimitiveUP(D3DPT_POINTLIST, nDrawCount, m_VertTransBufT, sizeof(DRAWPRIM_D3DTRANS_TEX)); 
+			MODERN_PIXEL_ALIGN(m_VertTransBufT, pDstPtr); hRes = pDevice->DrawPrimitiveUP(D3DPT_POINTLIST, nDrawCount, m_VertTransBufT, sizeof(DRAWPRIM_D3DTRANS_TEX)); 
 			if (hRes != D3D_OK)
 				return LT_ERROR;
 	} }
@@ -1423,7 +1466,7 @@ LTRESULT CD3DDrawPrim::DrawPrimPoint (LT_VERTG *pVerts, uint32 nCount)
 
 				--nCount; --nDstBufSize; ++nDrawCount; ++pSrcPtr; }
 
-			hRes = pDevice->DrawPrimitiveUP(D3DPT_POINTLIST, nDrawCount, m_VertTransBuf, sizeof(DRAWPRIM_D3DTRANS)); 
+			MODERN_PIXEL_ALIGN(m_VertTransBuf, pDstPtr); hRes = pDevice->DrawPrimitiveUP(D3DPT_POINTLIST, nDrawCount, m_VertTransBuf, sizeof(DRAWPRIM_D3DTRANS)); 
 			if (hRes != D3D_OK)
 				return LT_ERROR;
 	} }
@@ -1468,7 +1511,7 @@ LTRESULT CD3DDrawPrim::DrawPrimFan(LT_VERTGT *pVerts, uint32 nCount) {
 				++pDstPtr; ++pSrcPtr;
 				--nCount; --nDstBufSize; ++nDrawCount; }
 
-			hRes = pDevice->DrawPrimitiveUP(D3DPT_TRIANGLEFAN, nDrawCount-2, m_VertTransBufT, sizeof(DRAWPRIM_D3DTRANS_TEX)); 
+			MODERN_PIXEL_ALIGN(m_VertTransBufT, pDstPtr); hRes = pDevice->DrawPrimitiveUP(D3DPT_TRIANGLEFAN, nDrawCount-2, m_VertTransBufT, sizeof(DRAWPRIM_D3DTRANS_TEX)); 
 			if (hRes != D3D_OK)
 				return LT_ERROR; 
 
@@ -1533,7 +1576,7 @@ LTRESULT CD3DDrawPrim::DrawPrimFan(LT_VERTFT *pVerts, uint32 nCount, LT_VERTRGBA
 				++pDstPtr; ++pSrcPtr;
 				--nCount; --nDstBufSize; ++nDrawCount; }
 
-			hRes = pDevice->DrawPrimitiveUP(D3DPT_TRIANGLEFAN, nDrawCount-2, m_VertTransBufT, sizeof(DRAWPRIM_D3DTRANS_TEX)); 
+			MODERN_PIXEL_ALIGN(m_VertTransBufT, pDstPtr); hRes = pDevice->DrawPrimitiveUP(D3DPT_TRIANGLEFAN, nDrawCount-2, m_VertTransBufT, sizeof(DRAWPRIM_D3DTRANS_TEX)); 
 			if (hRes != D3D_OK)
 				return LT_ERROR; 
 
@@ -1576,7 +1619,7 @@ LTRESULT CD3DDrawPrim::DrawPrimFan(LT_VERTG *pVerts, uint32 nCount) {
 				++pDstPtr; ++pSrcPtr;
 				--nCount; --nDstBufSize; ++nDrawCount; }
 
-			hRes = pDevice->DrawPrimitiveUP(D3DPT_TRIANGLEFAN, nDrawCount-2, m_VertTransBuf, sizeof(DRAWPRIM_D3DTRANS)); 
+			MODERN_PIXEL_ALIGN(m_VertTransBuf, pDstPtr); hRes = pDevice->DrawPrimitiveUP(D3DPT_TRIANGLEFAN, nDrawCount-2, m_VertTransBuf, sizeof(DRAWPRIM_D3DTRANS)); 
 			if (hRes != D3D_OK)
 				return LT_ERROR; 
 
@@ -1637,7 +1680,7 @@ LTRESULT CD3DDrawPrim::DrawPrimFan(LT_VERTF *pVerts, uint32 nCount, LT_VERTRGBA 
 				++pDstPtr; ++pSrcPtr;
 				--nCount; --nDstBufSize; ++nDrawCount; }
 
-			hRes = pDevice->DrawPrimitiveUP(D3DPT_TRIANGLEFAN, nDrawCount-2, m_VertTransBuf, sizeof(DRAWPRIM_D3DTRANS)); 
+			MODERN_PIXEL_ALIGN(m_VertTransBuf, pDstPtr); hRes = pDevice->DrawPrimitiveUP(D3DPT_TRIANGLEFAN, nDrawCount-2, m_VertTransBuf, sizeof(DRAWPRIM_D3DTRANS)); 
 			if (hRes != D3D_OK)
 				return LT_ERROR; 
 
@@ -1676,7 +1719,7 @@ LTRESULT CD3DDrawPrim::DrawPrimStrip(LT_VERTGT *pVerts, uint32 nCount) {
 				++pDstPtr; ++pSrcPtr;
 				--nCount; --nDstBufSize; ++nDrawCount; }
 
-			hRes = pDevice->DrawPrimitiveUP(D3DPT_TRIANGLESTRIP, nDrawCount-2, m_VertTransBufT, sizeof(DRAWPRIM_D3DTRANS_TEX)); 
+			MODERN_PIXEL_ALIGN(m_VertTransBufT, pDstPtr); hRes = pDevice->DrawPrimitiveUP(D3DPT_TRIANGLESTRIP, nDrawCount-2, m_VertTransBufT, sizeof(DRAWPRIM_D3DTRANS_TEX)); 
 			if (hRes != D3D_OK)
 				return LT_ERROR; 
 
@@ -1727,7 +1770,7 @@ LTRESULT CD3DDrawPrim::DrawPrimStrip(LT_VERTFT *pVerts, uint32 nCount, LT_VERTRG
 				++pDstPtr; ++pSrcPtr;
 				--nCount; --nDstBufSize; ++nDrawCount; }
 
-			hRes = pDevice->DrawPrimitiveUP(D3DPT_TRIANGLESTRIP, nDrawCount-2, m_VertTransBufT, sizeof(DRAWPRIM_D3DTRANS_TEX)); 
+			MODERN_PIXEL_ALIGN(m_VertTransBufT, pDstPtr); hRes = pDevice->DrawPrimitiveUP(D3DPT_TRIANGLESTRIP, nDrawCount-2, m_VertTransBufT, sizeof(DRAWPRIM_D3DTRANS_TEX)); 
 			if (hRes != D3D_OK)
 				return LT_ERROR; 
 
@@ -1764,7 +1807,7 @@ LTRESULT CD3DDrawPrim::DrawPrimStrip(LT_VERTG *pVerts, uint32 nCount) {
 				++pDstPtr; ++pSrcPtr;
 				--nCount; --nDstBufSize; ++nDrawCount; }
 
-			hRes = pDevice->DrawPrimitiveUP(D3DPT_TRIANGLESTRIP, nDrawCount-2, m_VertTransBuf, sizeof(DRAWPRIM_D3DTRANS)); 
+			MODERN_PIXEL_ALIGN(m_VertTransBuf, pDstPtr); hRes = pDevice->DrawPrimitiveUP(D3DPT_TRIANGLESTRIP, nDrawCount-2, m_VertTransBuf, sizeof(DRAWPRIM_D3DTRANS)); 
 			if (hRes != D3D_OK)
 				return LT_ERROR; 
 
@@ -1813,7 +1856,7 @@ LTRESULT CD3DDrawPrim::DrawPrimStrip(LT_VERTF *pVerts, uint32 nCount, LT_VERTRGB
 				++pDstPtr; ++pSrcPtr;
 				--nCount; --nDstBufSize; ++nDrawCount; }
 
-			hRes = pDevice->DrawPrimitiveUP(D3DPT_TRIANGLESTRIP, nDrawCount-2, m_VertTransBuf, sizeof(DRAWPRIM_D3DTRANS)); 
+			MODERN_PIXEL_ALIGN(m_VertTransBuf, pDstPtr); hRes = pDevice->DrawPrimitiveUP(D3DPT_TRIANGLESTRIP, nDrawCount-2, m_VertTransBuf, sizeof(DRAWPRIM_D3DTRANS)); 
 			if (hRes != D3D_OK)
 				return LT_ERROR; 
 

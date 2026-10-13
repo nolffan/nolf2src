@@ -21,6 +21,32 @@
 namespace
 {
 }
+#ifdef NOLF2SRC_MODERN
+	// MODERN.md M-G45: the anisotropic setting is a degree. Retail's on
+	// wrote Anisotropic 1, which the renderer takes as the most samples:
+	// anisotropic filtering of one sample, no better than bilinear. The
+	// setting's index (in the menu and the configurations) is off, 2x, 4x,
+	// 8x, 16x; the console variable holds the degree.
+	const int kModernAniso[] = { 0, 2, 4, 8, 16 };
+	const int kNumModernAniso = sizeof(kModernAniso) / sizeof(kModernAniso[0]);
+
+	static int ModernAnisoValue(int nIndex)
+	{
+		return kModernAniso[LTCLAMP(nIndex,0,kNumModernAniso - 1)];
+	}
+
+	static int ModernAnisoIndex(int nValue)
+	{
+		if (nValue > 0 && nValue < 2) nValue = 2;	// retail's on
+		int nIndex = 0;
+		for (int i = 0; i < kNumModernAniso; i++)
+		{
+			if (kModernAniso[i] <= nValue)
+				nIndex = i;
+		}
+		return nIndex;
+	}
+#endif
 	const std::string CONFIG_DIR("Config\\");
 	const std::string CONFIG_EXT(".txt");
 
@@ -262,6 +288,10 @@ LTBOOL	CPerformanceMgr::IsCurrentConfig(int nCfg,bool bIgnoreResolution)
 		if (kPerform_MusicActive == i && !(dwAdvancedOptions & AO_MUSIC))
 			continue;
 		int n = GetConsoleInt(sSettings[i].szVar,0);
+#ifdef NOLF2SRC_MODERN
+		if (kPerform_AnisotropicFiltering == i)
+			n = ModernAnisoIndex(n);
+#endif
 		if (n != pCfg->nSettings[i])
 		{
 //			g_pLTClient->CPrint("CPerformanceMgr::IsCurrentConfig(%d) : failed on %s",nCfg,sSettings[i].szName);
@@ -319,6 +349,13 @@ void CPerformanceMgr::SetPerformanceOptions(sPerformCfg *pCfg, int nCfg)
 {
 	for (int i = 0; i < kNumDetailSettings; i++)
 	{
+#ifdef NOLF2SRC_MODERN
+		if (kPerform_AnisotropicFiltering == i)
+		{
+			WriteConsoleInt(sSettings[i].szVar,ModernAnisoValue(pCfg->nSettings[i]));
+			continue;
+		}
+#endif
 		WriteConsoleInt(sSettings[i].szVar,pCfg->nSettings[i]);
 	}
 
@@ -438,6 +475,10 @@ void CPerformanceMgr::GetPerformanceOptions(sPerformCfg *pCfg)
 	for (int i = 0; i < kNumDetailSettings; i++)
 	{
 		pCfg->nSettings[i] = GetConsoleInt(sSettings[i].szVar,pCfg->nSettings[i]);
+#ifdef NOLF2SRC_MODERN
+		if (kPerform_AnisotropicFiltering == i)
+			pCfg->nSettings[i] = ModernAnisoIndex(pCfg->nSettings[i]);
+#endif
 	}
 	for (int grp = 0; grp < kNumTextureGroups; grp++)
 	{

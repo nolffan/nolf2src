@@ -93,6 +93,16 @@ void CD3D_Device::TryFallingBack_OnFailedDevCreate(D3DPRESENT_PARAMETERS* pPrese
 	uint32 iBitCount, iAlphaMask, iRedMask, iGreenMask, iBlueMask;
 	d3d_GetColorMasks(pPresentationParam->BackBufferFormat,iBitCount,iAlphaMask,iRedMask,iGreenMask,iBlueMask);
 	pPresentationParam->AutoDepthStencilFormat = GetDefaultDepthStencilFormat(iBitCount,g_CV_StencilBitDepth);
+#ifdef NOLF2SRC_MODERN
+	// M-E13: and without antialiasing, with retail's swap effect and flags.
+	if (pPresentationParam->MultiSampleType != D3DMULTISAMPLE_NONE)
+	{
+		pPresentationParam->MultiSampleType = D3DMULTISAMPLE_NONE;
+		pPresentationParam->Flags |= D3DPRESENTFLAG_LOCKABLE_BACKBUFFER;
+		if (g_bRunWindowed || g_CV_ForceSwapEffectBlt)
+			pPresentationParam->SwapEffect = D3DSWAPEFFECT_COPY;
+	}
+#endif
 }
 
 bool CD3D_Device::SetMode(D3DModeInfo* pMode)
@@ -251,6 +261,18 @@ void CD3D_Device::SetPresentationParams(D3DPRESENT_PARAMETERS& PresentationParam
 	D3DSWAPEFFECT	SwapEffect		= D3DSWAPEFFECT_DISCARD;
 	uint32			BackBufferCount	= g_CV_BackBufferCount;
 	if (g_bRunWindowed || g_CV_ForceSwapEffectBlt) { SwapEffect = D3DSWAPEFFECT_COPY; BackBufferCount = 1; }
+#ifdef NOLF2SRC_MODERN
+	// MODERN.md M-E13: antialiasing in a window too. Direct3D 8 multisamples
+	// only with the discard swap effect, and retail gave a window the copy
+	// effect whatever AntiAliasFSOverSample asked for; with antialiasing on
+	// a window now discards as full screen does (ForceSwapEffectBlt still
+	// forces the copy).
+	if (g_bRunWindowed && !g_CV_ForceSwapEffectBlt &&
+		GetDefaultMultiSampleType(g_CV_AntiAliasFSOverSample) != D3DMULTISAMPLE_NONE)
+	{
+		SwapEffect = D3DSWAPEFFECT_DISCARD;
+	}
+#endif
 
 	PresentationParam.BackBufferWidth					= pMode->Width;
 	PresentationParam.BackBufferHeight					= pMode->Height;
@@ -265,6 +287,14 @@ void CD3D_Device::SetPresentationParams(D3DPRESENT_PARAMETERS& PresentationParam
 	PresentationParam.Flags								= D3DPRESENTFLAG_LOCKABLE_BACKBUFFER;	// puffs, but need it for the console (should get rid of this eventually)...
 	PresentationParam.FullScreen_RefreshRateInHz		= D3DPRESENT_RATE_DEFAULT; //D3DPRESENT_RATE_UNLIMITED
 	PresentationParam.FullScreen_PresentationInterval	= (g_bRunWindowed || g_CV_VSyncOnFlip.m_Val) ? D3DPRESENT_INTERVAL_DEFAULT : D3DPRESENT_INTERVAL_IMMEDIATE;
+#ifdef NOLF2SRC_MODERN
+	// M-E13: a multisampled back buffer is never lockable, and Direct3D 8
+	// refuses a device that asks for both (retail asked, full screen, so its
+	// antialiasing could not start on Windows). Only the screen locks
+	// (screenshots, the console's direct draws) want it; they fail quietly.
+	if (PresentationParam.MultiSampleType != D3DMULTISAMPLE_NONE)
+		PresentationParam.Flags &= ~D3DPRESENTFLAG_LOCKABLE_BACKBUFFER;
+#endif
 }
 
 // Go for the best one that works and fallback till we find one...
@@ -425,7 +455,15 @@ void CD3D_Device::SetDefaultRenderStates()
 		{
 			D3D_CALL(PD3DDEVICE->SetTextureStageState(nCurrStage, D3DTSS_MINFILTER, D3DTEXF_ANISOTROPIC));
 			D3D_CALL(PD3DDEVICE->SetTextureStageState(nCurrStage, D3DTSS_MAGFILTER, D3DTEXF_ANISOTROPIC));
+#ifdef NOLF2SRC_MODERN
+			// MODERN.md M-G45: held to what the card can do
+			uint32 nModernAniso = (uint32)g_CV_Anisotropic.m_Val;
+			if (m_DeviceCaps.MaxAnisotropy && nModernAniso > m_DeviceCaps.MaxAnisotropy)
+				nModernAniso = m_DeviceCaps.MaxAnisotropy;
+			D3D_CALL(PD3DDEVICE->SetTextureStageState(nCurrStage, D3DTSS_MAXANISOTROPY, nModernAniso));
+#else
 			D3D_CALL(PD3DDEVICE->SetTextureStageState(nCurrStage, D3DTSS_MAXANISOTROPY, g_CV_Anisotropic.m_Val));
+#endif
 		}
 		else
 		{

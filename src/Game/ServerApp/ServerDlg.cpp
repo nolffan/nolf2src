@@ -508,16 +508,26 @@ DWORD CServerDlg::DoHost( )
 	// Open the registry.
 	CRegMgr32 regMgr;
 	regMgr.Init();
+#ifdef NOLF2SRC_MODERN
+	// MODERN.md M-G50: no registry key, no mod: the retail game
+	bool bModernRegistry = regMgr.OpenKey( HKEY_LOCAL_MACHINE, "SOFTWARE", "Monolith Productions", (char*)REGPRODUCTNAME,
+		(char *)REGPRODUCTVER ) ? true : false;
+#else
 	if( !regMgr.OpenKey( HKEY_LOCAL_MACHINE, "SOFTWARE", "Monolith Productions", (char*)REGPRODUCTNAME,
 		(char *)REGPRODUCTVER ))
 	{
 		return false;
 	}
+#endif
 
 	char szSelectedMod[256] = {0};
 	DWORD bufSize = sizeof(szSelectedMod);
-	
+
+#ifdef NOLF2SRC_MODERN
+	if( bModernRegistry && regMgr.GetField( FIELD_SELECTEDMOD, szSelectedMod, bufSize ))
+#else
 	if( regMgr.GetField( FIELD_SELECTEDMOD, szSelectedMod, bufSize ))
+#endif
 	{
 		if( szSelectedMod[0] )
 		{
@@ -1526,6 +1536,23 @@ bool CServerDlg::AddResources( )
 	// Open the registry.
 	CRegMgr32 regMgr;
 	regMgr.Init();
+#ifdef NOLF2SRC_MODERN
+	// MODERN.md M-G50: without the installer's registry key (a copied or
+	// unpacked game) the server still starts: the 1.3 update's archive is
+	// taken from the game directory when it is there, and customrez.txt
+	// (below) can name any other.
+	bool bModernRegistry = regMgr.OpenKey( HKEY_LOCAL_MACHINE, "SOFTWARE", "Monolith Productions", (char*)REGPRODUCTNAME,
+		(char *)REGPRODUCTVER ) ? true : false;
+	if( bModernRegistry )
+	{
+		ReadRezFromRegCommandLine( lstRez, regMgr, "ContentNum", "ContentCommandLine" );
+		ReadRezFromRegCommandLine( lstRez, regMgr, "UpdateNum", "UpdateCommandLine" );
+	}
+	else if( GetFileAttributes( "Update_v1x3.rez" ) != 0xFFFFFFFF )
+	{
+		lstRez.AddTail( "Update_v1x3.rez" );
+	}
+#else
 	if( !regMgr.OpenKey( HKEY_LOCAL_MACHINE, "SOFTWARE", "Monolith Productions", (char*)REGPRODUCTNAME,
 		(char *)REGPRODUCTVER ))
 	{
@@ -1535,6 +1562,7 @@ bool CServerDlg::AddResources( )
 	// Add the rez files from registry.  Add the update after the content so it overrides.
 	ReadRezFromRegCommandLine( lstRez, regMgr, "ContentNum", "ContentCommandLine" );
 	ReadRezFromRegCommandLine( lstRez, regMgr, "UpdateNum", "UpdateCommandLine" );
+#endif
 
 	lstRez.AddTail( "custom" );
 
@@ -1563,8 +1591,12 @@ bool CServerDlg::AddResources( )
 
 	char szSelectedMod[256] = {0};
 	DWORD bufSize = sizeof(szSelectedMod);
-	
+
+#ifdef NOLF2SRC_MODERN
+	if( bModernRegistry && regMgr.GetField( FIELD_SELECTEDMOD, szSelectedMod, bufSize ))
+#else
 	if( regMgr.GetField( FIELD_SELECTEDMOD, szSelectedMod, bufSize ))
+#endif
 	{
 		if( szSelectedMod[0] )
 		{

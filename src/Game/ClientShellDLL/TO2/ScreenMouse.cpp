@@ -93,12 +93,18 @@ LTBOOL CScreenMouse::Build()
 	m_pSensitivityCtrl->SetSliderRange(nMin, nMax);
 	m_pSensitivityCtrl->SetSliderIncrement(1);
 
+#ifdef NOLF2SRC_MODERN
+	// MODERN.md M-E3: no "Input rate". It set the smoothing of the mouse's
+	// motion over its last samples (InputRate), which mouse look no longer
+	// has; the profile keeps its value for the other axes (a joystick's).
+#else
 	//mouse responsiveness
 	nMin = int(g_vtMouseMinInputRate.GetFloat());
 	nMax = int(g_vtMouseMaxInputRate.GetFloat());
 	m_pInputCtrl=AddSlider(IDS_MOUSE_INPUTRATE, IDS_HELP_MOUSE_INPUT, kGap, kWidth, -1,  &m_nInputRate);
 	m_pInputCtrl->SetSliderRange(nMin, nMax);
 	m_pInputCtrl->SetSliderIncrement(2);
+#endif
 
 	//invert mouse
 	pToggle = AddToggle(IDS_MOUSE_INVERTYAXIS, IDS_HELP_INVERTY, kGap, &m_bInvertY );

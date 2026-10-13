@@ -117,6 +117,24 @@ void CHUDCrosshair::Render()
 {
 	
 	SetRenderState();
+#ifdef NOLF2SRC_MODERN
+	// MODERN.md M-G34: the scope's and the camera's masks are made for a
+	// 4:3 view; on a wider screen the world showed past their sides. Black
+	// out the margins beside the 4:3 area.
+	if ((g_pInterfaceMgr->IsOverlayActive(OVM_SCOPE) || g_pInterfaceMgr->IsOverlayActive(OVM_CAMERA)) &&
+		g_pInterfaceResMgr->GetXOffset() > 0)
+	{
+		float fMargin = (float)g_pInterfaceResMgr->GetXOffset();
+		float fWidth = (float)g_pInterfaceResMgr->GetScreenWidth();
+		float fHeight = (float)g_pInterfaceResMgr->GetScreenHeight();
+		g_pDrawPrim->SetTexture(LTNULL);
+		g_pDrawPrim->SetRGBA(&m_Poly[2],argbBlack);
+		g_pDrawPrim->SetXYWH(&m_Poly[2],0.0f,0.0f,fMargin,fHeight);
+		g_pDrawPrim->DrawPrim(&m_Poly[2],1);
+		g_pDrawPrim->SetXYWH(&m_Poly[2],fWidth - fMargin,0.0f,fMargin,fHeight);
+		g_pDrawPrim->DrawPrim(&m_Poly[2],1);
+	}
+#endif
 	if (g_pInterfaceMgr->IsOverlayActive(OVM_SCOPE))
 	{
 		if (!g_pPlayerMgr->UsingCamera())
