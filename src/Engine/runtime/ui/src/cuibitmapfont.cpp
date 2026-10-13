@@ -32,113 +32,9 @@
 ILTTexInterface* pTexInterface = NULL;
 define_holder(ILTTexInterface, pTexInterface);
 
-	
-//	--------------------------------------------------------------------------
-// create a proportional font with user-supplied font table
-CUIBitmapFont::CUIBitmapFont(HTEXTURE hTex, 
-							 uint16*  pTable, 
-							 uint8    cheight,
-							 uint8*   pMap) : CUIFont_Impl()
-{
-	m_Texture 					= hTex;
-	m_pFontTable 				= pTable;
-	m_pFontMap					= NULL;
-	m_Proportional 				= true;
-	m_DefaultCharScreenWidth 	= (uint8)pTable[0];
-	m_DefaultCharScreenHeight	= cheight;	
-	m_CharTexWidth 				= 0;
-	m_CharTexHeight				= cheight;	
-	m_DefaultVerticalSpacing	= m_DefaultCharScreenHeight / 4;
-	m_Valid						= true;
-
-	if(pMap)
-	{
-		m_pFontMap = pMap;
-	}
-	else if(!BuildDefaultMap())
-	{
-		CUI_ERR("Cannot create default font map.\n");
-	}
-}
-
-
-// create a monospace font with user-supplied width & height
-CUIBitmapFont::CUIBitmapFont(HTEXTURE hTex, 
-							 uint8    cwidth, 
-							 uint8    cheight,
-							 uint8*   pMap) : CUIFont_Impl()
-{
-	m_Texture 					= hTex;
-	m_pFontTable 				= NULL;
-	m_pFontMap					= NULL;
-	m_Proportional 				= false;
-	m_DefaultCharScreenWidth 	= cwidth;
-	m_DefaultCharScreenHeight 	= cheight;	
-	m_CharTexWidth				= cwidth;
-	m_CharTexHeight				= cheight;	
-	m_DefaultVerticalSpacing	= m_DefaultCharScreenHeight / 4;
-	m_Valid						= true;
-
-	if(pMap)
-	{
-		m_pFontMap = pMap;
-	}
-	else if(!BuildDefaultMap())
-	{
-		CUI_ERR("Cannot create default font map.\n");
-	}
-}
-
-
-// create a font from an HTEXTURE only.  the system will attempt
-// to determine it's characteristics.
-CUIBitmapFont::CUIBitmapFont(HTEXTURE hTex, 
-							 uint8* pMap) : CUIFont_Impl()
-{
-	m_Texture 		= hTex;
-	m_pFontTable 	= NULL;
-	m_pFontMap		= NULL;
-	m_Proportional 	= true;
-	m_CharTexWidth	= 0;
-	
-	if(pMap)
-	{
-		m_pFontMap = pMap;
-	}
-	else if(!BuildDefaultMap())
-	{
-		CUI_ERR("Cannot create default font map.\n");
-	}
-
-	if ( !BuildFontTable() ) {
-		CUI_ERR("Cannot create font table.  Invalid texture format?\n");
-		m_DefaultCharScreenWidth	= 0;
-		m_DefaultCharScreenHeight	= 0;
-		m_pFontTable				= NULL;
-		// font is not valid
-	}
-	else {		
-		m_DefaultCharScreenHeight  = m_CharTexHeight;
-
-		// !!!! THIS assumes the 36 index in the bitmap is the character 'E' ( used for whitespace etc ) 
-		m_DefaultCharScreenWidth   = (uint8)m_pFontTable[36*3];	 
-		m_DefaultVerticalSpacing   = m_DefaultCharScreenHeight / 4;
-
-		// I must delete this table when the font is destroyed
-		m_bAllocatedTable		   = true;
-		m_Valid					   = true;
-	}
-}
-
-
-CUIBitmapFont::~CUIBitmapFont()
-{
-	// Parent class will deallocate font resources (FontTable and FontMap)
-}
-
 
 //	--------------------------------------------------------------------------
-bool CUIBitmapFont::BuildFontTable()
+inline bool CUIBitmapFont::BuildFontTable()
 {
 	// attempt to figure out the font table
 	// currently, this will produce a proportional font, even from
@@ -193,6 +89,89 @@ bool CUIBitmapFont::BuildFontTable()
 		
 }
 
+	
+//	--------------------------------------------------------------------------
+// create a proportional font with user-supplied font table
+CUIBitmapFont::CUIBitmapFont(HTEXTURE hTex, 
+							 uint16*  pTable, 
+							 uint8    cheight,
+							 uint8*   pMap) : CUIFont_Impl()
+{
+	m_Texture 					= hTex;
+	m_pFontTable 				= pTable;
+	m_pFontMap					= pMap;
+	m_Proportional 				= true;
+	m_DefaultCharScreenWidth 	= (uint8)pTable[0];
+	m_DefaultCharScreenHeight	= cheight;	
+	m_CharTexWidth 				= 0;
+	m_CharTexHeight				= cheight;	
+	m_DefaultVerticalSpacing	= m_DefaultCharScreenHeight / 4;
+	m_Valid						= true;
+}
+
+
+// create a monospace font with user-supplied width & height
+CUIBitmapFont::CUIBitmapFont(HTEXTURE hTex, 
+							 uint8    cwidth, 
+							 uint8    cheight,
+							 uint8*   pMap) : CUIFont_Impl()
+{
+	m_Texture 					= hTex;
+	m_pFontTable 				= NULL;
+	m_pFontMap					= pMap;
+	m_Proportional 				= false;
+	m_DefaultCharScreenWidth 	= cwidth;
+	m_DefaultCharScreenHeight 	= cheight;	
+	m_CharTexWidth				= cwidth;
+	m_CharTexHeight				= cheight;	
+	m_DefaultVerticalSpacing	= m_DefaultCharScreenHeight / 4;
+	m_Valid						= true;
+}
+
+
+// create a font from an HTEXTURE only.  the system will attempt
+// to determine it's characteristics.
+CUIBitmapFont::CUIBitmapFont(HTEXTURE hTex, 
+							 uint8* pMap) : CUIFont_Impl()
+{
+	m_Texture 		= hTex;
+	m_pFontTable 	= NULL;
+	m_pFontMap		= pMap;
+	m_Proportional 	= true;
+	m_CharTexWidth	= 0;
+	
+	if ( !BuildFontTable() ) {
+		CUI_ERR("Cannot create font table.  Invalid texture format?\n");
+		m_DefaultCharScreenWidth	= 0;
+		m_DefaultCharScreenHeight	= 0;
+		m_pFontTable				= NULL;
+		// font is not valid
+	}
+	else {		
+		m_DefaultCharScreenHeight  = m_CharTexHeight;
+
+		m_DefaultCharScreenWidth   = (uint8)m_pFontTable[0];
+		m_DefaultVerticalSpacing   = m_DefaultCharScreenHeight / 4;
+
+		// I must delete this table when the font is destroyed
+		m_bAllocatedTable		   = true;
+		m_Valid					   = true;
+	}
+}
+
+
+CUIBitmapFont::~CUIBitmapFont()
+{
+	// free any used resources
+	if (m_bAllocatedTable && m_pFontTable)
+	{
+		delete [] m_pFontTable;
+	}
+
+	// font is no longer valid
+	m_Valid	= false;
+}
+
 
 // ---------------------------------------------------------------------------
 bool CUIBitmapFont::CreatePropFont(const uint8* pData, uint32 nWidth, uint32 nHeight, uint32 nPitch)
@@ -200,26 +179,17 @@ bool CUIBitmapFont::CreatePropFont(const uint8* pData, uint32 nWidth, uint32 nHe
 	uint32	x, y;
 	uint8	curindex =  0;
 
-	bool	opaque   = false;
 	bool	green    = false;
-	bool	reading  = false;
 
-	uint32	u        = 0; 
-	uint32 	v        = 0; 
+	uint8	u        = 0; 
+	uint8 	v        = 0; 
 
 	LT_MEM_TRACK_ALLOC(m_pFontTable = new uint16[CUI_MAX_BITMAPFONT_CHARS * 3],LT_MEM_TYPE_UI);
 	if (!m_pFontTable) return false;
 
 	memset(m_pFontTable, 0, CUI_MAX_BITMAPFONT_CHARS * 3 * 2);
 
-	// first, find a line of text
-	int32 ytop = 0;
-	int32 ybot = 0;
-	
-	// max text height
-	m_CharTexHeight = 0;
-
-	// look for the green marker dots generated by fontmaker or from pc version which will write green dots
+	// look for the green marker dots generated by fontmaker
 	
 	// I use green (255) because it's in the same place in PS2
 	// and PC pixels, and it's max value is constant (unlike alpha)
@@ -228,11 +198,9 @@ bool CUIBitmapFont::CreatePropFont(const uint8* pData, uint32 nWidth, uint32 nHe
 	v = 0;
 	curindex = 0;
 	uint32* rgba;
-	
 
 	for (y=0; y < nHeight; y++) 
 	{		 
-		 
 		u       = 0;
 				
 		rgba = (uint32*)(pData + y * nPitch);
@@ -244,15 +212,13 @@ bool CUIBitmapFont::CreatePropFont(const uint8* pData, uint32 nWidth, uint32 nHe
 			{				
 				green = true;
 
-				// try and set the max character height
-				if ( (y - v - 1) > m_CharTexHeight)
-					m_CharTexHeight = y - v - 1;
+				m_CharTexHeight = y - v - 1;
 
 				m_pFontTable[curindex*3] = x - u + 1;
-				m_pFontTable[curindex*3+1] = u; 
-				m_pFontTable[curindex*3+2] = v; 
+				m_pFontTable[curindex*3+1] = u + 1; 
+				m_pFontTable[curindex*3+2] = v + 1; 
 
-				u = x + 1;
+				u = x + 2;
 				curindex++;
 
 				if (curindex == CUI_MAX_BITMAPFONT_CHARS) 
@@ -270,45 +236,6 @@ bool CUIBitmapFont::CreatePropFont(const uint8* pData, uint32 nWidth, uint32 nHe
 		}
 	}
 	
-
-	return true;
-}
-
-
-
-
-// ----------------------------------------------------------------------- //
-//
-//	ROUTINE:	CUIBitmapFont::BuildDefaultMap
-//
-//	PURPOSE:	Creates a default font map used for ordering of characters 
-//
-// ----------------------------------------------------------------------- //
-bool CUIBitmapFont::BuildDefaultMap()
-{
-	if (m_bAllocatedMap && m_pFontMap)
-	{
-		delete [] m_pFontMap;
-		m_pFontMap = NULL;
-	}
-
-	LT_MEM_TRACK_ALLOC(m_pFontMap = new uint8[256],LT_MEM_TYPE_UI);
-	if (!m_pFontMap)
-	{
-		return false;
-	}
-
-	// clear the other index so they point to first character in texure - usually a !
-	memset ( m_pFontMap , 0, 256 );
-
-	int i = 0;
-	for(int r = 33; r < 127; r++)
-	{
-		m_pFontMap[r] = i;
-		i++;
-	}
-
-	m_bAllocatedMap = true;
 
 	return true;
 }

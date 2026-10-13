@@ -58,33 +58,18 @@ CUIPolyString* CUIFont_Impl::sm_pDrawStr = NULL;
 //	--------------------------------------------------------------------------
 CUIFont_Impl::CUIFont_Impl()
 {
-	m_PointSize					= 0;
-
-	m_CharTexWidth 				= 0;
-	m_CharTexHeight 			= 0;
-
-	m_DefaultCharScreenWidth	= 0;
-	m_DefaultCharScreenHeight	= 0;
-				
-	m_DefaultHorizontalSpacing	= 0;
-	m_DefaultVerticalSpacing	= 0;
-
 	m_Flags						= 0;
-
+	m_DefaultHorizontalSpacing	= 0;
 	m_DefaultSlant				= 3;
 	m_DefaultBold				= 3;
-
 	m_DefaultColors[0]			= CUI_DEFAULT_FONT_COLOR | CUI_SYSTEM_OPAQUE;
 	m_DefaultColors[1]			= CUI_DEFAULT_FONT_COLOR | CUI_SYSTEM_OPAQUE;
 	m_DefaultColors[2]			= CUI_DEFAULT_FONT_COLOR | CUI_SYSTEM_OPAQUE;
 	m_DefaultColors[3]			= CUI_DEFAULT_FONT_COLOR | CUI_SYSTEM_OPAQUE;	
-
 	m_bAllocatedTable			= false;
 	m_bAllocatedMap				= false;
 	m_Valid						= false;
-
 	m_Texture					= NULL;
-
 	m_pFontTable = NULL;
 	m_pFontMap = NULL;
 }
@@ -93,24 +78,7 @@ CUIFont_Impl::CUIFont_Impl()
 //	--------------------------------------------------------------------------
 CUIFont_Impl::~CUIFont_Impl()
 {
-	// free any used resources
-	if (m_bAllocatedTable && m_pFontTable)
-	{
-		delete [] m_pFontTable;
-		m_pFontTable = NULL;
-	}
-
-	if (m_bAllocatedMap && m_pFontMap)
-	{
-		delete [] m_pFontMap;
-		m_pFontMap = NULL;
-	}
-
-	m_CharTexWidth 		= 0;
-	m_CharTexHeight 	= 0;
-
-	// font is no longer valid
-	m_Valid	= false;
+	// the font classes free their own resources (font table and map)
 
 	if (pFontManager->GetNumFontsInUse() == 0) {
 		// I am the last valid font, so clean up sm_pDrawStr
@@ -120,6 +88,7 @@ CUIFont_Impl::~CUIFont_Impl()
 		}
 	}
 }
+
 
 //	--------------------------------------------------------------------------
 void CUIFont_Impl::ReleaseDrawString()

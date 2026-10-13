@@ -42,9 +42,6 @@ class CUIBitmapFont : public CUIFont_Impl
 			
 		bool 		CreatePropFont(const uint8* pData, uint32 nWidth, uint32 nHeight, uint32 nPitch);
 		bool		BuildFontTable();
-
-		// Creates a font map used for the ordering of charaters
-		bool		BuildDefaultMap();
 };
 
 
