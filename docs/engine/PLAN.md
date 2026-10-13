@@ -52,7 +52,7 @@ Background, in this directory:
 | 3 | `server`: `server.dll` compiles, links and loads (`server/`, `shared/`, `world/`, `model/`, `kernel/net`, `kernel/io`) | 2 | todo |
 | 4 | `client`: the exe's own objects (`client/`, `kernel/src`, input, DirectMusic, video, console) with the server objects at `/O2` | 2 (3 helps) | todo |
 | 5 | `libs`: `rezmgr`, `stdlith`/`lith`, `ltmem`, `iltsound`, `ui` (Lib_UI) | 2 | todo |
-| 6 | `render`: `render_b` (drawprim, texinterface) and `render_a` back-ported from D3D9 to D3D8 | 2 | todo |
+| 6 | `render`: `render_b` (drawprim, texinterface) and `render_a` back-ported from D3D9 to D3D8 | 2 | done: all of it compiles for D3D8 and links; a device comes up under Wine (tools/rendertest); not yet seen in the game |
 | 7 | `boot`: the built `Lithtech.exe` in the game under Wine: to the menu, then a level; snddrv/ServerDir/ltmsg built ones in | 3–6 | todo |
 | 8 | `modern`: the modern build of the engine (FFmpeg Bink, fixes) | 7 | todo |
 | 9 | `match`: byte-matching passes per module, ratcheted by `make progress` | 3–6 | ongoing |
@@ -169,12 +169,12 @@ remove the exclusion, make it compile, delete its block of stubs.
 | client (4) | `client/src/sys/win/winconsole_impl.cpp` | includes render_a headers (`d3dx9.h`) | `CConsole`, `CConIterator`, `CConHistory`, `CConCommandBox`, `g_Console` |
 | client (4) | (memorywatch.cpp, not imported) | `clientmgr.cpp` calls `mw_ResetWatches`, `soundbuffer.cpp` counts `g_dwSoundMemory`: take them out | `mw_ResetWatches`, `g_dwSoundMemory` |
 | kernel (4) | `kernel/src/sys/win/binkvideomgrimpl.cpp` | `d3d9.h`; Jupiter compiles Bink only under `IHAVEPURCHASEDBINK`, retail loads `Binkw32.dll` at run time | none needed (`videomgr.cpp` makes no Bink player without it) |
-| render_b (6) | `render_b/src/sys/d3d/d3ddrawprim.cpp` (exe) | render_a headers (`d3dx9.h`) | none needed yet (`d3dtexinterface.cpp` compiles) |
+| render_b (6) | `render_b/src/sys/d3d/d3ddrawprim.cpp` (exe) | render_a headers (`d3dx9.h`) | none needed yet (`d3dtexinterface.cpp` compiles). Done: in the build (6. render) |
 | model (3) | `model/src/model_load.cpp` (both) | `ModelOBB_Depricated`, Jupiter's ModelOBB | `model/src/nolf2src_model_stubs.cpp`: `Model::Load` |
 | server (3) | `server/src/s_net.cpp` (both) | `LTAnimTracker::m_bDirty`: `g_CV_ModelOnlyUpdateDirtyTrackers` writes a bool per tracker, a protocol change; check the client's reader (`shellnet.cpp`) too | `server/src/nolf2src_server_stubs.cpp`: `CServerMgr::NewConnectionNotify`/`DisconnectNotify`/`HandleUnknownPacket`, `WriteAnimInfo`, `FillPacketFromInfo`, `SendServerMessage`, `SendToClient`, `CreateServerEvent`, `FillSoundTrackPacketFromInfo`, `WriteEventToPacket`, `ProcessIncomingPackets`, `InitServerNetHandlers` |
 | world (3) | `world/src/fullintersectline.cpp` (both) | `ModelOBB::m_Radius`, `INTERSECT_MODELOBBS`, `FLAG2_USEMODELOBBS`, `IntersectInfo::m_hNode` (Jupiter's model-OBB tests). Also: `i_BoundingBoxTest` is `inline` there but `moveobject.cpp` calls it, which VC6 does not allow | `world/src/nolf2src_world_stubs.cpp`: `i_BoundingBoxTest`, `i_IntersectSegment`, `g_Ticks_Intersect`, `g_nIntersectCalls` |
 | ui (5) | `ui/src/cuibitmapfont.cpp`, `cuifont_impl.cpp`, `cuifontmanager.cpp`, `cuivectorfont.cpp` | NOLF2's `cuifont.h` (the `GetDefCharScreenWidth` ... `GetDefSpacingV` return types) and `iltfontmanager.h` (`CreateFont` overloads) differ; `LTFontParams.h` | `ui/src/nolf2src_ui_stubs.cpp`: the `CUIFontManager` implementation pointer (so no font manager) |
-| render_a (6) | all 65 but `texturescriptinterpreter.cpp` | Direct3D 9 throughout (`precompile.h`, `d3d_defs.h`, `d3d_device.h`, ... include `d3d9.h`/`d3dx9.h`/`dxerr9.h`) | `render_a/src/sys/d3d/nolf2src_render_stubs.cpp`: `rdll_RenderDLLSetup` (sets nothing up: no renderer), `rdll_GetSupportedModes`, `rdll_FreeModeList`, the `D3DRenderStyles` implementation pointer |
+| render_a (6) | all 65 but `texturescriptinterpreter.cpp` | Direct3D 9 throughout (`precompile.h`, `d3d_defs.h`, `d3d_device.h`, ... include `d3d9.h`/`d3dx9.h`/`dxerr9.h`) | `render_a/src/sys/d3d/nolf2src_render_stubs.cpp`: `rdll_RenderDLLSetup` (sets nothing up: no renderer), `rdll_GetSupportedModes`, `rdll_FreeModeList`, the `D3DRenderStyles` implementation pointer. Done: all in the build, stubs gone (6. render) |
 | libs (5) | -- | `src/libs/ltmem` has only what SndDrv.dll links; it is built without `/MD` (LNK4098, LIBC) | `kernel/mem/src/nolf2src_mem_stubs.cpp`: `LTMemConsole` (retail's is in ltmem.cpp: "mem commands not available"; not added there because SndDrv.dll links that object) |
 
 Everything else in the lists compiles as imported, or after the back-port
@@ -202,3 +202,93 @@ compiled, as Jupiter's code calls it, but is not 2002's. Nothing of the
 engine is in the game yet (build/all.sh checks both are built and keeps
 the retail ones, as for SndDrv.dll), and neither is scored
 (`progress/targets.py` is package 1's).
+
+### 6. render
+
+**State.** Every render_a file and render_b's `d3ddrawprim.cpp` compile
+for Direct3D 8 and are in the build (`D3DRender.dsp`, `Lithtech.dsp`); the
+stand-ins are gone and `Lithtech.exe` links. A device comes up under Wine:
+`tools/rendertest/` (build.sh, run.sh, in the build container after
+`build/engine.sh Lithtech link`) links a harness with Lithtech.exe's
+objects, fills the engine's `g_Render` with its own callbacks and brings
+the renderer up windowed: modes listed, device created (HAL), frames
+cleared, a surface blitted plain and optimized, gouraud and textured
+quads drawn through ILTDrawPrim, all correct on screen. The game itself
+does not reach the renderer yet: `CClientMgr::Init` crashes on the null
+font manager (Lib_UI stand-in, 5) and the stubbed `CreateLTClient` (4)
+before `r_InitRender`. World, model, sky, polygrid, particle, sprite and
+glow drawing are compiled and compared with retail but never run.
+
+**What retail showed, and the port follows** (commit messages give the
+addresses):
+- `g_Device.m_pD3DDevice` is NOLF2's own device wrapper (0x196c bytes:
+  174 render states, 8 x 29 stage states, no software-VP slot; retail's
+  validity tables), ported as `CDirect3DDevice8Wrapper`
+  (`d3d_device_wrapper.*`, retail 0x4c7ae0..). Callers use the D3D8 API
+  through it.
+- No vertex shaders at all (nothing calls CreateVertexShader); render
+  styles that use one are reported ("These are no longer supported.")
+  and skipped, as retail does. Jupiter's LTEffect, effect/vertex/pixel
+  shader managers, render targets and shader device state are deleted.
+- Pixel shaders: NOLF2's `CPixelShaderMgr` (`pixelshadermgr.*`, written
+  from retail 0x5095e0..0x509ba0; LTPS-headed .ps files through
+  IClientFileMgr) for ps\screenglow.ps, PS\BlurShadow.ps, ps\envbumpmap.ps.
+- No DOT3 or effect world shaders (ERenderShader has retail's 18).
+- Console variables: retail's 161, in its order, with its defaults (17
+  Jupiter ones removed; 32BitTextures and DynamicLight_Backfacing are 0).
+- `CD3DDrawPrim` is cut back to NOLF2's 66-slot ILTDrawPrim; CGenDrawPrim
+  lost its fog and effect members.
+- RenderStruct's layout matches retail's (every slot rdll_RenderDLLSetup
+  fills is at retail's offset).
+
+**Per file** (render_a/src/sys/d3d unless said):
+- Checked against retail function by function (call sequence, states):
+  d3d_device, d3d_device_wrapper, d3d_shell, d3d_init, common_init,
+  d3d_renderstatemgr (SetRenderStyleStates), d3d_renderstyle
+  (Load_LTBData), d3d_optimizedsurface (Start/EndOptimized2D),
+  pixelshadermgr, the d3d_rendershader_* family and d3d_rendershader_base.h,
+  screenglowmgr, drawpolygrid, d3d_drawsky, texturescriptinstance,
+  d3dmeshrendobj_rigid/_skel/_vertanim, setupmodel, rendermodelpiecelist,
+  rendershadowlist, render_b/d3ddrawprim.
+- Compared by name/function list (Mac symbols) or only made to compile,
+  Jupiter's logic kept: d3d_texture, d3d_surface, d3d_draw, d3d_utils,
+  common_draw, common_stuff, d3d_renderworld, d3d_renderblock,
+  d3d_renderworld_occluder, drawobjects, tagnodes, memstats_world,
+  objectgroupmgr, d3d_viewparams, 3d_ops, aabb, dirtyrect, VertexBuffer-
+  Controller (SetStreamSources takes the base vertex index, as the Mac
+  signature has it), renderstyle lookup/map, d3d_renderstyleinterface,
+  rendererconsolevars, drawsprite, drawparticles(_A), drawvolumeeffects,
+  drawlinesystem, draw_canvas, drawlight, drawworldmodel, drawsky,
+  drawmodel, modeldebug, modelshadowshader (GetZBias is 8 bytes on the
+  Mac: probably a constant in retail, Jupiter's switch kept), devicelightlist,
+  relevantlightlist, renderlight, setuptouchinglights, texturescript*,
+  shadows/d3dshadowtexture.
+- Known deviations, commented in the source: CD3DDrawPrim reads the
+  really-close cvars with r_GetParameter where retail calls
+  ci_GetConsoleVar (clientde_impl.cpp, not built yet; same behaviour) --
+  switch back when it builds; SetCamera passes the new width/height to
+  SetViewport (retail passes stale stack values, a bug).
+
+**For other packages.**
+- client (4): render_a's and render_b's headers are D3D8 now
+  (winconsole_impl.cpp includes them through sysdrawprim.h);
+  `GetFrameStats(LTRendererStats&)` is gone from rendererframestats.h
+  (clientde_impl.cpp line ~1598 calls it: Jupiter's renderer stats).
+  ILTDrawPrim::SetEffectShaderID/SetFogEnable are gone.
+- boot (7): retail behaviour kept: windowed mode still needs a display
+  mode of the requested size in the adapter's list; Xvfb lists only its
+  screen size, so `++windowed 1` at 640x480 on a 1024x768 Xvfb fails
+  with "Can't find an appropriate display mode!" (rendertest uses the
+  screen's size). Retail's own Lithtech.exe stops at SecuROM's "No
+  CD/DVD-ROM drive found." under Wine.
+- match (9): `make progress` (before this package's last commits):
+  Lithtech.exe identical 2441 -> 3665 (renderer 1372 of ~2020 functions,
+  343 KB; drawprim 12), no recorded identical lost, but it FAILs on
+  "unplaced functions went up, 3177 -> 4808": the renderer's objects
+  are new to the link. `make progress-update` (the coordinator's) records
+  it. The renderer is compiled with /Zm200 (VC6's default heap is too
+  small for d3d_renderworld.cpp with STLport; no effect on code).
+
+**Left.** Seeing the menu and a level drawn by this renderer (needs 4 and
+5); retail comparison of the files listed as only compiled; byte
+matching (431 renderer functions are near).
