@@ -76,47 +76,23 @@ namespace
 
 
 
+// NOLF2 (retail d3d_DrawParticleBatch, 0x551b50) fills every field of each
+// vertex per particle, UVs and normal included (SetupVert, 0x551f60), into a
+// batch array local to the batch function: there is no per-frame base setup.
 class CParticleVertex
 {
 public:
 
-	CParticleVertex()
-		: m_Normal(g_vParticleNormal)
-	{
-	}
-
 	//Called to setup the fields of the vertex
-	inline void 		SetupVert(const LTVector& vPos, const LTVector& vOffset, float fSize, uint32 nColor)
+	inline void 		SetupVert(const LTVector& vPos, const LTVector& vOffset, float fSize, uint32 nColor, float fU, float fV)
 	{
 		m_Vec.x		= vPos.x + vOffset.x * fSize;
 		m_Vec.y		= vPos.y + vOffset.y * fSize;
 		m_Vec.z		= vPos.z + vOffset.z * fSize;
+		m_Normal	= g_vParticleNormal;
 		m_nColor	= nColor;
-	}
-
-	static void 		SetupBaseVerts()
-	{
-		DWORD numVerts = PARTICLE_BATCH_SIZE * 4;
-
-		CParticleVertex *pVerts = m_BatchVerts;
-
-	    //Stamp the vertices with data that won't change anymore this frame.
-	    for (DWORD j=0; j < (numVerts >> 2); ++j)
-	    {
-	        pVerts[0].m_fU = 0.0f;
-	        pVerts[0].m_fV = 0.0f;
-
-	        pVerts[1].m_fU = 1.0f;
-	        pVerts[1].m_fV = 0.0f;
-
-			pVerts[2].m_fU = 1.0f;
-			pVerts[2].m_fV = 1.0f;
-
-			pVerts[3].m_fU = 0.0f;
-			pVerts[3].m_fV = 1.0f;
-
-			pVerts += 4;
-	    }
+		m_fU		= fU;
+		m_fV		= fV;
 	}
 
 public:
@@ -126,15 +102,7 @@ public:
 	uint32					m_nColor;
 	float					m_fU;
 	float					m_fV;
-
-	static CParticleVertex 	m_BatchVerts[PARTICLE_BATCH_SIZE * 4];
 };
-
-
-// static batch vertices
-CParticleVertex CParticleVertex::m_BatchVerts[PARTICLE_BATCH_SIZE * 4];
-
-
 
 // ---------------------------------------------------------------- //
 // Internal functions.
@@ -217,6 +185,8 @@ static inline uint32 CalcParticleColor(const PSParticle* pParticle)
 
 static PSParticle* d3d_DrawParticleBatch(LTParticleSystem *pSystem, PSParticle *pParticles, int nParticles)
 {
+	static CParticleVertex s_BatchVerts[PARTICLE_BATCH_SIZE * 4];
+
 	//make sure that the number of particles we are drawing is less than a batch,
 	//and more than 0
 	assert(nParticles > 0);
@@ -231,7 +201,7 @@ static PSParticle* d3d_DrawParticleBatch(LTParticleSystem *pSystem, PSParticle *
 	float alphaScale = pSystem->m_ColorA;
 
 	PSParticle		*pCurIn = pParticles;
-	CParticleVertex *pCurVert = CParticleVertex::m_BatchVerts;
+	CParticleVertex *pCurVert = s_BatchVerts;
 	uint32			nShade;
 
 	//see if we need to do rotations on these particles
@@ -251,16 +221,16 @@ static PSParticle* d3d_DrawParticleBatch(LTParticleSystem *pSystem, PSParticle *
             nShade = CalcParticleColor(pCurIn, vColorScale, alphaScale);
 
 			// Top-left.
-			pCurVert[0].SetupVert(vPos, g_vRotOffset[nMapIndex][UpperLeft], fSize, nShade);
+			pCurVert[0].SetupVert(vPos, g_vRotOffset[nMapIndex][UpperLeft], fSize, nShade, 0.0f, 0.0f);
 
 			// Top-right.
-			pCurVert[1].SetupVert(vPos, g_vRotOffset[nMapIndex][UpperRight], fSize, nShade);
+			pCurVert[1].SetupVert(vPos, g_vRotOffset[nMapIndex][UpperRight], fSize, nShade, 1.0f, 0.0f);
 
 			// Bottom-right.
-			pCurVert[2].SetupVert(vPos, g_vRotOffset[nMapIndex][BottomRight], fSize, nShade);
+			pCurVert[2].SetupVert(vPos, g_vRotOffset[nMapIndex][BottomRight], fSize, nShade, 1.0f, 1.0f);
 
 			// Bottom-left.
-			pCurVert[3].SetupVert(vPos, g_vRotOffset[nMapIndex][BottomLeft], fSize, nShade);
+			pCurVert[3].SetupVert(vPos, g_vRotOffset[nMapIndex][BottomLeft], fSize, nShade, 0.0f, 1.0f);
 
 			pCurVert += 4;
 
@@ -283,16 +253,16 @@ static PSParticle* d3d_DrawParticleBatch(LTParticleSystem *pSystem, PSParticle *
 			nShade = CalcParticleColor(pCurIn, vColorScale, alphaScale);
 
 			// Top-left.
-			pCurVert[0].SetupVert(vPos, g_vOffset[UpperLeft], fSize, nShade);
+			pCurVert[0].SetupVert(vPos, g_vOffset[UpperLeft], fSize, nShade, 0.0f, 0.0f);
 
 			// Top-right.
-			pCurVert[1].SetupVert(vPos, g_vOffset[UpperRight], fSize, nShade);
+			pCurVert[1].SetupVert(vPos, g_vOffset[UpperRight], fSize, nShade, 1.0f, 0.0f);
 
 			// Bottom-right.
-			pCurVert[2].SetupVert(vPos, g_vOffset[BottomRight], fSize, nShade);
+			pCurVert[2].SetupVert(vPos, g_vOffset[BottomRight], fSize, nShade, 1.0f, 1.0f);
 
 			// Bottom-left.
-			pCurVert[3].SetupVert(vPos, g_vOffset[BottomLeft], fSize, nShade);
+			pCurVert[3].SetupVert(vPos, g_vOffset[BottomLeft], fSize, nShade, 0.0f, 1.0f);
 
 			pCurVert += 4;
 
@@ -302,16 +272,16 @@ static PSParticle* d3d_DrawParticleBatch(LTParticleSystem *pSystem, PSParticle *
 		while(nParticles);
 	}
 
-	if (pCurVert != CParticleVertex::m_BatchVerts)
+	if (pCurVert != s_BatchVerts)
 	{
-		int nParticlesDrawn = (pCurVert - CParticleVertex::m_BatchVerts) >> 2;
+		int nParticlesDrawn = (pCurVert - s_BatchVerts) >> 2;
 		D3D_CALL(PD3DDEVICE->DrawIndexedPrimitiveUP(D3DPT_TRIANGLELIST,
 			0,
-			pCurVert - CParticleVertex::m_BatchVerts,
+			pCurVert - s_BatchVerts,
 			nParticlesDrawn * 2,
 			GetParticleIndices(),
 			D3DFMT_INDEX16,
-			CParticleVertex::m_BatchVerts,
+			s_BatchVerts,
 			sizeof(CParticleVertex)));
 
 	}
@@ -328,10 +298,6 @@ static void d3d_DrawParticles(LTParticleSystem *pSystem)
 
 	//setup our vertex shader for this particle system
 	D3D_CALL(PD3DDEVICE->SetVertexShader(PARTICLEVERTEX_FORMAT));
-
-	// No need to set the normal and the UVs for each vertex.
-    // They are the same for all vertices this frame.
-    CParticleVertex::SetupBaseVerts();
 
 	// Draw all the batches and extra particles..
 	PSParticle *pCurPos = pSystem->m_ParticleHead.m_pNext;
