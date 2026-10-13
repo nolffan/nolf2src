@@ -89,12 +89,6 @@ SOURCE=..\..\kernel\src\sys\win\bindmgr.cpp
 
 SOURCE=..\..\kernel\src\sys\win\binkvideomgrimpl.cpp
 
-!IF  "$(CFG)" == "Lithtech - Win32 Final"
-
-# PROP Exclude_From_Build 1
-
-!ENDIF 
-
 # End Source File
 # Begin Source File
 
@@ -123,12 +117,6 @@ SOURCE=..\..\client\src\client_ticks.cpp
 # Begin Source File
 
 SOURCE=..\..\client\src\clientde_impl.cpp
-
-!IF  "$(CFG)" == "Lithtech - Win32 Final"
-
-# PROP Exclude_From_Build 1
-
-!ENDIF 
 
 # End Source File
 # Begin Source File
@@ -435,6 +423,10 @@ SOURCE=..\..\shared\src\lttimer.cpp
 # End Source File
 # Begin Source File
 
+SOURCE=..\..\client\src\memorywatch.cpp
+# End Source File
+# Begin Source File
+
 SOURCE=..\..\model\src\model.cpp
 # End Source File
 # Begin Source File
@@ -667,22 +659,10 @@ SOURCE=..\..\sound\src\wave.cpp
 
 SOURCE=..\..\client\src\sys\win\winclientde_impl.cpp
 
-!IF  "$(CFG)" == "Lithtech - Win32 Final"
-
-# PROP Exclude_From_Build 1
-
-!ENDIF 
-
 # End Source File
 # Begin Source File
 
 SOURCE=..\..\client\src\sys\win\winconsole_impl.cpp
-
-!IF  "$(CFG)" == "Lithtech - Win32 Final"
-
-# PROP Exclude_From_Build 1
-
-!ENDIF 
 
 # End Source File
 # Begin Source File
@@ -780,10 +760,6 @@ SOURCE=..\..\sound\src\soundmgr.cpp
 # Begin Source File
 
 SOURCE=..\..\client\src\client_iltvideomgr.cpp
-# End Source File
-# Begin Source File
-
-SOURCE=..\..\client\src\nolf2src_client_stubs.cpp
 # End Source File
 # Begin Source File
 

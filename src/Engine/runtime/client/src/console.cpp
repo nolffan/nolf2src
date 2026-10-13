@@ -55,18 +55,6 @@ void con_CycleCommandsForward()
 	GETCONSOLE()->CycleCommands( 1 );
 }
 
-void con_Draw()
-{
-	if (dsi_IsConsoleEnabled () == TRUE)
-		GETCONSOLE()->Draw();
-}
-
-void con_DrawSmall(int nLines)
-{
-	if (dsi_IsConsoleEnabled () == TRUE)
-		GETCONSOLE()->DrawSmall( nLines );
-}
-
 void con_PrintString(CONCOLOR theColor, int filterLevel, const char *pMsg)
 {
 	GETCONSOLE()->PrintString( theColor, filterLevel, pMsg );

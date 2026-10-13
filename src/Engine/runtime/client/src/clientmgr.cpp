@@ -181,22 +181,6 @@ void _GetRModeFromConsoleVariables(RMode *pMode)
 }
 
 
-void MaybeDrawConsole()
-{
-    RenderStruct *pStruct;
-
-    if (g_CV_ForceConsole)
-    {
-        pStruct = r_GetRenderStruct();
-        if (pStruct->m_bInitted && g_CV_ForceConsole)
-        {
-            con_Draw();
-            pStruct->SwapBuffers(0);
-        }
-    }
-}
-
-
 //
 // CClientMgr
 //
@@ -351,30 +335,8 @@ LTRESULT CClientMgr::Init(const char *resTrees[MAX_RESTREES], uint32 nResTrees, 
     // properly initialized.
 
 
-//
-//	!!!!! BINK IS NOT ENABLED
-//
-//		IHAVEPURCHASEDBINK Define that allows bink video player to function. ( Separate license/SDK available from rad game tools http://www.radgametools.com/)
-//
-//		You must recompile Exe_Lithtech with IHAVEPURCHASEDBINK defined in the project settings: 
-//
-//    From the SDK you purchased from bink place bink.h rad.h radbase.h and smack.h into the Engine/runtime/kernel/src/sys/win directory.
-// 	Also requires bink32.dll in your path when running 
-//
-
-#if defined( IHAVEPURCHASEDBINK )
 
     m_pVideoMgr = CreateVideoMgr("BINK");
-
-#else
-
-//
-//---- NOTE: Directshow video not available in version 68 or lower 
-// 
-
-	 m_pVideoMgr = CreateVideoMgr("DIRECTSHOW");
-
-#endif
 
     // Tell the video stuff.
     if (m_pVideoMgr) 
@@ -958,9 +920,6 @@ LTRESULT CClientMgr::Update()
 
 	ctik_ShowTickStatus();
     mw_ShowMemoryWatches();
-
-    // For debugging...
-    MaybeDrawConsole();
 
     cm_HandleMaxFPS(frameTicks);                    // Lock framerate if they want.
 

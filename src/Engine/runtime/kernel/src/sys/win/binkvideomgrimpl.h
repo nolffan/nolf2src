@@ -1,36 +1,11 @@
 
 // This file contains the definitions for the PC version of the VideoMgr implementation.
 
-//
-//	!!!!! BINK IS NOT ENABLED
-//
-//		IHAVEPURCHASEDBINK Define that allows bink video player to function. ( Separate license/SDK available from rad game tools http://www.radgametools.com/)
-//
-//		You must recompile Exe_Lithtech with IHAVEPURCHASEDBINK defined in the project settings: 
-//
-//    From the SDK you purchased from bink place bink.h rad.h radbase.h and smack.h into the Engine/runtime/kernel/src/sys/win directory.
-// 	Also requires bink32.dll in your path when running 
-//
-#if defined( IHAVEPURCHASEDBINK )
-
-//
-//
-//
-
 #ifndef __BINKVIDEOMGRIMPL_H__
 #define __BINKVIDEOMGRIMPL_H__
 
 #ifndef __VIDEOMGR_H__
 #include "videomgr.h"
-#endif
-
-#ifndef __BINK_H__
-#include "bink.h"
-#endif
-
-#ifndef __DDRAW_H__
-#include <ddraw.h>
-#define __DDRAW_H__
 #endif
 
 #ifndef __RENDERSTRUCT_H__
@@ -49,16 +24,45 @@
 #include "render.h"
 #endif
 
+// nolf2src: the engine loads Binkw32.dll at run time and uses nothing of
+// RAD's SDK but these entry points, the first fields of the BINK structure
+// and a few flag values, so they are declared here rather than taken from
+// bink.h (BINK 1.x, as Binkw32.dll exports it: __stdcall, "_BinkOpen@8").
+#define RADEXPLINK __stdcall
+
+typedef unsigned char	u8;
+typedef unsigned int	u32;
+typedef signed int		s32;
+
+typedef struct BINK
+{
+	u32 Width;			// width of the video
+	u32 Height;			// height of the video
+	u32 Frames;			// number of frames
+	u32 FrameNum;		// frame about to be displayed (1 based)
+	// the rest is Binkw32.dll's own
+} BINK, *HBINK;
+
+// BinkOpen flags
+#define BINKFILEHANDLE		0x00800000L
+#define BINKFROMMEMORY		0x04000000L
+
+// BinkCopyToBuffer flags
+#define BINKCOPY2XHI		0x20000000L
+
+typedef void *BINKSNDOPEN;
+typedef BINKSNDOPEN (RADEXPLINK *BINKSNDSYSOPEN)(u32 param);
+
 typedef u8 (RADEXPLINK *BinkSoundFn)(BINKSNDSYSOPEN open, u32 param);
 typedef BINKSNDOPEN (RADEXPLINK *BinkMilesFn)(u32 param);
 typedef BINKSNDOPEN (RADEXPLINK *BinkDSndFn)(u32 param);
-typedef HBINK (RADEXPLINK *BinkOpenFn)(const char PTR4* name,u32 flags);
+typedef HBINK (RADEXPLINK *BinkOpenFn)(const char* name,u32 flags);
 typedef void (RADEXPLINK *BinkCloseFn)(HBINK bnk);
 typedef u32 (RADEXPLINK *BinkWaitFn)(HBINK bnk);
-typedef void (RADEXPLINK *BinkToBufferFn)(HBINK bnk,void PTR4* buf,u32 left,u32 top,u32 Pitch,u32 destheight,u32 Flags);
+typedef void (RADEXPLINK *BinkToBufferFn)(HBINK bnk,void* buf,u32 left,u32 top,u32 Pitch,u32 destheight,u32 Flags);
 typedef u32 (RADEXPLINK *BinkDoFrameFn)(HBINK bnk);
 typedef void (RADEXPLINK *BinkNextFrameFn)(HBINK bnk);
-typedef s32 (RADEXPLINK *BinkIsSoftCursorFn)(LPDIRECTDRAWSURFACE lpSurface, HCURSOR hCur);
+typedef s32 (RADEXPLINK *BinkIsSoftCursorFn)(void* lpSurface, HCURSOR hCur);
 typedef s32 (RADEXPLINK *BinkCheckCursorFn)(HWND hWnd, s32 x, s32 y, s32 w, s32 h);
 typedef s32 (RADEXPLINK *BinkRestoreCursorFn)(s32 checkcount);
 typedef s32 (RADEXPLINK *BinkDX8SurfaceTypeFn)(void* lpD3Ds);
@@ -138,7 +142,7 @@ private:
     BinkVideoMgr		*m_pMgr;
     
     // The on-screen rendering surface
-    LPDIRECT3DTEXTURE9  m_pTexture;
+    LPDIRECT3DTEXTURE8  m_pTexture;
 
 	//flags for the video
     uint32				m_Flags;
@@ -153,7 +157,5 @@ private:
 
 
 
-
-#endif
 
 #endif

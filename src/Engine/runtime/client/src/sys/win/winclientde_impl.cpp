@@ -9,8 +9,6 @@
 #include "load_pcx.h"
 #include "bindmgr.h"
 #include "client_ticks.h"
-#include "ltgraphicscaps.h"
-#include <d3d9.h>
 
 //------------------------------------------------------------------
 //------------------------------------------------------------------
@@ -1681,43 +1679,9 @@ static LTRESULT cis_GetEngineHook(char *pName, void **pData)
 	{
 		return bm_GetInstanceHandle(g_pClientMgr->m_hShellModule, pData);
 	}
-	else if(stricmp(pName, "d3ddevice")==0)
-	{
-		//IDirect3DDevice9*
-		*pData = (void*)r_GetRenderStruct()->GetD3DDevice();
-		return LT_OK;
-	}
 	
 	return LT_ERROR;
 }
-
-static LTRESULT cis_QueryGraphicDevice(LTGraphicsCaps* pCaps)
-{
-	if(!r_GetRenderStruct())
-	{
-		return LT_ERROR;
-	}
-
-	if(!r_GetRenderStruct()->GetD3DDevice())
-	{
-		return LT_ERROR;
-	}
-
-	D3DCAPS9 caps;
-	HRESULT hres = r_GetRenderStruct()->GetD3DDevice()->GetDeviceCaps(&caps);
-
-	if(hres != D3D_OK)
-	{
-		return LT_ERROR;
-	}
-
-	pCaps->PixelShaderVersion = (uint32)caps.PixelShaderVersion;
-	pCaps->VertexShaderVersion = (uint32)caps.VertexShaderVersion;
-	
-
-	return LT_OK;
-}
-
 
 static LTRESULT cis_FlipScreen(uint32 flags)
 {
@@ -1982,15 +1946,6 @@ static LTRESULT cis_End3D(uint flags)
 		return LT_OK;
 	}
 
-#ifndef _FINAL
-	if ((flags & END3D_CANDRAWCONSOLE) != 0) {
-		CountAdder cTicks_Console(&g_Ticks_Render_Console);
-		if (dsi_IsConsoleUp()) {
-			con_Draw(); }
-		else if(g_nConsoleLines > 0) {
-			con_DrawSmall( g_nConsoleLines ); }	} // Show the last 4 or so lines.
-#endif _FINAL
-
 	r_GetRenderStruct()->End3D();
 	return LT_OK;
 }
@@ -2063,7 +2018,6 @@ void cis_Init()
 	
 	ilt_client->FillRect = cis_FillRect;
 	ilt_client->GetEngineHook = cis_GetEngineHook;
-	ilt_client->QueryGraphicDevice = cis_QueryGraphicDevice;
 
 	ilt_client->GetSurfaceAlpha = cis_GetSurfaceAlpha;
 	ilt_client->SetSurfaceAlpha = cis_SetSurfaceAlpha;

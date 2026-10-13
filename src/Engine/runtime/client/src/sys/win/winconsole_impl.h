@@ -106,9 +106,6 @@ public:
 	// Command manipulation
 	void	Clear();
 
-	// Rendering
-	void	Draw();
-
 	// Event handlers
 	void	OnKeyPress( uint32 key );
 
@@ -379,27 +376,6 @@ public:
 	// Filtering
 
 	bool	FilterAction( int iFilterLevel ) { return iFilterLevel > m_FilterLevel; };
-
-	//////////////////////////////////////////////////////
-	// Drawing routines
-
-	// Filled rectangle with a border
-	void	BorderedRectangle( uint32 fillColor, uint32 borderColor, LTRect rect );
-
-	// Returns the length of the string in pixels
-	int		CalcStringOffset( const char *pStr, int iLength = -1 );
-
-	// Draws a line of text in the provided rectangle and color
-	void	DrawTextLine( const char *pText, const LTRect *pRect, COLORREF textColor );
-
-	// Draws a specified number of the text lines
-	void	DrawTextLines( int nTextLines, bool bScreen = false );
-
-	// Draws the entire contents of the console
-	void	Draw();
-
-	// Draws a number of lines in "small" mode
-	void	DrawSmall( int nLines );
 
 	// Print a string in a given color as long as the filter level is not too high
 	void	PrintString( CONCOLOR theColor, int filterLevel, const char *pMsg );

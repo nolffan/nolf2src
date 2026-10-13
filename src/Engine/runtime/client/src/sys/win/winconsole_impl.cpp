@@ -20,7 +20,6 @@
 #include "iltfontmanager.h"
 #include "ilttexinterface.h"
 #include "debuggeometry.h"
-#include "sysdrawprim.h"
 
 //------------------------------------------------------------------
 //------------------------------------------------------------------
@@ -197,37 +196,6 @@ CConCommandBox::CConCommandBox()
 void CConCommandBox::Term()
 {
 	SetConsole( LTNULL );
-}
-
-void CConCommandBox::Draw()
-{
-	LTRect rect;
-	uint32 flashTime;
-	char *caretStr = "_";
-	COLORREF caretColor;
-
-	if ( !GetConsole() || !GetConsole()->GetRenderStruct() )
-		return;
-
-	rect = GetRect(); 
-	//rect.left += 5;
-	//rect.right -= 5;
-
-	// Draw the text line.
-	GetConsole()->DrawTextLine( GetCommand(), &rect, GetTextColor() );
-
-	// Draw the caret.
-	rect.left += GetConsole()->CalcStringOffset( GetCommand(), m_iCursorPos );
-
-	flashTime = timeGetTime() % (GetFlashTime() * 2);
-	if ( flashTime > GetFlashTime() )
-	{
-		flashTime = GetFlashTime() - (flashTime - GetFlashTime());
-	}
-
-	caretColor = CONRGB( (flashTime * 255) / GetFlashTime(), 100, 100 );
-
-	GetConsole()->DrawTextLine( caretStr, &rect, caretColor );
 }
 
 void CConCommandBox::Clear()
@@ -497,7 +465,7 @@ void CConHistory::Remove( int iIndex )
 		// Who's next?
 		int iNextEntry = (iCurEntry + 1) % m_iListSize;
 		// Clean cup, move down..
-		LTStrnCpy( m_pLines[iCurEntry].m_Text, m_pLines[iNextEntry].m_Text, MAX_CONSOLE_TEXTLEN, MAX_CONSOLE_TEXTLEN-1 );
+		LTStrCpy( m_pLines[iCurEntry].m_Text, m_pLines[iNextEntry].m_Text, MAX_CONSOLE_TEXTLEN );
 	}
 	// Adjust the end
 	m_iListEnd = ((m_iListEnd > 0) ? m_iListEnd : m_iListSize) - 1;
@@ -1028,384 +996,6 @@ inline bool CConsole::GetTextLineBox(uint32 iLine, LTRect *pRect, bool bScreen)
 }
 
 
-void CConsole::DrawTextLines(int nTextLines, bool bScreen)
-{
-	if ( !m_pStruct )
-		return;
-	
-	GPOS	pos;
-	LTRect	rect;
-	uint32	iLine=nTextLines;
-	CConTextLine	*pLine;
-
-	if ( m_pStruct )
-	{
-		pos = m_TextLines.GetTail();
-		// Skip the scrolling offset
-		int iCount = m_iScrollOffset;
-		while ( pos && iCount )
-		{
-			m_TextLines.GetPrev( pos );
-			iCount--;
-		}
-
-		// Draw a scroll indicator if necessary
-		if ( m_iScrollOffset )
-		{
-			iLine--;
-			if ( GetTextLineBox( iLine, &rect, bScreen ) )
-				DrawTextLine( SCROLL_INDICATOR_UP, &rect, CONRGB( 192, 192, 255 ) );
-		}
-
-		// Draw the lines
-		while ( pos && iLine )
-		{
-			pLine = m_TextLines.GetPrev( pos );
-
-			iLine--;
-
-			if ( GetTextLineBox( iLine, &rect, bScreen ) )
-				DrawTextLine( pLine->m_Text, &rect, pLine->m_Color );
-		}
-	}
-}
-
-#ifndef RGBA_GETA
-#define RGBA_GETA(color)			((uint8)( color               >> 24))
-#define RGBA_GETR(color)			((uint8)((color & 0x00FF0000) >> 16))
-#define RGBA_GETG(color)			((uint8)((color & 0x0000FF00) >> 8 ))
-#define RGBA_GETB(color)			((uint8)((color & 0x000000FF)      ))
-#endif
-
-void CConsole::BorderedRectangle(uint32 fillColor, uint32 borderColor, LTRect rect)
-{
-	g_pILTDrawPrim->SetZBufferMode(DRAWPRIM_NOZ);
-	g_pILTDrawPrim->SetAlphaBlendMode(DRAWPRIM_NOBLEND);
-	g_pILTDrawPrim->SetAlphaTestMode(DRAWPRIM_NOALPHATEST);
-	g_pILTDrawPrim->SetTransformType(DRAWPRIM_TRANSFORM_SCREEN);
-	g_pILTDrawPrim->SetClipMode(DRAWPRIM_FASTCLIP);
-	g_pILTDrawPrim->SetFillMode(DRAWPRIM_FILL);
-	g_pILTDrawPrim->SetTexture(NULL);
-
-	LT_POLYF4 FillPoly;
-	FillPoly.rgba.a = RGBA_GETA(fillColor); FillPoly.rgba.r = RGBA_GETR(fillColor); FillPoly.rgba.g = RGBA_GETG(fillColor); FillPoly.rgba.b = RGBA_GETB(fillColor);
-	FillPoly.verts[0].x = rect.left; FillPoly.verts[0].y = rect.top; FillPoly.verts[0].z = SCREEN_NEAR_Z;
-	FillPoly.verts[1].x = rect.right; FillPoly.verts[1].y = rect.top; FillPoly.verts[1].z = SCREEN_NEAR_Z;
-	FillPoly.verts[2].x = rect.right; FillPoly.verts[2].y = rect.bottom; FillPoly.verts[2].z = SCREEN_NEAR_Z;
-	FillPoly.verts[3].x = rect.left; FillPoly.verts[3].y = rect.bottom; FillPoly.verts[3].z = SCREEN_NEAR_Z;
-	g_pILTDrawPrim->DrawPrim(&FillPoly,1);
-
-	LT_LINEF EdgeLine;
-	EdgeLine.rgba.a = RGBA_GETA(borderColor); EdgeLine.rgba.r = RGBA_GETR(borderColor); EdgeLine.rgba.g = RGBA_GETG(borderColor); EdgeLine.rgba.b = RGBA_GETB(borderColor);
-	EdgeLine.verts[0].x = rect.left+1; EdgeLine.verts[0].y = rect.top; EdgeLine.verts[0].z = SCREEN_NEAR_Z;
-	EdgeLine.verts[1].x = rect.right+1; EdgeLine.verts[1].y = rect.top; EdgeLine.verts[1].z = SCREEN_NEAR_Z;
-	g_pILTDrawPrim->DrawPrim(&EdgeLine,1);
-	EdgeLine.verts[0].x = rect.left+1; EdgeLine.verts[0].y = rect.top; EdgeLine.verts[0].z = SCREEN_NEAR_Z;
-	EdgeLine.verts[1].x = rect.left+1; EdgeLine.verts[1].y = rect.bottom; EdgeLine.verts[1].z = SCREEN_NEAR_Z;
-	g_pILTDrawPrim->DrawPrim(&EdgeLine,1);
-	EdgeLine.verts[0].x = rect.left+1; EdgeLine.verts[0].y = rect.bottom; EdgeLine.verts[0].z = SCREEN_NEAR_Z;
-	EdgeLine.verts[1].x = rect.right+1; EdgeLine.verts[1].y = rect.bottom; EdgeLine.verts[1].z = SCREEN_NEAR_Z;
-	g_pILTDrawPrim->DrawPrim(&EdgeLine,1);
-	EdgeLine.verts[0].x = rect.right+1; EdgeLine.verts[0].y = rect.top; EdgeLine.verts[0].z = SCREEN_NEAR_Z;
-	EdgeLine.verts[1].x = rect.right+1; EdgeLine.verts[1].y = rect.bottom; EdgeLine.verts[1].z = SCREEN_NEAR_Z;
-
-	g_pILTDrawPrim->DrawPrim(&EdgeLine,1);
-
-}
-
-extern uint32	g_ScreenWidth, g_ScreenHeight;
-void CConsole::Draw() {
-#ifndef DE_HEADLESS_CLIENT
-	//	if ((!m_pFontBitmapData) || (!m_pStruct)) return;
-	if (!m_pStruct) return;
-
-	// Preserve current viewport
-	D3DVIEWPORT9 oldViewportData;
-    PD3DDEVICE->GetViewport(&oldViewportData);
-
-	D3DVIEWPORT9 viewportData;
-	viewportData.X		= 0;	
-	viewportData.Y		= 0;
-	viewportData.Width	= g_ScreenWidth;
-	viewportData.Height = g_ScreenHeight;
-	viewportData.MinZ	= 0;
-	viewportData.MaxZ	= 1.0f;
-	HRESULT hResult = D3D_CALL(PD3DDEVICE->SetViewport(&viewportData));
-
-	// Check the console variables
-	CheckVariables();
-
-	LTRect cRect;
-
-	CalcRect( cRect );
-
-	SetBackgroundAlpha( g_CV_ConsoleAlpha );
-
-	// Clear the background.
-	if ( m_hBackground )
-	{
-		if ( GetBackgroundAlpha() == 1.0f )
-			// Render it opaque
-			ilt_client->ScaleSurfaceToSurface( ilt_client->GetScreenSurface(), m_hBackground, &cRect, LTNULL );
-		else
-		{
-			// Go into 3D mode and render the optimized surface
-			ilt_client->Start3D();
-			ilt_client->StartOptimized2D();
-			ilt_client->ScaleSurfaceToSurface( ilt_client->GetScreenSurface(), m_hBackground, &cRect, LTNULL );
-			ilt_client->EndOptimized2D();
-			ilt_client->End3D(END3D_CANDRAWCONSOLE);
-		}
-	}
-	else
-	{
-		BorderedRectangle( m_BackColor, m_BorderColor, cRect );
-	}
-
-	// Grab the current filter states.
-	bool bValidFilterStates = true;
-	DWORD nMinFilter, nMagFilter, nMipFilter;
-	if( FAILED(PD3DDEVICE->GetSamplerState(0, D3DSAMP_MINFILTER, &nMinFilter)) )
-		bValidFilterStates = false;
-	if( FAILED(PD3DDEVICE->GetSamplerState(0, D3DSAMP_MAGFILTER, &nMagFilter)) )
-		bValidFilterStates = false;
-	if( FAILED(PD3DDEVICE->GetSamplerState(0, D3DSAMP_MIPFILTER, &nMipFilter)) )
-		bValidFilterStates = false;
-
-	if( !bValidFilterStates )
-	{
-		PD3DDEVICE->SetSamplerState(0, D3DSAMP_MINFILTER, D3DTEXF_POINT);
-		PD3DDEVICE->SetSamplerState(0, D3DSAMP_MAGFILTER, D3DTEXF_POINT);
-		PD3DDEVICE->SetSamplerState(0, D3DSAMP_MIPFILTER, D3DTEXF_POINT);
-	}
-
-	// Draw all the text.
-	DrawTextLines( m_nTextLines );
-
-	// Draw the command box.
-	GetCommandBox()->Draw();
-
-	// Restore the previous filter states.
-	if( bValidFilterStates )
-	{
-		PD3DDEVICE->SetSamplerState(0, D3DSAMP_MINFILTER, nMinFilter);
-		PD3DDEVICE->SetSamplerState(0, D3DSAMP_MAGFILTER, nMagFilter);
-		PD3DDEVICE->SetSamplerState(0, D3DSAMP_MIPFILTER, nMipFilter);
-	}
-
-	// Restore previous viewport
-    PD3DDEVICE->SetViewport(&oldViewportData);
-
-#endif // !DE_HEADLESS_CLIENT
-}
-
-int CConsole::CalcStringOffset(const char *pStr, int iLength)
-{
-	int offset;
-
-	offset = 0;
-
-	if ( iLength < 0)
-	{
-		// Calculate the width of the entire string
-		while ( *pStr != 0 )
-		{
-			offset += m_CharWidths[*pStr];
-			++pStr;
-		}
-	}
-	else
-	{
-		// Calculate the width of a portion of the string
-		while ( (*pStr) && (iLength) )
-		{
-			offset += m_CharWidths[*pStr];
-			++pStr;
-			--iLength;
-		}
-	}
-	
-	return offset;
-}
-
-void CConsole::DrawTextLine(const char *pText, const LTRect *pRect, COLORREF textColor)
-{
-	const uint32 iCharWidth = 7;
-	if ((m_Rect.right > 0) && (pRect->left > m_Rect.right)) return;
-
-	// If we haven't create it yet, create the Font we're going to use for the Debug Text...
-	if (!m_Font) 
-	{
-		if (g_IFontManager && g_ITexInterface) 
-		{
-			assert(!m_Tex); 
-			m_Tex = NULL; 
-
-			if (g_CV_Console_FontTexFile) 
-			{
-				g_ITexInterface->CreateTextureFromName(m_Tex,g_CV_Console_FontTexFile);
-			}
-			else
-			{
-				g_ITexInterface->CreateTextureFromName(m_Tex,"console\\console_font.dtx");
-			}
-
-			if (m_Tex) 
-			{
-				m_Font = g_IFontManager->CreateFont(m_Tex,9,9);
-				m_Font->SetDefCharWidth(iCharWidth); m_Font->SetDefCharHeight(9); 
-			} 
-		} 
-	}
-
-	if (m_Font) 
-	{
-		m_Font->SetDefColor(textColor);
-
- 		char* pCh = const_cast<char*>(pText); 
-		char szBuff[256]; 
-		uint32 iCh = 0; 
-		char* pB = szBuff; 
-		uint32 iW = 0;
-
- 		while (*pCh && (iW + iCharWidth <= (uint32)(pRect->right - pRect->left)) && iCh < 255) 
-		{ 
-			*pB = *pCh; 
-			++pCh; 
-			++pB; 
-			++iCh; 
-			iW += iCharWidth; 
-		} 
-
-		*pB = NULL;
-
- 		m_Font->DrawString((float)pRect->left,(float)pRect->top,szBuff); 
-
-	}
-
-
-/*	long pitch;
-	int stringLen;
-	int	xCurPos, xEndPos, iChar, charWidth, xCounter;
-	uint32 *pCurMonoPos;
-	int	y;
-	GenericColor gcTextColor;
-	FormatMgr *pFormatMgr;
-	uint8 *pBuf, *pBufLine;
-	uint16 *pPos16;
-	uint32 *pPos32;
-	char theChar;
-
-	if ((pRect->top < 0) || (pRect->bottom >= (int)m_pStruct->m_Height) ||
-		((pRect->top + m_FullFontHeight) >= (int)m_pStruct->m_Height))
-		return;
-
-	pFormatMgr = format_mgr->Mgr();
-	PFormat screenFormat; m_pStruct->GetScreenFormat(&screenFormat);
-	pFormatMgr->PValueToFormatColor( &screenFormat, textColor, gcTextColor );
-
-	if (m_pStruct->LockScreen(pRect->left, pRect->top, pRect->right, pRect->bottom, (void**)&pBuf, &pitch)) {
-		xCurPos = 0;
-
-		stringLen = strlen( pText );
-		for (iChar = 0; iChar < stringLen; iChar++) {
-			theChar = pText[iChar];
-			if (theChar < 0) continue;
-
-			charWidth = m_CharWidths[theChar];
-			xEndPos = xCurPos + charWidth;
-
-			// Clip on X.
-			if ((xCurPos < 0) || (xEndPos >= (pRect->right - pRect->left))) continue;
-
-			// Draw.
-			pBufLine = pBuf + xCurPos * screenFormat.GetNumPixelBytes();
-			pCurMonoPos = &m_pFontBitmapData[ theChar * m_FullFontHeight ];
-			for (y = 0; y < m_FullFontHeight; ++y) {
-				uint32 nLineData = *pCurMonoPos;
-			
-				// Draw one line
-				xCounter = charWidth;
-				if (screenFormat.m_BPP == BPP_16) {
-					pPos16 = (uint16*)pBufLine;
-					while (xCounter) {
-						xCounter--;
-						if (nLineData & 1) {
-							*pPos16 = gcTextColor.wVal; }
-						nLineData = nLineData >> 1;
-						++pPos16; } }
-				else if (screenFormat.m_BPP == BPP_32) {
-					pPos32 = (uint32*)pBufLine;
-					
-					while (xCounter) {
-						xCounter--;
-						if (nLineData & 1) {
-							*pPos32 = gcTextColor.dwVal; }
-						nLineData = nLineData >> 1;
-						++pPos32; } }
-
-				// Move to the next line
-				pBufLine += pitch;
-				pCurMonoPos++; }			
-
-			// Increment the X position.
-			xCurPos += charWidth; }
-		
-		m_pStruct->UnlockScreen(); } */
-}
-
-void CConsole::DrawSmall(int nLines)
-{
-#ifndef DE_HEADLESS_CLIENT
-	//	if (!m_pFontBitmapData) return;
-
-	// Preserve current viewport
-	D3DVIEWPORT9 oldViewportData;
-    PD3DDEVICE->GetViewport(&oldViewportData);
-
-	D3DVIEWPORT9 viewportData;
-	viewportData.X		= 0;	
-	viewportData.Y		= 0;
-	viewportData.Width	= g_ScreenWidth;
-	viewportData.Height = g_ScreenHeight;
-	viewportData.MinZ	= 0;
-	viewportData.MaxZ	= 1.0f;
-	HRESULT hResult = D3D_CALL(PD3DDEVICE->SetViewport(&viewportData));
-
-	// Grab the current filter states.
-	bool bValidFilterStates = true;
-	DWORD nMinFilter, nMagFilter, nMipFilter;
-	if( FAILED(PD3DDEVICE->GetSamplerState(0, D3DSAMP_MINFILTER, &nMinFilter)) )
-		bValidFilterStates = false;
-	if( FAILED(PD3DDEVICE->GetSamplerState(0, D3DSAMP_MAGFILTER, &nMagFilter)) )
-		bValidFilterStates = false;
-	if( FAILED(PD3DDEVICE->GetSamplerState(0, D3DSAMP_MIPFILTER, &nMipFilter)) )
-		bValidFilterStates = false;
-
-	if( !bValidFilterStates )
-	{
-		PD3DDEVICE->SetSamplerState(0, D3DSAMP_MINFILTER, D3DTEXF_POINT);
-		PD3DDEVICE->SetSamplerState(0, D3DSAMP_MAGFILTER, D3DTEXF_POINT);
-		PD3DDEVICE->SetSamplerState(0, D3DSAMP_MIPFILTER, D3DTEXF_POINT);
-	}
-
-	// Draw the text.
-	DrawTextLines( nLines, true );
-
-	// Restore the previous filter states.
-	if( bValidFilterStates )
-	{
-		PD3DDEVICE->SetSamplerState(0, D3DSAMP_MINFILTER, nMinFilter);
-		PD3DDEVICE->SetSamplerState(0, D3DSAMP_MAGFILTER, nMagFilter);
-		PD3DDEVICE->SetSamplerState(0, D3DSAMP_MIPFILTER, nMipFilter);
-	}
-
-	//Restore previous viewport
-    PD3DDEVICE->SetViewport(&oldViewportData);
-
-#endif // !DE_HEADLESS_CLIENT
-}
-
 void CConsole::SetRect( const LTRect &cRect )
 {
 	// Jump out if it hasn't changed
@@ -1471,6 +1061,13 @@ void CConsole::CalcRect( LTRect &cRect )
 	cRect.left = min( cRect.left, cRect.right - 160 );
 	cRect.top = min( cRect.top, cRect.bottom - (m_FullFontHeight * 4) );
 }
+
+#ifndef RGBA_GETA
+#define RGBA_GETA(color)			((uint8)( color               >> 24))
+#define RGBA_GETR(color)			((uint8)((color & 0x00FF0000) >> 16))
+#define RGBA_GETG(color)			((uint8)((color & 0x0000FF00) >> 8 ))
+#define RGBA_GETB(color)			((uint8)((color & 0x000000FF)      ))
+#endif
 
 void CConsole::PrintString(CONCOLOR theColor, int filterLevel, const char *pMsg)
 {
@@ -1544,7 +1141,7 @@ void CConsole::PrintString(CONCOLOR theColor, int filterLevel, const char *pMsg)
 
 			// Copy the message
 			pLine->m_Color = theColor;
-			LTStrnCpy( pLine->m_Text, pMsg, MAX_CONSOLE_TEXTLEN, iLength );
+			LTStrCpy( pLine->m_Text, pMsg, iLength );
 
 			// Remove the newline character
 			if ( pNewLine )

@@ -62,22 +62,6 @@ VideoMgr* CreateVideoMgr( const char *pszName )
 
 	if( want_bink ) 
 	{
-
-
-//
-//	!!!!! BINK IS NOT ENABLED
-//
-//		IHAVEPURCHASEDBINK Define that allows bink video player to function. ( Separate license/SDK available from rad game tools http://www.radgametools.com/)
-//
-//		You must recompile Exe_Lithtech with IHAVEPURCHASEDBINK defined in the project settings: 
-//
-//    From the SDK you purchased from bink place bink.h rad.h radbase.h and smack.h into the Engine/runtime/kernel/src/sys/win directory.
-// 	Also requires bink32.dll in your path when running 
-//
-
-
-#if defined ( IHAVEPURCHASEDBINK )
-
 		// load bink //
 
 		// Note: Bink can play Smacker files.
@@ -95,8 +79,6 @@ VideoMgr* CreateVideoMgr( const char *pszName )
 			delete pVidMgr;
 			pVidMgr = NULL;
 		}
-
-#endif
 
 	}
   
