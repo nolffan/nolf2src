@@ -57,6 +57,7 @@ Background, in this directory:
 | 8 | `modern`: the modern build of the engine (FFmpeg Bink, fixes) | 7 | done: no RAD binary in the modern build (Bink on FFmpeg; NOLF2 has no Miles); the launcher installed in both builds; Hor+, widescreen modes, the launcher's server name (`MODERN.md`) |
 | 9 | `match`: byte-matching passes per module, ratcheted by `make progress` | 3–6 | ongoing |
 | 9b | `rendermatch`: render_a/render_b structures and file formats against retail, the renderer in the game, byte matching | 6, 7 | done: layouts and loaders fixed (below); Lithtech.exe 5,509 -> 5,792 identical |
+| 9c | `cshell`: the game DLLs (`CShell.dll`, `Object.lto`, `ClientFx.fxd`) against retail: what the source release does not have of 1.3 | 9 | done: one layout (CInterfaceTimer) was most of CShell's gap; CShell.dll 5,234 -> 5,414 identical (91.7% -> 98.4% of its bytes), Object.lto 9,253 -> 9,254; the rest is listed below |
 | 10 | `release`: public archives built by GitHub Actions, as nolfsrc does (its commits "Install scripts that copy the game's data out of the player's discs", "Package each game directory as a -private and a -public archive", "Build switches for CI: NOLF_ARCHIVES and IMAGE_BUILD", "CI: build the four public archives on GitHub Actions", "CI: check the release build for byte regressions", "CI: upload each archive unzipped") | 7, 8 and everything ported | todo |
 
 ## Notes per package
@@ -737,3 +738,92 @@ SharedTexture/object layouts). `make progress` passes.
   object and `callseq.py`, not the near list.
 - `MODERN.md`'s windowed mode at any size (render_a, behind
   `NOLF2SRC_MODERN`) was not done.
+
+### 9c. cshell
+
+**Where the gap was.** Of CShell.dll's 109 KB of non-identical code, 89 KB
+was 187 nears and 19 KB `small` (global initializers, unverifiable by the
+scorer: not source work). `tools/layoutscan.py --image=CShell` put 180 of
+the nears, in InterfaceMgr, GameClientShell and every screen, on one field
+shift of 12 bytes: retail's `CInterfaceTimer` is 0x1c bytes, without the
+source release's `m_fTimeLeft`, and `CInterfaceMgr` holds three of them.
+Taken back to retail's (constructor 0x100eb210, `Draw` 0x100eb260,
+`SetTime` inlined at 0x1005c484 and 0x10063f4e), CShell.dll went from
+5,234 to 5,414 identical functions (+88 KB). The flags were not the cause:
+the Rich header already matched, triple for triple.
+
+**Convention.** `src/Game/` is the source release, which is not quite what
+retail 1.3 shipped (here it is later: the timer above is a fix retail does
+not have). Where retail differs, the retail code is reconstructed from the
+binary in place and marked `// RETAIL: reconstructed from the retail 1.3
+<binary> (<address>)`, as nolfsrc marks its Game of the Year changes
+`GOTY:` (README, LICENSE-NOTES). Not behind `NOLF2SRC_MODERN`: the release
+build is retail. The source release's version of a change may be a fix
+worth taking into the modern build.
+
+**Done.**
+- `InterfaceTimer.h/.cpp` (CShell): the layout above.
+- `Bombable::HandleStoppedMsg` (Object.lto 0x101d45b0): retail sets
+  `m_bCanDeactivate = true` after a stopped defuse; +1 function.
+
+**Found and not committed: the handshake.** Retail's client and server
+handshake is not the release's fixed key and mask
+(`GAME_HANDSHAKE_PASSWORD`, `GAME_HANDSHAKE_MASK`), which Monolith seems to
+have taken out of the published source. Retail, with
+`K(n) = rol(0xDEADFACE, n & 0xF)` (compiled from
+`(0xDEADFACE << r) + (0xDEADFACE >> (32 - r))`, `r = n & 0xF`, written as
+an inline function: a macro lets VC6 share the two evaluations in the
+client, which retail does not) and `name` the first four bytes of the
+player GUID (the client's `m_sPlayerGuid`, copied with `LTStrCpy(sz, ..,
+255)` into a 256-byte buffer whose first four bytes are zeroed first; the
+server's `GetClientName`):
+- client HELLO (0x1007e260) sends `(uint32)this` as its key;
+- server HELLO (Object.lto 0x1002a440) answers
+  `K(name) ^ clientKey ^ (uint32)this`;
+- client PASSWORD: `m_nServerKey = K(name) ^ m_nServerKey ^ (uint32)this;
+  nXORMask = K(name) ^ m_nServerKey; nPassword = nXORMask ^ name`; the
+  CRCs are masked with `nXORMask` as before;
+- server LETMEIN: `nXORMask = K(name) ^ (uint32)this`, the password must
+  be `name ^ nXORMask`; the CRCs as before.
+The client side compiles byte-identical (1,104 bytes). The server side
+stays near (1,477 of 1,475 bytes: retail tests the loaded name dword for
+zero and stores zero, which no form tried reproduces: a ternary or an `if`
+folds away, `LTMAX` gives sbb/and, a pointer test gives neg/sbb), and any
+change to its LETMEIN case swaps two reloads in `FindStartPoint` (Object.lto
+0x1002cf80, recorded identical, 1,444 bytes), whatever the form. Both sides
+have to change together, so neither was committed. Doing it means finding
+the server's exact form (which should give FindStartPoint back) or
+accepting that loss; it also makes our builds talk to retail clients and
+servers.
+
+**Left.**
+- CShell.dll: 4 nears, 2 KB (the handshake above; `InitSound`, two spill
+  slots swapped; two tiny scorer mispairings). The other 19 KB is `small`.
+- Object.lto: `CAIGoalButeMgr::ReadGoalSet` (two loads in the other
+  order), the server handshake; the rest of its 2% is `small` (34 KB) and
+  mispaired template instances. ClientFx.fxd has no near: its 1.2% is
+  `small` and one row whose extent covers an initializer thunk and the
+  function after it.
+- `make progress` fails, before and after this package, on six ServerDir.dll
+  functions: `CServerDir_Titan.obj` built from the current
+  `src/Game/Libs/` (identical in every worktree since the jupitersrc
+  rewrite) differs from the one the baseline was recorded from (WONAPI
+  template destructors 93 -> 45 bytes, `IPAddr`'s copy constructor); not
+  the order of `/YX`'s precompiled header (recompiling with the header in
+  place changes nothing). For whoever owns ServerDir.
+
+### cshell: retail bugs
+
+- **The multiplayer timer runs on while paused.** Retail's
+  `CInterfaceTimer` (CShell 0x100eb260) computes the time left from the
+  game time on every draw and never reads the pause flag the server sends
+  (`CInterfaceMgr::HandleDisplayTimerMsg`; the flag is stored at 0x1005c484/0x10063f4e and
+  read nowhere), so a paused round's timer keeps counting down on screen.
+  The source release fixes it (`m_fTimeLeft`, kept while paused). The
+  release build reproduces it.
+- **Possibly: an armed bomb deactivates after a stopped defuse.** Retail's
+  `Bombable::HandleStoppedMsg` (Object.lto 0x101d45b0) sets
+  `m_bCanDeactivate` when a defuse is interrupted with the bomb still
+  armed, which planting clears so that `Prop::Update` keeps the object
+  updating for the countdown; the source release does not set it. Not
+  checked in the game. The release build reproduces it.
