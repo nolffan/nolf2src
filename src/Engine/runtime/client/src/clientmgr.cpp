@@ -1738,6 +1738,34 @@ void CClientMgr::RemoveClientObject(LTObject *pObj)
 	}
 }
 
+#ifdef NOLF2SRC_MODERN
+// MODERN.md M-E1: widescreen field of view (Hor+). The game sets one pair
+// of angles for every screen (FovX 90, FovY 78: a 4:3 view), so a wider
+// screen showed the same view stretched sideways. A view of the world
+// (RenderCamera, DRAWMODE_NORMAL) drawn over the whole screen wider than
+// 4:3 now keeps the vertical angle and gets a horizontal one that matches
+// its shape -- tan(x/2) grows with the width over 4:3 -- so it sees more at
+// the sides instead. At 4:3 or narrower nothing changes. Not the
+// interface's 3D objects (RenderObjects, DRAWMODE_OBJECTLIST: the menus'
+// and briefings' art), which are laid out with the 2D interface on the
+// 640x480 page stretched to the screen, and must stretch with it. The
+// camera's own angles (GetCameraFOV, which the game's zoom, underwater and
+// damage effects read back) are untouched: only what is drawn widens.
+static float cm_WidescreenFovX(float xFov, int drawMode, const LTRect &rect, uint32 width, uint32 height)
+{
+    if (drawMode != DRAWMODE_NORMAL ||
+        rect.left != 0 || rect.top != 0 || (uint32)rect.right != width ||
+        (uint32)rect.bottom != height || height == 0)
+        return xFov;
+
+    float fWiden = ((float)width / (float)height) / (4.0f / 3.0f);
+    if (fWiden <= 1.0f || xFov <= 0.0f || xFov >= MATH_PI)
+        return xFov;
+
+    return 2.0f * ltatanf(lttanf(xFov * 0.5f) * fWiden);
+}
+
+#endif // NOLF2SRC_MODERN
 ///////////////////////////////////////////////////////////////////////////////
 // BSP world rep functionality
 bool CClientMgr::Render(CameraInstance *pCamera, int drawMode, LTObject **pObjects, int nObjects, float fFrameTime)
@@ -1786,6 +1814,10 @@ bool CClientMgr::Render(CameraInstance *pCamera, int drawMode, LTObject **pObjec
         pDesc->m_Rect.right = pCamera->m_Right;
         pDesc->m_Rect.bottom = pCamera->m_Bottom;
     }
+#ifdef NOLF2SRC_MODERN
+    // M-E1: widescreen field of view (Hor+)
+    pDesc->m_xFov = cm_WidescreenFovX(pDesc->m_xFov, drawMode, pDesc->m_Rect, width, height);
+#endif
 
     pDesc->m_GlobalLightScale = m_GlobalLightScale;
     pDesc->m_GlobalLightAdd = pCamera->m_LightAdd;
