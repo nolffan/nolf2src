@@ -67,6 +67,10 @@ class CMusicMgr
 		// Moods
 
 		void DoMood(Mood eMood);
+#ifdef NOLF2SRC_MODERN
+		// MODERN.md M-G18: a mood kept up for fTime seconds
+		void DoMoodFor(Mood eMood, LTFLOAT fTime);
+#endif
 
 		// Sets to specific mood and sends message immediately to client.
 		bool SetMood( Mood eMood );
