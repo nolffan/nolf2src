@@ -8,7 +8,8 @@
 # every library and link, the custom build steps (flex and bison). `make -j`
 # then runs the compiles of every binary at once, and a rebuild redoes only
 # what changed: an object is rebuilt when its source, a header it includes
-# (tools/mkdeps.py finds them: VC6 cannot list them), or its command line
+# (tools/mkdeps.py finds them: VC6 cannot list them; for a resource script,
+# whatever it can include), or its command line
 # changes (the line is kept in <object>.cmd), a binary when any of its inputs
 # does.
 #
@@ -169,10 +170,13 @@ TOOLS += $(1)
 endef
 
 # $(call rcfile,<res>,<project dir>,<rc as spelled>,<rc in the tree>,<flags>)
-# The script's directory is a prerequisite as a whole: the bitmaps, icons
-# and text files it includes.
+# What the script can include -- the files in its directory and in each /i
+# directory, what it #includes and rcincludes, the bitmaps, icons and other
+# files its resources name, recursively -- tools/mkdeps.py finds, as it
+# finds a compile's headers.
 define rcfile
-$(call tool,$(1),$(4) $(filter-out %/Built %/built,$(wildcard $(dir $(4))*)) | wine-drives,\
+DEPSPEC += $(subst $(space),|,$(1)$(tab)$(2)$(tab)$(3)$(tab)$(strip $(NOLF2SRC_RCFLAGS) $(5)))
+$(call tool,$(1),$(4) | wine-drives,\
     cd $(2) && $(ENV_GAME) $(WINE) $(RC) $(NOLF2SRC_RCFLAGS) $(call q,$(5) $(3)))
 endef
 

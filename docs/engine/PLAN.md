@@ -1160,3 +1160,18 @@ retail's code behave better too, but is not needed once M-E3 is in.
 modern build), the multiplayer timer, the bomb (not fixed).
 
 **Score.** `make progress` (check) passes unchanged; `make test` passes.
+
+### rcdeps
+
+- **Resource scripts' dependencies.** A `.res` depended only on the files
+  in its script's own directory, so editing a script it pulls in from
+  elsewhere (`ClientRes/Shared/Lang/EN/ClientResShared.rc`, through
+  ClientRes.dsp's `/i` directories; `Shared/Lang/EN/ResShared.rc`; the
+  launcher's bitmaps in `RES/bmp/` and `RES/Lang/EN/bmp/`) rebuilt nothing.
+  `build.mk`'s `rcfile` now hands every script to `tools/mkdeps.py` as a
+  compile's source: it depends on the files in its directory and in each
+  `/i` directory (resolved from the project directory, as rc.exe does), and
+  on what it `#include`s and `rcinclude`s and the files its resources name
+  (BITMAP, ICON, CURSOR, WAVE...), recursively. Every `.rc` the workspaces
+  build is covered (the game's resource DLLs, Launcher, ServerApp,
+  Lithtech/server, ltmsg), in every variant's tree. No output changes.

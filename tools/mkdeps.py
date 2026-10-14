@@ -17,6 +17,14 @@ name that resolves nowhere is skipped, as the compiler would skip it under
 an #if it is not built with. Conditionals are ignored: an #include inside
 any #if counts. That can add a dependency that is not real, never miss one.
 
+A resource script (an .rc source; rc.exe cannot list what it reads
+either) depends on the same, its `/i` directories taken for /I, and also on
+what it `rcinclude`s, on the files its resources name (`IDB_X BITMAP
+DISCARDABLE "bmp\\x.bmp"`: searched for in the naming file's directory, the
+script's, the working directory and the /i directories), recursively through
+every script and header it includes, and on every file in its own directory
+and in each /i directory.
+
   tools/mkdeps.py <spec> <out.mk>
 
 <spec> has one line per object: `obj<TAB>cwd<TAB>source<TAB>args`: the
@@ -35,6 +43,12 @@ import re
 import sys
 
 INCLUDE = re.compile(rb'^[ \t]*#[ \t]*include[ \t]*([<"])([^>"\r\n]+)[>"]', re.M)
+RCINCLUDE = re.compile(rb'^[ \t]*rcinclude[ \t]+"?([^"\r\n]+?)"?[ \t]*$', re.M | re.I)
+# a resource statement that names a file: `<name> <type> [<option>...] "<file>"`
+RESFILE = re.compile(rb'^[ \t]*\w+[ \t]+\w+(?:[ \t]+(?:DISCARDABLE|PRELOAD|LOADONCALL|MOVEABLE'
+                     rb'|FIXED|PURE|IMPURE|SHARED|NONSHARED))*[ \t]+"([^"\r\n]+)"[ \t]*(?://[^\r\n]*)?\r?$',
+                     re.M | re.I)
+CACHE_VERSION = 2
 
 
 class Resolver:
@@ -77,16 +91,22 @@ class Resolver:
         with open(path, "rb") as f:
             data = f.read()
         inc = [[k.decode(), n.decode("latin-1").strip()] for k, n in INCLUDE.findall(data)]
+        inc += [['"', n.decode("latin-1").strip()] for n in RCINCLUDE.findall(data)]
+        inc += [["r", n.decode("latin-1").strip()] for n in RESFILE.findall(data)]
         self.cache[path] = [st.st_size, st.st_mtime, inc]
         return inc
 
-    def deps(self, source, dirs):
+    def deps(self, source, dirs, rc=None):
+        """What <source> includes; for a resource script, <rc> is the
+        working directory, and the files its resources name count too."""
         out, todo = set(), [source]
         srcdir = os.path.dirname(source)
         while todo:
             f = todo.pop()
             for kind, name in self.includes(f):
-                cands = ([os.path.dirname(f), srcdir] if kind == '"' else []) + dirs
+                if kind == "r" and rc is None:
+                    continue
+                cands = ([os.path.dirname(f), srcdir] if kind != "<" else []) + ([rc] if rc else []) + dirs
                 for d in cands:
                     hit = self.find(d, name)
                     if hit:
@@ -107,6 +127,8 @@ def main():
             cache = json.load(f)
     except (OSError, ValueError):
         cache = {}
+    if cache.get("") != CACHE_VERSION:
+        cache = {"": CACHE_VERSION}
     r = Resolver(cache)
     lines, headers = [], set()
     with open(spec) as f:
@@ -124,8 +146,15 @@ def main():
                     dl.append(words[i + 1])
                 elif w.upper().startswith("/I") and len(w) > 2 and w[2] not in "fF":
                     dl.append(w[2:])
-            dl = [r.find(cwd, d, isdir=True) for d in dl] + ["src/nolf2src"]
-            hs = r.deps(real, [d for d in dl if d])
+            dl = [r.find(cwd, d, isdir=True) for d in dl]
+            isrc = real.lower().endswith(".rc")
+            hs = r.deps(real, [d for d in dl if d] + ["src/nolf2src"], rc=os.path.normpath(cwd) if isrc else None)
+            if isrc:
+                # every file in the script's directory and in each /i one
+                hs = sorted(set(hs).union(
+                    os.path.normpath(os.path.join(d, n))
+                    for d in {os.path.dirname(real)} | {d for d in dl if d}
+                    for n in r.listing(d).values() if os.path.isfile(os.path.join(d, n))))
             headers.update(hs)
             lines.append(f"{obj}: {' '.join([real] + hs)}\n")
     lines += [f"{h}:\n" for h in sorted(headers)]

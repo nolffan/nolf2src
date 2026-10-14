@@ -101,7 +101,7 @@ addresses (`guides/05-exe-and-engine.md`).
 | `dsp2mk.py` | `build/build.mk` | Monolith's Visual C++ 6 workspace as make rules: every project of a `.dsw` and its dependencies, every compile with its configuration's flags (per-file `ADD CPP`/`SUBTRACT CPP`, `/Yc`/`/Yu`), every library and link (`P_<project>_OUT`, `P_<project>_OBJS`), the custom build steps. `CL_<project>` overrides the compiler. |
 | `dsp2files.py` | by hand | Lists a VC6 `.dsp` project's source files for one configuration. |
 | `jupitersrc.py` | `build/all.sh`, `build/jupiter.sh` | Copies the LithTech Jupiter SDK's source (WONAPI, CServerDir_Titan) from `rez/sdk/` into `src/Game/Libs/`. |
-| `mkdeps.py` | `build/build.mk` | Header dependencies, which VC6 cannot report: follows every `#include` the way MSVC resolves it and writes the Makefile rules. |
+| `mkdeps.py` | `build/build.mk` | Header dependencies, which VC6 cannot report: follows every `#include` the way MSVC resolves it and writes the Makefile rules; for a resource script also its `rcinclude`s, the files its resources name, and the files of its directory and its `/i` ones. |
 | `mkimplib.py` | by hand | Writes a COFF import library for a few named imports. |
 | `mkaliasobj.py`, `mkvtabobj.py`, `mkviewobj.py` | by hand | nolfsrc's link stand-ins: an object of weak externals (one function reached under two names), full-length vtables for classes the source only partly declares, a laid-out view of a binary's globals. Fallbacks only: with the Jupiter tree's real class declarations they should be unnecessary. Their docstrings' paths are NOLF1's examples. |
 | `buildcmp.py` | by hand | Compares two directories of build outputs byte for byte, ignoring the time stamps VC6's tools write. |
