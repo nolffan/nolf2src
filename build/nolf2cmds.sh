@@ -3,7 +3,7 @@
 #
 #   build/nolf2cmds.sh
 #
-# run.sh starts the engine with this rez stack, as the retail NOLF2.exe
+# linux-run.sh starts the engine with this rez stack, as the retail NOLF2.exe
 # launcher does ("Lithtech.exe -cmdfile ..."). The order is the launcher's
 # (later archives override earlier ones; the engine opens Engine.REZ
 # itself), with the 1.3 update's archive (its UpdateCommandLine1) and then

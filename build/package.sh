@@ -3,8 +3,8 @@
 #
 #   build/package.sh out/nolf2-<legacy|modern>-<release|debug>
 #
-# writes two archives, each unpacking to <name>/ (then <name>/run.sh -- see
-# its header; Wine needed there):
+# writes two archives, each unpacking to <name>/ (then <name>/linux-run.sh --
+# see its header; Wine needed there):
 #
 #   out/<name>-private.tar.gz   the whole directory, the retail game's data
 #                               included: for your own machines, and anyone
@@ -13,15 +13,16 @@
 #                               retail game (MANIFEST.txt's `data` and
 #                               `THIRD-PARTY` files), which its
 #                               linux-install.sh / windows-install.bat copy
-#                               out of the player's own installed NOLF2
-#                               (tools/mkinstall.py): the one to give to
-#                               other people
+#                               out of the player's own disc images and 1.3
+#                               update (tools/mkinstall.py): the one to give
+#                               to other people. It needs the images of both
+#                               releases' discs in rez/isos/ (rez/fetch-isos.sh
+#                               nolf2-eu nolf2-usa); without them it is
+#                               skipped.
 #
 # NOLF2_ARCHIVES (default "private public") says which to write; with
 # "public" alone (the CI build, .github/workflows/public-archives.yml) the
-# private one is not made. The public one needs the retail game rez/
-# installs (rez/games/nolf2-eu-1.3/, which every build has); without it, it
-# is skipped -- or, when NOLF2_ARCHIVES asks for it, an error.
+# private one is not made, and no disc images is an error, not a skip.
 #
 # build/all.sh runs it for the release build (step 6) and build/variant.sh
 # for each variant, once its data and symbols are in place.
@@ -31,8 +32,9 @@
 # Save/), no logs, no player profiles but the shipped default one,
 # autoexec.cfg as the shipped one (autoexec.cfg.retail), nolf2cmds.txt as
 # the build writes it (build/nolf2cmds.sh), and none of the per-machine
-# state run.sh and run-launcher.sh create; the public one has neither
-# autoexec.cfg nor the default profile, which its install scripts write.
+# state linux-run.sh and linux-run-launcher.sh create; the public one has
+# neither autoexec.cfg nor the default profile, which its install scripts
+# write.
 # Each is written beside and renamed into place, so a failed run never
 # leaves a truncated one; the <name>.tar.gz and plain .tar older builds made
 # are removed.
@@ -77,20 +79,20 @@ PUB="$PARENT/$NAME-public.tar.gz"
 rc=0
 python3 "$HERE/../tools/mkinstall.py" "$OUT" "$PARENT/$STAGE" || rc=$?
 if [ $rc = 3 ] && [ -n "${NOLF2_ARCHIVES:-}" ]; then
-    echo "   $PUB: no retail game, but NOLF2_ARCHIVES asks for it" >&2
+    echo "   $PUB: no disc images, but NOLF2_ARCHIVES asks for it" >&2
     exit 1
 elif [ $rc = 3 ]; then
-    echo "   $PUB: skipped (no retail game)"
+    echo "   $PUB: skipped (no disc images)"
     rm -f "$PUB"
     exit 0
 elif [ $rc != 0 ]; then
     exit $rc
 fi
-sed "s|^|$NAME/|" "$PARENT/$STAGE/retail-files.txt" > "$PARENT/$STAGE/exclude.txt"
+sed "s|^|$NAME/|" "$PARENT/$STAGE/disc-files.txt" > "$PARENT/$STAGE/exclude.txt"
 tar -C "$PARENT" -h -cf - "${EXCLUDE[@]}" \
     --anchored --no-wildcards --exclude-from="$PARENT/$STAGE/exclude.txt" \
     --transform="s|^$STAGE/|$NAME/|" \
     "$NAME" "$STAGE/nolf2cmds.txt" "$STAGE/linux-install.sh" "$STAGE/windows-install.bat" |
     gzip -6 > "$PUB.part"
 mv "$PUB.part" "$PUB"
-echo "   $PUB: $(du -h "$PUB" | cut -f1) (unpacks to $NAME/; its data from the player's NOLF2)"
+echo "   $PUB: $(du -h "$PUB" | cut -f1) (unpacks to $NAME/; its data from the discs)"

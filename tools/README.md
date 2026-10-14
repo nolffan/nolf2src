@@ -98,6 +98,7 @@ addresses (`guides/05-exe-and-engine.md`).
 |---|---|---|
 | `retailextract.py` | `build/all.sh`, `build/reference.sh` | Takes what is needed from the retail game, as `rez/` installs it (`rez/games/nolf2-eu-1.3/`, see `build/retail.sh`): game data, the third-party binaries, the retail engine images for checking only (`out/reference/`), and an audit of every PE file in the game directory. |
 | `rezextract.py` | `retailextract.py` | Reader for Monolith's REZ archives. Also a CLI: `rezextract.py list <rez>`. |
+| `mkinstall.py` | `build/package.sh` | The public archive's `linux-install.sh` and `windows-install.bat`: where on the European and the USA disc images (in InstallShield 6 cabinets, compressed) and in the 1.3 update (a Microsoft cabinet) each retail file's bytes are, and how each file of the game directory is made from one; its docstring has the format. |
 | `dsp2mk.py` | `build/build.mk` | Monolith's Visual C++ 6 workspace as make rules: every project of a `.dsw` and its dependencies, every compile with its configuration's flags (per-file `ADD CPP`/`SUBTRACT CPP`, `/Yc`/`/Yu`), every library and link (`P_<project>_OUT`, `P_<project>_OBJS`), the custom build steps. `CL_<project>` overrides the compiler. |
 | `dsp2files.py` | by hand | Lists a VC6 `.dsp` project's source files for one configuration. |
 | `jupitersrc.py` | `build/all.sh`, `build/jupiter.sh` | Copies the LithTech Jupiter SDK's source (WONAPI, CServerDir_Titan) from `rez/sdk/` into `src/Game/Libs/`. |

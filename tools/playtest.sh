@@ -127,7 +127,7 @@ rm -rf "$RUN"; mkdir -p "$RUN"
 REL="$(python3 -c 'import os,sys; print(os.path.relpath(sys.argv[1], sys.argv[2]))' "$GAME" "$RUN")"
 for f in "$GAME"/*; do
     b=$(basename "$f")
-    case "$b" in autoexec.cfg|Save|Profiles|nolf2cmds.txt|MANIFEST.txt|run.sh|run-launcher.sh|run-cmds.txt|launchcmds.txt) continue ;; esac
+    case "$b" in autoexec.cfg|Save|Profiles|nolf2cmds.txt|MANIFEST.txt|linux-run.sh|linux-run-launcher.sh|run-cmds.txt|launchcmds.txt) continue ;; esac
     if [ -f "$f" ] && [ "$(head -c 2 "$f" | tr -d '\0')" = MZ ]; then cp "$f" "$RUN/$b"
     else ln -s "$REL/$b" "$RUN/$b"; fi
 done
@@ -148,7 +148,7 @@ fi
 # -cmdfile: write a per-run copy with +runworld appended.
 rm -f "$RUN/nolf2cmds.txt"
 # (nolf2cmds.txt is the rez stack; the screen mode and the movies are the
-# harness's, as run.sh adds its own)
+# harness's, as linux-run.sh adds its own)
 CMDS="$(tr -d '\r\n' < "$GAME/nolf2cmds.txt") ++screenwidth 640 ++screenheight 480 ++bitdepth 32 ++windowed ${PLAYTEST_WINDOWED:-0} +DisableMovies 1${PLAYTEST_ARGS:+ $PLAYTEST_ARGS}"
 SCREEN=640x480   # the virtual display: the screen mode (see the header)
 if [ -n "${PLAYTEST_RES:-}" ]; then

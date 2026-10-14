@@ -50,7 +50,7 @@
 #                         rez stack (nolf2cmds.txt); the engine (Lithtech.exe,
 #                         server.dll, snddrv.dll, ServerDir.dll, ltmsg.dll),
 #                         the dedicated server and the launcher NOLF2.exe
-#                         (run-launcher.sh plays through it) in the game's
+#                         (linux-run-launcher.sh plays through it) in the game's
 #                         root. Every
 #                         binary of the game is then built here but the
 #                         third-party runtime of step 2. Each built engine
@@ -63,10 +63,11 @@
 #                         its origin; the build fails if any is unaccounted
 #                         for or if a .rez archive still holds one.
 #   6. package            out/nolf2-legacy-release-private.tar.gz: the game
-#                         directory as one file (unpack, then ./run.sh -- see
-#                         its header; Wine needed there), and -public.tar.gz:
-#                         the same without the retail game's files, which its
-#                         install scripts copy from the player's own NOLF2
+#                         directory as one file (unpack, then ./linux-run.sh
+#                         -- see its header; Wine needed there), and
+#                         -public.tar.gz: the same without the retail game's
+#                         files, which its install scripts copy out of the
+#                         player's own disc images and 1.3 update
 #                         (build/package.sh).
 set -e
 REPO="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
@@ -112,8 +113,12 @@ python3 tools/retailextract.py resources "$RETAIL" "$OUT"
 mkdir -p "$OUT/Save" "$OUT/custom" "$OUT/Profiles"
 [ -f "$OUT/Profiles/Default.prf" ] || cp "$OUT/Default.prf.retail" "$OUT/Profiles/Default.prf"
 bash build/nolf2cmds.sh > "$OUT/nolf2cmds.txt"
-cp build/game-scripts/run.sh build/game-scripts/run-launcher.sh "$OUT/"
-chmod +x "$OUT/run.sh" "$OUT/run-launcher.sh"
+# linux-run.sh / linux-run-launcher.sh: start the game with the host's Wine,
+# directly or through our NOLF2.exe (build/game-scripts/; usage in their
+# headers).
+rm -f "$OUT/run.sh" "$OUT/run-launcher.sh"   # their names before the linux- prefix
+cp build/game-scripts/linux-run.sh build/game-scripts/linux-run-launcher.sh "$OUT/"
+chmod +x "$OUT/linux-run.sh" "$OUT/linux-run-launcher.sh"
 
 if [ "${NOLF2_MIDDLEWARE:-retail}" = open ]; then
     step "2. open runtime: our Bink player on FFmpeg (build/ext.sh); the Microsoft runtime from $RETAIL"
@@ -165,4 +170,4 @@ if [ "${NOLF2_PACKAGE:-1}" = 1 ]; then
     bash "$REPO/build/package.sh" "$OUT"
 fi
 
-step "done: $OUT ($(( $(date +%s) - T0 ))s) -- play it with $OUT/run.sh"
+step "done: $OUT ($(( $(date +%s) - T0 ))s) -- play it with $OUT/linux-run.sh"

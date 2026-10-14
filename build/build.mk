@@ -184,8 +184,10 @@ endef
 # A library PINNED_LIBS names has its objects' anonymous-namespace numbers,
 # which VC6 draws afresh on every compile, pinned first (tools/anonns.py):
 # their length moves ServerDir.dll's layout, and a scored build has to be
-# reproducible.
-PINNED_LIBS := src/Game/built/Release/libs/WonAPI/WONAPI.lib
+# reproducible. Only the release build is: a variant (NOLF2SRC_CFLAGS set) is
+# never scored, and with /Z7 the debug records hold the names too, which the
+# tool refuses to half-pin.
+PINNED_LIBS := $(if $(NOLF2SRC_CFLAGS),,src/Game/built/Release/libs/WonAPI/WONAPI.lib)
 define library
 $(call tool,$(1),$(4) | wine-drives,\
     $(if $(filter $(1),$(PINNED_LIBS)),python3 $(ROOT)/tools/anonns.py $(4:%=$(ROOT)/%) && )\

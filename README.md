@@ -30,7 +30,7 @@ legacy build keeps matching the retail one.
 |---|---|
 | Game DLLs | `CShell.dll`, `Object.lto`, `ClientFx.fxd`, `CRes.dll`, `SRes.dll` compile from Monolith's workspace (`src/Game/TO2.dsw`, Final configuration) and run in the game. Each is the retail binary's exact size, compiled with VC6 SP5 (build 8966) as retail was. `ClientFx.fxd`, `CRes.dll` and `SRes.dll` are byte for byte the retail ones apart from link time stamps; `CShell.dll` and `Object.lto` are close but not yet identical. |
 | Dedicated server | `NOLF2Srv.exe` compiles; its code is the retail one's but for two `CButeMgr` functions (`libs/ButeMgr`), where SP5 orders two loads the other way round. |
-| Launcher | `NOLF2.exe` compiles against the DirectX 8.1 SDK; every code segment matches the retail one's. It is in the game directory, and starts the game under Wine (`run-launcher.sh` gives it the registry values the retail installer wrote). |
+| Launcher | `NOLF2.exe` compiles against the DirectX 8.1 SDK; every code segment matches the retail one's. It is in the game directory, and starts the game under Wine (`linux-run-launcher.sh` gives it the registry values the retail installer wrote). |
 | Engine | Built here and in the game: `Lithtech.exe` and `server.dll` from the LithTech Jupiter engine source (a 2006 distribution of NOLF2's engine line, back-ported to 2002: `docs/engine/PLAN.md`), with no SecuROM; `snddrv.dll` and `ltmsg.dll` (byte for byte retail's but for its time stamp) reconstructed from the retail binaries; `ServerDir.dll` from the LithTech Jupiter SDK's source (WONAPI and the 2002 `CServerDir_Titan`, brought to the 1.3 interface; rez/ fetches the SDK, nothing of it is committed). Under Wine the game runs: the menus, a new game, the first level played with sound, saving and loading (`make test`). Nothing of the retail engine is in the game directory: every binary there is built here but the third-party runtime (Bink, the Microsoft C++ and MFC DLLs; the modern build plays the movies with its own Bink player on FFmpeg). |
 | Scoring | `make progress` scores every binary function by function against the retail 1.3 ones (below, and `progress/README.md`). |
 
@@ -76,7 +76,8 @@ binary, and the evidence, is `progress/COMPILERS.md`.
 
 Needs docker and the two submodules (`git submodule update --init`):
 `toolchains/` (the compilers) and `rez/` (which fetches the European discs
-from archive.org and installs the game with its 1.3 update).
+from archive.org and installs the game with its 1.3 update, and the USA
+discs, for the public archive's install scripts).
 
 ```sh
 make            # out/nolf2-legacy-release/ and its -private / -public .tar.gz
@@ -90,9 +91,9 @@ make help       # everything else
 `make modern` also needs the `ext/ffmpeg` submodule (FFmpeg, pinned to a
 release; `git submodule update --init ext/ffmpeg`): `build/ext.sh` builds
 the modern build's `binkw32.dll` on it, with Zig (in the build image).
-Each game directory has `run.sh`, which starts the engine directly, and
-`run-launcher.sh`, which starts it through the launcher, as the retail
-install does.
+Each game directory has `linux-run.sh`, which starts the engine directly
+with the host's Wine, and `linux-run-launcher.sh`, which starts it through
+the launcher, as the retail install does.
 
 `build/build.mk` builds Monolith's workspace as Developer Studio would:
 `tools/dsp2mk.py` reads `TO2.dsw` and the project files and writes the
@@ -101,7 +102,7 @@ rules, compile for compile. `BUILDING.md` describes the build step by step.
 ## Playing it elsewhere: the archives
 
 To play elsewhere, copy `out/nolf2-legacy-release-private.tar.gz` (one
-file), unpack it and run `nolf2-legacy-release/run.sh`. Every variant is
+file), unpack it and run `nolf2-legacy-release/linux-run.sh`. Every variant is
 packaged the same way: `out/nolf2-legacy-debug-private.tar.gz`,
 `out/nolf2-modern-release-private.tar.gz` and
 `out/nolf2-modern-debug-private.tar.gz`.
@@ -110,21 +111,28 @@ The `-private` archives hold the retail game's data (1.8 GB of it), so they
 are for your own machines and for others developing on the build. To give
 the game to anyone else, give them the `-public` archive instead
 (`out/nolf2-modern-release-public.tar.gz`, a few MB): the same directory
-without anything from the retail game, and two scripts that copy it out of
-their own *No One Lives Forever 2* -- installed from their discs and
-updated to 1.3 (English; the European or the USA release). They check
-every file they write against its SHA-256, so the result is the `-private`
-archive's directory, byte for byte:
+without anything from the retail game, and two scripts that install it
+from their own disc images of *No One Lives Forever 2* (the European or
+the USA release) and Sierra's English 1.3 update, `nolf2-update_1x3.exe`
+-- without installing the game. An image can be a plain `.iso` (an own
+rip), redump's `.bin` (or its `.cue`), or redump's `.zip` as archive.org
+serves it; a `.bin` or `.zip` is converted to a temporary `.iso` first
+(about 0.6 GB a disc). On Linux they need `python3`, whose zlib unpacks
+the setup's compressed cabinets; on Windows, the PowerShell every Windows
+10 and 11 has. They check each image's SHA-256 and every file they write,
+so the result is the `-private` archive's directory, byte for byte:
 
 ```sh
-nolf2-modern-release/linux-install.sh ~/.wine/drive_c/'Program Files'/.../'No One Lives Forever 2'
-nolf2-modern-release/linux-install.sh    # finds it in the registry of $WINEPREFIX or ~/.wine
+nolf2-modern-release/linux-install.sh disc1.zip disc2.zip nolf2-update_1x3.exe   # Linux, Steam Deck
 ```
 
-On Windows, double-click `windows-install.bat` (it finds the game where its
-setup installed it) or drop the installed game's folder onto it. Either
-script can be run again: a file already in place is checked and kept. The
-GitHub Actions workflow builds the four public archives on every push
+On Windows, drop both images and the update onto `windows-install.bat` (or
+put them in the game folder and double-click it), then start `NOLF2.exe`.
+Either script finds them in the game directory or the one above it by
+itself, and can be run again: a file already in place is checked and kept.
+The public archive is made only if `rez/isos/` has the `.iso` images of
+both releases' discs (`make retail` fetches them; `tools/mkinstall.py`).
+The GitHub Actions workflow builds the four public archives on every push
 (`BUILDING.md`).
 
 See `LICENSE-NOTES.md` for what is whose, and what each archive holds.

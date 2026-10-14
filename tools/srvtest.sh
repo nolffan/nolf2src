@@ -42,7 +42,7 @@ rm -rf "$RUN"; mkdir -p "$RUN/Profiles/srvtest/Campaigns" "$RUN/Save"
 cd "$RUN" || exit 2
 for f in "$GAME"/*; do
     b=$(basename "$f")
-    case "$b" in Profiles|Save|autoexec.cfg|run.sh|MANIFEST.txt) continue ;; esac
+    case "$b" in Profiles|Save|autoexec.cfg|linux-run.sh|MANIFEST.txt) continue ;; esac
     if [ -f "$f" ] && [ "$(head -c 2 "$f" | tr -d '\0')" = MZ ]; then cp "$f" .; else ln -s "$f" .; fi
 done
 cp "$DLL" server.dll

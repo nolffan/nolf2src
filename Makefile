@@ -12,7 +12,8 @@
 # --init`): the compilers, toolchains/ (toolchains/README.md), and rez/, which
 # fetches the redump images of the European discs from archive.org and
 # installs the game from them with the 1.3 update (rez/README.md; `make
-# retail`, which every build runs first, does it once), and the LithTech
+# retail`, which every build runs first, does it once, and fetches the USA
+# discs too, which the public archive's install scripts read), and the LithTech
 # Jupiter SDK, whose source ServerDir.dll is built from (`make sdk`, the same
 # way: build/jupiter.sh). `make modern` also needs the ext/ffmpeg submodule
 # (FFmpeg, pinned to a release), which its Bink player is built on
@@ -55,7 +56,8 @@ help:
 	@echo "                function recorded in progress/identical.txt stops matching"
 	@echo "make progress-update  record the score in progress/ and README.md"
 	@echo "make retail     fetch the two disc images and install the retail game and its"
-	@echo "                1.3 update from them (rez/, once; every build runs it), and check it"
+	@echo "                1.3 update from them, and fetch the USA release's two too, for"
+	@echo "                the public archive (rez/, once; every build runs it); check it"
 	@echo "make sdk        fetch the LithTech Jupiter SDK and extract its source (rez/, once;"
 	@echo "                every build runs it), and check it"
 	@echo "make shell      a shell in the build container (build/*.sh, tools/ work there)"
@@ -93,9 +95,11 @@ endif
 	@echo "== docker image $(IMAGE) ready"
 
 # The retail game the build takes its data from (build/retail.sh): installed
-# by rez/ the first time, checked against rez/games.sha256 every time.
+# by rez/ the first time, checked against rez/games.sha256 every time; and
+# the USA release's disc images, which the public archive's install scripts
+# read too.
 retail: check-rez image
-	@$(DOCKER_RUN) bash -c 'source build/retail.sh && retail_install && retail_verify'
+	@$(DOCKER_RUN) bash -c 'source build/retail.sh && retail_install && retail_discs && retail_verify'
 
 # The Jupiter SDK (build/jupiter.sh): fetched and installed by rez/ the first
 # time, checked against rez/sdk.sha256 every time.

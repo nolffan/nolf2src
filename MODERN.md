@@ -71,7 +71,7 @@ The modern build ships no RAD binary:
 
 | Retail | Modern | |
 |---|---|---|
-| `binkw32.dll`, Bink (RAD Game Tools) | our Bink player, `src/modern/binkw32/`, on FFmpeg's Bink demuxer and decoders (`ext/ffmpeg`, FFmpeg n8.1.3, a submodule; LGPL-2.1-or-later as configured), built by `build/ext.sh` into `out/ext/` | the movies play (`run.sh`, `run-launcher.sh` turn them on) |
+| `binkw32.dll`, Bink (RAD Game Tools) | our Bink player, `src/modern/binkw32/`, on FFmpeg's Bink demuxer and decoders (`ext/ffmpeg`, FFmpeg n8.1.3, a submodule; LGPL-2.1-or-later as configured), built by `build/ext.sh` into `out/ext/` | the movies play (`linux-run.sh`, `linux-run-launcher.sh` turn them on) |
 | Miles Sound System | -- | NOLF2 has none: the engine's sound driver `snddrv.dll` (built here) plays through DirectSound, and no retail binary imports or loads `mss32.dll`. So no OpenMiles. |
 | `MFC42.DLL`, `MFC42U.DLL`, `MSVCP60.DLL`, `Msvcrt.dll` (Microsoft) | the same, from the retail game | the C/C++ runtime the compilers link against; kept in both builds |
 
@@ -110,7 +110,7 @@ checksums of `CShell.dll` and four attribute files (anti-cheat; a client
 whose game code differs from the server's is turned away -- so modern and
 release builds cannot play together), the registry values the installer
 writes (`InstallDir`, which the launcher and `NOLF2Srv.exe` need;
-`run-launcher.sh` writes them), and the online updater `SierraUp.exe`.
+`linux-run-launcher.sh` writes them), and the online updater `SierraUp.exe`.
 
 ## Status legend
 
@@ -152,10 +152,10 @@ Modernizer's items take the ids after them.
 
 | Id | Item | Kind | Credit | Where | Status |
 |---|---|---|---|---|---|
-| M-X1 | **Bink on FFmpeg.** The modern build's `binkw32.dll` is ours (above). Retail's movies stall under some Wine setups, so `run.sh` turns them off for the release build; the modern build plays them (the four logo movies at start). | middleware | ours | `src/modern/binkw32/`, `build/ext.sh`, `tools/retailextract.py openruntime` | done |
+| M-X1 | **Bink on FFmpeg.** The modern build's `binkw32.dll` is ours (above). Retail's movies stall under some Wine setups, so `linux-run.sh` turns them off for the release build; the modern build plays them (the four logo movies at start). | middleware | ours | `src/modern/binkw32/`, `build/ext.sh`, `tools/retailextract.py openruntime` | done |
 | M-X2 | **No OpenMiles.** NOLF2 has no Miles (above). | middleware | -- | -- | decided |
 | M-X3 | **The Microsoft runtime DLLs.** Wine has its own `msvcrt`, `msvcp60` and `mfc42`, so a Wine-only modern build could leave them out; Windows needs them beside the game. Kept in both builds. | middleware | -- | `tools/retailextract.py` | decided |
-| M-L1 | **The launcher in the game directory.** `NOLF2.exe` (built from `src/Game/Launcher`) is installed in both builds, with `run-launcher.sh`, which writes the registry values the retail installer left (install directory; the 1.3 update's archive, then `custom/` again so the update's zeroed DLLs cannot override ours) and starts it in a window. NOLF2's launcher has no disc check for play (above). Tested under Wine: the first-run detail dialog, then `Lithtech.exe -cmdfile launchcmds.txt` to the main menu. This is tooling, so not behind the define. | feature | ours | `build/all.sh`, `build/game-scripts/run-launcher.sh` | done |
+| M-L1 | **The launcher in the game directory.** `NOLF2.exe` (built from `src/Game/Launcher`) is installed in both builds, with `linux-run-launcher.sh`, which writes the registry values the retail installer left (install directory; the 1.3 update's archive, then `custom/` again so the update's zeroed DLLs cannot override ours) and starts it in a window. NOLF2's launcher has no disc check for play (above). Tested under Wine: the first-run detail dialog, then `Lithtech.exe -cmdfile launchcmds.txt` to the main menu. This is tooling, so not behind the define. | feature | ours | `build/all.sh`, `build/game-scripts/linux-run-launcher.sh` | done |
 | M-L2 | **Launcher's dedicated-server name.** The launcher starts the dedicated server (`-goserver`) as `NOLF2Svr.EXE`; the game ships `NOLF2Srv.exe`, so it never started. Tested: `NOLF2.exe -goserver` starts the dedicated server in the modern build, and stays at the launcher in the release build. | fix (retail bug) | ours | `src/Game/Launcher/TO2/RES/Lang/EN/Launcher.rc` | done |
 | M-L4 | **No disc.** The launcher looks for the game disc at every start: it reads a `CdRom Drive` registry value nothing writes, then probes every optical drive for `NOLF2.EXE` and `DATA\GAME2.REZ` -- on a machine of today an empty or slow drive stalls the launcher, and the answer is only ever used as a fallback place for `GAME.REZ`, which an install has in its own directory. In the modern build no drive is "the game disc": no probing, and the archives come from the game directory only. | fix | ours | `src/Game/Launcher/Launcher.cpp` (`CD_GetDriveLetterWithGame`) | done |
 | M-E1 | **Widescreen field of view (Hor+).** The game sets one pair of view angles for every screen (`FovX` 90, `FovY` 78, a 4:3 view), so on a wider screen the same view was stretched sideways. A full-screen view of the world (`RenderCamera`) wider than 4:3 now keeps the vertical angle and widens the horizontal one to the screen's shape (`tan(x/2)` scaled by the width over 4:3): more is seen at the sides, nothing is stretched. The camera's own angles, which the game reads back for zoom, the underwater wobble and damage effects, are not changed -- only the scene the renderer is given -- so every game-side FOV effect works on top of it. At 4:3 nothing changes. Tested at 1280x720 against the release build (C01S01: the same briefing, a wider view in play). With M-G2 the interface's 3D objects (`RenderObjects`: the menus' and briefings' art) widen the same way, to stay beside the centred 2D page. The Modernizer does the same in the game DLL (`FovX` from `FovY` for the screen's shape). | fix | a357a2c, 4158560, a88b29b, 4d73a99 | `src/Engine/runtime/client/src/clientmgr.cpp` (`CClientMgr::Render`) | done |

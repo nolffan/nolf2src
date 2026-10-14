@@ -1,14 +1,14 @@
 #!/bin/sh
-# run-launcher.sh -- start No One Lives Forever 2 through its launcher,
+# linux-run-launcher.sh -- start No One Lives Forever 2 through its launcher,
 # NOLF2.exe (ours, built from src/Game/Launcher), the way the retail install
 # does.
 #
-#   ./run-launcher.sh [--fullscreen] [launcher args...]
+#   ./linux-run-launcher.sh [--fullscreen] [launcher args...]
 #
 # Click "Play" (the first time, the launcher asks for a detail setting
 # first). The launcher writes launchcmds.txt and starts Lithtech.exe with it
-# (`Lithtech.exe -cmdfile launchcmds.txt`). ./run.sh skips the launcher and
-# has more options; use it if this one gives you trouble. Arguments are the
+# (`Lithtech.exe -cmdfile launchcmds.txt`). ./linux-run.sh skips the
+# launcher and has more options; use it if this one gives you trouble. Arguments are the
 # launcher's: it hands what it does not know to the engine (e.g.
 # +DisableSound 1), and -gogame starts the game at once, without the
 # launcher's window.
@@ -16,7 +16,7 @@
 # The launcher reads what the retail installer left in the registry, and
 # this script writes it into its Wine prefix, under
 # HKLM\Software\Monolith Productions\No One Lives Forever 2\1.0 (same
-# environment variables as run.sh, plus WINESERVER, default wineserver;
+# environment variables as linux-run.sh, plus WINESERVER, default wineserver;
 # default prefix $HOME/.wine-nolf2):
 #   * InstallDir: this directory (the launcher changes to it).
 #   * UpdateNum, UpdateCommandLine1: the archives it adds after its own
@@ -37,7 +37,7 @@ WINEPREFIX="${WINEPREFIX:-$HOME/.wine-nolf2}"
 WINEDEBUG="${WINEDEBUG:-fixme-all}"
 export WINEPREFIX WINEDEBUG
 WINE="${WINE:-wine}"
-command -v "$WINE" >/dev/null 2>&1 || { echo "run-launcher.sh: '$WINE' not found -- install Wine (32-bit support needed)" >&2; exit 1; }
+command -v "$WINE" >/dev/null 2>&1 || { echo "linux-run-launcher.sh: '$WINE' not found -- install Wine (32-bit support needed)" >&2; exit 1; }
 
 WINDOWED="++windowed 1"
 if [ "${1:-}" = --fullscreen ]; then WINDOWED=""; shift; fi
