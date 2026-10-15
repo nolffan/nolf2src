@@ -54,18 +54,18 @@ Background, in this directory:
 | 5 | `libs`: `rezmgr`, `stdlith`/`lith`, `ltmem`, `iltsound`, `ui` (Lib_UI) | 2 | done: no stubs left; fonts and the mem command as 2002 had them; the libraries' flags and link order as retail's |
 | 6 | `render`: `render_b` (drawprim, texinterface) and `render_a` back-ported from D3D9 to D3D8 | 2 | done: all of it compiles for D3D8 and links; a device comes up under Wine (tools/rendertest); not yet seen in the game |
 | 7 | `boot`: the built `Lithtech.exe` in the game under Wine: to the menu, then a level; snddrv/ServerDir/ltmsg built ones in | 3–6 | done: every engine binary in the game is built (no retail engine left); `make test` plays from the main menu into C01S01 with sound (null ALSA device); `make modern` builds and runs the same |
-| 8 | `modern`: the modern build of the engine (FFmpeg Bink, fixes) | 7 | done: no RAD binary in the modern build (Bink on FFmpeg; NOLF2 has no Miles); the launcher installed in both builds; Hor+, widescreen modes, the launcher's server name (`MODERN.md`) |
+| 8 | `modern`: the modern build of the engine (FFmpeg Bink, fixes) | 7 | done: no RAD binary in the modern build (Bink on FFmpeg; NOLF2 has no Miles); the launcher installed in both builds; Hor+, widescreen modes, the launcher's server name (`docs/MODERN.md`) |
 | 9 | `match`: byte-matching passes per module, ratcheted by `make progress` | 3–6 | ongoing |
 | 9a | `net`: multiplayer with the built engine (dedicated server and client over UDP); kernel/net and the server-side modules matched | 3, 7 | done: our Lithtech.exe joins our NOLF2Srv.exe/server.dll (and retail's server.dll) over loopback, `tools/mptest.sh`; server.dll +102, Lithtech.exe +104 identical |
 | 9b | `rendermatch`: render_a/render_b structures and file formats against retail, the renderer in the game, byte matching | 6, 7 | done: layouts and loaders fixed (below); Lithtech.exe 5,509 -> 5,792 identical |
 | 9c | `cshell`: the game DLLs (`CShell.dll`, `Object.lto`, `ClientFx.fxd`) against retail: what the source release does not have of 1.3 | 9 | done: one layout (CInterfaceTimer) was most of CShell's gap; CShell.dll 5,234 -> 5,414 identical (91.7% -> 98.4% of its bytes), Object.lto 9,253 -> 9,254; the rest is listed below |
 | 10 | `release`: public archives built by GitHub Actions, as nolfsrc does (its commits "Install scripts that copy the game's data out of the player's discs", "Package each game directory as a -private and a -public archive", "Build switches for CI: NOLF_ARCHIVES and IMAGE_BUILD", "CI: build the four public archives on GitHub Actions", "CI: check the release build for byte regressions", "CI: upload each archive unzipped") | 7, 8 and everything ported | done: -private / -public archives, install scripts from the player's own disc images (EU or USA) and 1.3 update, linux-run*.sh, the workflow as nolfsrc's now (prepare + four parallel jobs; not yet run on GitHub); ServerDir.dll's score made reproducible by package 11 |
-| 11 | `bugs`: the variants (debug, modern, modern-debug) checked to build the whole game, engine included, and to play; `RETAIL_BUGS.md`; the safe fixes in the modern build | 7, 8 | done: every variant builds every binary with its define and passes the playtest; 48 entries listed, 23 of them fixed in the modern build (three only on one side: see the notes) (M-G5..M-G16, M-L3, M-E7..M-E12) |
-| 12 | `modernizer`: the NOLF 2 Modernizer (haekb) inventoried change by change in `MODERN.md`, its fixes and features reimplemented in the modern build, its known issues answered | 8, 11 | done for the most part: no disc / CD key, its retail crash fixes, widescreen menus/HUD/FOV/zoom, mouse look (M-E3), frame limiter, windows, focus, display options (FOV, frame limit, antialiasing, 4:3 cinematics), wheel, fps counter, anisotropy, scope margins, the dedicated server without the registry; left: the console (M-E5), Internet play (M-E6), controllers (M-G47), jukebox (M-G46), the damage flash's width (M-G38) |
-| 13 | `mouse`: why mouse look jumps about (a player's report, modern build on a desktop under Wine) | 7 | done: retail's `input_ReadInput` (Lithtech.exe 0x4319b0, byte-identical in both builds) adds a look axis's last event again per pass and per frame; MODERN.md M-E3 (with M-E4's frame limit) is the fix; `RETAIL_BUGS.md` has it and the packages' retail bugs |
-| 14 | `xinput`: controller support in the modern build (MODERN.md M-G47 and the Modernizer's known issue K8), as nolfsrc's P7: an XInput pad, DirectInput joysticks removed | 8, 12 | done: `##gamepad` (M-E20), no DirectInput joysticks (M-E21), sticks, menus, cut-scenes and decisions read by the client (M-G47, M-G60, M-G61), the Controller screen (M-G62), a retail binding bug fixed (M-G63); tested with a simulated pad (`tools/playtest-pad.txt`); rumble and button prompts not started (M-G64, M-G65) |
-| 15 | `winmode`: window modes in the modern build -- full screen, a window, or a borderless window at the desktop's resolution -- as nolfsrc's M-P1-22: the engine, `render_a`, the Display screen, the launcher's Display dialog, the run scripts | 8, 12 | done: `Windowed` + `WindowMode` (MODERN.md M-E30, M-G70, M-L5), M-G40's toggle folded in; tested under Xvfb in each mode and switched from the menu and the launcher; `make progress` unchanged |
-| 16 | `fps`: 300 frames a second in single player at real speed, as nolfsrc's M-P1-23 (its 0dd4bf4, d171625, 9780977): what goes wrong at high frame rates found, measured and fixed in the modern build, then M-E4's limit raised from 60 | 8, 12 | done: the server tick (AIs), the player's walk and crouch, particle/line systems, aim perturb, fire sparks, debris rest; MaxFPS 300, 60 in multiplayer (MODERN.md M-E4; 4 `RETAIL_BUGS.md` entries) |
+| 11 | `bugs`: the variants (debug, modern, modern-debug) checked to build the whole game, engine included, and to play; `docs/RETAIL_BUGS.md`; the safe fixes in the modern build | 7, 8 | done: every variant builds every binary with its define and passes the playtest; 48 entries listed, 23 of them fixed in the modern build (three only on one side: see the notes) (M-G5..M-G16, M-L3, M-E7..M-E12) |
+| 12 | `modernizer`: the NOLF 2 Modernizer (haekb) inventoried change by change in `docs/MODERN.md`, its fixes and features reimplemented in the modern build, its known issues answered | 8, 11 | done for the most part: no disc / CD key, its retail crash fixes, widescreen menus/HUD/FOV/zoom, mouse look (M-E3), frame limiter, windows, focus, display options (FOV, frame limit, antialiasing, 4:3 cinematics), wheel, fps counter, anisotropy, scope margins, the dedicated server without the registry; left: the console (M-E5), Internet play (M-E6), controllers (M-G47), jukebox (M-G46), the damage flash's width (M-G38) |
+| 13 | `mouse`: why mouse look jumps about (a player's report, modern build on a desktop under Wine) | 7 | done: retail's `input_ReadInput` (Lithtech.exe 0x4319b0, byte-identical in both builds) adds a look axis's last event again per pass and per frame; MODERN.md M-E3 (with M-E4's frame limit) is the fix; `docs/RETAIL_BUGS.md` has it and the packages' retail bugs |
+| 14 | `xinput`: controller support in the modern build (docs/MODERN.md M-G47 and the Modernizer's known issue K8), as nolfsrc's P7: an XInput pad, DirectInput joysticks removed | 8, 12 | done: `##gamepad` (M-E20), no DirectInput joysticks (M-E21), sticks, menus, cut-scenes and decisions read by the client (M-G47, M-G60, M-G61), the Controller screen (M-G62), a retail binding bug fixed (M-G63); tested with a simulated pad (`tools/playtest-pad.txt`); rumble and button prompts not started (M-G64, M-G65) |
+| 15 | `winmode`: window modes in the modern build -- full screen, a window, or a borderless window at the desktop's resolution -- as nolfsrc's M-P1-22: the engine, `render_a`, the Display screen, the launcher's Display dialog, the run scripts | 8, 12 | done: `Windowed` + `WindowMode` (docs/MODERN.md M-E30, M-G70, M-L5), M-G40's toggle folded in; tested under Xvfb in each mode and switched from the menu and the launcher; `make progress` unchanged |
+| 16 | `fps`: 300 frames a second in single player at real speed, as nolfsrc's M-P1-23 (its 0dd4bf4, d171625, 9780977): what goes wrong at high frame rates found, measured and fixed in the modern build, then M-E4's limit raised from 60 | 8, 12 | done: the server tick (AIs), the player's walk and crouch, particle/line systems, aim perturb, fire sparks, debris rest; MaxFPS 300, 60 in multiplayer (docs/MODERN.md M-E4; 4 `docs/RETAIL_BUGS.md` entries) |
 
 ## Notes per package
 
@@ -655,7 +655,7 @@ of another size does not list (M-E2) -- a test-harness limit, not seen on
 a desktop. The build container's prefix is shared (`out/wineprefix`):
 give launcher tests their own `WINEPREFIX`.
 
-**Fixes** (`MODERN.md`, each tested in `make modern` + playtest against
+**Fixes** (`docs/MODERN.md`, each tested in `make modern` + playtest against
 the release build): M-E1 Hor+ in `CClientMgr::Render`, world views only
 (`DRAWMODE_NORMAL`; the interface's RenderObjects art stays with the
 stretched 2D layout); M-G1 wide modes in the Display screen and the
@@ -674,7 +674,7 @@ until they take this commit; rebuild ServerDir after merging.
 NOLF2.exe 309 as before. `make test` passes on the release build;
 `playtest-newgame.txt` and `playtest-movies.txt` pass on the modern one.
 
-**Left** (`MODERN.md`, todo): menus and HUD in a centred 4:3 area (M-G2;
+**Left** (`docs/MODERN.md`, todo): menus and HUD in a centred 4:3 area (M-G2;
 then `PLAYTEST_MAP=modern`), windowed mode at any size (M-E2, render_a),
 raw mouse input (M-E3), high-frame-rate checks before a default
 `MaxFPS` (M-E4), drawing the console (M-E5), Internet play without the
@@ -762,7 +762,7 @@ Lithtech.exe 5509 -> 5613 (against this branch's recorded baseline).
 
 #### net: retail bugs
 
-`CLTTransform::Inverse` returns its input: now in `RETAIL_BUGS.md`.
+`CLTTransform::Inverse` returns its input: now in `docs/RETAIL_BUGS.md`.
 
 ### 9b. rendermatch
 
@@ -827,7 +827,7 @@ SharedTexture/object layouts). `make progress` passes.
 - Scorer pairings inside the renderer are often wrong for template
   instances (same name, different instance): judge with `exematch` on the
   object and `callseq.py`, not the near list.
-- `MODERN.md`'s windowed mode at any size (render_a, behind
+- `docs/MODERN.md`'s windowed mode at any size (render_a, behind
   `NOLF2SRC_MODERN`) was not done.
 
 ### 9c. cshell
@@ -906,12 +906,12 @@ servers.
 ### cshell: retail bugs
 
 The multiplayer timer that runs on while paused, and possibly an armed
-bomb that deactivates after a stopped defuse: now in `RETAIL_BUGS.md`.
+bomb that deactivates after a stopped defuse: now in `docs/RETAIL_BUGS.md`.
 
 ### 12. modernizer
 
 The NOLF 2 Modernizer (github.com/haekb/nolf2-modernizer, read at
-`76cc9cd`) was read, never built or copied; `MODERN.md` lists every one of
+`76cc9cd`) was read, never built or copied; `docs/MODERN.md` lists every one of
 its changes with its commits and what became of it, and answers each
 known issue of its readme and itch.io page (K1-K11). Done: M-L4, M-G17
 (no disc, no CD key); its crash fixes (M-G18..M-G27, M-G30); M-G1, M-G2,
@@ -965,9 +965,9 @@ and `make progress` unchanged.
   `HKLM\Software\Monolith Productions\No One Lives Forever 2\1.0` is
   missing, though only the update's archive list and the selected mod
   come from it. Fixed in the modern build (M-G50).
-- The Modernizer's other retail bugs are in `MODERN.md` with "fix (retail
+- The Modernizer's other retail bugs are in `docs/MODERN.md` with "fix (retail
   bug)": M-L2, M-G18, M-G19, M-G20, M-G22, M-G23, M-G25, M-G26, M-G27,
-  M-G30, M-G35, M-G42, M-E3 (already in `RETAIL_BUGS.md`).
+  M-G30, M-G35, M-G42, M-E3 (already in `docs/RETAIL_BUGS.md`).
 
 ### 11. bugs
 
@@ -991,7 +991,7 @@ and retail files have plenty; `tools/releasesrc.py diff` (run in the
 checkout: it uses the current directory) catches it, run it after every
 edit.
 
-**`RETAIL_BUGS.md`** (48 entries) came from the porting notes, from
+**`docs/RETAIL_BUGS.md`** (48 entries) came from the porting notes, from
 nolfsrc's list looked for bug by bug in NOLF2's game and engine code, and
 from reading the multiplayer, gameplay and engine code for the same kinds
 of mistake. Engine entries were checked with `tools/exematch.py` against
@@ -1002,7 +1002,7 @@ carried more over, and NOLF2's multiplayer adds remote holes of its own
 (chat overflows, debug messages obeyed from any client, the handshake not
 enforced).
 
-**Fixed in the modern build**: 23 entries (`MODERN.md` M-G5..M-G16,
+**Fixed in the modern build**: 23 entries (`docs/MODERN.md` M-G5..M-G16,
 M-L3, M-E7..M-E12), each tested with `make modern` and the playtest. Three
 only on one side: names and chat as formats and the chat overflow are
 fixed on the server (which also cleans what it relays, so clients behind a
@@ -1066,8 +1066,8 @@ fresh build). Two causes, both fixed:
 
 ### 10. release
 
-Done: nolfsrc's release pattern, for NOLF2 (`BUILDING.md`, "Archives";
-`LICENSE-NOTES.md`, "The archives").
+Done: nolfsrc's release pattern, for NOLF2 (`docs/BUILDING.md`, "Archives";
+`docs/LICENSE-NOTES.md`, "The archives").
 
 - `build/package.sh` writes `out/<name>-private.tar.gz` (the whole game
   directory, 0.9 GB) and `-public.tar.gz` (4.6 MB for the legacy release
@@ -1173,7 +1173,7 @@ zeroed only when `GetTickCount` has moved more than 1 ms past it, checked
 once a frame. So an event is added two or three times, an x event again on
 the y event's pass, and how many times depends on the frame rate, the
 mouse's report rate and the speed: the look speed changes as you move.
-`RETAIL_BUGS.md` has the numbers: a model of the function (1.06 to 3.8
+`docs/RETAIL_BUGS.md` has the numbers: a model of the function (1.06 to 3.8
 times the motion), and a run of the release build with a temporary
 per-frame log (not committed): 2.8 times horizontally, 3.8/2.8 diagonally,
 one event spread over three frames. Nothing here is Wine's: the game clips
@@ -1181,7 +1181,7 @@ the cursor to its window (`GameClientShell.cpp`) and DirectInput's relative
 counts are what the log saw. How coarse Wine's DirectInput events are on a
 desktop X server was not measured.
 
-**The fix** is MODERN.md M-E3 as reimplemented from the NOLF2 Modernizer
+**The fix** is docs/MODERN.md M-E3 as reimplemented from the NOLF2 Modernizer
 (read the mouse's whole buffer, add up each look axis over the frame, use
 it once, no smoothing; a 1024-event buffer), which this package does not
 duplicate. It helps: in the model the turn is exactly the motion at every
@@ -1193,7 +1193,7 @@ longer does anything for mouse look. M-E4's 60 fps default limit makes
 retail's code behave better too, but is not needed once M-E3 is in.
 
 **Retail bugs.** The net and cshell packages' lists moved into
-`RETAIL_BUGS.md`, with mouse look: `CLTTransform::Inverse` (fixed in the
+`docs/RETAIL_BUGS.md`, with mouse look: `CLTTransform::Inverse` (fixed in the
 modern build), the multiplayer timer, the bomb (not fixed).
 
 **Score.** `make progress` (check) passes unchanged; `make test` passes.
@@ -1219,7 +1219,7 @@ Controller support in the modern build, the same design and player
 experience as nolfsrc's P7 (its commits "Modern build: controller support
 (P7)", "Controller: A skips a cut-scene, and goes on from the death
 screen", "Modern build: no DirectInput joysticks, the controller only").
-Everything is behind `NOLF2SRC_MODERN`; MODERN.md has the items.
+Everything is behind `NOLF2SRC_MODERN`; docs/MODERN.md has the items.
 
 - **Engine** (`src/modern/xinput/gamepad_device.h`, `padread.h`, included
   by `input.cpp`): `##gamepad`, an `IDirectInputDevice8A` of our own over
@@ -1236,7 +1236,7 @@ Everything is behind `NOLF2SRC_MODERN`; MODERN.md has the items.
 - **Strings** 31100-31114 (`ClientResShared`, a block of their own, apart
   from the modern build's 31000 and up).
 - **Retail bug**: a gamepad's buttons were bound by instance number
-  (`RETAIL_BUGS.md`, M-G63).
+  (`docs/RETAIL_BUGS.md`, M-G63).
 - **Testing**: `NOLF2SRC_PADTEST` makes a file the pad; `tools/playtest.sh`
   has `pad` and `tap`, and `tools/playtest-pad.txt` drives the menus,
   Configure controls (a button bound), the Controller screen, a new game
@@ -1276,7 +1276,7 @@ at the desktop's size, so old configs come up as before).
   (one mode) a "Window" at the desktop's size puts the frame off screen.
 - IDs taken: strings 31200-31202 (`IDS_MODERN_FULLSCREEN`, `_WINDOW`,
   `_BORDERLESS`; 31000-31001 renamed to `IDS_MODERN_WINDOWMODE`); the
-  launcher's own table 31000-31002 and control 1100; MODERN.md M-E30,
+  launcher's own table 31000-31002 and control 1100; docs/MODERN.md M-E30,
   M-G70, M-L5.
 - **Testing.** `tools/playtest.sh` has `PLAYTEST_SCREEN` (a display larger
   than the mode, so a window has room around it) and a `screen` command
@@ -1314,7 +1314,7 @@ at the desktop's size, so old configs come up as before).
 
 ### 16. fps
 
-300 frames a second in single player at real speed (MODERN.md M-E4), as
+300 frames a second in single player at real speed (docs/MODERN.md M-E4), as
 nolfsrc did for NOLF1. NOLF2's engine already keeps time well: client and
 server frame times are whole-millisecond differences of one clock, so no
 time is lost (NOLF1 clamped a tick to at least 10 ms and dropped

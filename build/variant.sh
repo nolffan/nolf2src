@@ -21,7 +21,7 @@
 #            every binary go beside it. src/nolf2src/nolf2src_debug.h's
 #            NOLF2SRC_LOG lines go to nolf2src.log in the game's directory.
 #   modern   NOLF2SRC_MODERN: the modern build's fixes and features
-#            (MODERN.md). Compile + /D NOLF2SRC_MODERN, resource scripts
+#            (docs/MODERN.md). Compile + /D NOLF2SRC_MODERN, resource scripts
 #            + /d NOLF2SRC_MODERN. And open-source middleware in place of
 #            RAD's (NOLF2_MIDDLEWARE=open, build/ext.sh): our Bink player
 #            on FFmpeg, built from src/modern/binkw32/ and the ext/ffmpeg

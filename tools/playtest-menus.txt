@@ -1,6 +1,6 @@
 # playtest-menus.txt -- a tour of the menus for tools/playtest.sh (world
 # "-": the game starts on its main menu), for checking their layout at a
-# screen size (PLAYTEST_RES; MODERN.md M-G2). Page coordinates are the
+# screen size (PLAYTEST_RES; docs/MODERN.md M-G2). Page coordinates are the
 # menus' 640x480 page (PLAYTEST_MAP).
 window 120
 wait 20

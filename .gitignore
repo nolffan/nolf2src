@@ -7,7 +7,7 @@ out/
 # Monolith's project files put every output in a built/ directory
 src/**/[Bb]uilt/
 # the LithTech Jupiter SDK's source, copied from rez/ at build time by
-# tools/jupitersrc.py (LICENSE-NOTES.md: not to be committed)
+# tools/jupitersrc.py (docs/LICENSE-NOTES.md: not to be committed)
 src/Game/Libs/WONAPI/
 src/Game/Libs/ServerDir/CServerDir_Titan.cpp
 src/Game/Libs/ServerDir/CServerDir_Titan.h

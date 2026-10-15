@@ -58,12 +58,12 @@
 #                         page, mapped to the window as PLAYTEST_MAP says:
 #                         "retail" (the page centred, unscaled; the default
 #                         for a release build) or "modern" (the centred 4:3
-#                         area, scaled by the height: MODERN.md M-G2; the
+#                         area, scaled by the height: docs/MODERN.md M-G2; the
 #                         default for a game directory named *modern*)
 #   mclick <x> <y>        the same, then a click of button 1
 #   pad [button...] [axis=value...]
 #                         the test controller (the modern build's ##gamepad,
-#                         MODERN.md M-E20, which in a scripted run reads its
+#                         docs/MODERN.md M-E20, which in a scripted run reads its
 #                         state from the file NOLF2SRC_PADTEST names, not
 #                         from XInput): the buttons held from now on -- a b
 #                         x y lb rb back start ls rs up down left right (the
@@ -337,7 +337,7 @@ if [ ! -e /dev/snd ] && [ -f /usr/share/alsa/alsa.conf ]; then
 fi
 export WINEDEBUG=${PLAYTEST_WINEDEBUG:--all,+seh} WINEDLLOVERRIDES=${PLAYTEST_DLLOVERRIDES-winedbg.exe=d}
 [ -n "${PLAYTEST_PREFIX:-}" ] && export WINEPREFIX=$PLAYTEST_PREFIX
-# the modern build lays its menus out in the centred 4:3 area (MODERN.md M-G2)
+# the modern build lays its menus out in the centred 4:3 area (docs/MODERN.md M-G2)
 case "$(basename "$GAME")" in *modern*) DEFMAP=modern ;; *) DEFMAP=retail ;; esac
 export PLAYTEST_MAP="${PLAYTEST_MAP:-$DEFMAP}"
 # a scripted run's controller is the test pad, and starts unplugged (`pad`)

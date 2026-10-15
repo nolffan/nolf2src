@@ -57,7 +57,7 @@ Companion documents outside this directory:
 engine, the mapping onto the Jupiter tree, and what nolfsrc's process
 was), [`tools/README.md`](../tools/README.md) (what each tool does),
 [`progress/COMPILERS.md`](../progress/COMPILERS.md) (which compiler and flags
-built each retail binary) and [`SETUP-NOTES.md`](../SETUP-NOTES.md) (the
+built each retail binary) and [`docs/SETUP-NOTES.md`](../docs/SETUP-NOTES.md) (the
 build container and toolchains).
 
 ## The guides
@@ -102,7 +102,7 @@ Missing numbers:
 - **01-environment**: NOLF1's toolchain table (four cl revisions and Intel
   C/C++ 4.0) and its build scripts. NOLF2 has one compiler for all of
   Monolith's code (below); the container and toolchains are in
-  `SETUP-NOTES.md`, the compile and link command lines in `build/build.mk`,
+  `docs/SETUP-NOTES.md`, the compile and link command lines in `build/build.mk`,
   and the one-file loop in `build/engine.sh` (with `run_cl` and the rest in
   `build/env.sh` for compiling by hand).
 - **04-worked-example** (a NOLF1 lithshared library function, matched

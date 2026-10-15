@@ -1,6 +1,6 @@
 # playtest-borderless.txt -- a borderless window on a desktop of another
 # size than any mode asked for, for tools/playtest.sh (world "-"; the
-# modern build: MODERN.md M-E30, M-G70, M-E31). Start it borderless, with
+# modern build: docs/MODERN.md M-E30, M-G70, M-E31). Start it borderless, with
 # a display of a size no mode was asked for:
 #   PLAYTEST_WINDOWED=1 PLAYTEST_ARGS="++WindowMode 2"
 #   PLAYTEST_SCREEN=1366x768   (or 3840x2160: the game crashed as it

@@ -12,10 +12,11 @@ marked `RETAIL:`. The aim, as for [nolfsrc](https://github.com/nolffan/nolfsrc)
 - **legacy**: the 1.3 game as it shipped, rebuilt so that it compiles back
   to the retail binaries byte for byte, as far as that can be done;
 - **modern**: the same source with fixes and new features (`NOLF2SRC_MODERN`;
-  `MODERN.md`), and no RAD binary: its Bink player is ours, on FFmpeg.
+  [`docs/MODERN.md`](docs/MODERN.md)), and no RAD binary: its Bink player is
+  ours, on FFmpeg.
 
 Compiling back to the retail bytes means compiling the retail game's bugs as
-well. The ones found so far are listed in [`RETAIL_BUGS.md`](RETAIL_BUGS.md);
+well. The ones found so far are listed in [`docs/RETAIL_BUGS.md`](docs/RETAIL_BUGS.md);
 their fixes go behind `NOLF2SRC_MODERN`, into the modern build only, so the
 legacy build keeps matching the retail one.
 
@@ -23,6 +24,17 @@ legacy build keeps matching the retail one.
   <img src="screenshots/screenshot01.png" alt="The main menu, running from this build" width="49%">
   <img src="screenshots/screenshot02.png" alt="In game, running from this build" width="49%">
 </p>
+
+## Documentation
+
+| | |
+|---|---|
+| [`docs/MODERN.md`](docs/MODERN.md) | the modern build, item by item, with the NOLF 2 Modernizer's every change |
+| [`docs/RETAIL_BUGS.md`](docs/RETAIL_BUGS.md) | the retail game's bugs found while rebuilding it |
+| [`docs/BUILDING.md`](docs/BUILDING.md), [`docs/SETUP-NOTES.md`](docs/SETUP-NOTES.md) | the build, step by step; how the base was set up |
+| [`docs/LICENSE-NOTES.md`](docs/LICENSE-NOTES.md) | what is whose, and what each archive holds |
+| [`docs/engine/`](docs/engine/) | the engine's reconstruction: the plan and its packages, the retail engine's anatomy |
+| [`guides/`](guides/) | how to reconstruct a function so it compiles to the retail bytes |
 
 ## Where it stands
 
@@ -82,7 +94,7 @@ discs, for the public archive's install scripts).
 ```sh
 make            # out/nolf2-legacy-release/ and its -private / -public .tar.gz
 make debug      # out/nolf2-legacy-debug/: symbols, NOLF2SRC_DEBUG
-make modern     # out/nolf2-modern-release/: NOLF2SRC_MODERN (MODERN.md)
+make modern     # out/nolf2-modern-release/: NOLF2SRC_MODERN (docs/MODERN.md)
 make test       # play it under Xvfb: main menu, new game, the first level
 make test TEST_GAME=out/nolf2-modern-release   # the same, on a variant
 make help       # everything else
@@ -97,7 +109,8 @@ the launcher, as the retail install does.
 
 `build/build.mk` builds Monolith's workspace as Developer Studio would:
 `tools/dsp2mk.py` reads `TO2.dsw` and the project files and writes the
-rules, compile for compile. `BUILDING.md` describes the build step by step.
+rules, compile for compile. [`docs/BUILDING.md`](docs/BUILDING.md)
+describes the build step by step.
 
 ## Playing it elsewhere: the archives
 
@@ -133,14 +146,15 @@ itself, and can be run again: a file already in place is checked and kept.
 The public archive is made only if `rez/isos/` has the `.iso` images of
 both releases' discs (`make retail` fetches them; `tools/mkinstall.py`).
 The GitHub Actions workflow builds the four public archives on every push
-(`BUILDING.md`).
+(`docs/BUILDING.md`).
 
 The modern build plays with a controller: an Xbox-style (XInput) pad, which
 is also what Steam Input makes of the Steam Deck's controls and of most other
 pads. The sticks move and look, the triggers fire and zoom, A skips a
 cut-scene, and the menus follow the d-pad, A and B; Options > Controls >
 Controller sets the look speed and dead zones, and Configure controls binds
-the buttons like keys (`MODERN.md` M-G47). So far it is tested with a
+the buttons like keys (`docs/MODERN.md` M-G47). So far it is tested with a
 simulated pad only.
 
-See `LICENSE-NOTES.md` for what is whose, and what each archive holds.
+See [`docs/LICENSE-NOTES.md`](docs/LICENSE-NOTES.md) for what is whose, and
+what each archive holds.

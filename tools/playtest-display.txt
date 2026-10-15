@@ -3,7 +3,7 @@
 # window mode on, leaving the screen each time (the renderer restarts):
 # from a window to a borderless window (at the desktop's resolution), to
 # full screen, to a window again, with a shot of the whole display after
-# each (MODERN.md M-G70, M-E30). Start it in a window on a larger display:
+# each (docs/MODERN.md M-G70, M-E30). Start it in a window on a larger display:
 #   PLAYTEST_RES=1280x720 PLAYTEST_SCREEN=1920x1080 PLAYTEST_WINDOWED=1
 #   PLAYTEST_ARGS="++WindowMode 1"
 # Page coordinates are the menus' 640x480 page (PLAYTEST_MAP), for the

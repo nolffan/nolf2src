@@ -3,7 +3,7 @@
 # Monolith's release lacks for ServerDir.dll -- WONAPI and CServerDir_Titan
 # (tools/jupitersrc.py). The rez/ submodule fetches its CD image from
 # archive.org and installs its "Source Code" file group (rez/README.md,
-# "sdk/"); nothing of it is committed here (LICENSE-NOTES.md).
+# "sdk/"); nothing of it is committed here (docs/LICENSE-NOTES.md).
 #
 # JUPITER_SDK      rez/'s name for it
 # jupiter_source   prints rez/sdk/lithtech-jupiter-51, if it is installed

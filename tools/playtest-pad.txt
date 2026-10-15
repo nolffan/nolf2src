@@ -1,4 +1,4 @@
-# playtest-pad.txt -- the controller (MODERN.md M-E20, M-G47, M-G60..M-G62)
+# playtest-pad.txt -- the controller (docs/MODERN.md M-E20, M-G47, M-G60..M-G62)
 # for tools/playtest.sh on the modern build (world "-": the game starts on
 # its main menu), with the test pad (`pad`, `tap`): the menus with the d-pad,
 # A and B (Options > Controls > Configure controls, where a pad button is
@@ -27,7 +27,7 @@ wait 3
 shot controls
 # Configure controls (the first): its Movement list, which shows the
 # controller's buttons. Down to Forward, A, then Y binds it to "Controller
-# Y Button" (MODERN.md M-G63; Y is not a menu key meanwhile); B leaves the
+# Y Button" (docs/MODERN.md M-G63; Y is not a menu key meanwhile); B leaves the
 # list, then the screen
 tap a
 wait 3
