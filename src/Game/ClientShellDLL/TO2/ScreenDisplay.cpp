@@ -624,7 +624,15 @@ void CScreenDisplay::OnFocus(LTBOOL bFocus)
 			pProfile->m_bVSync = m_bVSync;
 			pProfile->m_fGamma = ConvertToGamma(m_nGamma);
 			// Set the render mode if we are losing focus
+#ifdef NOLF2SRC_MODERN
+			// MODERN.md M-E31: and only if one is listed: with none (a
+			// full-screen 5:4 mode, the only one the display has, M-G1)
+			// retail read the empty list at index -1
+			if (m_pResolutionCtrl &&
+				(uint32)m_pResolutionCtrl->GetSelIndex() < m_rendererData.m_resolutionArray.GetSize())
+#else
 			if (m_pResolutionCtrl)
+#endif
 			{
 				// Get the new renderer structure
 				RMode newMode=GetRendererModeStruct(m_pResolutionCtrl->GetSelIndex());
@@ -852,10 +860,18 @@ void CScreenDisplay::ModernReadOptions()
 
 	// M-G70: a window may be of a size the screen has no mode for (M-E2);
 	// list it, or the screen would show (and its OK set) another resolution
+	// (a borderless window on a 5:4 desktop, say, when no mode at all is
+	// listed: then the renderer is the mode's, M-E31)
 	RMode currentMode;
 	if (m_nModernWindowMode != kModernFullScreen && g_pLTClient->GetRenderMode(&currentMode) == LT_OK &&
-		currentMode.m_Width >= 640 && currentMode.m_Height >= 480 && m_rendererData.m_description[0])
+		currentMode.m_Width >= 640 && currentMode.m_Height >= 480)
 	{
+		if (!m_rendererData.m_description[0])
+		{
+			m_rendererData.m_bHWTnL = currentMode.m_bHWTnL;
+			SAFE_STRCPY(m_rendererData.m_description, currentMode.m_Description);
+			SAFE_STRCPY(m_rendererData.m_internalName, currentMode.m_InternalName);
+		}
 		ScreenDisplayResolution resolution;
 		resolution.m_dwWidth = currentMode.m_Width;
 		resolution.m_dwHeight = currentMode.m_Height;

@@ -51,6 +51,9 @@
 #   shot <name>           screenshot the game window -> shots/NN-<name>.png
 #   screen <name>         screenshot the whole display (the window on it)
 #   focus                 re-focus the game window
+#   minimize / restore    iconify the game window (it loses the focus) /
+#                         map and activate it again (a window manager's
+#                         job: PLAYTEST_WM)
 #   mmove <x> <y>         move the pointer to a point of the menus' 640x480
 #                         page, mapped to the window as PLAYTEST_MAP says:
 #                         "retail" (the page centred, unscaled; the default
@@ -91,6 +94,9 @@
 #                         makes it smaller than the display)
 #   PLAYTEST_SCREEN=WxH   the virtual display's size, when it should not be
 #                         the screen mode's (a window on a larger desktop)
+#   PLAYTEST_WM=<command> a window manager to run on the display first
+#                         (e.g. openbox; it must be in the image: Xvfb
+#                         alone has none, so no frame, focus or placement)
 #   PLAYTEST_ARGS="..."   more engine arguments (e.g. +DisableSound 1)
 #   PLAYTEST_CFG=<file>   console variables appended to the run's
 #                         autoexec.cfg (lines like "UIScale" "1.000000")
@@ -181,6 +187,12 @@ cat > "$RUN/runner.sh" <<'RUNNER'
 #!/bin/bash
 # $1 = seconds (idle mode: total; script mode: extra after the script)
 SECS=$1
+# a window manager first, when asked for (PLAYTEST_WM): it frames, places
+# and focuses the game's windows, as a desktop's does
+if [ -n "${PLAYTEST_WM:-}" ]; then
+    $PLAYTEST_WM > wm.log 2>&1 &
+    sleep 2
+fi
 wine Lithtech.exe -cmdfile nolf2cmds.txt > wine.log 2>&1 &
 PID=$!
 alive() { kill -0 $PID 2>/dev/null; }
@@ -279,6 +291,8 @@ if [ -f script.txt ]; then
             shot)  N=$((N+1)); f=$(printf 'shots/%02d-%s.png' $N "$1"); grab "$f"; log "  -> $f" ;;
             screen) N=$((N+1)); f=$(printf 'shots/%02d-%s.png' $N "$1"); xwd -root -silent | convert xwd:- "$f"; log "  -> $f (the display)" ;;
             focus) focuswin ;;
+            minimize) [ -n "$WIN" ] && xdotool windowminimize "$WIN" 2>/dev/null ;;
+            restore) [ -n "$WIN" ] && { xdotool windowmap "$WIN" 2>/dev/null; xdotool windowactivate "$WIN" 2>/dev/null || focuswin; } ;;
             mmove) pagemove "$1" "$2" ;;
             mclick) pagemove "$1" "$2"; sleep 0.4; xdotool mousedown 1; sleep 0.1; xdotool mouseup 1 ;;
             pad)   padset "$@" ;;

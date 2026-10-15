@@ -1,0 +1,82 @@
+# playtest-borderless.txt -- a borderless window on a desktop of another
+# size than any mode asked for, for tools/playtest.sh (world "-"; the
+# modern build: MODERN.md M-E30, M-G70, M-E31). Start it borderless, with
+# a display of a size no mode was asked for:
+#   PLAYTEST_WINDOWED=1 PLAYTEST_ARGS="++WindowMode 2"
+#   PLAYTEST_SCREEN=1366x768   (or 3840x2160: the game crashed as it
+#                               started there, M-E31)
+# and, where the image has one (docker/Dockerfile's has none), a window
+# manager: PLAYTEST_WM=openbox.
+# The main menu, a new game played into, the focus lost and back (Alt+Tab,
+# the window minimised and restored), then the in-game Display screen: to
+# full screen (on Xvfb only at the display's size) and back to borderless,
+# playing on after each. Page coordinates are the menus' 640x480 page
+# (PLAYTEST_MAP).
+window 120
+wait 20
+screen menu
+# Single player > New game > Normal
+mclick 130 191
+wait 4
+mclick 120 191
+wait 3
+mclick 360 188
+wait 20
+skipcine 120
+screen play
+turn 300 0
+hold w 1
+# the focus away and back
+key alt+Tab
+wait 2
+key alt+Tab
+wait 2
+focus
+wait 2
+minimize
+wait 3
+restore
+wait 3
+screen refocused
+hold w 1
+# in-game: System > Options > Display > Window mode, which cycles
+# Borderless, Full screen, Window; leaving Display applies it and returns
+# to Options, where Escape resumes the game
+key Escape
+wait 3
+mclick 355 100
+wait 3
+mclick 110 189
+wait 3
+mclick 130 303
+wait 1
+shot fullscreen-chosen
+key Escape
+wait 10
+window 20
+wait 2
+screen fullscreen
+key Escape
+wait 3
+hold w 1
+# and again: Full screen to Window to Borderless window
+key Escape
+wait 3
+mclick 355 100
+wait 3
+mclick 110 189
+wait 3
+mclick 130 303
+mclick 130 303
+wait 1
+shot borderless-chosen
+key Escape
+wait 10
+window 20
+wait 2
+key Escape
+wait 3
+screen borderless-again
+turn -300 0
+hold w 1
+screen play-again

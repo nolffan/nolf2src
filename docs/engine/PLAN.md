@@ -1286,6 +1286,31 @@ at the desktop's size, so old configs come up as before).
   Xvfb can only be at the display's own size.
 - `make progress` (check) passes unchanged; `make test` passes for the
   release and the modern build.
+- **A crash report** ("crashed under borderless", details unknown) was
+  chased with the modern debug build on displays of sizes no mode was
+  asked for, with and without a window manager (openbox, in a scratch
+  image: `PLAYTEST_WM`), antialiasing on and off, borderless from the
+  command line and both ways through the in-game Display screen, Alt+Tab
+  and minimise/restore (`tools/playtest-borderless.txt`). Found and fixed:
+  at 3840x2160 the game crashed as it started (M-E31: a text parse, the
+  HUD's radio menu; full screen at that size too, but borderless takes a
+  4K desktop's size unasked); on a 5:4-only display leaving the Display
+  screen crashed on an empty resolution list (M-E31); a window is placed
+  on the primary monitor, not across all of them (M-E30). Fine: 1366x768,
+  1920x1200, 2560x1440, 3440x1440, 1280x1024. The debug build's crash
+  handler was never installed (`nolf2src.log` had no backtrace); WinMain
+  installs it now.
+- **Not reproduced / known.** A real GPU, a desktop window manager
+  (GNOME, KDE), HiDPI scaling and real multiple monitors (Xvfb's
+  Xinerama is no stand-in) were not available, nor the launcher's route
+  (it passes the same `+Windowed 1 +WindowMode 2`). Under Xvfb (one mode)
+  a framed window at the desktop's size has no smaller resolution to drop
+  to, so the window manager shrinks it below the back buffer. Letter
+  heights are `uint8`: above about 5K a large font's scaled size wraps.
+  A crash that remains: the modern debug build's `nolf2src.log` (in the
+  game directory) has the backtrace; with the release build, Wine's
+  console output (`linux-run.sh ... 2>&1 | tee wine.log`) shows the
+  faulting address.
 
 ### 16. fps
 

@@ -423,7 +423,21 @@ void CUIFormattedPolyString_Impl::Parse()
 		// need to also handle the case where there's a really long word that
 		// is wider than m_WrapWidth
 
+#ifdef NOLF2SRC_MODERN
+		// MODERN.md M-E31: a letter wider than the wrap width, at the start
+		// of its word, stays on its line. Retail broke the word before it,
+		// which ends the word before it starts (at the string's first
+		// letter, at index -1, 65535 in a uint16), and stepped back onto
+		// the same letter, again and again until the word table was full;
+		// the widths of those words then read 64K letters past the string.
+		// At 3840x2160 the game crashed so as it started: the HUD's radio
+		// menu scales a "1." column 24 pixels wide by setting the letters'
+		// new height (54) before the column's new width.
+		if ( m_WrapWidth  && (line_width >= m_WrapWidth) &&
+			!(old_wordcount == m_WordCount && (int32)m_pWords[m_WordCount * 3] >= i) ) {
+#else
 		if ( m_WrapWidth  && (line_width >= m_WrapWidth) ) {
+#endif
 
  
             if (old_wordcount == m_WordCount) {

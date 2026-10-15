@@ -234,9 +234,16 @@ int d3d_Init(RenderStructInit *pInit)
 	// M-E30: the window mode says which window: WindowMode 2 a borderless
 	// one (the engine has made the mode the desktop's), 1 a framed one at
 	// any size; unset (0), a window as large as the desktop is borderless.
+	// M-E30: the desktop is the primary monitor, whose resolution the
+	// engine took (r_ModernDesktopSize): under Wine the desktop window
+	// spans every monitor, and a borderless window over all of them would
+	// stretch the picture across them.
 	if (g_bRunWindowed || d3d_IsNullRenderOn())
 	{
-		GetWindowRect(GetDesktopWindow(), &screenRect);
+		screenRect.left		= 0;
+		screenRect.top		= 0;
+		screenRect.right	= GetSystemMetrics(SM_CXSCREEN);
+		screenRect.bottom	= GetSystemMetrics(SM_CYSCREEN);
 		int nDesktopW = screenRect.right - screenRect.left;
 		int nDesktopH = screenRect.bottom - screenRect.top;
 

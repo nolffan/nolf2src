@@ -1063,10 +1063,17 @@ bool SetupArgs(const char* pszCommandLine)
     return true;
 }
 
-
+#ifdef NOLF2SRC_DEBUG
+// the debug build's crash handler: a backtrace in nolf2src.log
+#include "nolf2src_crash.h"
+#endif
 
 extern "C" int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpszCmdParam, int nCmdShow) 
 {
+#ifdef NOLF2SRC_DEBUG
+	// the debug build's crash handler: a backtrace in nolf2src.log
+	NOLF2SRC_INSTALL_CRASH_HANDLER();
+#endif
 	LTMemInit();
 
     g_EngineStartMS = timeGetTime();
