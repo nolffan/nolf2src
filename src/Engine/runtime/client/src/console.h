@@ -38,6 +38,14 @@ void con_SetErrorLog(ErrorLogFn theFunction);
 // Keypress handler.
 void con_OnKeyPress(uint32 key);
 
+#ifdef NOLF2SRC_MODERN
+// Draw the console (MODERN.md M-E5; inside Start3D/End3D).
+void con_Draw();
+
+// It has come down: clear the command line, scroll to the newest text.
+void con_ModernOnOpen();
+#endif
+
 // Cycle thru the commands they've typed in...
 void con_CycleCommandsBack();
 void con_CycleCommandsForward();

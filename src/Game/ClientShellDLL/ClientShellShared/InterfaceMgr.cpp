@@ -2323,6 +2323,13 @@ LTBOOL CInterfaceMgr::OnEvent(uint32 dwEventID, uint32 dwParam)
 		case LTEVENT_GAINEDFOCUS:
 		break;
 
+#ifdef NOLF2SRC_MODERN
+		// MODERN.md M-E5: the console up or down (CGameClientShell::OnEvent);
+		// not an error, which an event not listed here is taken for
+		case LTEVENT_CONSOLE:
+		break;
+#endif
+
 		default :
 		{
             uint32 nStringID = IDS_UNSPECIFIEDERROR;

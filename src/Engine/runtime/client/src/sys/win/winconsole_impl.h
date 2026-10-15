@@ -109,6 +109,11 @@ public:
 	// Event handlers
 	void	OnKeyPress( uint32 key );
 
+#ifdef NOLF2SRC_MODERN
+	// MODERN.md M-E5: where the caret is, for drawing it
+	int		GetCursorPos() const { return m_iCursorPos; };
+#endif
+
 };
 
 // Tab-completion iterator base class
@@ -296,6 +301,22 @@ protected:
 	CUIFont*		m_Font;		// Using the CUI font mgr for printing text...
 	SharedTexture*	m_Tex;
 
+#ifdef NOLF2SRC_MODERN
+	// MODERN.md M-E5: the console drawn again (the release build has no
+	// drawing code). m_Font is a font made from a TrueType face at a size
+	// for the screen's height; one string draws every line.
+	CUIPolyString*	m_pModernStr;
+	uint32			m_nModernFontSize;
+	uint32			m_nModernLineHeight;
+
+	bool	ModernMakeFont( uint32 nScreenHeight );
+	void	ModernFreeFont();
+	float	ModernTextWidth( const char *pText, int nChars );
+	void	ModernDrawText( const char *pText, float x, float y, CONCOLOR theColor, const LTRect &cClip );
+	void	ModernDrawBackground( const LTRect &cRect );
+	void	ModernComplete();
+#endif
+
 public:
 
 	CConsole();			
@@ -400,6 +421,16 @@ public:
 	// Event handling
 
 	void	OnKeyPress( uint32 key );
+
+#ifdef NOLF2SRC_MODERN
+	//////////////////////////////////////////////////////
+	// Drawing (MODERN.md M-E5)
+
+	void	Draw();
+
+	// Coming down: an empty line, the newest text
+	void	ModernOnOpen();
+#endif
 
 };
 

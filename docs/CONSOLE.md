@@ -15,9 +15,42 @@ exception: type them in lower case.
 | Build | How |
 |---|---|
 | Retail | There is no console to open. The engine keeps one, but never draws it and never gives it keys. |
-| Modern | The same. A drop-down console is planned ([`MODERN.md`](MODERN.md), M-E5, still to do). |
+| Modern | The key left of `1` (backquote/tilde on a US keyboard, whatever is there on another layout), or **Shift+Esc**, drops the console down over the top half of the screen; either key, or Esc, puts it away. `ConsoleEnable 0` turns it off ([`MODERN.md`](MODERN.md), M-E5). |
 
-So commands can only come from these places, in both builds:
+**In the modern console** you type any line the engine's console takes:
+an engine command (section 1), a variable (`Name value`, or `Name` alone
+to see its value), or, once the game has loaded, a game command (section
+3), `Cheat <code>` and the modern build's `GetPos` and `SetPos` (below).
+Everything the engine and the game print appears in it. Keys:
+
+| Key | What it does |
+|---|---|
+| Enter | Run the line. A variable set prints its new value; a name that is neither a command nor a variable says so. |
+| Up, Down | The lines typed before (those starting with what is typed so far). |
+| Tab | Complete the command or variable name typed; when several fit, complete as far as they agree and list them. |
+| Page Up, Page Down | Scroll the text back and forth (Ctrl: to the start or the end). Ctrl+Up/Down scroll a line. |
+| Left, Right, Home, End, Backspace, Delete | Edit the line (Ctrl: by words; Ctrl+End clears to the end). |
+
+In single player the game pauses while the console is down and goes on
+when it goes away; in multiplayer the game goes on (the player stands
+still: no key reaches the game while the console is down). The variables
+`ConsoleFont` (a TrueType face; by default the first of Consolas, Lucida
+Console, Courier New, Liberation Mono, DejaVu Sans Mono that is installed)
+and `ConsoleFontSize` (letter height in pixels; 0, the default, is a 45th
+of the screen's height) change its look; `ConsoleTop`, `ConsoleBottom`,
+`ConsoleLeft`, `ConsoleRight` its rectangle (negative: a fraction of the
+screen, as `MoveConsole` sets them; the default is the top half).
+
+**Modern build: `GetPos` and `SetPos`** (nolfsrc's console commands).
+`GetPos` prints where the player is, as the line `SetPos x y z`, in the
+level's coordinates (those the `pos` cheat shows; the world's own with
+`ApplyWorldOffset 0`). `SetPos <x> <y> <z>` puts the player there, on the
+floor below that point, facing as before: single player only, for a living
+player. It is retail's `Teleport` command, which the final build left
+doing nothing, done through the server.
+
+Otherwise, and in the retail build, commands can only come from these
+places:
 
 - **The command line.** `+Name value` on `Lithtech.exe`'s command line (or
   in the file given with `-cmdfile`). Each `+Name` takes exactly one
@@ -44,16 +77,13 @@ line instead of activating the object, e.g.
 `+ActivateOverride "ChaseToggle"`. Set it back to `" "` (one space) to
 activate things again.
 
-**Output.** Commands print to the engine console, which is never shown.
-`+ErrorLog 1` copies everything printed there to `error.log` (another name
-with the `ErrorLogFile` variable).
+**Output.** Commands print to the engine console, which retail never shows
+(the modern build's console does). `+ErrorLog 1` copies everything printed
+there to `error.log` (another name with the `ErrorLogFile` variable).
 
 **Cheat codes** are typed in the chat line: `T` (SendMessage), or `Y`
 (TeamMessage, team games only), in the shipped controls. The chat line
 opens only while you are playing.
-
-nolfsrc's modern-console commands (`GetPos`, `SetPos`) and its Shift+Esc key
-wait for M-E5 here.
 
 ## 1. Engine client commands
 
@@ -112,9 +142,9 @@ by the server for variables only.
 
 ## 3. Game commands
 
-The client game registers these when it loads. Until M-E5 they can only be
-run through `ActivateOverride` (see above). Commands marked *server* are sent
-to the game server.
+The client game registers these when it loads. In the retail build they can
+only be run through `ActivateOverride` (see above); in the modern build,
+from the console. Commands marked *server* are sent to the game server.
 
 | Command | Arguments | What it does |
 |---|---|---|
@@ -123,6 +153,8 @@ to the game server.
 | `FragSelf` | | Kill yourself. *server* |
 | `ExitLevel` | | Finish the current level, as `maphole`: single player only. |
 | `Teleport` | `<x> <y> <z>` | Does nothing: the final build leaves out the player teleport. |
+| `GetPos` | | *Modern build.* Print the player's position as `SetPos x y z`. |
+| `SetPos` | `<x> <y> <z>` | *Modern build.* Move the player there (onto the floor below), single player only. *server* |
 | `Cmd` | `<command> <arg> [...]` | Send a command to the server's command manager, as a level's trigger would. At least one argument is needed after the command name. *server* |
 | `Trigger` | `<object> <message>` | Send a one-word message to the named objects. *server* |
 | `List` | `<class>` | Print the objects of a class (case-sensitive) and their positions on the server's console. *server* |
@@ -211,7 +243,7 @@ an ordinary chat message.
 | `endgame` | Mark the game as finished, on/off: the single-player menu then lists the chapters | yes | no |
 | `build` | Show the build's version | yes | no |
 | `secretsquirrel` | Show the build's GUID | yes | no |
-| `obtuse` | Sets `ConsoleEnable`; nothing to see, since the console is never drawn | yes | no |
+| `obtuse` | Toggles `ConsoleEnable`; in retail nothing to see, since the console is never drawn (in the modern build, turning it off keeps the console shut) | yes | no |
 
 A retail mistake in the obfuscated table: the code meant for `gimmemod` is
 garbage, and the one meant for `gimmegear` is the string `gimmemod`. So

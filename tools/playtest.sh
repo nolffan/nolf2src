@@ -36,6 +36,8 @@
 #   wait <secs>           sleep (fractions allowed)
 #   key <keysym>...       tap keys (X keysyms: w a s d space c f Escape F6
 #                         F9 1 2 Shift_L Left Right Return ...)
+#   type <text>           type the text (the rest of the line, its spaces
+#                         as single spaces; no '#'), a key every 0.1s
 #   hold <keysym> <secs>  hold a key down for <secs>
 #   down <keysym> / up <keysym>   press / release (combine with turn etc.)
 #   turn <dx> <dy> [steps]   relative mouse motion, split into <steps>
@@ -272,6 +274,7 @@ if [ -f script.txt ]; then
                 log "  window $WIN ${WW}x${WH}+${WX}+${WY}" ;;
             wait)  sleep "$1" ;;
             key)   for k in "$@"; do xdotool keydown "$k"; sleep 0.08; xdotool keyup "$k"; sleep 0.12; done ;;
+            type)  xdotool type --delay 100 -- "$*" ;;
             hold)  xdotool keydown "$1"; sleep "$2"; xdotool keyup "$1" ;;
             down)  xdotool keydown "$1" ;;
             up)    xdotool keyup "$1" ;;

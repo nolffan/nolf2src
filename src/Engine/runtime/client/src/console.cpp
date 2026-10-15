@@ -81,3 +81,17 @@ void con_OnKeyPress(uint32 key)
 	if (dsi_IsConsoleEnabled () == TRUE)
 		GETCONSOLE()->OnKeyPress( key );
 }
+
+#ifdef NOLF2SRC_MODERN
+// MODERN.md M-E5
+void con_Draw()
+{
+	if (dsi_IsConsoleEnabled () == TRUE)
+		GETCONSOLE()->Draw();
+}
+
+void con_ModernOnOpen()
+{
+	GETCONSOLE()->ModernOnOpen();
+}
+#endif

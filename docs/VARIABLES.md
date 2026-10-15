@@ -8,10 +8,11 @@ default, and whether it is new in the modern build. Commands are listed in
 It is not every variable the engine knows. It leaves out internal tuning
 values with no visible effect, and most renderer debug switches.
 
-NOLF2 never draws its console: retail has no drop-down console, and the
-modern build has none yet ([`MODERN.md`](MODERN.md), M-E5). So a variable is
-set from the command line, from `autoexec.cfg`, or by the menus, which write
-the variables behind their settings.
+Retail NOLF2 never draws its console, so a variable is set from the command
+line, from `autoexec.cfg`, or by the menus, which write the variables behind
+their settings. The modern build has a drop-down console (backquote or
+Shift+Esc; [`CONSOLE.md`](CONSOLE.md), [`MODERN.md`](MODERN.md) M-E5) where
+`Name value` sets one and `Name` shows it.
 
 ## How variables work
 
@@ -65,15 +66,17 @@ the variables behind their settings.
   launcher asks for a detail level, which it passes as
   `+SetPerformanceLevel` (with a resolution, unless one was chosen).
 - **Server variables.** The game server's variables live on the server's
-  own console. With no console to type `serv` into, set them in
-  `s_autoexec.cfg`, which is read but never written.
+  own console. Set them in `s_autoexec.cfg`, which is read but never
+  written, or (the modern build, single player or the host) with
+  `serv Name value` in the console.
 - **Per-level values.** Each level sets `FarZ`, the fog variables
   (`FogEnable`, `FogNearZ`, `FogFarZ`, `SkyFogEnable` and the others) and the
   volumetric fog when it loads, so a value set for them only lasts until the
   next level.
 - **Console output.** The variables that print something print to the
-  console, which is never drawn. `ErrorLog 1` (in `autoexec.cfg` or on the
-  command line) writes everything printed to the console to `error.log`.
+  console, which retail never draws (the modern build's does). `ErrorLog 1`
+  (in `autoexec.cfg` or on the command line) writes everything printed to
+  the console to `error.log`.
 
 "Shipped" in a table is the value in the `autoexec.cfg` or `Default.prf`
 the game ships with, where it differs from the code's default. "Modern" means
@@ -262,7 +265,10 @@ run is the profile's), `LODScale`, `LodOffset`, `LightSaturate`, `FastLight`,
 `PickupMessageDuration`, `ImpactFXLevel`, `ProfileName` (the current
 profile is the registry's) and `SendBandwidth`. The engine also creates
 `MasterPaletteMode`, `ModelTransitionMS` and `Software`, which nothing reads,
-and `ConsoleEnable`, `ConsoleAlpha` and `NumConsoleLines`, which only matter
-to the console that is not drawn. The engine's own `ShowFrameRate` printout
+and `ConsoleAlpha` and `NumConsoleLines`, which only matter to a console
+drawn the development build's way (retail draws none; the modern build's
+uses neither). `ConsoleEnable` 0 keeps the modern build's console shut;
+`ConsoleFont`, `ConsoleFontSize` and `ConsoleLeft`/`Top`/`Right`/`Bottom`
+set its face, letter size and rectangle (`CONSOLE.md`). The engine's own `ShowFrameRate` printout
 is not in the final build; the modern `ShowFramerate` (the same variable)
 draws its counter itself.

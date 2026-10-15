@@ -1697,6 +1697,11 @@ static LTRESULT cis_GetEngineHook(char *pName, void **pData)
 	return LT_ERROR;
 }
 
+#ifdef NOLF2SRC_MODERN
+static LTRESULT cis_Start3D();
+static LTRESULT cis_StartOptimized2D();
+#endif
+
 static LTRESULT cis_FlipScreen(uint32 flags)
 {
 	if(!r_GetRenderStruct()->m_bInitted)
@@ -1707,6 +1712,18 @@ static LTRESULT cis_FlipScreen(uint32 flags)
 	{
 		cis_End3D(END3D_CANDRAWCONSOLE);
 	}
+
+#ifdef NOLF2SRC_MODERN
+	// MODERN.md M-E5: the console over the finished frame (retail draws it
+	// nowhere; Jupiter drew it from End3D, which the game calls many times
+	// a frame)
+	if (dsi_IsConsoleUp() && cis_Start3D() == LT_OK)
+	{
+		cis_StartOptimized2D();
+		con_Draw();
+		cis_End3D(0);
+	}
+#endif
 
 	g_pClientMgr->ShowDrawSurface(flags);	
 	return LT_OK;

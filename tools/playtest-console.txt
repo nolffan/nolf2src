@@ -1,0 +1,85 @@
+# playtest-console.txt -- for tools/playtest.sh (world "-"), the modern
+# build: the developer console (docs/MODERN.md M-E5). A new game as
+# playtest-newgame.txt, then the console opened with backquote over play
+# (the game pauses), a variable set, GetPos, a name completed with Tab,
+# names listed, a line recalled with Up, a cheat; closed, play going on (a
+# walk); opened again to SetPos back to the start (GetPos's position there);
+# then opened with Shift+Esc and closed with Esc, and the in-game menu as
+# before. Page coordinates are the menus' 640x480 page (PLAYTEST_MAP).
+window 120
+wait 20
+mclick 130 191
+wait 4
+mclick 120 191
+wait 3
+mclick 360 188
+wait 20
+skipcine 120
+shot play
+# open it: the game pauses under it
+key grave
+wait 1
+shot console
+type maxfps 120
+key Return
+wait 0.5
+type getpos
+key Return
+wait 0.5
+# Tab: one name starts so, completed
+type showversioni
+key Tab
+key Return
+wait 0.5
+# Tab: several, listed, completed as far as they agree
+type consolefon
+key Tab
+wait 0.5
+key Escape
+wait 1
+key grave
+wait 1
+# Up: the last line again
+key Up
+wait 0.5
+shot recalled
+key Return
+wait 0.5
+type cheat pos
+key Return
+wait 1
+shot typed
+# close it: play goes on (the pos cheat shows where the player is)
+key grave
+wait 2
+shot closed
+hold w 2
+shot walked
+# back to where C01S01 starts (what GetPos said there), with SetPos
+key grave
+wait 1
+type setpos -664.4 -712.2 -8192.9
+key Return
+wait 1
+type getpos
+key Return
+wait 1
+shot setpos
+key grave
+wait 2
+shot back
+# Shift+Esc opens it, Esc closes it
+down Shift_L
+key Escape
+up Shift_L
+wait 1
+shot shift-esc
+key Escape
+wait 2
+shot closed-again
+key Escape
+wait 3
+shot menu-ingame
+key Escape
+wait 3
+shot resumed

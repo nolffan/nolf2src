@@ -67,6 +67,7 @@ Background, in this directory:
 | 15 | `winmode`: window modes in the modern build -- full screen, a window, or a borderless window at the desktop's resolution -- as nolfsrc's M-P1-22: the engine, `render_a`, the Display screen, the launcher's Display dialog, the run scripts | 8, 12 | done: `Windowed` + `WindowMode` (docs/MODERN.md M-E30, M-G70, M-L5), M-G40's toggle folded in; tested under Xvfb in each mode and switched from the menu and the launcher; `make progress` unchanged |
 | 16 | `fps`: 300 frames a second in single player at real speed, as nolfsrc's M-P1-23 (its 0dd4bf4, d171625, 9780977): what goes wrong at high frame rates found, measured and fixed in the modern build, then M-E4's limit raised from 60 | 8, 12 | done: the server tick (AIs), the player's walk and crouch, particle/line systems, aim perturb, fire sparks, debris rest; MaxFPS 300, 60 in multiplayer (docs/MODERN.md M-E4; 4 `docs/RETAIL_BUGS.md` entries) |
 | 17 | `nolfsync`: nolfsrc's commits since package 16 (its history rewritten: a99873c, 549ea60, 3bc4fac, 7855bf1, a97a06c, 1a7a95c, 39d8636, bc52297, 82d0759, 4f5b3fa, 113b4f4), each ported where NOLF2 needs it | 14, 15, 16 | done: out of the water at high frame rates and a 240 default limit (M-E4; 1 `docs/RETAIL_BUGS.md` entry); the documentation in `docs/` with an install guide, console and variables, changelog and credits; the rest already here, not applicable or waiting for M-E5 (notes) |
+| 18 | `console`: the developer console in the modern build (docs/MODERN.md M-E5), with nolfsrc's `GetPos`/`SetPos` (its M-P2-14) and Shift+Esc (M-P2-15) | 12, 17 | done: the engine's own console revived behind the define (keys, drawing at any resolution, completion, answers), the game paused under it in single player, `GetPos`/`SetPos`; tested in play at 640x480, 1920x1080 and 4K and over a multiplayer client (`tools/playtest-console.txt`); 2 `docs/RETAIL_BUGS.md` entries |
 
 ## Notes per package
 
@@ -1382,3 +1383,88 @@ time unless `alwaysfocused` is set (to test).
 end; `make progress` (check) passes unchanged; `make test` passes for the
 release and the modern build (the release build's once judged "NO HUD"
 on a first run, then passed: the run's own timing, not a change here).
+
+### 18. console
+
+The developer console in the modern build (docs/MODERN.md M-E5; how to
+use it: `docs/CONSOLE.md`).
+
+**Engine, not game DLL.** The Modernizer wrote a console of its own in the
+game DLL, and nolfsrc did the same (its engine is a binary reconstruction;
+it added `ILTClient` methods for the output and the command list). Here the
+engine is source, and retail's release build already keeps nearly all of
+Jupiter's console: the text buffer every print goes to (game `CPrint`s
+included), the command line and its editing, the history, the command
+handler, the input gating (`dsi_IsConsoleUp`: no key forwarded to the game,
+the controls cleared, keys to `con_OnKeyPress`), and the development
+build's backquote toggle in the window procedure (`#ifndef _FINAL`). What
+was missing is the drawing and the keys, so reviving it is less new code,
+needs no interface but one event id, and sees everything printed from the
+first line on. What the game must do itself -- pause -- comes from an
+event.
+
+- **Keys** (`kernel/src/sys/win/client.cpp`, `cl_ModernConsoleKey`): the
+  key with scan code 0x29 (left of 1) or `VK_OEM_3`, or Shift+Esc, opens;
+  either or Esc closes; repeats ignored; the key's queued `WM_CHAR` taken
+  out (TranslateMessage posts it before the key down is dispatched).
+  `ConsoleEnable` 0 (or the game's `SetConsoleEnable`) leaves the key to the
+  game. The development build's Shift/Ctrl+tilde line counts are left out.
+- **Drawing** (`winconsole_impl.cpp`, `CConsole::Draw`): Jupiter's drew
+  with a bitmap font from `console\console_font.dtx` (not in NOLF2's data)
+  and D3D9 calls, from `End3D`, which the game calls many times a frame.
+  Now `cis_FlipScreen` draws it once, over the finished frame, in its own
+  Start3D/Optimized2D: a draw-primitive band and a polystring per line,
+  in a vector font from the engine's font manager (Lib_UI's GDI glyph
+  rendering): the first installed of a list of fixed-pitch faces (under
+  Wine, fontconfig's Liberation Mono or DejaVu Sans Mono; Wine has no
+  Courier New and substitutes a proportional face for it) at a 45th of
+  the screen's height, 12 to 80 pixels (letter sizes are 8-bit). Remade on
+  a size change, freed with the console when the renderer goes
+  (`TermConsole`, before the device). Characters the font lacks and a
+  message's kept newline are drawn as spaces / dropped.
+- **Lines**: `c_ModernTypedCommand` runs the line through the handler as
+  before and then answers each statement that was not a command; Tab is
+  `CConsole::ModernComplete` over `c_ModernEnumNames` (the command list --
+  the engine's commands are on it too -- the variable hash, the engine
+  variable table), sorted and unique, bash-like. The line is cleared when
+  the console comes down.
+- **Pause**: `cm_ModernConsoleEvent` at the start of each client frame
+  sends `LTEVENT_CONSOLE` (100, `sdk/inc/ltcodes.h`) on a change.
+  `CGameClientShell::OnEvent` pauses single-player play (`PauseGame`, the
+  pause text and tint turned off again) and unpauses only what it paused.
+  `CInterfaceMgr::OnEvent`'s default case takes an unknown event for an
+  error and switches to the main menu (found the hard way: the first test
+  dropped out of the level): the event is listed there. A retail
+  `CShell.dll` with this engine would do just that; the modern engine needs
+  the modern game DLL anyway.
+- **`GetPos`/`SetPos`** (`GameClientShell.cpp`): the level's coordinates
+  (`ApplyWorldOffset`, as the `pos` cheat); `SetPos` writes the
+  `MID_PLAYER_TELEPORT` message `CPlayerMgr::Teleport` writes outside the
+  final build; the server's `CPlayerObj::Teleport` puts the player on the
+  floor below the point (`MoveObjectToFloor`) and the client follows. Single
+  player only (M-G7 makes the server ignore it from remote clients anyway).
+  A point in the air with nothing below is a fall: the first test's guess
+  killed the player.
+- **Retail bugs** (`docs/RETAIL_BUGS.md`): `IsKeyDown` tests Ctrl for any
+  key (`0x497c00`, `0x4963d0`; fixed); `CClientConIterator::NextItem`
+  (`0x41b130`) ends the engine-variable walk on the wrong index (not fixed:
+  not used any more).
+- **Not done**: the Modernizer's `help` (Tab on a first letter lists
+  names), lines of console text over play (`NumConsoleLines`, Jupiter's
+  `DrawSmall`), a console background image (`console.pcx`, not shipped),
+  the mouse wheel to scroll. `ConsoleAlpha` is not read.
+- **Testing**: `tools/playtest.sh` has `type <text>`;
+  `tools/playtest-console.txt` (modern game directory) opens it over play,
+  sets a variable, `GetPos`, Tab (one match, several), Up, `Cheat pos`,
+  closes it and walks, `SetPos` back to the start (GetPos then reads the
+  start again, on the floor), Shift+Esc and Esc, the in-game menu. Run at
+  640x480, 1920x1080 and 3840x2160 (`PLAYTEST_RES`), screenshots checked.
+  Multiplayer: `tools/mptest.sh` with `MPTEST_KEYS` ending
+  `grave g e t p o s Return ... grave` (the modern join screen needs
+  `Down Down` before the server's `Return`): over a joined client,
+  `GetPos` answered, `SetPos` refused, the client stayed joined. That the
+  single-player game is paused is seen only through the pause path (input
+  off, no time passing visible in the shots), not measured.
+
+`make game`, `make modern` pass; `make progress` (check) passes unchanged;
+`make test` passes for the release and the modern build.

@@ -146,6 +146,15 @@ so you can display a loading screen.
 
 //! Called when \b NullRender is 1 and we have regained focus.
     LTEVENT_GAINEDFOCUS =         7   ,
+
+#ifdef NOLF2SRC_MODERN
+/*!
+MODERN.md M-E5: the developer console came down (\b dwParam 1) or went
+away (\b dwParam 0). Sent from the client's update, not from the key's
+window message, so the game can pause or unpause there.
+*/
+    LTEVENT_CONSOLE =             100 ,
+#endif
 };
 
 

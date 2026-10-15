@@ -10,6 +10,8 @@ covers each change in detail, under its item number (M-E1, M-G2 and so on).
 
 ## Unreleased
 
+- **A developer console**, opened with backquote or Shift+Esc, with
+  `GetPos` and `SetPos`. (M-E5)
 - **Out of the water at high frame rates** the player floats and jumps as
   high as at 60 frames a second. (M-E4)
 - **The frame-rate limit's default is 240** (it was 300). The Display
@@ -74,6 +76,13 @@ covers each change in detail, under its item number (M-E1, M-G2 and so on).
   lower for today's mice, and the "Input rate" slider, which no longer does
   anything for the mouse, is gone. (M-E3)
 - **The mouse wheel** moves through the menus as the arrow keys do. (M-G43)
+- **A developer console.** The key left of `1` (backquote) or Shift+Esc
+  drops it down over the top of the screen, readable at any resolution:
+  engine and game commands, variables and cheats, with their output, a
+  history, Tab completion and scrolling. Single player pauses while it is
+  down. New commands `GetPos` and `SetPos x y z` say where the player is
+  and move them (single player). See [`docs/CONSOLE.md`](docs/CONSOLE.md).
+  (M-E5)
 
 ### Controller
 
@@ -156,9 +165,6 @@ These retail bugs are fixed (details in
 
 ### Not included
 
-- The developer console on screen (M-E5); console commands still come from
-  the command line and `autoexec.cfg` (see
-  [`docs/CONSOLE.md`](docs/CONSOLE.md)).
 - The Internet server list (M-E6): Sierra's servers are gone; LAN play and
   direct joins work.
 - The damage flash on wide screens (M-G38), a jukebox (M-G46), the dedicated

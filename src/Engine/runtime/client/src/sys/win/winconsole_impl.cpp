@@ -62,9 +62,15 @@ CConsole g_Console;
 CConIterator g_ConEmptyIterator;
 
 // Convenience functions...
-inline bool IsKeyDown( uint16 vkKey ) 
+inline bool IsKeyDown( uint16 vkKey )
 {
+#ifdef NOLF2SRC_MODERN
+	// MODERN.md M-E5: the key asked about (Jupiter's tested Ctrl whatever
+	// the key, so Shift+Tab was Tab)
+	return ((GetAsyncKeyState( vkKey ) & 0x8000) != 0);
+#else
 	return ((GetAsyncKeyState( VK_CONTROL ) & 0x8000) != 0);
+#endif
 }
 
 inline ConsoleState *GetConsoleState()
@@ -73,6 +79,10 @@ inline ConsoleState *GetConsoleState()
 }
 
 // Console Variables
+#ifdef NOLF2SRC_MODERN
+extern char* g_CV_ConsoleFont;
+extern int32 g_CV_ConsoleFontSize;
+#endif
 extern int32 g_CV_ConsoleHistoryLen;
 extern int32 g_CV_ConsoleBufferLen;
 extern float g_CV_ConsoleAlpha;
@@ -612,6 +622,12 @@ CConsole::CConsole()
 
 	m_Tex = NULL;
 	m_Font = NULL;
+
+#ifdef NOLF2SRC_MODERN
+	m_pModernStr = LTNULL;
+	m_nModernFontSize = 0;
+	m_nModernLineHeight = 0;
+#endif
 }
 
 CConsole::~CConsole()
@@ -668,6 +684,9 @@ bool CConsole::InitBare()
 
 void CConsole::Term(bool bDeleteTextLines)
 {
+#ifdef NOLF2SRC_MODERN
+	ModernFreeFont();
+#endif
 	FreeBackground();
 
 	if ( bDeleteTextLines )
@@ -762,6 +781,22 @@ void CConsole::FinishCommand()
 	if (pCurCommand[0] == 0)
 		return;
 
+#ifdef NOLF2SRC_MODERN
+	// MODERN.md M-E5: the line echoed after a prompt, run, and answered
+	// where the handler is silent; back to the newest output
+	Printf( GetCommandBox()->GetTextColor(), 0, "> %s", pCurCommand );
+
+	m_cHistory.Add( pCurCommand );
+
+	// The line is run from a copy: a command can print, or close the
+	// console, while it runs
+	char aCommand[MAX_CONSOLE_TEXTLEN + 1];
+	LTStrCpy( aCommand, pCurCommand, sizeof(aCommand) );
+	GetCommandBox()->Clear();
+	m_iScrollOffset = 0;
+
+	c_ModernTypedCommand( aCommand );
+#else
 	PrintString( GetCommandBox()->GetTextColor(), 0, pCurCommand );
 
 	m_cHistory.Add( pCurCommand );
@@ -770,6 +805,7 @@ void CConsole::FinishCommand()
 		m_CommandHandler( pCurCommand );
 
 	GetCommandBox()->Clear();
+#endif
 }
 
 void CConsole::CheckVariables()
@@ -1197,6 +1233,12 @@ void CConsole::OnKeyPress(uint32 key)
 				CycleCommands( 1 );
 			break;
 		case VK_TAB :
+#ifdef NOLF2SRC_MODERN
+			// MODERN.md M-E5: completes the name typed, as far as the names
+			// that start with it agree, and lists them when there are several
+			ModernComplete();
+			break;
+#endif
 			if ( IsKeyDown( VK_CONTROL ) )
 				MatchCommands();
 			else if ( IsKeyDown( VK_SHIFT ) )
@@ -1221,6 +1263,379 @@ void CConsole::OnKeyPress(uint32 key)
 			break;
 	}
 }
+
+
+#ifdef NOLF2SRC_MODERN
+
+// ------------------------------------------------------------------ //
+// MODERN.md M-E5: the console drawn and completing names again.
+//
+// The release build keeps the console's text, history and command line
+// but none of its drawing: Jupiter's drew a bitmap font from a texture that
+// NOLF2 does not ship (console\console_font.dtx) through D3D9 calls. This
+// draws through the engine's own font manager instead, a TrueType face
+// (ConsoleFont, or a fixed-pitch face found installed) at a size for the
+// screen
+// (ConsoleFontSize, or a 45th of its height), so it reads the same at
+// 640x480 and at 4K, over a dark translucent band (the rectangle of
+// ConsoleLeft, ConsoleTop, ConsoleRight and ConsoleBottom: the top half of
+// the screen by default). FlipScreen calls it, the last thing drawn in a
+// frame.
+// ------------------------------------------------------------------ //
+
+#define MODERN_CONSOLE_MINSIZE		12
+#define MODERN_CONSOLE_MAXSIZE		80		// the font's letter sizes are 8-bit
+#define MODERN_CONSOLE_MAXMATCHES	512
+
+static int CALLBACK ModernFontFound( const LOGFONT *pFont, const TEXTMETRIC *pMetric, DWORD nType, LPARAM lParam )
+{
+	*(bool *)lParam = true;
+	return 0;
+}
+
+// The first fixed-pitch face of a few that is installed (Windows has the
+// first three, Wine finds Linux's own through fontconfig); GDI would put a
+// proportional face in place of one that is missing
+static const char *ModernConsoleFace()
+{
+	static const char *s_aFaces[] = { "Consolas", "Lucida Console", "Courier New",
+		"Liberation Mono", "DejaVu Sans Mono", "Courier" };
+	const int nFaces = sizeof(s_aFaces) / sizeof(s_aFaces[0]);
+	const char *pFace = s_aFaces[2];
+
+	HDC hDC = GetDC( NULL );
+	if ( !hDC )
+		return pFace;
+
+	for ( int i = 0; i < nFaces; i++ )
+	{
+		bool bFound = false;
+		EnumFontFamilies( hDC, s_aFaces[i], (FONTENUMPROC)ModernFontFound, (LPARAM)&bFound );
+		if ( bFound )
+		{
+			pFace = s_aFaces[i];
+			break;
+		}
+	}
+
+	ReleaseDC( NULL, hDC );
+	return pFace;
+}
+
+bool CConsole::ModernMakeFont( uint32 nScreenHeight )
+{
+	uint32 nSize = (g_CV_ConsoleFontSize > 0) ? (uint32)g_CV_ConsoleFontSize : nScreenHeight / 45;
+	nSize = LTCLAMP( nSize, MODERN_CONSOLE_MINSIZE, MODERN_CONSOLE_MAXSIZE );
+
+	// Made already (or tried, and failed: not again every frame)
+	if ( m_nModernFontSize == nSize )
+		return m_pModernStr != LTNULL;
+
+	ModernFreeFont();
+	m_nModernFontSize = nSize;
+
+	if ( !g_IFontManager )
+		return false;
+
+	const char *pFace = (g_CV_ConsoleFont && g_CV_ConsoleFont[0]) ? g_CV_ConsoleFont : ModernConsoleFace();
+	m_Font = g_IFontManager->CreateFont( "", pFace, nSize );
+	if ( !m_Font )
+		return false;
+
+	m_pModernStr = g_IFontManager->CreatePolyString( m_Font, LTNULL, 0.0f, 0.0f );
+	if ( !m_pModernStr )
+	{
+		g_IFontManager->DestroyFont( m_Font );
+		m_Font = LTNULL;
+		return false;
+	}
+
+	m_nModernLineHeight = nSize + (nSize / 5) + 1;
+	m_FontHeight = (uint16)m_nModernLineHeight;
+	return true;
+}
+
+void CConsole::ModernFreeFont()
+{
+	if ( g_IFontManager )
+	{
+		if ( m_pModernStr )
+			g_IFontManager->DestroyPolyString( m_pModernStr );
+		if ( m_Font )
+			g_IFontManager->DestroyFont( m_Font );
+	}
+
+	m_pModernStr = LTNULL;
+	m_Font = LTNULL;
+	m_nModernFontSize = 0;
+}
+
+float CConsole::ModernTextWidth( const char *pText, int nChars )
+{
+	char aText[MAX_CONSOLE_TEXTLEN + 4];
+	float fWidth = 0.0f;
+
+	if ( nChars < 0 )
+		nChars = strlen( pText );
+	nChars = LTMIN( nChars, MAX_CONSOLE_TEXTLEN + 3 );
+	memcpy( aText, pText, nChars );
+	aText[nChars] = 0;
+
+	if ( !nChars || !m_pModernStr )
+		return 0.0f;
+
+	float fHeight = 0.0f;
+	m_pModernStr->SetText( aText );
+	m_pModernStr->GetDims( &fWidth, &fHeight );
+	return fWidth;
+}
+
+void CConsole::ModernDrawText( const char *pText, float x, float y, CONCOLOR theColor, const LTRect &cClip )
+{
+	// A line keeps a message's last newline (PrintString), and a tab or any
+	// character the font lacks would draw as its first letter: spaces for
+	// those, the line ends at a newline
+	char aText[MAX_CONSOLE_TEXTLEN + 4];
+	int nLength = 0;
+	while ( pText[nLength] && (pText[nLength] != '\n') && (pText[nLength] != '\r') &&
+		(nLength < MAX_CONSOLE_TEXTLEN + 3) )
+	{
+		uint8 nChar = (uint8)pText[nLength];
+		aText[nLength] = ((nChar < ' ') || (nChar > '~')) ? ' ' : (char)nChar;
+		nLength++;
+	}
+	aText[nLength] = 0;
+	if ( !nLength )
+		return;
+
+	m_pModernStr->SetText( aText );
+	m_pModernStr->SetPosition( x, y );
+	m_pModernStr->SetColor( theColor | 0xFF000000 );
+
+	CUIRECT cClipRect( (float)cClip.left, (float)cClip.top,
+		(float)(cClip.right - cClip.left), (float)(cClip.bottom - cClip.top) );
+	m_pModernStr->RenderClipped( &cClipRect );
+}
+
+// A dark band, mostly opaque, and a line along its bottom
+void CConsole::ModernDrawBackground( const LTRect &cRect )
+{
+	g_pILTDrawPrim->SetTransformType( DRAWPRIM_TRANSFORM_SCREEN );
+	g_pILTDrawPrim->SetZBufferMode( DRAWPRIM_NOZ );
+	g_pILTDrawPrim->SetClipMode( DRAWPRIM_NOCLIP );
+	g_pILTDrawPrim->SetFillMode( DRAWPRIM_FILL );
+	g_pILTDrawPrim->SetCullMode( DRAWPRIM_CULL_NONE );
+	g_pILTDrawPrim->SetTexture( LTNULL );
+	g_pILTDrawPrim->SetColorOp( DRAWPRIM_NOCOLOROP );
+	g_pILTDrawPrim->SetAlphaTestMode( DRAWPRIM_NOALPHATEST );
+	g_pILTDrawPrim->SetAlphaBlendMode( DRAWPRIM_BLEND_MOD_SRCALPHA );
+
+	float fEdge = (float)LTMAX( 2, (int)(m_nModernLineHeight / 12) );
+	float aTop[2], aBottom[2];
+	uint8 aAlpha[2], aShade[2];
+
+	aTop[0] = (float)cRect.top;			aBottom[0] = (float)cRect.bottom - fEdge;
+	aTop[1] = aBottom[0];				aBottom[1] = (float)cRect.bottom;
+	aAlpha[0] = 216;					aShade[0] = 0;
+	aAlpha[1] = 255;					aShade[1] = 120;
+
+	for ( int i = 0; i < 2; i++ )
+	{
+		LT_POLYF4 cPoly;
+		cPoly.rgba.r = aShade[i];
+		cPoly.rgba.g = aShade[i];
+		cPoly.rgba.b = (uint8)LTMIN( 255, aShade[i] + aShade[i] / 2 );
+		cPoly.rgba.a = aAlpha[i];
+		cPoly.verts[0].x = (float)cRect.left;	cPoly.verts[0].y = aTop[i];		cPoly.verts[0].z = SCREEN_NEAR_Z;
+		cPoly.verts[1].x = (float)cRect.right;	cPoly.verts[1].y = aTop[i];		cPoly.verts[1].z = SCREEN_NEAR_Z;
+		cPoly.verts[2].x = (float)cRect.right;	cPoly.verts[2].y = aBottom[i];	cPoly.verts[2].z = SCREEN_NEAR_Z;
+		cPoly.verts[3].x = (float)cRect.left;	cPoly.verts[3].y = aBottom[i];	cPoly.verts[3].z = SCREEN_NEAR_Z;
+		g_pILTDrawPrim->DrawPrim( &cPoly, 1 );
+	}
+}
+
+void CConsole::Draw()
+{
+	RenderStruct *pStruct = GetRenderStruct();
+	if ( !pStruct || !pStruct->m_bInitted || !g_pILTDrawPrim )
+		return;
+
+	if ( !ModernMakeFont( pStruct->m_Height ) )
+		return;
+
+	// The buffer and history sizes and the rectangle, from their variables
+	CheckVariables();
+
+	LTRect cRect;
+	CalcRect( cRect );
+	if ( m_Rect.right == -1 )
+		cRect.right = (int)pStruct->m_Width;	// CalcRect keeps 3 pixels off the edge
+
+	int nLine = (int)m_nModernLineHeight;
+	int nMargin = nLine / 2;
+
+	ModernDrawBackground( cRect );
+
+	LTRect cText;
+	cText.left = cRect.left + nMargin;
+	cText.right = cRect.right - nMargin;
+	cText.top = cRect.top;
+	cText.bottom = cRect.bottom;
+
+	// The command line along the bottom, scrolled sideways if the caret
+	// would be past the right edge, and its blinking caret
+	const char *pCommand = GetCommandBox()->GetCommand();
+	float fY = (float)(cRect.bottom - nMargin - nLine);
+	float fPrompt = ModernTextWidth( "> ", -1 );
+	float fCaret = fPrompt + ModernTextWidth( pCommand, GetCommandBox()->GetCursorPos() );
+	float fRoom = (float)(cText.right - cText.left) - ModernTextWidth( "__", -1 );
+	float fX = (float)cText.left - LTMAX( 0.0f, fCaret - fRoom );
+
+	char aCommand[MAX_CONSOLE_TEXTLEN + 4];
+	LTSNPrintF( aCommand, sizeof(aCommand), "> %s", pCommand );
+	ModernDrawText( aCommand, fX, fY, GetCommandBox()->GetTextColor(), cText );
+	if ( (timeGetTime() / 400) & 1 )
+		ModernDrawText( "_", fX + fCaret, fY, CONRGB( 255, 255, 255 ), cText );
+
+	// The text above it, newest at the bottom
+	m_CS.Enter();
+
+	int iRows = (int)(fY - (float)(cRect.top + nMargin)) / nLine;
+	m_nTextLines = (uint32)LTMAX( iRows, 1 );
+
+	GPOS pos = m_TextLines.GetTail();
+	int iCount = m_iScrollOffset;
+	while ( pos && iCount )
+	{
+		m_TextLines.GetPrev( pos );
+		iCount--;
+	}
+
+	float fRowY = fY - (float)nLine;
+
+	// Scrolled back: say there is more below
+	if ( m_iScrollOffset && (iRows > 0) )
+	{
+		ModernDrawText( SCROLL_INDICATOR_UP, (float)cText.left, fRowY, CONRGB( 192, 192, 255 ), cText );
+		fRowY -= (float)nLine;
+		iRows--;
+	}
+
+	while ( pos && (iRows > 0) )
+	{
+		CConTextLine *pLine = m_TextLines.GetPrev( pos );
+		ModernDrawText( pLine->m_Text, (float)cText.left, fRowY, pLine->m_Color, cText );
+		fRowY -= (float)nLine;
+		iRows--;
+	}
+
+	m_CS.Leave();
+}
+
+void CConsole::ModernOnOpen()
+{
+	EndNav();
+	GetCommandBox()->Clear();
+	m_iScrollOffset = 0;
+}
+
+// The names Tab can complete: gathered, then sorted
+struct ModernMatches
+{
+	const char	*m_aNames[MODERN_CONSOLE_MAXMATCHES];
+	int			m_nNames;
+};
+
+static void ModernAddMatch( const char *pName, void *pUser )
+{
+	ModernMatches *pMatches = (ModernMatches *)pUser;
+	if ( pMatches->m_nNames < MODERN_CONSOLE_MAXMATCHES )
+		pMatches->m_aNames[pMatches->m_nNames++] = pName;
+}
+
+static int ModernCompareNames( const void *pA, const void *pB )
+{
+	return stricmp( *(const char **)pA, *(const char **)pB );
+}
+
+void CConsole::ModernComplete()
+{
+	EndNav();
+
+	// Only a first word, with the caret at its end
+	const char *pCommand = GetCommandBox()->GetCommand();
+	int nLength = strlen( pCommand );
+	if ( !nLength || strchr( pCommand, ' ' ) || (GetCommandBox()->GetCursorPos() != nLength) )
+		return;
+
+	// "+Name value" saves a variable: complete the name after the sign
+	const char *pPrefix = pCommand;
+	char aSign[2] = { 0, 0 };
+	if ( (pPrefix[0] == '+') || (pPrefix[0] == '-') )
+	{
+		aSign[0] = pPrefix[0];
+		++pPrefix;
+	}
+
+	static ModernMatches s_cMatches;
+	s_cMatches.m_nNames = 0;
+	c_ModernEnumNames( pPrefix, ModernAddMatch, &s_cMatches );
+	if ( !s_cMatches.m_nNames )
+		return;
+
+	// Sorted, each name once
+	qsort( s_cMatches.m_aNames, s_cMatches.m_nNames, sizeof(const char *), ModernCompareNames );
+	int nNames = 1;
+	int i;
+	for ( i = 1; i < s_cMatches.m_nNames; i++ )
+	{
+		if ( stricmp( s_cMatches.m_aNames[i], s_cMatches.m_aNames[nNames - 1] ) != 0 )
+			s_cMatches.m_aNames[nNames++] = s_cMatches.m_aNames[i];
+	}
+
+	char aNew[MAX_CONSOLE_TEXTLEN];
+	if ( nNames == 1 )
+	{
+		LTSNPrintF( aNew, sizeof(aNew), "%s%s ", aSign, s_cMatches.m_aNames[0] );
+		GetCommandBox()->SetCommand( aNew );
+		return;
+	}
+
+	// As far as they all agree
+	int nCommon = strlen( s_cMatches.m_aNames[0] );
+	for ( i = 1; i < nNames; i++ )
+	{
+		while ( nCommon && strnicmp( s_cMatches.m_aNames[0], s_cMatches.m_aNames[i], nCommon ) != 0 )
+			nCommon--;
+	}
+	if ( nCommon > (int)strlen( pPrefix ) )
+	{
+		LTSNPrintF( aNew, sizeof(aNew), "%s%.*s", aSign, nCommon, s_cMatches.m_aNames[0] );
+		GetCommandBox()->SetCommand( aNew );
+	}
+
+	// And the list, several to a line
+	char aLine[MAX_CONSOLE_TEXTLEN];
+	int nLine = 0;
+	aLine[0] = 0;
+	for ( i = 0; i < nNames; i++ )
+	{
+		const char *pName = s_cMatches.m_aNames[i];
+		int nName = strlen( pName );
+		if ( nLine && ((nLine + 2 + nName) > 76) )
+		{
+			PrintString( GetCommandBox()->GetTextColor(), 0, aLine );
+			nLine = 0;
+			aLine[0] = 0;
+		}
+		LTSNPrintF( &aLine[nLine], sizeof(aLine) - nLine, nLine ? "  %s" : "%s", pName );
+		nLine = strlen( aLine );
+	}
+	if ( nLine )
+		PrintString( GetCommandBox()->GetTextColor(), 0, aLine );
+}
+
+#endif // NOLF2SRC_MODERN
 
 
 

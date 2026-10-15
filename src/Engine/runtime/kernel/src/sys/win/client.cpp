@@ -188,6 +188,57 @@ static bool cl_ModernRunInBackground()
     return hParam && r_GetParameterValueFloat(hParam) != 0.0f;
 }
 
+// MODERN.md M-E5: the developer console's keys. The key left of 1 (by its
+// scan code, so whatever a keyboard layout puts there; backquote/tilde on a
+// US keyboard, whose virtual key is taken too) opens it, and so does
+// Shift+Esc (nolfsrc's M-P2-15, for layouts where that key is awkward);
+// either key, or Esc alone, puts it away. The development build's own
+// tilde handling (below, compiled out of retail) also changed the small
+// console's line count with Shift and Ctrl; that is left out, as Shift is
+// how a US keyboard types the tilde. A key held down repeats: only its first
+// press counts. Returns whether the key was the console's.
+static bool cl_ModernConsoleKey(WPARAM wParam, LPARAM lParam)
+{
+    bool bConsoleKey = ((lParam >> 16) & 0xFF) == 0x29 || wParam == 0xC0;   // VK_OEM_3
+    bool bEscape = (wParam == VK_ESCAPE);
+
+    if (g_ClientGlob.m_bIsConsoleUp)
+    {
+        if (!bConsoleKey && !bEscape)
+            return false;
+
+        if (!(lParam & (1 << 30)))
+        {
+            g_ClientGlob.m_bIsConsoleUp = FALSE;
+            if (g_pClientMgr && g_pClientMgr->m_InputMgr)
+                g_pClientMgr->m_InputMgr->FlushInputBuffers(g_pClientMgr->m_InputMgr);
+        }
+        return true;
+    }
+
+    if (!bConsoleKey && !(bEscape && (GetKeyState(VK_SHIFT) & 0x8000)))
+        return false;
+
+    // Turned off (the ConsoleEnable variable, or the game): the key is an
+    // ordinary key, as in retail.
+    if (!g_bConsoleEnable || !dsi_IsConsoleEnabled())
+        return false;
+
+    if (!(lParam & (1 << 30)))
+        g_ClientGlob.m_bIsConsoleUp = TRUE;
+    return true;
+}
+
+// The key's character is already queued (TranslateMessage posts it before
+// the key down is dispatched): take it out, so the game's text fields do not
+// get a backquote with the console.
+static void cl_ModernDropConsoleChar()
+{
+    MSG msg;
+    while (PeekMessage(&msg, g_ClientGlob.m_hMainWnd, WM_CHAR, WM_DEADCHAR, PM_REMOVE))
+        ;
+}
+
 #endif
 
 static LRESULT WINAPI MainWndProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam) {
@@ -229,6 +280,13 @@ static LRESULT WINAPI MainWndProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM
 
             case WM_KEYDOWN: 
 			{
+#ifdef NOLF2SRC_MODERN
+                if (cl_ModernConsoleKey(wParam, lParam))
+                {
+                    cl_ModernDropConsoleChar();
+                    return 0;
+                }
+#endif
 #ifndef _FINAL
                 if (wParam == 192)
 				{

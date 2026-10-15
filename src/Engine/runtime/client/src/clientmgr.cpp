@@ -772,6 +772,26 @@ static void cm_ModernFrameLimit(bool bMultiplayer)
     s_bCounting = true;
 }
 
+// MODERN.md M-E5: tell the game when the console has come down or gone
+// away (the keys are in the window procedure, client.cpp; a new world
+// puts it away too, StartShell), so it can pause a single-player game
+// while it is up. From here, at the start of a frame, not from the window
+// message: the game can send its pause to the server then.
+static void cm_ModernConsoleEvent()
+{
+    static LTBOOL s_bWasUp = LTFALSE;
+
+    LTBOOL bUp = dsi_IsConsoleUp() ? LTTRUE : LTFALSE;
+    if (bUp == s_bWasUp)
+        return;
+
+    s_bWasUp = bUp;
+    if (bUp)
+        con_ModernOnOpen();
+    if (i_client_shell != NULL)
+        i_client_shell->OnEvent(LTEVENT_CONSOLE, bUp);
+}
+
 #endif
 LTRESULT CClientMgr::Update()
 {
@@ -854,6 +874,10 @@ LTRESULT CClientMgr::Update()
             }
         }
     }
+
+#ifdef NOLF2SRC_MODERN
+    cm_ModernConsoleEvent();
+#endif
 
     // Forward windows messages to the scripts.
     if (!dsi_IsConsoleUp())

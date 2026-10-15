@@ -62,6 +62,7 @@ NOLF2 no longer has are listed at the end, so nobody looks again.
 * [Error messages that name the wrong function](#error-messages-that-name-the-wrong-function) (the client's)
 * [`InitLevel`'s trace misspells a parameter](#initlevels-trace-misspells-a-parameter)
 * [A gamepad's buttons are bound by their instance number](#a-gamepads-buttons-are-bound-by-their-instance-number)
+* [The console's keys test Ctrl whatever key they ask about](#the-consoles-keys-test-ctrl-whatever-key-they-ask-about)
 
 Not fixed yet because the code is in a part of the tree another piece of
 work owns: the engine's `server/`, `shared/`, `world/`, `model/`,
@@ -488,6 +489,32 @@ When a defuse is interrupted and the bomb is still armed, retail sets
 `Prop::Update` keeps the object updating for the countdown. The source
 release does not set it there. If it matters, an armed bomb whose defuse
 was stopped may stop updating, and its countdown with it.
+
+### The console's keys test Ctrl whatever key they ask about
+`CConsole::OnKeyPress`, `0x497c00`, and `CConCommandBox::OnKeyPress`,
+`0x4963d0` (lithtech.exe) ·
+`src/Engine/runtime/client/src/sys/win/winconsole_impl.cpp`
+
+> **FIXED in the modern build** (`NOLF2SRC_MODERN`, `MODERN.md` M-E5):
+> `IsKeyDown` tests the key it is given.
+
+The console's `IsKeyDown(vkKey)`, inlined into both, ignores its argument
+and tests `VK_CONTROL`, so Shift+Tab (complete backwards) did what Ctrl+Tab
+does (list the matches). Retail never opens its console, so nobody met it
+there; the modern build's console does.
+
+### The console's name completion runs past the engine variables
+`CClientConIterator::NextItem`, `0x41b130` (lithtech.exe) ·
+`src/Engine/runtime/client/src/consolecommands.cpp`
+
+Not fixed: the modern build's console completes names its own way
+(`MODERN.md` M-E5), and retail's never runs.
+
+Walking the engine variables, it ends the list when the *command* index
+(`m_iCommandIndex`) reaches the number of engine variables instead of the
+engine variable index, so the walk only stops when `Get` finds nothing past
+the end of the table. It also has no `End` or `PrevItem`, so completing
+backwards (Shift+Tab, once the entry above is fixed) finds nothing.
 
 ---
 
