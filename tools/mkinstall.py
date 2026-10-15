@@ -568,13 +568,19 @@ rem   Drop the images of both discs of No One Lives Forever 2 (the European
 rem   or the USA release) and Sierra's English 1.3 update,
 rem   nolf2-update_1x3.exe, onto this file -- or put them in this folder or
 rem   the one above it and double-click it. Then start the game with
-rem   NOLF2.exe. An image is a plain .iso, redump's .bin (or its .cue), or
-rem   redump's .zip download; a .bin or .zip is first converted to a
-rem   temporary .iso in this folder (about 0.6 GB a disc, removed at the end).
+rem   NOLF2.exe (or, in the legacy build, windows-run.bat). An image is a
+rem   plain .iso, redump's .bin
+rem   (or its .cue), or redump's .zip download; a .bin or .zip is first
+rem   converted to a temporary .iso in this folder (about 0.6 GB a disc,
+rem   removed at the end).
 rem
 rem It checks each file's SHA-256, copies the game's data out of them into
 rem this folder and checks every file it writes. Nothing is installed or run
-rem from them, and nothing else is changed.
+rem from them. In the legacy build it then registers the game as the
+rem original installer did (the registry values the retail launcher reads:
+rem this folder, the 1.3 update): for all users when run as an
+rem administrator, else for this Windows user. The modern build's launcher
+rem needs no registry.
 setlocal
 set "NOLF2_SELF=%~f0"
 set "NOLF2_PS1=%TEMP%\nolf2-install-%RANDOM%%RANDOM%.ps1"

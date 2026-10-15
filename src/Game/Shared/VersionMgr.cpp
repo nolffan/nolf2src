@@ -31,7 +31,16 @@ CVersionMgr::CVersionMgr()
 	m_szLanguage[0]	= '\0';
 	m_bLowViolence	= false;
 
+#ifdef NOLF2SRC_MODERN
+	// MODERN.md M-G71: the game's values (Language, ProfileName, EndGame)
+	// under HKEY_CURRENT_USER, where the modern launcher keeps its own
+	// (M-L7). RETAIL: HKEY_LOCAL_MACHINE, opened for writing, which without
+	// an administrator (or UAC's registry virtualization) failed: nothing
+	// was kept.
+	m_regMgr.Init("Monolith Productions", GAME_NAME, "1.0", NULL, HKEY_CURRENT_USER);
+#else
 	m_regMgr.Init("Monolith Productions", GAME_NAME, "1.0");
+#endif
 
 	// Get the language registry key...
 

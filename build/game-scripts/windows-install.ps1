@@ -408,6 +408,85 @@ try {
 }
 $save = Join-Path $here 'Save'
 if (-not (Test-Path -LiteralPath $save)) { New-Item -ItemType Directory -Path $save | Out-Null }
+
+# The registry, in the legacy build only (the modern build's launcher plays
+# from its own folder with no registry at all: docs/MODERN.md M-L6; its
+# MANIFEST.txt lists its own binkw32.dll as EXT). The legacy build's
+# launcher, NOLF2.exe, is the retail one, so the values are the retail
+# installer's and the 1.3 update's (linux-run-launcher.sh writes them in its
+# Wine prefix): it offers "Play" only when HKLM\SOFTWARE\Monolith
+# Productions\No One Lives Forever 2\1.0 has an InstallDir (issue #1:
+# without it, "Install", and an error), and builds the engine's command
+# line from the rest:
+#   * InstallDir: this folder (the launcher changes to it).
+#   * UpdateNum, UpdateCommandLine1: the archives it adds after its own: the
+#     1.3 update's, as its installer wrote -- and, after it, custom\ again,
+#     the game DLLs built from source, so that the update's (zeroed) retail
+#     DLLs cannot override them (nolf2cmds.txt has the same order).
+#   * Disable Movies: on, with RAD's binkw32.dll (as linux-run.sh has it).
+# Where: NOLF2.exe is a 32-bit program, so it reads HKLM\SOFTWARE through
+# the 32-bit view (SOFTWARE\WOW6432Node on 64-bit Windows). Writing HKLM
+# needs an administrator; run without one, that is skipped. NOLF2.exe has no
+# manifest, so UAC runs it with registry virtualization: its reads of that
+# key see HKCU\Software\Classes\VirtualStore\MACHINE\SOFTWARE\[WOW6432Node\]
+# ... first (where its own writes go -- it writes its settings into the key
+# on every exit), and that per-user copy needs no administrator. Both get the
+# same values, so whichever the launcher reads agrees.
+$modern = $false
+$manifest = Join-Path $here 'MANIFEST.txt'
+if ((Test-Path -LiteralPath $manifest) -and
+    (Select-String -LiteralPath $manifest -Pattern '^EXT .*\tbinkw32\.dll$' -Quiet)) { $modern = $true }
+$machine = $false
+$user = $false
+if (-not $modern) {
+    $regKey = 'Monolith Productions\No One Lives Forever 2\1.0'
+    function Set-GameKey($base, $path) {
+        $k = $base.CreateSubKey($path)
+        if (-not $k) { throw "cannot create $path" }
+        try {
+            $k.SetValue('InstallDir', $here, [Microsoft.Win32.RegistryValueKind]::String)
+            $k.SetValue('NetRegionCode', 'EN', [Microsoft.Win32.RegistryValueKind]::String)
+            $k.SetValue('UpdateNum', 2, [Microsoft.Win32.RegistryValueKind]::DWord)
+            $k.SetValue('UpdateCommandLine1', '-rez Update_v1x3.rez -rez custom', [Microsoft.Win32.RegistryValueKind]::String)
+            $k.SetValue('Disable Movies', 1, [Microsoft.Win32.RegistryValueKind]::DWord)
+        } finally {
+            $k.Close()
+        }
+    }
+    try {
+        $hklm = [Microsoft.Win32.RegistryKey]::OpenBaseKey([Microsoft.Win32.RegistryHive]::LocalMachine,
+                                                           [Microsoft.Win32.RegistryView]::Registry32)
+        try { Set-GameKey $hklm "SOFTWARE\$regKey"; $machine = $true } finally { $hklm.Close() }
+    } catch {
+        $machine = $false            # not an administrator: the per-user copy only
+    }
+    $virtual = 'Software\Classes\VirtualStore\MACHINE\SOFTWARE\'
+    $view = [Microsoft.Win32.RegistryView]::Default
+    if ([Environment]::Is64BitOperatingSystem) {
+        $virtual += 'WOW6432Node\'
+        $view = [Microsoft.Win32.RegistryView]::Registry64   # as it is, from a 32-bit PowerShell too
+    }
+    try {
+        $hkcu = [Microsoft.Win32.RegistryKey]::OpenBaseKey([Microsoft.Win32.RegistryHive]::CurrentUser, $view)
+        try { Set-GameKey $hkcu "$virtual$regKey"; $user = $true } finally { $hkcu.Close() }
+    } catch {
+        $user = $false
+    }
+}
+
 Write-Host ''
 Write-Host "done: $written files written, $kept already in place. Start the game with NOLF2.exe" -ForegroundColor Green
+if ($modern) {
+    # (nothing to register)
+} elseif ($machine) {
+    Write-Host 'The game is registered for all users of this PC.'
+} elseif ($user) {
+    Write-Host 'The game is registered for this Windows user (to register it for all users,'
+    Write-Host 'run windows-install.bat again as an administrator).'
+} else {
+    Write-Host 'Could not write the game into the registry: NOLF2.exe may offer only "Install".' -ForegroundColor Yellow
+}
+if (-not $modern) {
+    Write-Host 'If NOLF2.exe will not play, windows-run.bat starts the game without it.'
+}
 exit 0

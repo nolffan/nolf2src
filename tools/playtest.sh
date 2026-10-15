@@ -74,6 +74,12 @@
 #                         released / centred. `pad` alone: all released;
 #                         `pad off`: no controller connected (the start)
 #   tap <button>...       press and release pad buttons in turn (0.1s each)
+#   wfocus <regex> [timeout]   wait (default 60s) for a visible window whose
+#                         name matches, and focus it (the launcher's
+#                         dialogs: PLAYTEST_LAUNCH)
+#   wclick <regex> <x> <y>    click at a point of that window (its own
+#                         coordinates)
+#   sclick <x> <y>        click at a point of the display
 # After every command the runner checks the game process; if it has died the
 # script stops and the run is judged (EXITED / CRASHED, naming the line).
 # Everything that happened goes to script.log; shots.png is a contact sheet
@@ -104,6 +110,16 @@
 #                         autoexec.cfg (lines like "UIScale" "1.000000")
 #   PLAYTEST_SAVES=<dir>  start a scripted run with a copy of these saved
 #                         games as its Save/ (instead of none)
+#   PLAYTEST_LAUNCH="..." start the game with `wine <this>` in the run
+#                         directory instead of `wine Lithtech.exe -cmdfile
+#                         nolf2cmds.txt`: e.g. "NOLF2.exe" (the launcher),
+#                         "Lithtech.exe" (no arguments), "cmd /c
+#                         windows-run.bat". The game counts as running while
+#                         that program or a Lithtech.exe is (the launcher
+#                         exits once it has started the engine).
+#   PLAYTEST_PREFIX=<dir> the Wine prefix (default: the container's; a
+#                         relative path is from the repository); a new
+#                         directory is a fresh prefix, no registry values
 # The default keys (defctrls.cfg): WASD move, arrows turn, Space jump,
 # C duck, F / mouse 1 fire, R reload, Shift_L next weapon, 1-0 weapons,
 # E activate, F6 quicksave, F9 quickload, Escape menu.
@@ -149,7 +165,8 @@ rm -rf "$RUN"; mkdir -p "$RUN"
 REL="$(python3 -c 'import os,sys; print(os.path.relpath(sys.argv[1], sys.argv[2]))' "$GAME" "$RUN")"
 for f in "$GAME"/*; do
     b=$(basename "$f")
-    case "$b" in autoexec.cfg|Save|Profiles|nolf2cmds.txt|MANIFEST.txt|linux-run.sh|linux-run-launcher.sh|run-cmds.txt|launchcmds.txt) continue ;; esac
+    # (MANIFEST.txt is linked: windows-run.bat reads it)
+    case "$b" in autoexec.cfg|Save|Profiles|nolf2cmds.txt|linux-run.sh|linux-run-launcher.sh|run-cmds.txt|launchcmds.txt) continue ;; esac
     if [ -f "$f" ] && [ "$(head -c 2 "$f" | tr -d '\0')" = MZ ]; then cp "$f" "$RUN/$b"
     else ln -s "$REL/$b" "$RUN/$b"; fi
 done
@@ -195,9 +212,15 @@ if [ -n "${PLAYTEST_WM:-}" ]; then
     $PLAYTEST_WM > wm.log 2>&1 &
     sleep 2
 fi
-wine Lithtech.exe -cmdfile nolf2cmds.txt > wine.log 2>&1 &
-PID=$!
-alive() { kill -0 $PID 2>/dev/null; }
+if [ -n "${PLAYTEST_LAUNCH:-}" ]; then
+    wine $PLAYTEST_LAUNCH > wine.log 2>&1 &
+    PID=$!
+    alive() { kill -0 $PID 2>/dev/null || pgrep -fi 'lithtech\.exe' >/dev/null; }
+else
+    wine Lithtech.exe -cmdfile nolf2cmds.txt > wine.log 2>&1 &
+    PID=$!
+    alive() { kill -0 $PID 2>/dev/null; }
+fi
 STOPPED=""; NOHUD=""
 
 if [ -f script.txt ]; then
@@ -300,6 +323,22 @@ if [ -f script.txt ]; then
             mclick) pagemove "$1" "$2"; sleep 0.4; xdotool mousedown 1; sleep 0.1; xdotool mouseup 1 ;;
             pad)   padset "$@" ;;
             tap)   for k in "$@"; do padset "$k"; sleep 0.1; padset; sleep 0.25; done ;;
+            wfocus)
+                to=${2:-60}; s=0; W=""
+                while [ $s -lt $((to*2)) ] && alive; do
+                    W=$(xdotool search --onlyvisible --name "$1" 2>/dev/null | tail -1)
+                    [ -n "$W" ] && break; sleep 0.5; s=$((s+1))
+                done
+                if [ -n "$W" ]; then xdotool windowfocus "$W" 2>/dev/null; log "  window $W: $(xdotool getwindowname "$W" 2>/dev/null)"
+                else log "  no window named $1"; fi ;;
+            wclick)
+                W=$(xdotool search --onlyvisible --name "$1" 2>/dev/null | tail -1)
+                if [ -n "$W" ]; then
+                    eval "$(xdotool getwindowgeometry --shell "$W" 2>/dev/null)"
+                    xdotool mousemove $((X+$2)) $((Y+$3)); sleep 0.3; xdotool click 1
+                    log "  clicked $W at $2,$3"
+                else log "  no window named $1"; fi ;;
+            sclick) xdotool mousemove "$1" "$2"; sleep 0.3; xdotool click 1 ;;
             *)     log "  unknown command: $cmd" ;;
         esac
     done < <(tr -d '\r' < script.txt)
@@ -339,7 +378,12 @@ if [ ! -e /dev/snd ] && [ -f /usr/share/alsa/alsa.conf ]; then
     export ALSA_CONFIG_PATH="$RUN/asound.conf"
 fi
 export WINEDEBUG=${PLAYTEST_WINEDEBUG:--all,+seh} WINEDLLOVERRIDES=${PLAYTEST_DLLOVERRIDES-winedbg.exe=d}
-[ -n "${PLAYTEST_PREFIX:-}" ] && export WINEPREFIX=$PLAYTEST_PREFIX
+# (Wine wants it absolute: a relative one is the repository's)
+case "${PLAYTEST_PREFIX:-}" in
+    "") ;;
+    /*) export WINEPREFIX=$PLAYTEST_PREFIX ;;
+    *)  export WINEPREFIX=$REPO/$PLAYTEST_PREFIX ;;
+esac
 # the modern build lays its menus out in the centred 4:3 area (docs/MODERN.md M-G2)
 case "$(basename "$GAME")" in *modern*) DEFMAP=modern ;; *) DEFMAP=retail ;; esac
 export PLAYTEST_MAP="${PLAYTEST_MAP:-$DEFMAP}"

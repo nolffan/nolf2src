@@ -509,8 +509,9 @@ DWORD CServerDlg::DoHost( )
 	CRegMgr32 regMgr;
 	regMgr.Init();
 #ifdef NOLF2SRC_MODERN
-	// MODERN.md M-G50: no registry key, no mod: the retail game
-	bool bModernRegistry = regMgr.OpenKey( HKEY_LOCAL_MACHINE, "SOFTWARE", "Monolith Productions", (char*)REGPRODUCTNAME,
+	// MODERN.md M-G50: no registry key, no mod: the retail game. M-G71:
+	// the user's key, where the modern launcher keeps the mod chosen
+	bool bModernRegistry = regMgr.OpenKey( HKEY_CURRENT_USER, "SOFTWARE", "Monolith Productions", (char*)REGPRODUCTNAME,
 		(char *)REGPRODUCTVER ) ? true : false;
 #else
 	if( !regMgr.OpenKey( HKEY_LOCAL_MACHINE, "SOFTWARE", "Monolith Productions", (char*)REGPRODUCTNAME,
@@ -1541,14 +1542,18 @@ bool CServerDlg::AddResources( )
 	// unpacked game) the server still starts: the 1.3 update's archive is
 	// taken from the game directory when it is there, and customrez.txt
 	// (below) can name any other.
-	bool bModernRegistry = regMgr.OpenKey( HKEY_LOCAL_MACHINE, "SOFTWARE", "Monolith Productions", (char*)REGPRODUCTNAME,
+	// M-G71: the user's key (the modern launcher's and game's)
+	bool bModernRegistry = regMgr.OpenKey( HKEY_CURRENT_USER, "SOFTWARE", "Monolith Productions", (char*)REGPRODUCTNAME,
 		(char *)REGPRODUCTVER ) ? true : false;
+	DWORD nModernUpdateNum = 0;
 	if( bModernRegistry )
 	{
 		ReadRezFromRegCommandLine( lstRez, regMgr, "ContentNum", "ContentCommandLine" );
 		ReadRezFromRegCommandLine( lstRez, regMgr, "UpdateNum", "UpdateCommandLine" );
 	}
-	else if( GetFileAttributes( "Update_v1x3.rez" ) != 0xFFFFFFFF )
+	// (a key without the update's values: the modern launcher's own, M-L7)
+	if(( !bModernRegistry || !regMgr.GetField( "UpdateNum", &nModernUpdateNum )) &&
+		GetFileAttributes( "Update_v1x3.rez" ) != 0xFFFFFFFF )
 	{
 		lstRez.AddTail( "Update_v1x3.rez" );
 	}

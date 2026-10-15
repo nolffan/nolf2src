@@ -33,6 +33,7 @@ NOLF2 no longer has are listed at the end, so nobody looks again.
 **Fixed so far** (in the modern build):
 
 * [The launcher starts a dedicated server that does not exist](#the-launcher-starts-a-dedicated-server-that-does-not-exist)
+* [The launcher and the game open the machine's registry key for writing just to read it](#the-launcher-and-the-game-open-the-machines-registry-key-for-writing-just-to-read-it)
 * [A step in a client effect's colour keys sets alpha from red, and red not at all](#a-step-in-a-client-effects-colour-keys-sets-alpha-from-red-and-red-not-at-all)
 * [Unique player names are not unique](#unique-player-names-are-not-unique)
 * [`CString::Left` leaves the length of the whole string](#cstringleft-leaves-the-length-of-the-whole-string)
@@ -85,6 +86,28 @@ The launcher's dedicated-server choice (and `NOLF2.exe -goserver`)
 `WinExec`s the program named by `IDS_SERVEREXE`, `NOLF2Svr.EXE`; the game
 installs the dedicated server as `NOLF2Srv.exe` (`Svr` for `Srv`), so it
 never starts and the launcher says it cannot launch the server.
+
+### The launcher and the game open the machine's registry key for writing just to read it
+`CLauncherApp::OpenRegistryKey` (`NOLF2.exe`) and `CVersionMgr::CVersionMgr`
+(`CShell.dll`, `Object.lto`), through `CRegMgr32::OpenKey` and `CRegMgr::Init` ·
+`src/Game/Launcher/Launcher.cpp`, `src/Game/Shared/VersionMgr.cpp`
+
+> **FIXED in the modern build** (`NOLF2SRC_MODERN`, MODERN.md M-L6, M-L7,
+> M-G71): the launcher and the game keep their values under
+> `HKEY_CURRENT_USER`, and the launcher
+> plays from its own folder. The release build keeps the retail code.
+
+Both open `HKEY_LOCAL_MACHINE\SOFTWARE\Monolith Productions\No One Lives
+Forever 2\1.0` with `KEY_READ | KEY_WRITE` -- the game creates every key on
+the way -- even where they only read it, and the launcher decides from that
+open alone whether the game is installed. Only an administrator may open
+that key for writing. On Windows since Vista this works for a user who is
+not one only because the programs have no manifest, so UAC's registry
+virtualization takes their writes into a per-user copy; without it (turned
+off by policy, or a manifest of `asInvoker`) the launcher finds no
+installation, shows "Install", and its setup program is not there to run
+(issue #1 met the same message for want of the installer's values), and the
+game keeps nothing (profile name, the finished-game flag).
 
 ### A step in a client effect's colour keys sets alpha from red, and red not at all
 `CBaseFX::CalcColour` (ClientFx.fxd) · `src/Game/ClientFxDLL/BaseFx.cpp`

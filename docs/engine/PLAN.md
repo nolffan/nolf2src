@@ -68,6 +68,7 @@ Background, in this directory:
 | 16 | `fps`: 300 frames a second in single player at real speed, as nolfsrc's M-P1-23 (its 0dd4bf4, d171625, 9780977): what goes wrong at high frame rates found, measured and fixed in the modern build, then M-E4's limit raised from 60 | 8, 12 | done: the server tick (AIs), the player's walk and crouch, particle/line systems, aim perturb, fire sparks, debris rest; MaxFPS 300, 60 in multiplayer (docs/MODERN.md M-E4; 4 `docs/RETAIL_BUGS.md` entries) |
 | 17 | `nolfsync`: nolfsrc's commits since package 16 (its history rewritten: a99873c, 549ea60, 3bc4fac, 7855bf1, a97a06c, 1a7a95c, 39d8636, bc52297, 82d0759, 4f5b3fa, 113b4f4), each ported where NOLF2 needs it | 14, 15, 16 | done: out of the water at high frame rates and a 240 default limit (M-E4; 1 `docs/RETAIL_BUGS.md` entry); the documentation in `docs/` with an install guide, console and variables, changelog and credits; the rest already here, not applicable or waiting for M-E5 (notes) |
 | 18 | `console`: the developer console in the modern build (docs/MODERN.md M-E5), with nolfsrc's `GetPos`/`SetPos` (its M-P2-14) and Shift+Esc (M-P2-15) | 12, 17 | done: the engine's own console revived behind the define (keys, drawing at any resolution, completion, answers), the game paused under it in single player, `GetPos`/`SetPos`; tested in play at 640x480, 1920x1080 and 4K and over a multiplayer client (`tools/playtest-console.txt`); 2 `docs/RETAIL_BUGS.md` entries |
+| 19 | `winlaunch`: issue #1 -- on Windows the launcher offered only "Install" (no installer registry) and `Lithtech.exe` typed by hand failed with "Bad Image" / "Missing shell DLL" (no `-rez custom`) | 10, 8 | done: legacy build: `windows-install.bat` registers the game, `windows-run.bat`; the modern build's launcher needs no registry and no administrator (M-L6, M-L7, M-G71); tested under Wine in fresh prefixes (notes); not yet on real Windows; 1 `docs/RETAIL_BUGS.md` entry |
 
 ## Notes per package
 
@@ -1468,3 +1469,108 @@ event.
 
 `make game`, `make modern` pass; `make progress` (check) passes unchanged;
 `make test` passes for the release and the modern build.
+
+### 19. winlaunch
+
+Issue #1 (Windows 11, a public archive, `windows-install.bat` run with the
+European redump `.zip`s): the launcher showed "install", and clicking it
+"Unable to launch the setup program"; `Lithtech.exe -rez Engine.rez -rez
+GAME.rez ... -rez Update_v1x3.rez` by hand gave "Bad Image ... csh*.tmp"
+(0xc000012f) and "Missing shell DLL cshell.dll".
+
+**Causes.** (1) The retail launcher decides "installed" from
+`InstallDir` under `HKLM\SOFTWARE\Monolith Productions\No One Lives
+Forever 2\1.0`, which the retail installer wrote; on Linux
+`linux-run-launcher.sh` writes it, on Windows nothing did. It also opens
+that key for writing (`CRegMgr32::OpenKey`, `KEY_READ | KEY_WRITE`), and so
+does the game (`CRegMgr::Init`): on Windows that works without an
+administrator only through UAC's registry virtualization (our `NOLF2.exe`
+and `Lithtech.exe` have no manifest, so as 32-bit programs they are
+virtualized: their writes go to, and their reads see first,
+`HKCU\Software\Classes\VirtualStore\MACHINE\SOFTWARE\WOW6432Node\...`).
+(2) `Update_v1x3.rez` holds the retail game DLLs zeroed (build/all.sh's
+`resources`); our DLLs are `custom\`, which must come after it. The hand
+typed stack had no `custom`, so the engine extracted a zeroed
+`cshell.dll` to a temporary `csh*.tmp`. Both reproduced under Wine with
+the release build: a fresh prefix shows "install" and that error; the
+typed stack stops at "Missing shell DLL cshell.dll" (Wine shows no "Bad
+Image" box).
+
+**Both builds.** `windows-install.ps1` writes what `linux-run-launcher.sh`
+writes (InstallDir = the game folder, NetRegionCode, UpdateNum 2,
+UpdateCommandLine1 `-rez Update_v1x3.rez -rez custom`, Disable Movies 0 for
+the modern build, 1 else): to HKLM's 32-bit view (`RegistryView.Registry32`)
+when that can be written (an administrator), and always to the VirtualStore
+copy (64-bit view of HKCU, so a 32-bit PowerShell writes the same place;
+`WOW6432Node` only on 64-bit Windows), so the release build's launcher
+finds it whether it runs virtualized (the usual case) or elevated after an
+elevated install. Not self-elevating: the per-user copy is enough for a
+virtualized launcher. `windows-run.bat` is `linux-run.sh`'s counterpart
+(no registry: `Lithtech.exe -cmdfile run-cmds.txt`, nolf2cmds.txt's stack
+and the arguments; installed with CRLF by build/all.sh).
+
+**Modern build.** M-L6: the launcher's own folder is the install whenever
+`Lithtech.exe` is beside it (a stale or a retail install's `InstallDir`
+is ignored), Play always; no update values: `-rez Update_v1x3.rez`; `-rez
+custom` after the updates unless already last; Uninstall disabled;
+"Install" (only away from the game) says the game is not there. M-L7/M-G71:
+launcher, game DLLs and `NOLF2Srv.exe` use the same key under HKCU (a new
+one seeded from HKLM's, read only), so nothing needs an administrator or
+virtualization; the dedicated server reads HKCU then HKLM and adds the
+update's archive when the key has no update values. M-E32: a command line
+with neither `-rez` nor `-cmdfile` gets `-cmdfile nolf2cmds.txt` first;
+archives without `custom` get it last (before Engine.REZ); a game DLL from
+the archives without "MZ" is not loaded, and a message says why and how to
+start the game (once). Arguments after `-cmdfile` are read (tested:
+`Lithtech.exe +DisableMovies 0` played the movies over nolf2cmds.txt's 1).
+
+**Testing** (`tools/playtest.sh`: `PLAYTEST_LAUNCH` starts another program
+than `Lithtech.exe -cmdfile`, and the game counts as running while it or a
+`Lithtech.exe` is; `wfocus`, `wclick`, `sclick` drive the launcher's
+dialogs; MANIFEST.txt is now linked into the run directory, for
+`windows-run.bat`), each in a new `PLAYTEST_PREFIX` (no registry):
+- modern, `tools/playtest-launcher.txt` (800x600): Play shown, Uninstall
+  disabled; Display and Options (warnings, OK); Play, the detail dialog,
+  the main menu. The prefix then had only the HKCU key (the launcher's
+  values and the game's `ProfileName`), no HKLM key.
+  `tools/playtest-launcher-again.txt` in the same prefix: no detail dialog,
+  the options kept, the main menu.
+- modern, a prefix with a retail install's HKLM values (`InstallDir`
+  `C:\Games\NOLF2`, `UpdateCommandLine1` `-rez Update_v1x3.rez`, `EndGame`):
+  copied to HKCU on the first run; played from its own folder, with
+  `-rez custom` after the update.
+- modern, bare `Lithtech.exe`: `tools/playtest-newgame.txt` passes (menu,
+  new game, play). The issue's stack without `custom`: the main menu. With
+  `custom` before the update: the new message box.
+- `cmd /c windows-run.bat`: release build to the main menu (movies off);
+  modern with `+DisableMovies 1` passed through (run-cmds.txt has the
+  modern build's 0, then the argument).
+- release build: fresh prefix, "install" and the issue's error (reproduced);
+  with the values the installer writes added by `wine reg add` (HKLM,
+  `/reg:32`), `tools/playtest-launcher.txt` reaches the game.
+- modern `NOLF2Srv.exe` in a fresh prefix: `tools/srvtest.sh` ALIVE.
+
+**Not tested** (no Windows here): the PowerShell itself (reviewed for
+PowerShell 5.1 and ASCII only; `mkinstall.py` checks the latter); the
+container's Wine prefix is 32-bit (one registry view), and Wine has no UAC,
+virtualization or VirtualStore, so the VirtualStore copy, the 32-bit view
+on 64-bit Windows and a non-administrator user are untested; nor a real
+`cmd.exe`'s `findstr`/`for /f` (Wine's `findstr` returned success for a
+missing file, so the .bat tests the output of `for /f`, not the error
+level). On Windows: run the modern public archive as a standard user,
+double-click `NOLF2.exe` (Play, detail dialog, game), `Lithtech.exe`,
+`windows-run.bat`; and the release build's launcher after
+`windows-install.bat` with and without "Run as administrator".
+
+**Narrowed after review.** The modern build is fixed in its launcher
+alone, so three things above were taken out again: M-E32 (`Lithtech.exe`
+with no arguments, `custom` added to a typed stack, the blank-DLL message;
+the engine is as before it); the copy of HKLM's key into a new HKCU key
+(launcher and `CVersionMgr`) and the dedicated server's read of HKLM after
+HKCU (modern reads and writes HKCU only); and, in the modern build,
+`windows-run.bat` and the installer's registry values (`build/all.sh`
+installs the .bat in the legacy build only; `windows-install.ps1` writes
+the registry only when MANIFEST.txt has no `EXT` `binkw32.dll`, i.e. the
+legacy build, with Disable Movies 1). The tests above of those parts no
+longer apply; `tools/playtest-launcher.txt` (modern, fresh prefix) was run
+again after the change.

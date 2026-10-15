@@ -10,6 +10,13 @@ covers each change in detail, under its item number (M-E1, M-G2 and so on).
 
 ## Unreleased
 
+- **The launcher plays on Windows without an installer's registry.** It
+  plays the game in its own folder and offers Play, never "Install"; its
+  settings and the game's are kept for your Windows user, so no
+  administrator is needed. (M-L6, M-L7, M-G71; issue #1)
+- **Windows, legacy build: `windows-run.bat`** starts the game without the
+  launcher, and `windows-install.bat` registers the game as the original
+  installer did, for the retail launcher. (issue #1)
 - **A developer console**, opened with backquote or Shift+Esc, with
   `GetPos` and `SetPos`. (M-E5)
 - **Out of the water at high frame rates** the player floats and jumps as

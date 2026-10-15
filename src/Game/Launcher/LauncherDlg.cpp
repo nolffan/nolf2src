@@ -248,6 +248,12 @@ BOOL CLauncherDlg::OnInitDialog()
 		GetDlgItem(IDC_UNINSTALL)->EnableWindow(FALSE);
 	}
 
+#ifdef NOLF2SRC_MODERN
+	// MODERN.md M-L6: Uninstall ran the retail installer's setup.exe from
+	// InstallDir; there is none, and nothing to uninstall but the folder.
+	GetDlgItem(IDC_UNINSTALL)->EnableWindow(FALSE);
+#endif
+
 	// Make sure the play button is default.
 	SetDefID( IDC_PLAY );
 
@@ -386,6 +392,15 @@ void CLauncherDlg::OnPlay()
 #ifndef _FINAL
 #define SELFINSTALL
 #endif // _FINAL
+
+#ifdef NOLF2SRC_MODERN
+		// MODERN.md M-L6: "Install" only where NOLF2.exe has no Lithtech.exe
+		// beside it and the registry names no install: there is no setup
+		// program to start (RETAIL: the disc's, "Unable to launch the setup
+		// program"), so say that the game is not there.
+		theApp.MessageBox(IDS_CANTLAUNCHCLIENTEXE, IDS_GAME_NAME, MB_OK | MB_ICONSTOP);
+		return;
+#endif
 
 #ifdef SELFINSTALL
 
@@ -831,6 +846,16 @@ BOOL CLauncherDlg::LaunchGame(DWORD dwAction)
 	// Get the install path from the registry...
 
 	CRegMgr32* pReg = &theApp.m_RegMgr;
+#ifdef NOLF2SRC_MODERN
+	// MODERN.md M-L6, M-L7: no key, or no InstallDir in it, is no error:
+	// the install directory is the one InitInstance settled on (the
+	// launcher's own, or InstallDir). The key -- the user's -- still gives
+	// the updates' and the mod's archives below, if it has them.
+	theApp.OpenRegistryKey();
+	char sDir[256];
+	strncpy(sDir, theApp.m_csInstallDir, sizeof(sDir) - 1);
+	sDir[sizeof(sDir) - 1] = '\0';
+#else
 	if(!pReg->OpenKey(HKEY_LOCAL_MACHINE,"SOFTWARE","Monolith Productions",( char* )GAME_NAME,(char *)(LPCTSTR)theApp.m_csAppVersion))
 	{
 		theApp.MessageBox( IDS_CANTLAUNCHCLIENTEXE, IDS_GAME_NAME, MB_OK | MB_ICONSTOP );
@@ -845,6 +870,7 @@ BOOL CLauncherDlg::LaunchGame(DWORD dwAction)
 		theApp.MessageBox( IDS_CANTLAUNCHCLIENTEXE, IDS_GAME_NAME, MB_OK | MB_ICONSTOP );
 		return FALSE;
 	}
+#endif
 
 #ifdef _FINAL
 	SetCurrentDirectory(sDir);
@@ -977,6 +1003,24 @@ BOOL CLauncherDlg::LaunchGame(DWORD dwAction)
 			}
 		}
 	}
+#ifdef NOLF2SRC_MODERN
+	else if(GetFileAttributes("Update_v1x3.rez") != 0xFFFFFFFF)
+	{
+		// MODERN.md M-L6: no update in the registry (no registry at all):
+		// the 1.3 update's archive, as its installer's UpdateCommandLine1
+		sNewCmdLine += " -rez Update_v1x3.rez";
+	}
+
+	// MODERN.md M-L6: custom/ -- the game DLLs built from source -- after
+	// the updates, so that no archive's (the 1.3 update's are zeroed in this
+	// build) overrides them. RETAIL: custom came before the patches and
+	// updates; the registry windows-install.bat and linux-run-launcher.sh
+	// write has it after the update already, a retail install's has not.
+	if(sNewCmdLine.Right(12) != " -rez custom")
+	{
+		sNewCmdLine += " -rez custom";
+	}
+#endif
 
 	// Now add all the .rez files associated with the selected mod, if we have one...
 

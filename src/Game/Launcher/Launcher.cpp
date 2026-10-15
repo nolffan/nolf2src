@@ -79,6 +79,34 @@ CLauncherApp::CLauncherApp()
 
 CLauncherApp theApp;
 
+#ifdef NOLF2SRC_MODERN
+// MODERN.md M-L6: the directory NOLF2.exe is in (with a "\" at the end) if
+// the engine, Lithtech.exe, is beside it -- the game directory -- else "".
+static CString ModernOwnInstallDir()
+{
+	char sPath[MAX_PATH];
+	DWORD nLen = GetModuleFileName(NULL, sPath, sizeof(sPath));
+	if(nLen == 0 || nLen >= sizeof(sPath))
+	{
+		return "";
+	}
+
+	char* pSlash = strrchr(sPath, '\\');
+	if(!pSlash)
+	{
+		return "";
+	}
+	pSlash[1] = '\0';
+
+	CString csDir = sPath;
+	if(GetFileAttributes(csDir + "Lithtech.exe") == 0xFFFFFFFF)
+	{
+		return "";
+	}
+	return csDir;
+}
+#endif
+
 /////////////////////////////////////////////////////////////////////////////
 // CLauncherApp initialization
 
@@ -145,7 +173,19 @@ BOOL CLauncherApp::InitInstance()
 	// Load the registry settings
 	m_bInstalled = FALSE;
 	m_RegMgr.Init();
+#ifdef NOLF2SRC_MODERN
+	// MODERN.md M-L6: the game needs no registry. RETAIL: where the key the
+	// retail installer writes is missing, or cannot be opened for writing
+	// (HKEY_LOCAL_MACHINE, for a launcher run without elevation and without
+	// UAC's registry virtualization), the launcher skipped all of this --
+	// no rez files found, no command line read -- and offered only
+	// "Install". Here the key is the user's (OpenRegistryKey makes it), and
+	// should even that fail, the rest runs anyway, with the defaults.
+	OpenRegistryKey();
+	if(TRUE)
+#else
 	if(OpenRegistryKey())
+#endif
 	{
 		char p[MAX_PATH];
 		DWORD dwSize = sizeof(char) * MAX_PATH;
@@ -156,6 +196,20 @@ BOOL CLauncherApp::InitInstance()
 			m_bInstalled = TRUE;
 			m_csInstallDir = p;
 		}
+
+#ifdef NOLF2SRC_MODERN
+		// MODERN.md M-L6: the game directory NOLF2.exe is in is the
+		// install, whatever InstallDir says (none; an older install's; the
+		// retail game's, elsewhere): the launcher plays the game it came
+		// with. InstallDir is used only where there is no Lithtech.exe
+		// beside NOLF2.exe.
+		CString csOwnDir = ModernOwnInstallDir();
+		if(!csOwnDir.IsEmpty())
+		{
+			m_bInstalled = TRUE;
+			m_csInstallDir = csOwnDir;
+		}
+#endif
 
 		memset(p,0,dwSize);
 		if(m_RegMgr.GetField("ProfileName",p,dwSize) && p[0])
@@ -713,6 +767,20 @@ CString CLauncherApp::GetAdvancedOptionsCommandLineString()
 
 BOOL CLauncherApp::OpenRegistryKey()
 {
+#ifdef NOLF2SRC_MODERN
+	// MODERN.md M-L7: HKEY_CURRENT_USER\SOFTWARE\Monolith Productions\No One
+	// Lives Forever 2\1.0, made the first time, where the game (CVersionMgr,
+	// M-G71) keeps its values too. RETAIL: HKEY_LOCAL_MACHINE, opened for
+	// writing, which only an administrator -- or UAC's registry
+	// virtualization, which redirects the writes to a per-user copy -- may
+	// do.
+	if(m_RegMgr.OpenKey(HKEY_CURRENT_USER,"SOFTWARE","Monolith Productions",(char*)GAME_NAME,(char *)(LPCTSTR)m_csAppVersion))
+	{
+		return TRUE;
+	}
+	return(m_RegMgr.CreateKey(HKEY_CURRENT_USER,"SOFTWARE","Monolith Productions",(char*)GAME_NAME,(char *)(LPCTSTR)m_csAppVersion));
+#else
 	return(m_RegMgr.OpenKey(HKEY_LOCAL_MACHINE,"SOFTWARE","Monolith Productions",(char*)GAME_NAME,(char *)(LPCTSTR)m_csAppVersion));
+#endif
 }
 

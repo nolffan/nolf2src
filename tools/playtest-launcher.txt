@@ -1,0 +1,41 @@
+# playtest-launcher.txt -- the launcher, NOLF2.exe, on its first run in a
+# fresh Wine prefix (no registry values at all: docs/MODERN.md M-L6, M-L7),
+# the modern build:
+#   PLAYTEST_LAUNCH=NOLF2.exe PLAYTEST_PREFIX=out/<new directory>
+#   PLAYTEST_SCREEN=800x600 PLAYTEST_SCRIPT=tools/playtest-launcher.txt
+#   tools/playtest.sh out/nolf2-modern-release - 0
+# It must offer Play (not Install); Display and Options (each with its
+# first-time warning) open and close with OK; Play asks for the detail
+# setting once and starts the game, which reaches the main menu. The
+# display is 800x600, the mode Medium detail picks, so that full screen
+# gets it (Xvfb has one mode). Coordinates: the launcher's own (its
+# buttons, LauncherDlg.cpp) and the display's, for the dialogs centred on
+# 800x600. Then tools/playtest-launcher-again.txt in the same prefix.
+wfocus Forever.2 90
+wait 3
+screen launcher
+# Display: the warning, the dialog, OK
+wclick Forever.2 463 111
+wait 3
+key Return
+wait 3
+screen display
+sclick 344 465
+wait 2
+# Options: the warning, the dialog; Disable Movies ticked (a faster start), OK
+wclick Forever.2 463 146
+wait 3
+key Return
+wait 3
+sclick 207 184
+wait 1
+screen options
+sclick 345 509
+wait 2
+# Play: the detail setting (Medium), then the game
+wclick Forever.2 463 38
+wait 5
+screen detail
+sclick 400 351
+wait 45
+screen menu

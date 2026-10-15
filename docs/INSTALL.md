@@ -92,11 +92,54 @@ These steps are untested so far.
 2. Drop both disc images and `nolf2-update_1x3.exe` onto
    `windows-install.bat`, or put them in the game folder and double-click
    it.
-3. Start `NOLF2.exe` (the original launcher) and play from it.
+3. Start `NOLF2.exe`, the launcher, and click Play.
+
+The modern build's launcher plays the game in its own folder, with no
+registry and no administrator needed.
+
+The legacy build's launcher is the original one, which looks for the game
+in the registry. In the legacy build `windows-install.bat` therefore also
+registers the game the way the original installer did: for all users when
+it runs as an administrator (right-click > Run as administrator), otherwise
+for your Windows user only, which is enough for the launcher. If you move
+the game folder, run `windows-install.bat` again (it checks the files and
+keeps them). The legacy build also has `windows-run.bat`, which starts the
+game directly, without the launcher or the registry. It hands its arguments
+to the game, e.g. `windows-run.bat +ScreenWidth 2560 +ScreenHeight 1440`.
 
 Windows support has had less testing than Linux. The programs are not
 signed, so SmartScreen may warn before the first start. If something goes
 wrong, please report it.
+
+### Troubleshooting on Windows
+
+- **The launcher shows "Install" instead of "Play"**, and clicking it says
+  it is "Unable to launch the setup program": the launcher did not find the
+  game in the registry. Releases before this fix did not register it. Use a
+  newer release: the modern build's launcher finds the game in its own
+  folder and needs no registry; for the legacy build, run
+  `windows-install.bat` again (with your images, as before; nothing is
+  copied twice), or play with `windows-run.bat`.
+- **"Bad Image ... csh*.tmp is either not designed to run on Windows or it
+  contains an error" (0xc000012f), then "Missing shell DLL cshell.dll"**:
+  `Lithtech.exe` was started without `-rez custom` last. The game's own
+  DLLs, built from source, are in the `custom` folder; the copies inside
+  `Update_v1x3.rez` are blanked out, and an archive later on the command
+  line wins. To start the engine by hand, use the game's command file:
+
+  ```bat
+  Lithtech.exe -cmdfile nolf2cmds.txt
+  ```
+
+  or list the archives with `custom` last:
+
+  ```bat
+  Lithtech.exe -rez GAME.REZ -rez GAME2.REZ -rez GAMEDLL.REZ -rez SOUND.REZ -rez Update_v1x3.rez -rez custom +ScreenWidth 2560 +ScreenHeight 1440
+  ```
+
+  (`Engine.REZ` is opened by the engine itself.) Settings can follow the
+  command file, e.g. `Lithtech.exe -cmdfile nolf2cmds.txt +ScreenWidth 2560
+  +ScreenHeight 1440`. The launcher, `NOLF2.exe`, does this for you.
 
 ## First start
 

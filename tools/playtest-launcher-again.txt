@@ -1,0 +1,13 @@
+# playtest-launcher-again.txt -- the launcher's second run, in the prefix
+# tools/playtest-launcher.txt used (same settings): Play starts the game at
+# once, without the detail setting (the game wrote its profile name under
+# the user's key, which the launcher reads: docs/MODERN.md M-L7, M-G71),
+# with the options kept (Disable Movies), to the main menu.
+wfocus Forever.2 90
+wait 3
+screen launcher
+wclick Forever.2 463 38
+wait 5
+screen started
+wait 40
+screen menu

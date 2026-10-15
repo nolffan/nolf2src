@@ -4,7 +4,8 @@
 #   build/package.sh out/nolf2-<legacy|modern>-<release|debug>
 #
 # writes two archives, each unpacking to <name>/ (then <name>/linux-run.sh --
-# see its header; Wine needed there):
+# see its header; Wine needed there -- or, on Windows, NOLF2.exe, or the
+# legacy build's windows-run.bat):
 #
 #   out/<name>-private.tar.gz   the whole directory, the retail game's data
 #                               included: for your own machines, and anyone
