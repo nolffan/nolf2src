@@ -1333,6 +1333,27 @@ BEGIN
 END
 
 #ifdef NOLF2SRC_MODERN
+// MODERN.md M-G62: the controller's strings
+STRINGTABLE DISCARDABLE
+BEGIN
+    IDS_MODERN_PAD_CONTROLLER "Controller"
+    IDS_HELP_MODERN_PAD_CONTROLLER "Set up an Xbox-style controller: how fast it looks around, which way, and its dead zones."
+    IDS_MODERN_PAD_TITLE    "CONTROLLER"
+    IDS_MODERN_PAD_LOOKSPEED "Look speed"
+    IDS_HELP_MODERN_PAD_LOOKSPEED "How fast the right stick turns the view, in percent."
+    IDS_MODERN_PAD_INVERT   "Invert look"
+    IDS_HELP_MODERN_PAD_INVERT "Push the right stick up to look down."
+    IDS_MODERN_PAD_LOOKDEADZONE "Look dead zone"
+    IDS_HELP_MODERN_PAD_LOOKDEADZONE "How far, in percent, the right stick moves before the view turns."
+    IDS_MODERN_PAD_MOVEDEADZONE "Move dead zone"
+    IDS_HELP_MODERN_PAD_MOVEDEADZONE "How far, in percent, the left stick moves before you move."
+    IDS_MODERN_PAD_RESTORE  "Restore controller defaults"
+    IDS_HELP_MODERN_PAD_RESTORE "Put the controller's buttons back as they were. The keyboard and the mouse are left as they are."
+    IDS_MODERN_PAD_CONFIRMRESTORE "Restore the controller's default buttons?"
+    IDS_MODERN_PAD_DEVICE   "Controller"
+END
+#endif
+#ifdef NOLF2SRC_MODERN
 // MODERN.md: the modern build's own strings
 STRINGTABLE DISCARDABLE
 BEGIN

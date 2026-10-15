@@ -135,4 +135,12 @@ both releases' discs (`make retail` fetches them; `tools/mkinstall.py`).
 The GitHub Actions workflow builds the four public archives on every push
 (`BUILDING.md`).
 
+The modern build plays with a controller: an Xbox-style (XInput) pad, which
+is also what Steam Input makes of the Steam Deck's controls and of most other
+pads. The sticks move and look, the triggers fire and zoom, A skips a
+cut-scene, and the menus follow the d-pad, A and B; Options > Controls >
+Controller sets the look speed and dead zones, and Configure controls binds
+the buttons like keys (`MODERN.md` M-G47). So far it is tested with a
+simulated pad only.
+
 See `LICENSE-NOTES.md` for what is whose, and what each archive holds.

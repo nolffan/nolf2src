@@ -63,6 +63,7 @@ Background, in this directory:
 | 11 | `bugs`: the variants (debug, modern, modern-debug) checked to build the whole game, engine included, and to play; `RETAIL_BUGS.md`; the safe fixes in the modern build | 7, 8 | done: every variant builds every binary with its define and passes the playtest; 48 entries listed, 23 of them fixed in the modern build (three only on one side: see the notes) (M-G5..M-G16, M-L3, M-E7..M-E12) |
 | 12 | `modernizer`: the NOLF 2 Modernizer (haekb) inventoried change by change in `MODERN.md`, its fixes and features reimplemented in the modern build, its known issues answered | 8, 11 | done for the most part: no disc / CD key, its retail crash fixes, widescreen menus/HUD/FOV/zoom, mouse look (M-E3), frame limiter, windows, focus, display options (FOV, frame limit, antialiasing, 4:3 cinematics), wheel, fps counter, anisotropy, scope margins, the dedicated server without the registry; left: the console (M-E5), Internet play (M-E6), controllers (M-G47), jukebox (M-G46), the damage flash's width (M-G38) |
 | 13 | `mouse`: why mouse look jumps about (a player's report, modern build on a desktop under Wine) | 7 | done: retail's `input_ReadInput` (Lithtech.exe 0x4319b0, byte-identical in both builds) adds a look axis's last event again per pass and per frame; MODERN.md M-E3 (with M-E4's frame limit) is the fix; `RETAIL_BUGS.md` has it and the packages' retail bugs |
+| 14 | `xinput`: controller support in the modern build (MODERN.md M-G47 and the Modernizer's known issue K8), as nolfsrc's P7: an XInput pad, DirectInput joysticks removed | 8, 12 | done: `##gamepad` (M-E20), no DirectInput joysticks (M-E21), sticks, menus, cut-scenes and decisions read by the client (M-G47, M-G60, M-G61), the Controller screen (M-G62), a retail binding bug fixed (M-G63); tested with a simulated pad (`tools/playtest-pad.txt`); rumble and button prompts not started (M-G64, M-G65) |
 | 15 | `winmode`: window modes in the modern build -- full screen, a window, or a borderless window at the desktop's resolution -- as nolfsrc's M-P1-22: the engine, `render_a`, the Display screen, the launcher's Display dialog, the run scripts | 8, 12 | done: `Windowed` + `WindowMode` (MODERN.md M-E30, M-G70, M-L5), M-G40's toggle folded in; tested under Xvfb in each mode and switched from the menu and the launcher; `make progress` unchanged |
 
 ## Notes per package
@@ -1210,6 +1211,43 @@ modern build), the multiplayer timer, the bomb (not fixed).
   (BITMAP, ICON, CURSOR, WAVE...), recursively. Every `.rc` the workspaces
   build is covered (the game's resource DLLs, Launcher, ServerApp,
   Lithtech/server, ltmsg), in every variant's tree. No output changes.
+
+### 14. xinput
+
+Controller support in the modern build, the same design and player
+experience as nolfsrc's P7 (its commits "Modern build: controller support
+(P7)", "Controller: A skips a cut-scene, and goes on from the death
+screen", "Modern build: no DirectInput joysticks, the controller only").
+Everything is behind `NOLF2SRC_MODERN`; MODERN.md has the items.
+
+- **Engine** (`src/modern/xinput/gamepad_device.h`, `padread.h`, included
+  by `input.cpp`): `##gamepad`, an `IDirectInputDevice8A` of our own over
+  XInput (loaded at run time, its two types declared by hand), a
+  DirectInput gamepad to the game, so bindings, buffered reads and the
+  Configure controls capture work unchanged (M-E20). DirectInput's game
+  controllers are left out of the device list (M-E21).
+- **Client** (`src/modern/xinput/clientpad.cpp`, compiled as part of
+  `GameClientShell.cpp`: CShell's project files are retail's): the sticks
+  (look, movement, the snowmobile), the menu keys, A in a cut-scene and on
+  the death screen, a decision's choices (`HUDDecision`), the default
+  layout once per profile (`[Controls] PadLayout`) (M-G47, M-G60, M-G61).
+  The Controller screen replaces the retail joystick screen (M-G62).
+- **Strings** 31100-31114 (`ClientResShared`, a block of their own, apart
+  from the modern build's 31000 and up).
+- **Retail bug**: a gamepad's buttons were bound by instance number
+  (`RETAIL_BUGS.md`, M-G63).
+- **Testing**: `NOLF2SRC_PADTEST` makes a file the pad; `tools/playtest.sh`
+  has `pad` and `tap`, and `tools/playtest-pad.txt` drives the menus,
+  Configure controls (a button bound), the Controller screen, a new game
+  (cut-scene, briefing and cinematic gone on from with A) and play (turn,
+  run, walk, crouch, the menu with Start, back with B). Not tested: real
+  hardware, a dialogue decision and the death screen (neither comes up in
+  the script's first minutes of play).
+- **Left**: rumble (M-G64) and button prompts (M-G65). Package 12's row
+  still lists controllers among what is left; M-G47 is done.
+
+**Score.** `make progress` (check) passes unchanged; `make test` passes on
+the release and the modern build.
 
 ### 15. winmode
 

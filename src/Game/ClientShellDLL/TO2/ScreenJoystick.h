@@ -35,6 +35,17 @@ protected:
 
 	uint8	m_nAxis[kMaxDeviceAxis];
 	uint8	m_nPOV[kMaxDevicePOV];
+#ifdef NOLF2SRC_MODERN
+	// MODERN.md M-G62: the controller's settings (the console variables
+	// Pad*, in percent)
+public:
+	void	ConfirmPadRestore(LTBOOL bConfirm);
+protected:
+	int		m_nPadLookSpeed;
+	LTBOOL	m_bPadInvert;
+	int		m_nPadLookDeadZone;
+	int		m_nPadMoveDeadZone;
+#endif
 };
 
 #endif // _SCREEN_KEYBOARD_H_

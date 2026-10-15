@@ -47,6 +47,12 @@ public:
 
 	HOBJECT GetObject() { return m_hObject; }
 	float	GetRadius() { return m_fRadius; }
+#ifdef NOLF2SRC_MODERN
+	// MODERN.md M-G61: the controller's highlight over the choices: moved
+	// by nDelta (0: put on the first if there is none yet), and taken
+	void	PadMove(int nDelta);
+	void	PadChoose();
+#endif
 
 protected:
 
@@ -67,6 +73,9 @@ protected:
 
 	CLTGUIWindow	    m_Dlg;
 	CLTGUIColumnCtrl*	m_pText[MAX_DECISION_CHOICES];
+#ifdef NOLF2SRC_MODERN
+	int					m_nPadChoice;		// M-G61: the highlighted choice, -1: none
+#endif
 
 };
 

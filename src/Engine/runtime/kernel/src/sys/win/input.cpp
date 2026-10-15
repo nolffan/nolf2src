@@ -381,6 +381,11 @@ class DeviceDef
 
 	// Useful for remembering current device when enumerating device objects
 	static DeviceDef		*g_pCurrentEnumDevice=LTNULL;
+#ifdef NOLF2SRC_MODERN
+// MODERN.md M-E20: ##gamepad, the XInput controller as a DirectInput gamepad
+// (src/modern/xinput/)
+#include "../modern/xinput/gamepad_device.h"
+#endif
 
 
 
@@ -985,6 +990,16 @@ static BOOL CALLBACK DeviceEnumCallback( LPCDIDEVICEINSTANCE pDevice, LPVOID pvR
 {
 	DeviceDef *pDef;
 
+#ifdef NOLF2SRC_MODERN
+	// MODERN.md M-E21: the controller is ##gamepad, read through XInput;
+	// DirectInput's game controllers (joysticks, gamepads, wheels, flight
+	// sticks) are left out -- under Wine one of them is the same pad
+	if( !PadDevice_IsPad( pDevice->guidInstance ) &&
+		LOBYTE(pDevice->dwDevType) >= DI8DEVTYPE_JOYSTICK && LOBYTE(pDevice->dwDevType) <= DI8DEVTYPE_1STPERSON )
+	{
+		return DIENUM_CONTINUE;
+	}
+#endif
 	LT_MEM_TRACK_ALLOC(pDef = new DeviceDef,LT_MEM_TYPE_INPUT);
 	memset( pDef, 0, sizeof(DeviceDef) );
 	LTStrCpy( pDef->m_InstanceName, pDevice->tszInstanceName, INPUTNAME_LEN );
@@ -1197,6 +1212,18 @@ bool input_Init(InputMgr *pMgr, ConsoleState *pState)
 		return false;
 	}
 
+#ifdef NOLF2SRC_MODERN
+	// MODERN.md M-E20: ##gamepad, whenever XInput loads (a pad can be
+	// plugged in later); recorded first, so DirectInput's devices go in
+	// front of it in the list
+	if( PadDevice_Available() )
+	{
+		DIDEVICEINSTANCEA instance;
+
+		PadDevice_GetInstance( &instance );
+		DeviceEnumCallback( &instance, LTNULL );
+	}
+#endif
 	// Enumerate devices so we know what's there.
 	g_pDirectInput->EnumDevices( 0, DeviceEnumCallback, LTNULL, DIEDFL_ATTACHEDONLY );
 
@@ -1333,7 +1360,12 @@ bool input_EnableDevice( InputMgr *pMgr, const char *pDeviceName )
 			theGuid = GUID_SysKeyboard;
 		}
 
+#ifdef NOLF2SRC_MODERN
+		// MODERN.md M-E20: ##gamepad is ours, not DirectInput's
+		hResult = PadDevice_CreateDevice( g_pDirectInput, theGuid, &pDevice->m_pDevice );
+#else
 		hResult = g_pDirectInput->CreateDevice( theGuid, &pDevice->m_pDevice, LTNULL );
+#endif
 		if( hResult != DI_OK )
 			return false;
 
@@ -1430,6 +1462,15 @@ void input_ReadInput( InputMgr *pMgr, BYTE *pActionsOn, float axisOffsets[3] )
 
 	// clear the axis array
 	axisOffsets[0] = axisOffsets[1] = axisOffsets[2] = 0.0f;
+#ifdef NOLF2SRC_MODERN
+	// MODERN.md M-E20: the controller's buttons the game reads itself for
+	// now (PadHoldButtons, XInput's bits; set by the client) are held back
+	// from the bindings
+	{
+		LTCommandVar *pHold = g_pInputConsoleState ? cc_FindConsoleVar( g_pInputConsoleState, "PadHoldButtons" ) : LTNULL;
+		PadDevice_SetHold( pHold ? (WORD)(int)pHold->floatVal : 0 );
+	}
+#endif
 
 	// clear all of the axis console variables 
 	pTrigConVar = g_lstTriggerActionConsoleVariables;

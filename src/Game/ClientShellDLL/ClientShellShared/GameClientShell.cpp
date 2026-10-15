@@ -81,6 +81,11 @@ HWND				g_hMainWnd = NULL;
 RECT*				g_prcClip = NULL;
 
 CGameClientShell*   g_pGameClientShell = NULL;
+#ifdef NOLF2SRC_MODERN
+// MODERN.md M-G47: the controller, the client's half (compiled here: the
+// project files are the retail ones)
+#include "../modern/xinput/clientpad.cpp"
+#endif
 
 LTVector            g_vWorldWindVel(0.0f, 0.0f, 0.0f);
 
@@ -1585,6 +1590,11 @@ void CGameClientShell::Update()
 		SetPhysicsStateTimeStep(&g_waterPhysicsState, m_fFrameTime);
 	}
 
+#ifdef NOLF2SRC_MODERN
+	// MODERN.md M-G47, M-G61: the controller's sticks, and its keys in
+	// the menus (whose interface update below takes the frame)
+	Pad_Update(m_fFrameTime);
+#endif
 	// Update the interface (don't do anything if the interface mgr
 	// handles the update...)
 

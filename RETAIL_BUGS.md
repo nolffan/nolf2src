@@ -56,6 +56,7 @@ NOLF2 no longer has are listed at the end, so nobody looks again.
 * [The launcher never closes its find handles](#the-launcher-never-closes-its-find-handles)
 * [Error messages that name the wrong function](#error-messages-that-name-the-wrong-function) (the client's)
 * [`InitLevel`'s trace misspells a parameter](#initlevels-trace-misspells-a-parameter)
+* [A gamepad's buttons are bound by their instance number](#a-gamepads-buttons-are-bound-by-their-instance-number)
 
 Not fixed yet because the code is in a part of the tree another piece of
 work owns: the engine's `server/`, `shared/`, `world/`, `model/`,
@@ -153,6 +154,27 @@ Not fixed yet: `CShell.dll`.
 Rebuilding the list, `if (nServerIndex = m_nSelectedServer)` assigns where
 it means to compare. With any server but the first selected, every row
 matches, and the selection ends on the last row.
+
+### A gamepad's buttons are bound by their instance number
+`CScreenConfigure::Bind` (CShell.dll) · `src/Game/ClientShellDLL/TO2/ScreenConfigure.cpp`
+
+> **FIXED in the modern build** (`NOLF2SRC_MODERN`): a joystick's and a
+> gamepad's controls are both bound by name (MODERN.md M-G63).
+
+Configure controls binds the control just pressed. A key is named by its
+scan code (`"##%d"`, e.g. `##57`); a joystick's control is meant to be named
+by its name, but the test is
+`nControlCode && (deviceType != DEVICETYPE_JOYSTICK || deviceType == DEVICETYPE_GAMEPAD)`,
+whose second half adds nothing: for a gamepad it is true, so a gamepad's
+button is bound as `##<its instance number>` (button 0 alone, whose number
+is 0, by name). The engine resolves `##n` to the first of the device's
+objects whose instance number is n (`input_AddTrigger`,
+`DeviceObjectEnumCallback`), and DirectInput numbers a HID gamepad's axes
+and buttons each from 0, axes first: the second button binds the Y axis.
+The button then does nothing, and the binding's range (0 to 0), held
+against the axis's value, turns the command on while the stick is at one
+end of its travel (an axis that reads 0 there). Meant,
+by all appearances: `!= DEVICETYPE_JOYSTICK && != DEVICETYPE_GAMEPAD`.
 
 ### A particle system's colour range ignores the start colour
 `CBaseParticleSystemFX::GetRandomColorInRange` (CShell.dll) ·

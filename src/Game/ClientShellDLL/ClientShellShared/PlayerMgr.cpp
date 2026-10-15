@@ -43,6 +43,10 @@
 #include "PlayerViewAttachmentMgr.h"
 #include "LTEulerAngles.h"
 #include "DoomsDayPieceFX.h"
+#ifdef NOLF2SRC_MODERN
+// MODERN.md M-G47: the controller's right stick
+#include "../modern/xinput/clientpad.h"
+#endif
 
 CPlayerMgr* g_pPlayerMgr = NULL;
 
@@ -3694,6 +3698,15 @@ void CPlayerMgr::CalculateCameraRotation()
 		// Clear yaw and pitch offsets if we're using mouse strafing...
 		offsets[0] = offsets[1] = 0.0f;
 	}
+#ifdef NOLF2SRC_MODERN
+	// MODERN.md M-G47: the controller's right stick turns with the mouse
+	// (and slows with the zoom as it does); its look up and down is added
+	// below, apart from the mouse's look and invert settings
+	float fPadYaw, fPadPitch;
+	Pad_GetLook(&fPadYaw, &fPadPitch);
+	offsets[0] += fPadYaw;
+	fPadPitch /= fVal;
+#endif
 
     float fYawDelta    = offsets[0] / fVal;
     float fPitchDelta  = offsets[1] / fVal;
@@ -3771,6 +3784,14 @@ void CPlayerMgr::CalculateCameraRotation()
 		if (m_fPitch > 0.0f) m_fPitch -= Min(fPitchDelta, m_fPitch);
 		if (m_fPitch < 0.0f) m_fPitch += Min(fPitchDelta, -m_fPitch);
 	}
+#ifdef NOLF2SRC_MODERN
+	// M-G47: the stick's look up and down (first person only, as the
+	// third person's view is held near level above)
+	if (m_pPlayerCamera->IsFirstPerson())
+	{
+		m_fPitch += fPadPitch;
+	}
+#endif
 
     float fMinY = MATH_HALFPI - 0.1f;
 

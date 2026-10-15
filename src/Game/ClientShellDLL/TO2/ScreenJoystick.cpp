@@ -14,11 +14,28 @@
 #include "ScreenCommands.h"
 #include "GameSettings.h"
 #include "InterfaceMgr.h"
+#ifdef NOLF2SRC_MODERN
+// MODERN.md M-G62: the controller's default buttons
+#include "../modern/xinput/clientpad.h"
+#endif
 
 namespace
 {
 	int kGap = 200;
 	int kWidth = 200;
+#ifdef NOLF2SRC_MODERN
+	void PadRestoreCallBack(LTBOOL bReturn, void *pData)
+	{
+		CScreenJoystick *pThisScreen = (CScreenJoystick *)pData;
+		if (pThisScreen)
+			pThisScreen->ConfirmPadRestore(bReturn);
+	}
+
+	int PadPercent(char const* pVar, float fDefault)
+	{
+		return (int)(100.0f * GetConsoleFloat(pVar, fDefault) + 0.5f);
+	}
+#endif
 }
 
 
@@ -30,6 +47,12 @@ CScreenJoystick::CScreenJoystick()
 {
 	memset(m_nAxis,0,sizeof(m_nAxis));
 	memset(m_nPOV,0,sizeof(m_nPOV));
+#ifdef NOLF2SRC_MODERN
+	m_nPadLookSpeed = 100;
+	m_bPadInvert = LTFALSE;
+	m_nPadLookDeadZone = 15;
+	m_nPadMoveDeadZone = 20;
+#endif
 
 }
 
@@ -41,6 +64,42 @@ CScreenJoystick::~CScreenJoystick()
 // Build the screen
 LTBOOL CScreenJoystick::Build()
 {
+#ifdef NOLF2SRC_MODERN
+	// MODERN.md M-G62: the controller's screen. Its axes are not bound
+	// (the client reads the sticks, M-G47), so instead of the retail axis
+	// assignments: the right stick's speed and direction, both sticks'
+	// dead zones, and its default buttons back. The buttons themselves are
+	// bound in Configure controls, like keys.
+	CreateTitle(IDS_MODERN_PAD_TITLE);
+
+	kGap = g_pLayoutMgr->GetScreenCustomInt(SCREEN_ID_JOYSTICK,"ColumnWidth");
+	kWidth = 200;
+
+	CLTGUISlider *pSlider = AddSlider(IDS_MODERN_PAD_LOOKSPEED, IDS_HELP_MODERN_PAD_LOOKSPEED, kGap, kWidth, -1, &m_nPadLookSpeed);
+	pSlider->SetSliderRange(25, 300);
+	pSlider->SetSliderIncrement(25);
+	pSlider->SetNumericDisplay(LTTRUE);
+
+	char szYes[16];
+	char szNo[16];
+	FormatString(IDS_YES,szYes,sizeof(szYes));
+	FormatString(IDS_NO,szNo,sizeof(szNo));
+	CLTGUIToggle *pToggle = AddToggle(IDS_MODERN_PAD_INVERT, IDS_HELP_MODERN_PAD_INVERT, kGap, &m_bPadInvert);
+	pToggle->SetOnString(szYes);
+	pToggle->SetOffString(szNo);
+
+	pSlider = AddSlider(IDS_MODERN_PAD_LOOKDEADZONE, IDS_HELP_MODERN_PAD_LOOKDEADZONE, kGap, kWidth, -1, &m_nPadLookDeadZone);
+	pSlider->SetSliderRange(0, 50);
+	pSlider->SetSliderIncrement(5);
+	pSlider->SetNumericDisplay(LTTRUE);
+
+	pSlider = AddSlider(IDS_MODERN_PAD_MOVEDEADZONE, IDS_HELP_MODERN_PAD_MOVEDEADZONE, kGap, kWidth, -1, &m_nPadMoveDeadZone);
+	pSlider->SetSliderRange(0, 50);
+	pSlider->SetSliderIncrement(5);
+	pSlider->SetNumericDisplay(LTTRUE);
+
+	AddTextItem(IDS_MODERN_PAD_RESTORE, CMD_RESET_DEFAULTS, IDS_HELP_MODERN_PAD_RESTORE);
+#else
 	CreateTitle(IDS_TITLE_JOYSTICK);
 	
 	kGap = g_pLayoutMgr->GetScreenCustomInt(SCREEN_ID_JOYSTICK,"ColumnWidth");
@@ -93,6 +152,7 @@ LTBOOL CScreenJoystick::Build()
 		pCtrl->AddString(LoadTempString(IDS_POV_LOOK));
 		pCtrl->AddString(LoadTempString(IDS_POV_MOVE));
 	}
+#endif
 
 
 	// Make sure to call the base class
@@ -114,6 +174,18 @@ uint32 CScreenJoystick::OnCommand(uint32 dwCommand, uint32 dwParam1, uint32 dwPa
 		
 			break;
 		}
+#ifdef NOLF2SRC_MODERN
+	case CMD_RESET_DEFAULTS:
+		{
+			// M-G62: the controller's default buttons back
+			MBCreate mb;
+			mb.eType = LTMB_YESNO;
+			mb.pFn = PadRestoreCallBack;
+			mb.pData = this;
+			g_pInterfaceMgr->ShowMessageBox(IDS_MODERN_PAD_CONFIRMRESTORE,&mb);
+			break;
+		}
+#endif
 	default:
 		return CBaseScreen::OnCommand(dwCommand,dwParam1,dwParam2);
 
@@ -123,10 +195,48 @@ uint32 CScreenJoystick::OnCommand(uint32 dwCommand, uint32 dwParam1, uint32 dwPa
 
 
 
+#ifdef NOLF2SRC_MODERN
+// M-G62: the controller's column of the bindings back to its defaults; the
+// keyboard's and the mouse's are left as they are
+void CScreenJoystick::ConfirmPadRestore(LTBOOL bConfirm)
+{
+	if (!bConfirm) return;
+
+	CUserProfile *pProfile = g_pProfileMgr->GetCurrentProfile();
+	pProfile->SetBindings();
+	Pad_DefaultBindings(pProfile, true);
+	pProfile->ApplyBindings();
+	pProfile->Save();
+}
+
+#endif
 // Change in focus
 void CScreenJoystick::OnFocus(LTBOOL bFocus)
 {
 	CUserProfile *pProfile = g_pProfileMgr->GetCurrentProfile();
+#ifdef NOLF2SRC_MODERN
+	// M-G62: the controller's console variables (clientpad.cpp)
+	if (bFocus)
+	{
+		m_nPadLookSpeed = PadPercent("PadLookSpeed", 1.0f);
+		m_bPadInvert = (GetConsoleInt("PadInvertY", 0) != 0);
+		m_nPadLookDeadZone = PadPercent("PadLookDeadZone", 0.15f);
+		m_nPadMoveDeadZone = PadPercent("PadMoveDeadZone", 0.2f);
+
+		UpdateData(LTFALSE);
+	}
+	else
+	{
+		UpdateData();
+
+		WriteConsoleFloat("PadLookSpeed", (LTFLOAT)m_nPadLookSpeed / 100.0f);
+		WriteConsoleInt("PadInvertY", m_bPadInvert ? 1 : 0);
+		WriteConsoleFloat("PadLookDeadZone", (LTFLOAT)m_nPadLookDeadZone / 100.0f);
+		WriteConsoleFloat("PadMoveDeadZone", (LTFLOAT)m_nPadMoveDeadZone / 100.0f);
+	}
+	CBaseScreen::OnFocus(bFocus);
+	return;
+#endif
 	if (bFocus)
 	{
 		pProfile->SetJoystick();

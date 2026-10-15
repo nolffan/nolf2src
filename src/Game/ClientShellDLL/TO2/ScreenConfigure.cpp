@@ -16,6 +16,10 @@
 #include "dinput.h"
 #include "InterfaceMgr.h"
 #include "GameClientShell.h"
+#ifdef NOLF2SRC_MODERN
+// MODERN.md M-G61: the controller's menu keys wait while a control is bound
+#include "../modern/xinput/clientpad.h"
+#endif
 
 // The different columns
 #define SCREEN_COLUMN_ACTION		0
@@ -95,7 +99,13 @@ void CScreenConfigure::Escape()
 LTBOOL   CScreenConfigure::Init(int nScreenID)
 {
 	LoadString(IDS_DEVICE_MOUSE,strDeviceNiceName[1],sizeof(strDeviceNiceName[1]));
+#ifdef NOLF2SRC_MODERN
+	// MODERN.md M-G62: the third column is the controller ("Controller A
+	// Button")
+	LoadString(IDS_MODERN_PAD_DEVICE,strDeviceNiceName[2],sizeof(strDeviceNiceName[2]));
+#else
 	LoadString(IDS_DEVICE_JOYSTICK,strDeviceNiceName[2],sizeof(strDeviceNiceName[2]));
+#endif
 
 	sprintf (szWheelUp,"%s %s",strDeviceNiceName[1], LoadTempString(IDS_WHEEL_UP) );
 	sprintf (szWheelDown,"%s %s",strDeviceNiceName[1], LoadTempString(IDS_WHEEL_DOWN) );
@@ -455,7 +465,15 @@ void CScreenConfigure::Bind(int nCommand, uint32 nDeviceObjectId, uint16 nContro
 	{
 		pData->nDeviceObjectId[dev] = nDeviceObjectId;
 
+#ifdef NOLF2SRC_MODERN
+		// MODERN.md M-G63: a key is bound by its scan code ("##57"), a
+		// joystick's or a gamepad's control by its name. Retail's test let a
+		// gamepad's button be bound by its instance number, which the
+		// engine takes for the first object of that number -- an axis
+		if (nControlCode && deviceType != DEVICETYPE_JOYSTICK && deviceType != DEVICETYPE_GAMEPAD)
+#else
 		if (nControlCode && (deviceType != DEVICETYPE_JOYSTICK || deviceType == DEVICETYPE_GAMEPAD))
+#endif
 		{
 			sprintf(pData->strRealName[dev],"##%d",nControlCode);
 			SAFE_STRCPY(pData->strTriggerName[dev],lpszControlName)
@@ -562,6 +580,11 @@ uint32 CScreenConfigure::OnCommand(uint32 dwCommand, uint32 dwParam1, uint32 dwP
 			else
 			{
                 m_bWaitingForKey = LTTRUE;
+#ifdef NOLF2SRC_MODERN
+				// MODERN.md M-G61: the controller's buttons are to be bound
+				// now, not taken as menu keys
+				Pad_SetCapture(true);
+#endif
 			}
 
 
@@ -606,6 +629,9 @@ LTBOOL CScreenConfigure::Render(HSURFACE hDestSurf)
                         m_bWaitingForKey = LTFALSE;
                         g_pLTClient->EndDeviceTrack();
 						m_fInputPauseTimeLeft = 0.2f;
+#ifdef NOLF2SRC_MODERN
+						Pad_SetCapture(false);
+#endif
 					}
 				}
 			}

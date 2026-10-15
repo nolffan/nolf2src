@@ -33,6 +33,10 @@
 #include "TargetMgr.h"
 #include "GadgetDisabler.h"
 #include "VolumeBrushFX.h"
+#ifdef NOLF2SRC_MODERN
+// MODERN.md M-G47: the controller's left stick
+#include "../modern/xinput/clientpad.h"
+#endif
 
 #define SPECTATOR_ACCELERATION			100000.0f
 #define MIN_ONGROUND_Y					-10000000.0f
@@ -522,6 +526,12 @@ void CMoveMgr::UpdateNormalControlFlags()
 		m_dwControlFlags |= BC_CFLG_STRAFE_LEFT;
 	}
 
+#ifdef NOLF2SRC_MODERN
+	// MODERN.md M-G47: the controller's left stick: its direction, and
+	// walking or running by how far it is pushed (not while ducking or
+	// leaning, as above)
+	Pad_MoveFlags(&m_dwControlFlags, !(m_dwControlFlags & BC_CFLG_DUCK) && !g_pPlayerMgr->GetLeanMgr()->IsLeaning());
+#endif
 
 	if (!g_pPlayerMgr->IsCarryingHeavyObject())
 	{
@@ -1379,6 +1389,32 @@ void CMoveMgr::UpdateNormalMotion()
 
 	if (!g_pPlayerMgr->IsPlayerDead())
 	{
+#ifdef NOLF2SRC_MODERN
+		// MODERN.md M-G47: the controller's left stick accelerates the way
+		// it points, at the full rate (its deflection is the speed:
+		// GetMaxVelMag), instead of by the flags' octant; up and down in
+		// liquid are the buttons' still
+		float fPadRight, fPadForward;
+		bool bPadMove = Pad_GetMove(&fPadRight, &fPadForward);
+
+		if (bPadMove)
+		{
+			float fPadLen = (float)sqrt(fPadRight * fPadRight + fPadForward * fPadForward);
+
+			vAccel += (vForward * (fPadForward / fPadLen * fMoveAccel));
+			vAccel += (vRight * (fPadRight / fPadLen * fMoveAccel));
+		}
+
+		if (!bPadMove && (m_dwControlFlags & BC_CFLG_FORWARD))
+		{
+			vAccel += (vForward * fMoveAccel);
+		}
+
+		if (!bPadMove && (m_dwControlFlags & BC_CFLG_REVERSE))
+		{
+			vAccel -= (vForward * fMoveAccel);
+		}
+#else
 		if (m_dwControlFlags & BC_CFLG_FORWARD)
 		{
 			vAccel += (vForward * fMoveAccel);
@@ -1388,6 +1424,7 @@ void CMoveMgr::UpdateNormalMotion()
 		{
 			vAccel -= (vForward * fMoveAccel);
 		}
+#endif
 
 
 		// If we are in a container that supports free movement, see if we are
@@ -1416,6 +1453,17 @@ void CMoveMgr::UpdateNormalMotion()
 		}
 
 
+#ifdef NOLF2SRC_MODERN
+		if (!bPadMove && (m_dwControlFlags & BC_CFLG_STRAFE_LEFT))
+		{
+			vAccel -= (vRight * fMoveAccel);
+		}
+
+		if (!bPadMove && (m_dwControlFlags & BC_CFLG_STRAFE_RIGHT))
+		{
+			vAccel += (vRight * fMoveAccel);
+		}
+#else
 		if (m_dwControlFlags & BC_CFLG_STRAFE_LEFT)
 		{
 			vAccel -= (vRight * fMoveAccel);
@@ -1425,6 +1473,7 @@ void CMoveMgr::UpdateNormalMotion()
 		{
 			vAccel += (vRight * fMoveAccel);
 		}
+#endif
 	}
 
 	g_pPhysicsLT->SetAcceleration(m_hObject, &vAccel);
@@ -2683,6 +2732,14 @@ LTFLOAT CMoveMgr::GetMaxVelMag() const
 			{
 				fMaxVel = m_fWalkVel;
 			}
+#ifdef NOLF2SRC_MODERN
+			// MODERN.md M-G47: the controller's left stick, part way,
+			// walks slower
+			if (fMaxVel == m_fWalkVel)
+			{
+				fMaxVel *= Pad_SpeedScale();
+			}
+#endif
 		}
 
 		if( g_pPlayerMgr->IsCarryingHeavyObject() && fMaxVel > m_fWalkVel)

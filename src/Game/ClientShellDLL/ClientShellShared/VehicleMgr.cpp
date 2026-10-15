@@ -28,6 +28,10 @@
 #include "FXButeMgr.h"
 #include "SurfaceFunctions.h"
 #include "PlayerViewAttachmentMgr.h"
+#ifdef NOLF2SRC_MODERN
+// MODERN.md M-G47: the controller's left stick on the snowmobile
+#include "../modern/xinput/clientpad.h"
+#endif
 
 #define ROUNDFLOAT(f) ((int)((f) + ((f) > 0 ? 0.5 : -0.5)))
 
@@ -545,6 +549,11 @@ void CVehicleMgr::UpdateSnowmobileControlFlags()
 		m_dwControlFlags |= BC_CFLG_ALT_FIRING;
 	}
 
+#ifdef NOLF2SRC_MODERN
+	// MODERN.md M-G47: the controller's left stick: throttle, brake and
+	// steering
+	Pad_VehicleFlags(&m_dwControlFlags);
+#endif
 	// Check for strafe left and strafe right.
 	if ((m_dwControlFlags & BC_CFLG_RIGHT) && (m_dwControlFlags & BC_CFLG_STRAFE))
 	{

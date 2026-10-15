@@ -31,6 +31,9 @@ CHUDDecision::CHUDDecision()
 	}
 	m_hObject = LTNULL;
 	m_fRadius = 0.0f;
+#ifdef NOLF2SRC_MODERN
+	m_nPadChoice = -1;
+#endif
 }
 	
 
@@ -134,6 +137,15 @@ void CHUDDecision::Show(ILTMessage_Read *pMsg)
 			Hide();
 		}
 
+#ifdef NOLF2SRC_MODERN
+		// M-G61: no controller highlight on a new window yet
+		m_nPadChoice = -1;
+		for (i=0; i < MAX_DECISION_CHOICES; i++)
+		{
+			if (m_pText[i])
+				m_pText[i]->Select(LTFALSE);
+		}
+#endif
 		//fill the new window
 		m_Dlg.SetScale(1.0f);
 		LTIntPt offset = m_Offset;
@@ -265,7 +277,12 @@ void CHUDDecision::UpdateLayout()
 			m_Dlg.AddControl(m_pText[i],offset);
 		}
 
+#ifdef NOLF2SRC_MODERN
+		// M-G61: the choice the controller has highlighted, in red
+		m_pText[i]->SetColors(SET_ARGB(0xFF,0xC0,0x10,0x10),color,color);
+#else
 		m_pText[i]->SetColors(color,color,color);
+#endif
 //		m_pText[i]->SetFixedWidth(nTextWidth);
 
 		offset.y += m_pText[i]->GetBaseHeight() + 4;
@@ -289,3 +306,48 @@ void CHUDDecision::OnObjectRemove(HLOCALOBJ hObj)
 	m_bVisible = LTFALSE;
 
 }
+#ifdef NOLF2SRC_MODERN
+
+// MODERN.md M-G61: the controller's highlight, over the choices shown
+// (Show() hides the empty ones).
+void CHUDDecision::PadMove(int nDelta)
+{
+	int nShown[MAX_DECISION_CHOICES];
+	int nChoices = 0;
+	int nAt = -1;
+	int i;
+
+	if (!m_bVisible) return;
+
+	for (i = 0; i < MAX_DECISION_CHOICES; i++)
+	{
+		if (m_pText[i] && m_pText[i]->IsVisible())
+		{
+			if (i == m_nPadChoice)
+				nAt = nChoices;
+			nShown[nChoices++] = i;
+		}
+	}
+	if (!nChoices) return;
+
+	if (nAt < 0)
+		nAt = 0;
+	else
+		nAt = (nAt + nDelta % nChoices + nChoices) % nChoices;
+	m_nPadChoice = nShown[nAt];
+
+	for (i = 0; i < MAX_DECISION_CHOICES; i++)
+	{
+		if (m_pText[i])
+			m_pText[i]->Select(i == m_nPadChoice);
+	}
+}
+
+void CHUDDecision::PadChoose()
+{
+	if (!m_bVisible || m_nPadChoice < 0) return;
+
+	Choose((uint8)m_nPadChoice);
+	m_nPadChoice = -1;
+}
+#endif

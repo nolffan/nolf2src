@@ -77,6 +77,13 @@ LTBOOL CScreenControls::Build()
 	// keyboard
 	AddTextItem(IDS_KEYBOARD, CMD_KEYBOARD, IDS_HELP_KEYBOARD);
 
+#ifdef NOLF2SRC_MODERN
+	// MODERN.md M-G62: no "Use joystick" and "Configure joystick": the
+	// controller (M-E20) is the only joystick (M-E21), always on, and its
+	// sticks are the client's; its own screen is the joystick screen,
+	// rebuilt (ScreenJoystick.cpp)
+	m_pJoystickCtrl = AddTextItem(IDS_MODERN_PAD_CONTROLLER, CMD_JOYSTICK, IDS_HELP_MODERN_PAD_CONTROLLER);
+#else
 	// use joystick
 	CLTGUIToggle* pToggle = AddToggle(IDS_JOYSTICK_USE, IDS_HELP_USEJOYSTICK, kGap, &m_bUseJoystick);
 	pToggle->NotifyOnChange(CMD_UPDATE,this);
@@ -94,6 +101,7 @@ LTBOOL CScreenControls::Build()
 	m_pJoystickCtrl = AddTextItem(IDS_JOYSTICK, CMD_JOYSTICK, IDS_HELP_JOYSTICK);
 	m_pJoystickCtrl->Enable( bHasJoystick );
 //	m_pJoystickCtrl->Enable(LTFALSE);
+#endif
 
 	//restore
 	AddTextItem(IDS_RESTOREDEFAULTS, CMD_RESET_DEFAULTS, IDS_HELP_RESTORE);
@@ -171,7 +179,12 @@ void CScreenControls::OnFocus(LTBOOL bFocus)
 
 		m_bUseJoystick = pProfile->m_bUseJoystick;
 
+#ifdef NOLF2SRC_MODERN
+		// M-G62: the controller's screen is always there
+		m_pJoystickCtrl->Enable(LTTRUE);
+#else
 		m_pJoystickCtrl->Enable(bHasJoystick && m_bUseJoystick);
+#endif
 
         UpdateData(LTFALSE);
 	}
