@@ -1336,8 +1336,11 @@ END
 // MODERN.md: the modern build's own strings
 STRINGTABLE DISCARDABLE
 BEGIN
-    IDS_MODERN_WINDOWED     "Windowed"
-    IDS_HELP_MODERN_WINDOWED "Play in a window instead of full screen. At the desktop's size the window has no frame."
+    IDS_MODERN_WINDOWMODE   "Window mode"
+    IDS_HELP_MODERN_WINDOWMODE "Full screen, a window, or a borderless window over the whole desktop."
+    IDS_MODERN_FULLSCREEN   "Full screen"
+    IDS_MODERN_WINDOW       "Window"
+    IDS_MODERN_BORDERLESS   "Borderless window"
     IDS_MODERN_BACKGROUND   "Run in background"
     IDS_HELP_MODERN_BACKGROUND "Windowed: keep the game going when another window has the focus."
     IDS_MODERN_FOV          "Field of view"

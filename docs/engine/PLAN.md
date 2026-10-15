@@ -63,6 +63,7 @@ Background, in this directory:
 | 11 | `bugs`: the variants (debug, modern, modern-debug) checked to build the whole game, engine included, and to play; `RETAIL_BUGS.md`; the safe fixes in the modern build | 7, 8 | done: every variant builds every binary with its define and passes the playtest; 48 entries listed, 23 of them fixed in the modern build (three only on one side: see the notes) (M-G5..M-G16, M-L3, M-E7..M-E12) |
 | 12 | `modernizer`: the NOLF 2 Modernizer (haekb) inventoried change by change in `MODERN.md`, its fixes and features reimplemented in the modern build, its known issues answered | 8, 11 | done for the most part: no disc / CD key, its retail crash fixes, widescreen menus/HUD/FOV/zoom, mouse look (M-E3), frame limiter, windows, focus, display options (FOV, frame limit, antialiasing, 4:3 cinematics), wheel, fps counter, anisotropy, scope margins, the dedicated server without the registry; left: the console (M-E5), Internet play (M-E6), controllers (M-G47), jukebox (M-G46), the damage flash's width (M-G38) |
 | 13 | `mouse`: why mouse look jumps about (a player's report, modern build on a desktop under Wine) | 7 | done: retail's `input_ReadInput` (Lithtech.exe 0x4319b0, byte-identical in both builds) adds a look axis's last event again per pass and per frame; MODERN.md M-E3 (with M-E4's frame limit) is the fix; `RETAIL_BUGS.md` has it and the packages' retail bugs |
+| 15 | `winmode`: window modes in the modern build -- full screen, a window, or a borderless window at the desktop's resolution -- as nolfsrc's M-P1-22: the engine, `render_a`, the Display screen, the launcher's Display dialog, the run scripts | 8, 12 | done: `Windowed` + `WindowMode` (MODERN.md M-E30, M-G70, M-L5), M-G40's toggle folded in; tested under Xvfb in each mode and switched from the menu and the launcher; `make progress` unchanged |
 
 ## Notes per package
 
@@ -1209,3 +1210,40 @@ modern build), the multiplayer timer, the bomb (not fixed).
   (BITMAP, ICON, CURSOR, WAVE...), recursively. Every `.rc` the workspaces
   build is covered (the game's resource DLLs, Launcher, ServerApp,
   Lithtech/server, ltmsg), in every variant's tree. No output changes.
+
+### 15. winmode
+
+Done. One setting, two variables: the engine's `Windowed` (0 full screen,
+1 a window; what `render_a` and the focus handling read) and `WindowMode`
+(1 framed, 2 borderless; 0 or unset keeps M-G42's rule: borderless only
+at the desktop's size, so old configs come up as before).
+
+- **Engine** (M-E30): `r_InitRender` replaces the asked mode with the
+  desktop's (`EnumDisplaySettings(ENUM_REGISTRY_SETTINGS)`) for a
+  borderless window, before the renderer starts; `g_RMode` and
+  `ScreenWidth`/`ScreenHeight` then carry it, so the game lays out for
+  what it got. `d3d_Init` takes the style from `WindowMode`.
+- **Display screen** (M-G70): a cycle in place of M-G40's toggle; a
+  change of window mode is set by writing `Windowed`/`WindowMode`/
+  `ScreenWidth`/`ScreenHeight` and one `RestartRender`
+  (`ModernPrepareWindowMode`, `ModernApplyOptions`), the profile told to
+  set no mode itself. `SaveDisplaySettings` keeps both variables in
+  `display.cfg` for the launcher.
+- **Launcher** (M-L5): a list box under the resolutions (the dialog's
+  bitmap has no room for a label; the three entries say what they are),
+  read from `autoexec.cfg` then `display.cfg`, passed as `+Windowed`/
+  `+WindowMode` with OK. It does not move a window that is as large as the
+  desktop to a smaller resolution, as the Display screen does: under Xvfb
+  (one mode) a "Window" at the desktop's size puts the frame off screen.
+- IDs taken: strings 31200-31202 (`IDS_MODERN_FULLSCREEN`, `_WINDOW`,
+  `_BORDERLESS`; 31000-31001 renamed to `IDS_MODERN_WINDOWMODE`); the
+  launcher's own table 31000-31002 and control 1100; MODERN.md M-E30,
+  M-G70, M-L5.
+- **Testing.** `tools/playtest.sh` has `PLAYTEST_SCREEN` (a display larger
+  than the mode, so a window has room around it) and a `screen` command
+  (the whole display); `tools/playtest-display.txt` steps the screen
+  through the three modes. Xvfb has no window manager, so a framed
+  window's frame is not drawn; only its placement shows. Full screen on
+  Xvfb can only be at the display's own size.
+- `make progress` (check) passes unchanged; `make test` passes for the
+  release and the modern build.

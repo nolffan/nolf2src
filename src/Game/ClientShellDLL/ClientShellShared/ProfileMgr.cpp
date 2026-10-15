@@ -139,7 +139,13 @@ void SaveDisplaySettings()
 									"VSyncOnFlip",
 									"GammaR",
 									"GammaG",
-									"GammaB"	
+									"GammaB"
+#ifdef NOLF2SRC_MODERN
+									// MODERN.md M-G70: the window mode, which
+									// the launcher's Display dialog reads too
+									, "Windowed",
+									"WindowMode"
+#endif
 								};
 
 	uint32 nNumVals = sizeof(pszValsToSave) / sizeof(pszValsToSave[0]);

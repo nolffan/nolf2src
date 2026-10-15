@@ -1015,8 +1015,11 @@
 #define IDS_APP_UNABLE_TO_CREATE_HW_TNL_DEVICE 2203
 #ifdef NOLF2SRC_MODERN
 // MODERN.md: the modern build's own strings (31000 and up)
-#define IDS_MODERN_WINDOWED             31000
-#define IDS_HELP_MODERN_WINDOWED        31001
+#define IDS_MODERN_WINDOWMODE           31000
+#define IDS_HELP_MODERN_WINDOWMODE      31001
+#define IDS_MODERN_FULLSCREEN           31200
+#define IDS_MODERN_WINDOW               31201
+#define IDS_MODERN_BORDERLESS           31202
 #define IDS_MODERN_BACKGROUND           31002
 #define IDS_HELP_MODERN_BACKGROUND      31003
 #define IDS_MODERN_FOV                  31004

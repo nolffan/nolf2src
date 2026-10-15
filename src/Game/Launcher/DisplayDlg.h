@@ -59,6 +59,11 @@ protected:
 	afx_msg void OnSelchangeRendererList();
 	afx_msg void OnSelchangeResolutionList();
 	//}}AFX_MSG
+#ifdef NOLF2SRC_MODERN
+	// MODERN.md M-L5: the window mode
+	afx_msg void OnSelchangeModernWindowModeList();
+	void ModernEnableResolutions();
+#endif
 	DECLARE_MESSAGE_MAP()
 };
 

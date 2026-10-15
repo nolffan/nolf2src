@@ -4,11 +4,15 @@
 #   ./linux-run.sh [options] [engine args...]
 #
 # Options:
-#   --fullscreen          full screen (default: a window)
-#   --windowed            a window (the default)
-#   --res WxH             the window / screen mode to start in (default
-#                         640x480); the menus may still draw at 640x480 inside
-#                         it until a resolution is chosen in Options > Display
+#   --fullscreen          full screen
+#   --windowed            a window
+#   --borderless          (modern build) a borderless window over the whole
+#                         desktop, at the desktop's resolution
+#   --res WxH             the window / screen mode to start in
+#                         Without these the game starts as it was last left
+#                         (Options > Display: its window mode and
+#                         resolution), and the first time (no Windowed in
+#                         autoexec.cfg yet) in a 640x480 window.
 #   --world <path>        go straight into a level, e.g.
 #                         --world 'Worlds\RetailSinglePlayer\C01S01'
 #   --help                this text
@@ -40,25 +44,35 @@
 set -e
 cd "$(dirname "$0")"
 
-WINDOWED=1
-RES=640x480
+WINDOWED=
+WINDOWMODE=
+RES=
 WORLD=
 EXTRA=
 while [ $# -gt 0 ]; do
     case "$1" in
         --fullscreen) WINDOWED=0 ;;
-        --windowed)   WINDOWED=1 ;;
+        --windowed)   WINDOWED=1; WINDOWMODE=1 ;;
+        --borderless) WINDOWED=1; WINDOWMODE=2 ;;
         --res)        RES="${2:?--res needs WxH}"; shift ;;
         --world)      WORLD="${2:?--world needs a world path}"; shift ;;
-        --help|-h)    sed -n '2,40p' "./${0##*/}" | sed 's/^# \{0,1\}//'; exit 0 ;;
+        --help|-h)    sed -n '2,/^set -e$/{/^set -e$/d;p}' "./${0##*/}" | sed 's/^# \{0,1\}//'; exit 0 ;;
         *)            EXTRA="$EXTRA $1" ;;
     esac
     shift
 done
 MOVIES=1
 grep -q '^EXT .*	binkw32\.dll$' MANIFEST.txt 2>/dev/null && MOVIES=0
-W="${RES%x*}"; H="${RES#*x}"
-case "$W$H" in *[!0-9]*|"") echo "linux-run.sh: --res wants WxH, e.g. 1024x768" >&2; exit 2 ;; esac
+# The first run (autoexec.cfg, the shipped one, has no Windowed yet): a
+# 640x480 window, unless asked otherwise.
+if [ ! -f autoexec.cfg ] || ! grep -qi '^"windowed"' autoexec.cfg; then
+    WINDOWED="${WINDOWED:-1}"
+    RES="${RES:-640x480}"
+fi
+if [ -n "$RES" ]; then
+    W="${RES%x*}"; H="${RES#*x}"
+    case "$W$H" in *[!0-9]*|"") echo "linux-run.sh: --res wants WxH, e.g. 1024x768" >&2; exit 2 ;; esac
+fi
 
 WINEPREFIX="${WINEPREFIX:-$HOME/.wine-nolf2}"
 WINEDEBUG="${WINEDEBUG:-fixme-all}"
@@ -73,8 +87,10 @@ mkdir -p Save
 # then our settings: later arguments override earlier ones.
 REZ=$(tr -d '\r' < nolf2cmds.txt | tr ' ' '\n' | awk '$0=="-rez"{getline n; printf "-rez %s ", n}')
 {
-    printf '%s++screenwidth %s ++screenheight %s ++bitdepth 32 ++windowed %s +DisableMovies %s' \
-        "$REZ" "$W" "$H" "$WINDOWED" "$MOVIES"
+    printf '%s+DisableMovies %s' "$REZ" "$MOVIES"
+    [ -n "$RES" ] && printf ' ++screenwidth %s ++screenheight %s ++bitdepth 32' "$W" "$H"
+    [ -n "$WINDOWED" ] && printf ' ++windowed %s' "$WINDOWED"
+    [ -n "$WINDOWMODE" ] && printf ' ++WindowMode %s' "$WINDOWMODE"
     [ -n "$WORLD" ] && printf ' +runworld %s' "$WORLD"
     printf '%s\r\n' "$EXTRA"
 } > run-cmds.txt

@@ -1404,6 +1404,12 @@ void CGameClientShell::OnEvent(uint32 dwEventID, uint32 dwParam)
 				GetWindowRect(g_hMainWnd, g_prcClip);
 				ClipCursor(g_prcClip);
 			}
+#ifdef NOLF2SRC_MODERN
+			// MODERN.md M-G70: a window after full screen is not held to the
+			// full-screen mode's rectangle of the desktop
+			else
+				ClipCursor(NULL);
+#endif
 
 			if (g_pCursorMgr)
 				g_pCursorMgr->Init();

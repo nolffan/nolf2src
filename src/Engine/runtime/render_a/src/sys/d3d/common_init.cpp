@@ -231,13 +231,21 @@ int d3d_Init(RenderStructInit *pInit)
 	// window whose inside is the mode's size, centred; full screen, a bare
 	// window on top. The style is set every time, so a change of mode never
 	// keeps the last one's (the Modernizer's known issue K9).
+	// M-E30: the window mode says which window: WindowMode 2 a borderless
+	// one (the engine has made the mode the desktop's), 1 a framed one at
+	// any size; unset (0), a window as large as the desktop is borderless.
 	if (g_bRunWindowed || d3d_IsNullRenderOn())
 	{
 		GetWindowRect(GetDesktopWindow(), &screenRect);
 		int nDesktopW = screenRect.right - screenRect.left;
 		int nDesktopH = screenRect.bottom - screenRect.top;
 
-		if ((int)pInit->m_Mode.m_Width >= nDesktopW && (int)pInit->m_Mode.m_Height >= nDesktopH)
+		HLTPARAM hWindowMode = g_pStruct->GetParameter("WindowMode");
+		int nWindowMode = hWindowMode ? (int)g_pStruct->GetParameterValueFloat(hWindowMode) : 0;
+		bool bBorderless = (nWindowMode == 2) || (nWindowMode != 1 &&
+			(int)pInit->m_Mode.m_Width >= nDesktopW && (int)pInit->m_Mode.m_Height >= nDesktopH);
+
+		if (bBorderless)
 		{
 			SetWindowLong(g_hWnd, GWL_STYLE, WS_POPUP | WS_VISIBLE);
 			SetWindowPos(g_hWnd, HWND_NOTOPMOST, screenRect.left, screenRect.top, nDesktopW, nDesktopH,

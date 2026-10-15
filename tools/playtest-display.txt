@@ -1,24 +1,52 @@
 # playtest-display.txt -- the modern build's Display options for
-# tools/playtest.sh (world "-"): opens Options > Display, turns Windowed on
-# and leaves the screen (the renderer restarts in a window; at the
-# desktop's size, a borderless one), then opens the screen again
-# (MODERN.md M-G40, M-G42). Page coordinates are the menus' 640x480 page
-# (PLAYTEST_MAP), for the modern build's layout.
+# tools/playtest.sh (world "-"): opens Options > Display and steps the
+# window mode on, leaving the screen each time (the renderer restarts):
+# from a window to a borderless window (at the desktop's resolution), to
+# full screen, to a window again, with a shot of the whole display after
+# each (MODERN.md M-G70, M-E30). Start it in a window on a larger display:
+#   PLAYTEST_RES=1280x720 PLAYTEST_SCREEN=1920x1080 PLAYTEST_WINDOWED=1
+#   PLAYTEST_ARGS="++WindowMode 1"
+# Page coordinates are the menus' 640x480 page (PLAYTEST_MAP), for the
+# modern build's layout.
 window 120
 wait 20
+screen window
 mclick 130 308
 wait 3
 mclick 110 189
 wait 3
 shot display
-# Windowed: on
+# Window mode: Borderless window
 mclick 130 303
 wait 1
-shot windowed-on
+shot borderless-chosen
 key Escape
-wait 8
-focus
-shot after
+wait 10
+window 20
+wait 3
+screen borderless
+mclick 110 189
+wait 3
+# Window mode: Full screen
+mclick 130 303
+wait 1
+shot fullscreen-chosen
+key Escape
+wait 10
+window 20
+wait 3
+screen fullscreen
+mclick 110 189
+wait 3
+# Window mode: Window
+mclick 130 303
+wait 1
+shot window-chosen
+key Escape
+wait 10
+window 20
+wait 3
+screen window-again
 mclick 110 189
 wait 3
 shot display-again

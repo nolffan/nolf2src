@@ -444,6 +444,51 @@ void r_InitRenderStruct(bool bFullClear)
     g_Render.m_GlobalLightDir.Norm();
 }
 
+#ifdef NOLF2SRC_MODERN
+// MODERN.md M-E30: the window mode. Windowed 0 is full screen; with
+// Windowed 1, WindowMode 2 is a borderless window over the whole desktop,
+// 1 a framed window, and 0 (unset: a config from before the setting) a
+// framed one unless it is as large as the desktop, which is borderless, as
+// M-G42 made it. The renderer places the window (common_init.cpp).
+static bool r_ModernParamIs(char *pName, float fValue)
+{
+	HLTPARAM hParam = r_GetParameter(pName);
+	return hParam && r_GetParameterValueFloat(hParam) == fValue;
+}
+
+// The desktop's own resolution: the registry's mode, not the screen's,
+// which in full screen is the game's.
+static void r_ModernDesktopSize(uint32 *pWidth, uint32 *pHeight)
+{
+	DEVMODE dm;
+	memset(&dm, 0, sizeof(dm));
+	dm.dmSize = sizeof(dm);
+	if ((EnumDisplaySettings(NULL, ENUM_REGISTRY_SETTINGS, &dm) ||
+		EnumDisplaySettings(NULL, ENUM_CURRENT_SETTINGS, &dm)) && dm.dmPelsWidth && dm.dmPelsHeight)
+	{
+		*pWidth = dm.dmPelsWidth;
+		*pHeight = dm.dmPelsHeight;
+		return;
+	}
+	*pWidth = GetSystemMetrics(SM_CXSCREEN);
+	*pHeight = GetSystemMetrics(SM_CYSCREEN);
+}
+
+static void r_ModernBorderlessMode(RMode *pMode)
+{
+	if (!r_ModernParamIs("windowed", 1.0f) || !r_ModernParamIs("WindowMode", 2.0f))
+		return;
+
+	uint32 nWidth, nHeight;
+	r_ModernDesktopSize(&nWidth, &nHeight);
+	if (nWidth >= 640 && nHeight >= 480)
+	{
+		pMode->m_Width = nWidth;
+		pMode->m_Height = nHeight;
+	}
+}
+#endif
+
 bool g_bFirstTimeInit = true;
 LTRESULT r_InitRender(RMode *pMode)
 {
@@ -476,9 +521,21 @@ LTRESULT r_InitRender(RMode *pMode)
 	// Set up the RenderStruct.
 	rdll_RenderDLLSetup(&g_Render);
 
+#ifdef NOLF2SRC_MODERN
+	// MODERN.md M-E30: a borderless window (Windowed 1, WindowMode 2) covers
+	// the desktop at the desktop's own resolution, whatever mode was asked
+	// for (the Display screen's, a command line's ++screenwidth); g_RMode
+	// and ScreenWidth/ScreenHeight take it from init.m_Mode below, so the
+	// game sees the mode it got.
+	r_ModernBorderlessMode(&init.m_Mode);
+
+	g_Render.m_Width = init.m_Mode.m_Width;
+	g_Render.m_Height = init.m_Mode.m_Height;
+#else
 	// Store these.. the renderer may change them for pixel doubling.
 	g_Render.m_Width = pMode->m_Width;
 	g_Render.m_Height = pMode->m_Height;
+#endif
 
 	// Try to initialize the renderer for the requested mode.
 	initStatus = g_Render.Init(&init);

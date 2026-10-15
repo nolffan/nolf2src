@@ -49,6 +49,7 @@
 #                         (default 90s); if the HUD never comes up, the
 #                         run is judged NO HUD, a failure
 #   shot <name>           screenshot the game window -> shots/NN-<name>.png
+#   screen <name>         screenshot the whole display (the window on it)
 #   focus                 re-focus the game window
 #   mmove <x> <y>         move the pointer to a point of the menus' 640x480
 #                         page, mapped to the window as PLAYTEST_MAP says:
@@ -77,6 +78,8 @@
 #                         (e.g. 1280x720, 1920x1080)
 #   PLAYTEST_WINDOWED=1   a window instead of full screen (Wine's frame
 #                         makes it smaller than the display)
+#   PLAYTEST_SCREEN=WxH   the virtual display's size, when it should not be
+#                         the screen mode's (a window on a larger desktop)
 #   PLAYTEST_ARGS="..."   more engine arguments (e.g. +DisableSound 1)
 #   PLAYTEST_CFG=<file>   console variables appended to the run's
 #                         autoexec.cfg (lines like "UIScale" "1.000000")
@@ -156,6 +159,8 @@ if [ -n "${PLAYTEST_RES:-}" ]; then
     CMDS="$(echo "$CMDS" | sed -E "s/\+\+screenwidth [0-9]+/++screenwidth $RW/; s/\+\+screenheight [0-9]+/++screenheight $RH/; s/\+\+bitdepth [0-9]+/++bitdepth 32/")"
     SCREEN="${RW}x${RH}"
 fi
+# a desktop of another size than the mode (a window on a larger screen)
+[ -n "${PLAYTEST_SCREEN:-}" ] && SCREEN="$PLAYTEST_SCREEN"
 if [ "$WORLD" = - ]; then printf '%s\n' "$CMDS" > "$RUN/nolf2cmds.txt"
 else printf '%s +runworld %s\n' "$CMDS" "$WORLD" > "$RUN/nolf2cmds.txt"; fi
 [ -n "${PLAYTEST_CFG:-}" ] && { cat "$(abs "$PLAYTEST_CFG")" >> "$RUN/autoexec.cfg" || exit 2; }
@@ -243,6 +248,7 @@ if [ -f script.txt ]; then
                 if [ $clear -ge 4 ]; then log "  skipcine done after $(( $(date +%s) - st ))s"
                 else NOHUD="line $LINE"; log "  skipcine: no HUD after $(( $(date +%s) - st ))s"; fi ;;
             shot)  N=$((N+1)); f=$(printf 'shots/%02d-%s.png' $N "$1"); grab "$f"; log "  -> $f" ;;
+            screen) N=$((N+1)); f=$(printf 'shots/%02d-%s.png' $N "$1"); xwd -root -silent | convert xwd:- "$f"; log "  -> $f (the display)" ;;
             focus) focuswin ;;
             mmove) pagemove "$1" "$2" ;;
             mclick) pagemove "$1" "$2"; sleep 0.4; xdotool mousedown 1; sleep 0.1; xdotool mouseup 1 ;;

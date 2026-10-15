@@ -96,15 +96,17 @@ private:
 	CLTGUISlider					*m_pGamma;
 	CLTGUICycleCtrl					*m_pHardwareCursor;
 #ifdef NOLF2SRC_MODERN
-	// MODERN.md M-G40, M-G41, M-G4, M-E4: the modern build's display options
-	LTBOOL							m_bModernWindowed;
+	// MODERN.md M-G40, M-G70, M-G41, M-G4, M-E4: the modern build's display options
+	CLTGUICycleCtrl					*m_pModernWindowMode;
+	uint8							m_nModernWindowMode;	// full screen, window, borderless
 	LTBOOL							m_bModernRunInBackground;
 	LTBOOL							m_bModernCinematics43;	// M-G36
 	int								m_nModernFovY;
 	uint8							m_nModernFrameLimit;	// index into kModernFrameLimits
 	uint8							m_nModernAntiAlias;		// index into kModernAntiAlias (M-E13)
 	void							ModernReadOptions();
-	void							ModernApplyOptions();
+	bool							ModernPrepareWindowMode(class CUserProfile *pProfile);
+	void							ModernApplyOptions(bool bNewWindow);
 #endif
 
 

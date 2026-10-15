@@ -175,10 +175,19 @@ public:
 	BOOL					FillListBoxes(HWND hRenList, HWND hDisList, HWND hResList);
 	BOOL					SelectCurrentListRenderer(HWND hList);
 	BOOL					UpdateListSelections(HWND hRenList, HWND hDisList, HWND hResList);
+#ifdef NOLF2SRC_MODERN
+	// MODERN.md M-L5: the window mode -- 0 full screen, 1 a window, 2 a
+	// borderless window (the engine's Windowed and WindowMode)
+	int						GetModernWindowMode() { return(m_nModernWindowMode); }
+	void					SetModernWindowMode(int nMode) { m_nModernWindowMode = nMode; }
+#endif
 
 private:
 	int						EnumerateRenderers(const char* sDir);
 	BOOL					ReadConfigFile(const char* sFile);
+#ifdef NOLF2SRC_MODERN
+	void					ModernReadWindowMode(const char* sFile, int* pWindowed, int* pWindowMode, int* pWidth, int* pHeight);
+#endif
 
 
 	// Member variables...
@@ -188,6 +197,9 @@ private:
 	CPtrList				m_collRenderers;
 	CRenderer*				m_pCurRenderer;
 	POSITION				m_pos;
+#ifdef NOLF2SRC_MODERN
+	int						m_nModernWindowMode;	// M-L5
+#endif
 };
 
 
@@ -219,6 +231,9 @@ inline void CDisplay::Clear()
 inline void CDisplayMgr::Clear()
 {
 	m_pCurRenderer = NULL;
+#ifdef NOLF2SRC_MODERN
+	m_nModernWindowMode = 0;
+#endif
 }
 
 inline CRenderer* CDisplayMgr::GetFirstRenderer()

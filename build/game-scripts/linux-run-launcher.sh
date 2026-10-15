@@ -3,7 +3,7 @@
 # NOLF2.exe (ours, built from src/Game/Launcher), the way the retail install
 # does.
 #
-#   ./linux-run-launcher.sh [--fullscreen] [launcher args...]
+#   ./linux-run-launcher.sh [--fullscreen|--windowed] [launcher args...]
 #
 # Click "Play" (the first time, the launcher asks for a detail setting
 # first). The launcher writes launchcmds.txt and starts Lithtech.exe with it
@@ -31,6 +31,10 @@
 # No disc is needed: NOLF2's launcher only looks for one to install from.
 # The game starts in a window (++windowed 1; --fullscreen leaves it out),
 # at the resolution the launcher's Display dialog or detail setting picks.
+# The modern build's Display dialog has a window mode (full screen, window,
+# borderless window) of its own, so there the window is only the first
+# run's (Windowed 1 is added to an autoexec.cfg that has none), and
+# --fullscreen or --windowed force one.
 set -e
 cd "$(dirname "$0")"
 WINEPREFIX="${WINEPREFIX:-$HOME/.wine-nolf2}"
@@ -39,14 +43,22 @@ export WINEPREFIX WINEDEBUG
 WINE="${WINE:-wine}"
 command -v "$WINE" >/dev/null 2>&1 || { echo "linux-run-launcher.sh: '$WINE' not found -- install Wine (32-bit support needed)" >&2; exit 1; }
 
+MOVIES_OFF=1
+MODERN=
+grep -q '^EXT .*	binkw32\.dll$' MANIFEST.txt 2>/dev/null && { MOVIES_OFF=0; MODERN=1; }
+
 WINDOWED="++windowed 1"
-if [ "${1:-}" = --fullscreen ]; then WINDOWED=""; shift; fi
+[ -n "$MODERN" ] && WINDOWED=""
+case "${1:-}" in
+    --fullscreen) WINDOWED=""; [ -n "$MODERN" ] && WINDOWED="++windowed 0"; shift ;;
+    --windowed)   WINDOWED="++windowed 1"; shift ;;
+esac
 
 [ -f autoexec.cfg ] || cp autoexec.cfg.retail autoexec.cfg
+if [ -n "$MODERN" ] && ! grep -qi '^"windowed"' autoexec.cfg; then
+    printf '"Windowed" "1"\r\n' >> autoexec.cfg
+fi
 mkdir -p Save
-
-MOVIES_OFF=1
-grep -q '^EXT .*	binkw32\.dll$' MANIFEST.txt 2>/dev/null && MOVIES_OFF=0
 
 # a prefix to set up: make it now if it does not exist yet
 [ -d "$WINEPREFIX/dosdevices" ] || "$WINE" wineboot -i >/dev/null 2>&1 || true

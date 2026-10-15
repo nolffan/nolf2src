@@ -833,11 +833,60 @@ BOOL CDisplayMgr::Init(const char* sDir, const char* sConfigFile)
 
 	ReadConfigFile(sConfigFile);
 
+#ifdef NOLF2SRC_MODERN
+	// MODERN.md M-L5: the window mode the game was left in, as the engine
+	// reads it: autoexec.cfg, then the display config over it. A window
+	// with no WindowMode (a config from before the setting) is borderless
+	// when it is as large as the desktop (MODERN.md M-E30).
+	int nWindowed = 0, nWindowMode = 0, nWidth = 0, nHeight = 0;
+	ModernReadWindowMode("autoexec.cfg", &nWindowed, &nWindowMode, &nWidth, &nHeight);
+	ModernReadWindowMode(sConfigFile, &nWindowed, &nWindowMode, &nWidth, &nHeight);
+	if (nWindowed != 1)
+		m_nModernWindowMode = 0;
+	else if (nWindowMode == 1 || nWindowMode == 2)
+		m_nModernWindowMode = nWindowMode;
+	else
+		m_nModernWindowMode = (nWidth >= GetSystemMetrics(SM_CXSCREEN) && nHeight >= GetSystemMetrics(SM_CYSCREEN)) ? 2 : 1;
+#endif
 
 	// All done...
 
 	return(TRUE);
 }
+
+#ifdef NOLF2SRC_MODERN
+// MODERN.md M-L5: Windowed, WindowMode, ScreenWidth and ScreenHeight from a
+// config file (lines of "Name" "value"); those it does not set are left
+void CDisplayMgr::ModernReadWindowMode(const char* sFile, int* pWindowed, int* pWindowMode, int* pWidth, int* pHeight)
+{
+	FILE* pFile = fopen(sFile, "rt");
+	if (!pFile) return;
+
+	static const char* s_aNames[] = { "Windowed", "WindowMode", "ScreenWidth", "ScreenHeight" };
+	int* apValues[] = { pWindowed, pWindowMode, pWidth, pHeight };
+
+	char sLine[512];
+	while (fgets(sLine, sizeof(sLine), pFile))
+	{
+		char* ptr = sLine;
+		while (*ptr == '"' || *ptr == ' ' || *ptr == '\t') ptr++;
+
+		for (int i = 0; i < 4; i++)
+		{
+			int nLen = strlen(s_aNames[i]);
+			if (strnicmp(ptr, s_aNames[i], nLen) != 0) continue;
+
+			char* pVal = ptr + nLen;
+			if (*pVal != '"' && *pVal != ' ' && *pVal != '\t') continue;
+			while (*pVal == '"' || *pVal == ' ' || *pVal == '\t') pVal++;
+			*apValues[i] = atoi(pVal);
+			break;
+		}
+	}
+
+	fclose(pFile);
+}
+#endif
 		
 
 // ----------------------------------------------------------------------- //
@@ -1454,6 +1503,17 @@ CString CDisplayMgr::GetDisplaySettingsString()
 
 		sCmdLine += sRes;
 	}
+
+#ifdef NOLF2SRC_MODERN
+	// MODERN.md M-L5: the window mode (a borderless window takes the
+	// desktop's resolution whatever the list says)
+	CString sWindow;
+	if (m_nModernWindowMode == 0)
+		sWindow = " +Windowed 0";
+	else
+		sWindow.Format(" +Windowed 1 +WindowMode %i", m_nModernWindowMode);
+	sCmdLine += sWindow;
+#endif
 
 
 	// All done...
