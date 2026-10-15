@@ -1074,9 +1074,31 @@ bool CServerMgr::Update(int32 updateFlags, uint32 nCurTimeMS)
 
 	float curTime = nOffsetTimeMS / 1000.0f;
 
+#ifdef NOLF2SRC_MODERN
+	// MODERN.md M-E4: in single player the client runs this every frame,
+	// and objects that ask to be updated every 10 ms (every AI:
+	// c_fUpdateDelta) are updated every few frames above 100 frames a
+	// second but advance by one frame's time (GetFrameTime): at 300, AIs
+	// walked, turned and timed everything at a third of their speed. So
+	// a game tick runs only once 10 ms have passed since the last one --
+	// the 60 to 100 ticks a second of a retail machine; packets and the
+	// network still go every call. Time that runs backwards (a new world
+	// re-bases it) ticks at once, as do the paused and inactive updates,
+	// which retail lets drop their time.
+	int32 nModernElapsedMS = nOffsetTimeMS - (int32)m_nTrueLastTimeMS;
+	bool bModernTick = m_State != SERV_RUNNINGWORLD ||
+		(updateFlags & UPDATEFLAG_NONACTIVE) || (m_ServerFlags & SS_PAUSED) ||
+		nModernElapsedMS >= 10 || nModernElapsedMS < 0;
+	if (bModernTick)
+	{
+		m_nTrueFrameTimeMS = nOffsetTimeMS - m_nTrueLastTimeMS;
+		m_nTrueLastTimeMS = nOffsetTimeMS;
+	}
+#else
 	// Figure out the actual true frame time.
 	m_nTrueFrameTimeMS = nOffsetTimeMS - m_nTrueLastTimeMS;
 	m_nTrueLastTimeMS = nOffsetTimeMS;
+#endif
 
 
 	m_NetMgr.Update("Server: ", curTime);
@@ -1137,7 +1159,11 @@ bool CServerMgr::Update(int32 updateFlags, uint32 nCurTimeMS)
 
 #endif // if DE_SERVER_COMPILE
 
+#ifdef NOLF2SRC_MODERN
+	if (m_State == SERV_RUNNINGWORLD && bModernTick)	// M-E4: see above
+#else
 	if (m_State == SERV_RUNNINGWORLD)
+#endif
 	{
 		if (updateFlags & UPDATEFLAG_NONACTIVE || m_ServerFlags & SS_PAUSED)
 		{

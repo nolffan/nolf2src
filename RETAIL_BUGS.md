@@ -36,6 +36,10 @@ NOLF2 no longer has are listed at the end, so nobody looks again.
 * [A step in a client effect's colour keys sets alpha from red, and red not at all](#a-step-in-a-client-effects-colour-keys-sets-alpha-from-red-and-red-not-at-all)
 * [Unique player names are not unique](#unique-player-names-are-not-unique)
 * [`CString::Left` leaves the length of the whole string](#cstringleft-leaves-the-length-of-the-whole-string)
+* [Level particle systems stop emitting at high frame rates](#level-particle-systems-stop-emitting-at-high-frame-rates)
+* [Above 100 frames a second the AIs slow down](#above-100-frames-a-second-the-ais-slow-down)
+* [The player walks slower, and crouches slower still, at high frame rates](#the-player-walks-slower-and-crouches-slower-still-at-high-frame-rates)
+* [Aim, fire sparks and debris change with the frame rate](#aim-fire-sparks-and-debris-change-with-the-frame-rate)
 * [`CLTTransform::Inverse` returns its input](#clttransforminverse-returns-its-input)
 * [`StopSecondary` and `StopMotif` can loop for ever](#stopsecondary-and-stopmotif-can-loop-for-ever)
 * [`FACEOBJECT` normalises a zero vector](#faceobject-normalises-a-zero-vector)
@@ -128,14 +132,98 @@ links it.)
 `CParticleSystemFX::Update`, `CLineSystemFX::Update` (CShell.dll) ·
 `src/Game/ClientShellDLL/ClientShellShared/ParticleSystemFX.cpp`, `LineSystemFX.cpp`
 
-Not fixed yet: `CShell.dll`.
+> **FIXED in the modern build** (`NOLF2SRC_MODERN`, MODERN.md M-E4): an
+> update that owes less than one particle (or line) leaves the clock
+> alone, so the time adds up until one is owed (nolfsrc's fix). The
+> release build keeps the retail code.
 
 NOLF1's bug, unchanged: each update adds `floor(fParticlesPerSecond * dt)`
 particles and restarts the clock, so the fraction is lost every frame. When
 a frame is shorter than one particle's worth of time the count is always 0:
 at 100 frames a second, every emitter slower than 100 particles a second
-goes dark. The line systems (rain, `WeatherFX.cpp`) do the same. The fix is
-nolfsrc's: restart the clock only when something was added.
+goes dark. The weather volumes' snow is such a system and their rain a line
+system (`WeatherFX.cpp`), which does the same; no retail single-player world
+places a `ParticleSystem` object itself. And the other way round for a
+system that thins out with the camera's distance (`bRelToCameraPos`):
+`GetNumParticles` turns any count, 0 too, into at least one once the camera
+is past the inner radius, so such a system adds one particle every frame,
+more the faster the frame rate.
+
+### Above 100 frames a second the AIs slow down
+`CAI::EngineMessageFn` (Object.lto) · `src/Game/ObjectDLL/ObjectShared/AI.cpp`,
+`AIUtils.cpp` (`c_fUpdateDelta`); the engine's server tick,
+`src/Engine/runtime/server/src/servermgr.cpp` (`CServerMgr::Update`)
+
+> **FIXED in the modern build** (`NOLF2SRC_MODERN`, MODERN.md M-E4): a
+> game tick runs only once 10 ms have passed since the last one. The
+> release build keeps the retail code.
+
+In single player the client runs the server once a frame, and each tick
+advances the game by the real time since the last (in whole
+milliseconds; no time is lost, unlike NOLF1's 10 ms minimum). An AI asks
+to be updated every `c_fUpdateDelta`, 10 ms, and its update moves, turns
+and counts down by the server's frame time (`GetFrameTime`): the time since
+the last *tick*, not since its own last update. Up to 100 frames a second
+each tick covers at least 10 ms and the AI is updated every tick; above
+that it is updated on one tick in two, three or more but still steps by one
+tick's time, so whatever it does by the frame time runs slow: at 300 frames
+a second a third of its speed, at 700 a sixth. Measured (a temporary log of
+one AI's updates in the Performance world's tornado cinematic): the AI's
+frame times added up to 0.71 of the game time at 60 frames a second and
+0.12 at 719; with the fix, 0.71 at 748. Any other object updated less often than every
+frame does the same. The game time itself, and so the cut-scenes (their
+cameras and keyframers update every frame) and the timers, run at real
+speed at any rate: the camera cuts of that cinematic came within 0.05 s of
+each other at 59 and 719 frames a second.
+
+### The player walks slower, and crouches slower still, at high frame rates
+`CMoveMgr::UpdateNormalMotion`, `MoveLocalSolidObject`, `UpdateMotion`,
+`UpdatePushers` (CShell.dll) ·
+`src/Game/ClientShellDLL/ClientShellShared/CMoveMgr.cpp`
+
+> **FIXED in the modern build** (`NOLF2SRC_MODERN`, MODERN.md M-E4): the
+> speed cap is applied once a 60th of a second, and the per-frame amounts
+> below are per 60th of a second. The release build keeps the retail code.
+
+The player's speed is cut back to the cap (`GetMaxVelMag`) at the start of
+each frame, and the frame's push then takes it past the cap until the next
+frame (the engine's physics, `motion.cpp`, is exact for a constant push):
+the longer the frame, the faster the walk. Measured (a temporary per-frame
+log of the player's position, C01S01): 197 units a second at 60 frames a
+second, 183 at 300 and at 700 -- 7% slower. And a frame's move shorter than
+0.1 is dropped (`MoveLocalSolidObject`): 6 units a second at 60 frames a
+second, 30 at 300, 100 at 1000, where a crouching walk (92 units a second)
+is below it and barely moves -- measured 29 units in a second's walk
+backwards at 636 frames a second, 92 at 60. Three more amounts are per
+frame: the "can't move" damping halves the speed every frame, the
+spectator's takes 0.9 of it every frame, and a pusher (an explosion's
+push) adds its whole push every frame it lasts.
+
+Left as it is: a jump's arc. The engine integrates gravity with a quarter
+of a·dt² instead of half, which raises a jump by about g·t·dt/4: 51.5
+units at 60 frames a second, 50.0 at 300, 49.8 at 700 (its exact height),
+the air time 0.47 s and 0.45 s. Retail's own range was wider (at 30 frames
+a second, higher still).
+
+### Aim, fire sparks and debris change with the frame rate
+`CClientWeapon::UpdateMovementPerturb`, `CFireFX::Update`,
+`BounceMovingObject` (CShell.dll) ·
+`src/Game/ClientShellDLL/ClientShellShared/ClientWeapon.cpp`, `FireFX.cpp`,
+`client_physics.cpp`
+
+> **FIXED in the modern build** (`NOLF2SRC_MODERN`, MODERN.md M-E4): each
+> is measured per 60th of a second. The release build keeps the retail
+> code.
+
+Three amounts are per frame where they mean per time:
+- the weapon's inaccuracy from turning takes the turn since the last frame,
+  so the same turn spreads the aim less the higher the frame rate (a fifth
+  as much at 300 frames a second as at 60);
+- a fire makes a spark with one chance in ten every frame, five times as
+  many sparks at 300 as at 60;
+- a bouncing piece of debris (shell casings, gibs) comes to rest below a
+  speed of 15/√dt (116 units a second at 60, 260 at 300), so at high frame
+  rates it stops sooner.
 
 ### Snow ignores the size of its weather volume
 `CWeatherFX::CreateSnow` (CShell.dll) · `src/Game/ClientShellDLL/ClientShellShared/WeatherFX.cpp`
@@ -306,7 +394,7 @@ constructor set: the console's `version` and the log line "LithTech build
 
 > **FIXED in the modern build** (`NOLF2SRC_MODERN`): the mouse's whole
 > buffer is read and each look axis hands on the sum of the frame's
-> motion, once (MODERN.md M-E3); the frame rate is limited to 60 by
+> motion, once (MODERN.md M-E3); the frame rate is limited to 300 by
 > default (M-E4). The sensitivity's scale is kept, so a setting turns as
 > it did in 2002 (about 1.2x then, 1x now); the Mouse screen's "Input
 > rate", the smoothing, is gone.

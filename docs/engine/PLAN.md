@@ -65,6 +65,7 @@ Background, in this directory:
 | 13 | `mouse`: why mouse look jumps about (a player's report, modern build on a desktop under Wine) | 7 | done: retail's `input_ReadInput` (Lithtech.exe 0x4319b0, byte-identical in both builds) adds a look axis's last event again per pass and per frame; MODERN.md M-E3 (with M-E4's frame limit) is the fix; `RETAIL_BUGS.md` has it and the packages' retail bugs |
 | 14 | `xinput`: controller support in the modern build (MODERN.md M-G47 and the Modernizer's known issue K8), as nolfsrc's P7: an XInput pad, DirectInput joysticks removed | 8, 12 | done: `##gamepad` (M-E20), no DirectInput joysticks (M-E21), sticks, menus, cut-scenes and decisions read by the client (M-G47, M-G60, M-G61), the Controller screen (M-G62), a retail binding bug fixed (M-G63); tested with a simulated pad (`tools/playtest-pad.txt`); rumble and button prompts not started (M-G64, M-G65) |
 | 15 | `winmode`: window modes in the modern build -- full screen, a window, or a borderless window at the desktop's resolution -- as nolfsrc's M-P1-22: the engine, `render_a`, the Display screen, the launcher's Display dialog, the run scripts | 8, 12 | done: `Windowed` + `WindowMode` (MODERN.md M-E30, M-G70, M-L5), M-G40's toggle folded in; tested under Xvfb in each mode and switched from the menu and the launcher; `make progress` unchanged |
+| 16 | `fps`: 300 frames a second in single player at real speed, as nolfsrc's M-P1-23 (its 0dd4bf4, d171625, 9780977): what goes wrong at high frame rates found, measured and fixed in the modern build, then M-E4's limit raised from 60 | 8, 12 | done: the server tick (AIs), the player's walk and crouch, particle/line systems, aim perturb, fire sparks, debris rest; MaxFPS 300, 60 in multiplayer (MODERN.md M-E4; 4 `RETAIL_BUGS.md` entries) |
 
 ## Notes per package
 
@@ -1283,5 +1284,42 @@ at the desktop's size, so old configs come up as before).
   through the three modes. Xvfb has no window manager, so a framed
   window's frame is not drawn; only its placement shows. Full screen on
   Xvfb can only be at the display's own size.
+- `make progress` (check) passes unchanged; `make test` passes for the
+  release and the modern build.
+
+### 16. fps
+
+300 frames a second in single player at real speed (MODERN.md M-E4), as
+nolfsrc did for NOLF1. NOLF2's engine already keeps time well: client and
+server frame times are whole-millisecond differences of one clock, so no
+time is lost (NOLF1 clamped a tick to at least 10 ms and dropped
+animation fractions; neither is here), and the game time, cut-scenes,
+keyframers and timers kept real time at 700+ frames a second in retail
+too. What did go wrong, each fixed under `NOLF2SRC_MODERN`:
+
+- **Server tick** (`servermgr.cpp`): a tick every frame, and an AI
+  updated every 10 ms stepping by one tick's time -- AIs a third of their
+  speed at 300. A tick now runs once 10 ms have passed (nolfsrc's
+  d171625 lesson included: time that runs backwards ticks at once).
+- **Player movement** (`CMoveMgr.cpp`): the speed cap applied per frame
+  made the walk 7% slower at 300; it is applied once a 60th of a second,
+  the engine's exact friction physics doing the rest. The 0.1-unit
+  minimum move, the dampings and pushers per 60th of a second.
+- **Particle and line systems** (nolfsrc 9780977), **aim perturb, fire
+  sparks, debris rest** (nolfsrc 0dd4bf4's per-60th amounts).
+- **Not changed**: a jump's arc (the engine's quarter-a·dt², 51.5 units
+  at 60, 50.0 at 300; retail ranged wider); the vehicles (`VehicleMgr`,
+  not measured); multiplayer, held at 60.
+- **Limit**: `MaxFPS` 300 by default, 60 at most in multiplayer; the
+  Display screen offers 300. No new strings or ids (one help string
+  reworded).
+- **How it was measured**: a temporary per-frame log (player position and
+  velocity, camera, one AI's update times, server ticks, particles added)
+  and scripted runs under Xvfb with the world not drawn (`DrawWorld 0`
+  and the like), which runs at 700+ frames a second; C01S01 for walking,
+  crouching and jumping, the Performance world's tornado cinematic for
+  cut-scene timing and the AI. The log and scripts were not committed. No
+  retail single-player world places a `ParticleSystem` object; the
+  weather volumes' snow and rain use the fixed classes, not measured.
 - `make progress` (check) passes unchanged; `make test` passes for the
   release and the modern build.

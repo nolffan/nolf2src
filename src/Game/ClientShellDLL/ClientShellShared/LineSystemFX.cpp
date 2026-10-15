@@ -251,6 +251,16 @@ LTBOOL CLineSystemFX::Update()
 
 	int nToAdd = (int) floor(m_cs.fLinesPerSecond * fTimeDelta);
     nToAdd = LTMIN(nToAdd, (int)(MAX_LINES_PER_SECOND * fTimeDelta));
+#ifdef NOLF2SRC_MODERN
+	// MODERN.md M-E4: as CParticleSystemFX::Update: an update that owes
+	// less than one line keeps its time until one is owed, or at a frame
+	// rate where a frame owes less than one, none is ever added
+	// (RETAIL_BUGS.md).
+	if (nToAdd < 1)
+	{
+        return LTTRUE;
+	}
+#endif
 
 
 	// Add new lines...

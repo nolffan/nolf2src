@@ -37,9 +37,9 @@ namespace
 	// retail), and M-E4: the frame rate limits on offer (MaxFPS; 0 is none)
 	const int	kModernFovYMin = 50;
 	const int	kModernFovYMax = 100;
-	const int	kModernFrameLimits[] = { 30, 60, 75, 100, 120, 144, 165, 200, 240, 0 };
+	const int	kModernFrameLimits[] = { 30, 60, 75, 100, 120, 144, 165, 200, 240, 300, 0 };
 	const int	kNumModernFrameLimits = sizeof(kModernFrameLimits) / sizeof(kModernFrameLimits[0]);
-	const int	kModernDefaultFrameLimit = 1;	// 60
+	const int	kModernDefaultFrameLimit = 9;	// 300
 	// M-E13: antialiasing, samples per pixel (AntiAliasFSOverSample)
 	const int	kModernAntiAlias[] = { 0, 2, 4, 8 };
 	const int	kNumModernAntiAlias = sizeof(kModernAntiAlias) / sizeof(kModernAntiAlias[0]);
@@ -878,7 +878,7 @@ void CScreenDisplay::ModernReadOptions()
 	m_nModernFovY = (int)(GetConsoleFloat("FovY",78.0f) + 0.5f);
 	m_nModernFovY = LTCLAMP(m_nModernFovY,kModernFovYMin,kModernFovYMax);
 
-	int nMaxFPS = (int)(GetConsoleFloat("MaxFPS",60.0f) + 0.5f);
+	int nMaxFPS = (int)(GetConsoleFloat("MaxFPS",300.0f) + 0.5f);
 	m_nModernFrameLimit = kModernDefaultFrameLimit;
 	for (int nLimit = 0; nLimit < kNumModernFrameLimits; nLimit++)
 	{

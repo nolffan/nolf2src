@@ -728,24 +728,30 @@ void cm_HandleMaxFPS(uint32 frameTicks)
 #ifdef NOLF2SRC_MODERN
 // MODERN.md M-E4: the frame limiter. MaxFPS limits the frame rate only
 // outside the final build (cm_HandleMaxFPS above), so the game has always
-// run as fast as it could. Parts of NOLF2 go wrong at high frame rates
-// (the music above 100, M-G30; the Modernizer saw cutscene timing go
-// wrong), so the modern build limits it: to MaxFPS (60 unless set; 0 is
-// no limit; at most 1000). Each frame waits until 1/MaxFPS has passed
-// since the last one ended, sleeping while more than two milliseconds are
-// left (the timer runs at 1 ms: timemgr.cpp) and spinning for the rest.
-static void cm_ModernFrameLimit()
+// run as fast as it could. Parts of NOLF2 went wrong at high frame rates
+// (the music above 100, M-G30; the AIs, the particles, per-frame pushes
+// and dampings: see MODERN.md), so the modern build limits it: to MaxFPS
+// (300 unless set; 0 is no limit; at most 1000), and in multiplayer to
+// 60 at most, where a faster frame rate is untried. Each frame waits
+// until 1/MaxFPS has passed since the last one ended, sleeping while more
+// than two milliseconds are left (the timer runs at 1 ms: timemgr.cpp)
+// and spinning for the rest.
+static void cm_ModernFrameLimit(bool bMultiplayer)
 {
     static CounterFinal s_FrameCounter;
     static bool s_bCounting = false;
+    const float kMultiplayerFPS = 60.0f;
 
-    if (g_CV_MaxFPS <= 0.0f)
+    float fFPS = LTMIN(g_CV_MaxFPS, 1000.0f);
+    if (bMultiplayer && (fFPS <= 0.0f || fFPS > kMultiplayerFPS))
+        fFPS = kMultiplayerFPS;
+
+    if (fFPS <= 0.0f)
     {
         s_bCounting = false;
         return;
     }
 
-    float fFPS = LTMIN(g_CV_MaxFPS, 1000.0f);
     float fTicksPerSecond = (float)cnt_NumTicksPerSecond();
     float fWantedTicks = fTicksPerSecond / fFPS;
 
@@ -940,7 +946,9 @@ LTRESULT CClientMgr::Update()
 
 #endif
 #ifdef NOLF2SRC_MODERN
-    cm_ModernFrameLimit();                          // M-E4
+    // M-E4: multiplayer is a shell that is not a normal (single-player)
+    // game, hosting one or joining one
+    cm_ModernFrameLimit(m_pCurShell && m_pCurShell->m_ShellMode != STARTGAME_NORMAL);
 #endif
 
     GraphicsBenchmarkingUpdate();  // Update the benchmark mgr

@@ -374,7 +374,12 @@ LTBOOL CFireFX::Update()
 
 	// Create the random spark particles...
 
+#ifdef NOLF2SRC_MODERN
+	// MODERN.md M-E4: one chance in ten a 60th of a second, not a frame
+	if (m_cs.bCreateSparks && GetRandom(0.0f, 1.0f) < 0.1f * g_pGameClientShell->GetFrameTime() * 60.0f)
+#else
 	if (m_cs.bCreateSparks && GetRandom(1, 10) == 1)
+#endif
 	{
 		CSFXMgr* psfxMgr = g_pGameClientShell->GetSFXMgr();
         if (!psfxMgr) return LTFALSE;

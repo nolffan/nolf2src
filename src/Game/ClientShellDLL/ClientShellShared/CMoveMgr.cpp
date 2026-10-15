@@ -1125,8 +1125,16 @@ void CMoveMgr::UpdateMotion()
 
 		// Dampen velocity...
 		g_pPhysicsLT->GetVelocity(m_hObject, &vVec);
+#ifdef NOLF2SRC_MODERN
+		// MODERN.md M-E4: halved a 60th of a second, whatever the frame
+		// rate (retail: every frame)
+		float fModernDamp = (float)pow(0.5, g_pGameClientShell->GetFrameTime() * 60.0f);
+		vVec.x *= fModernDamp;
+		vVec.z *= fModernDamp;
+#else
 		vVec.x *= 0.5f;
 		vVec.z *= 0.5f;
+#endif
 		if (vVec.y > 0.0f) vVec.y = 0.0f;
 
 		g_pPhysicsLT->SetVelocity(m_hObject, &vVec);
@@ -1231,6 +1239,31 @@ void CMoveMgr::UpdateNormalMotion()
 
 	// Limit velocity...
 
+#ifdef NOLF2SRC_MODERN
+	// MODERN.md M-E4: the cap is applied at the start of a frame and the
+	// acceleration takes the speed past it during the frame, so the faster
+	// the frame rate the slower the walk (197 units a second at 60 frames
+	// a second, 183 at 300). The cap is applied once a 60th of a second:
+	// the physics between (motion.cpp, exact for a constant push) then
+	// moves the player as one 60 fps frame did. (Frames are timed in
+	// whole milliseconds, so a 60th is 16 or 17: hence the slack.)
+	const float kModernCapStep = 1.0f / 60.0f;
+	const float kModernCapSlack = 0.0015f;
+	static float s_fModernCapTime = 0.0f;
+	s_fModernCapTime += g_pGameClientShell->GetFrameTime();
+	bool bModernCapNow = s_fModernCapTime >= kModernCapStep - kModernCapSlack;
+	if (bModernCapNow)
+	{
+		s_fModernCapTime -= kModernCapStep;
+		s_fModernCapTime = LTCLAMP(s_fModernCapTime, -kModernCapSlack, kModernCapStep);
+	}
+
+	if (!bModernCapNow)
+	{
+		// not this frame: see above
+	}
+	else
+#endif
 	if (m_bBodyInLiquid || m_bBodyOnLadder)
 	{
         LTBOOL bCapY = LTTRUE;
@@ -1517,7 +1550,12 @@ void CMoveMgr::UpdateNormalMotion()
 
 	if (g_pPlayerMgr->IsSpectatorMode())
 	{
+#ifdef NOLF2SRC_MODERN
+		// MODERN.md M-E4: 0.9 a 60th of a second, whatever the frame rate
+		vel *= (float)pow(0.9, g_pGameClientShell->GetFrameTime() * 60.0f);
+#else
 		vel *= 0.9f;
+#endif
 		if (vel.Length() < 0.1f)
 		{
 			vel.Init();
@@ -1810,6 +1848,12 @@ void CMoveMgr::UpdatePushers()
 						}
 
 						pushVec = myPos - pPusher->m_Pos;
+#ifdef NOLF2SRC_MODERN
+						// MODERN.md M-E4: a push is added every frame
+						// for as long as the pusher lasts; the retail
+						// amount a 60th of a second
+						velocity *= g_pGameClientShell->GetFrameTime() * 60.0f;
+#endif
 						pushVec *= velocity / pushVec.Length();
 
 						vel = GetVelocity();
@@ -2047,7 +2091,16 @@ void CMoveMgr::MoveLocalSolidObject()
 	info.m_dt = g_pGameClientShell->GetFrameTime();
 	pPhysics->UpdateMovement(&info);
 
+#ifdef NOLF2SRC_MODERN
+	// MODERN.md M-E4: a frame's move under 0.1 is dropped: under 6 units
+	// a second at 60 frames a second, under 30 at 300 (a crouching walk at
+	// 1000 is under it). The threshold is the 60 fps one's share of this
+	// frame (and so is the blocked-fall test's below).
+	float fModernMinMove = 0.1f * g_pGameClientShell->GetFrameTime() * 60.0f;
+	if (info.m_Offset.MagSqr() > fModernMinMove * fModernMinMove)
+#else
 	if (info.m_Offset.MagSqr() > 0.01f)
+#endif
 	{
 		g_pLTClient->GetObjectPos(m_hObject, &curPos);
 		newPos = curPos + info.m_Offset;
@@ -2067,7 +2120,12 @@ void CMoveMgr::MoveLocalSolidObject()
 		// you should be sliding on, but you're blocked, so gravity keeps
 		// getting applied to the velocity.  Only do this if the UpdateMovement
 		// affected our y direction.
+#ifdef NOLF2SRC_MODERN
+		float fModernMinY = 0.01f * g_pGameClientShell->GetFrameTime() * 60.0f;
+		if ( fabsf( info.m_Offset.y ) > fModernMinY && fabsf(newPos.y - curPos.y) < fModernMinY)
+#else
 		if ( fabsf( info.m_Offset.y ) > 0.01f && fabsf(newPos.y - curPos.y) < 0.01f)
+#endif
 		{
 			LTVector vObjVel;
 			pPhysics->GetVelocity(m_hObject, &vObjVel);
