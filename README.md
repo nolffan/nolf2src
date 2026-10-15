@@ -29,6 +29,9 @@ legacy build keeps matching the retail one.
 
 | | |
 |---|---|
+| [`docs/INSTALL.md`](docs/INSTALL.md) | for players: from a release's public archive and your own discs to a running game, on Linux, the Steam Deck and Windows |
+| [`CHANGELOG.md`](CHANGELOG.md) | what the modern build changes from the retail game |
+| [`docs/CONSOLE.md`](docs/CONSOLE.md), [`docs/VARIABLES.md`](docs/VARIABLES.md) | the console commands and cheat codes; the console variables |
 | [`docs/MODERN.md`](docs/MODERN.md) | the modern build, item by item, with the NOLF 2 Modernizer's every change |
 | [`docs/RETAIL_BUGS.md`](docs/RETAIL_BUGS.md) | the retail game's bugs found while rebuilding it |
 | [`docs/BUILDING.md`](docs/BUILDING.md), [`docs/SETUP-NOTES.md`](docs/SETUP-NOTES.md) | the build, step by step; how the base was set up |
@@ -146,7 +149,8 @@ itself, and can be run again: a file already in place is checked and kept.
 The public archive is made only if `rez/isos/` has the `.iso` images of
 both releases' discs (`make retail` fetches them; `tools/mkinstall.py`).
 The GitHub Actions workflow builds the four public archives on every push
-(`docs/BUILDING.md`).
+(`docs/BUILDING.md`). For players, [`docs/INSTALL.md`](docs/INSTALL.md)
+walks through it.
 
 The modern build plays with a controller: an Xbox-style (XInput) pad, which
 is also what Steam Input makes of the Steam Deck's controls and of most other
@@ -158,3 +162,29 @@ simulated pad only.
 
 See [`docs/LICENSE-NOTES.md`](docs/LICENSE-NOTES.md) for what is whose, and
 what each archive holds.
+
+## Credits
+
+This project builds on the work of others:
+
+- **Monolith Productions**, for *No One Lives Forever 2* and for releasing
+  its source code (version 1.3), which `src/Game/`, `src/Engine/sdk/` and
+  `src/libs/` are; and, with LithTech, Inc. (later Touchdown
+  Entertainment), for the LithTech Jupiter engine: `src/Engine/runtime/` is
+  its source, back-ported to 2002
+  ([`docs/LICENSE-NOTES.md`](docs/LICENSE-NOTES.md)).
+- **NOLF 2 Modernizer** by HeyThereCoffeee (haekb):
+  <https://github.com/haekb/nolf2-modernizer>. Many of the modern build's
+  fixes and features were found and designed there;
+  [`docs/MODERN.md`](docs/MODERN.md) names the Modernizer change behind
+  each one. The modern build reimplements them rather than copying its code
+  (`docs/MODERN.md`, "Rules for this work").
+- **[nolfsrc](https://github.com/nolffan/nolfsrc)**, the same project for
+  the first game: the method, the tools and guides, the Bink player, and
+  many of the modern build's designs (each item that follows one says so).
+- **FFmpeg** (<https://ffmpeg.org>), on which the modern build's Bink player
+  is built.
+- **Wine** and **Proton**, which run the game on Linux and the Steam Deck.
+- **redump.org**, for the verified disc images the installers check
+  against, and **archive.org**, which keeps them and the LithTech Jupiter
+  SDK.

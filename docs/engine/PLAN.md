@@ -66,6 +66,7 @@ Background, in this directory:
 | 14 | `xinput`: controller support in the modern build (docs/MODERN.md M-G47 and the Modernizer's known issue K8), as nolfsrc's P7: an XInput pad, DirectInput joysticks removed | 8, 12 | done: `##gamepad` (M-E20), no DirectInput joysticks (M-E21), sticks, menus, cut-scenes and decisions read by the client (M-G47, M-G60, M-G61), the Controller screen (M-G62), a retail binding bug fixed (M-G63); tested with a simulated pad (`tools/playtest-pad.txt`); rumble and button prompts not started (M-G64, M-G65) |
 | 15 | `winmode`: window modes in the modern build -- full screen, a window, or a borderless window at the desktop's resolution -- as nolfsrc's M-P1-22: the engine, `render_a`, the Display screen, the launcher's Display dialog, the run scripts | 8, 12 | done: `Windowed` + `WindowMode` (docs/MODERN.md M-E30, M-G70, M-L5), M-G40's toggle folded in; tested under Xvfb in each mode and switched from the menu and the launcher; `make progress` unchanged |
 | 16 | `fps`: 300 frames a second in single player at real speed, as nolfsrc's M-P1-23 (its 0dd4bf4, d171625, 9780977): what goes wrong at high frame rates found, measured and fixed in the modern build, then M-E4's limit raised from 60 | 8, 12 | done: the server tick (AIs), the player's walk and crouch, particle/line systems, aim perturb, fire sparks, debris rest; MaxFPS 300, 60 in multiplayer (docs/MODERN.md M-E4; 4 `docs/RETAIL_BUGS.md` entries) |
+| 17 | `nolfsync`: nolfsrc's commits since package 16 (its history rewritten: a99873c, 549ea60, 3bc4fac, 7855bf1, a97a06c, 1a7a95c, 39d8636, bc52297, 82d0759, 4f5b3fa, 113b4f4), each ported where NOLF2 needs it | 14, 15, 16 | done: out of the water at high frame rates and a 240 default limit (M-E4; 1 `docs/RETAIL_BUGS.md` entry); the documentation in `docs/` with an install guide, console and variables, changelog and credits; the rest already here, not applicable or waiting for M-E5 (notes) |
 
 ## Notes per package
 
@@ -1348,3 +1349,36 @@ too. What did go wrong, each fixed under `NOLF2SRC_MODERN`:
   weather volumes' snow and rain use the fixed classes, not measured.
 - `make progress` (check) passes unchanged; `make test` passes for the
   release and the modern build.
+
+### 17. nolfsync
+
+nolfsrc's commits since what packages 14 to 16 ported. Its history was
+rewritten, so the first three are new hashes for work already here; the
+old commits (9a844b4, b58cc3b, 73d2ecc, 2fdf927, 0dd4bf4, d171625) were
+compared with them (`git range-diff`).
+
+| nolfsrc | What | Here |
+|---|---|---|
+| a99873c controller support (P7) | 9a844b4 squashed with b58cc3b (A skips a cut-scene, goes on from the death screen) and 73d2ecc (no DirectInput joysticks) | nothing new: package 14 has all three (M-E20, M-E21, M-G61) |
+| 549ea60 window mode | 2fdf927, unchanged | nothing new: package 15 (M-E30, M-G70, M-L5) |
+| 3bc4fac 300 fps at real speed | 0dd4bf4 squashed with d171625 (time running backwards ticks at once) | nothing new: package 16 (M-E4), d171625's lesson included |
+| 7855bf1 climbing out of water at high frame rates | the rise on surfacing, and the jump's swim-up push, per 60th of a second | ported (M-E4, `docs/RETAIL_BUGS.md`): NOLF2's `CMoveMgr` has both faults. Measured in C13S03's pool with a temporary per-frame log and a temporary teleport (not committed): 3 units lower afloat at 120 frames a second than at 60 before, as at 60 after; 472 units a second after the jump frame at 120 before, 495 after (496 at 60). The test reached about 125 frames a second under Xvfb, not 240. NOLF1's lost climb-outs (the head bob dipping the eye under) were not seen: NOLF2's swimming did not dip it. No retail ledge tried |
+| a97a06c modern console: `SetPos`, `GetPos` | console commands | waits for M-E5: NOLF2 has no console to type them into, and game commands cannot come from the command line or `autoexec.cfg` (they run before the game registers its commands; `docs/CONSOLE.md`). Noted in M-E5; retail's `pos` cheat shows the position |
+| 1a7a95c frame-rate limit of 60, 120, 144, 240 or none | its 300-or-none switch made a choice, 240 the default; multiplayer 60 | the choices were here (the Display screen's 30 to 300 and none; 60 in multiplayer): only the default is ported, `MaxFPS` 240 (M-E4). A config that has `MaxFPS` keeps it: no config version here to move it |
+| 39d8636 the Intel graphics fix only with d3d7.ren | the fix greyed out with nolfsrc's other renderers | not applicable: NOLF2 has no Intel fix (no `EnableLightScale`/`EnableScreenTinting` option; M-G33 not ported) and one renderer |
+| bc52297 32-bit textures by default | `32BitTextures` 1 for new and old configs | not applicable: NOLF2's renderer also defaults to 0, but the shipped `autoexec.cfg` sets `"32bittextures" "1"` |
+| 82d0759 crouch toggle and four more fixes from ChthonVII's fork | (credited there to ChthonVII and Daniel Gibson) | none needed: the crouch toggle is retail NOLF2's own control ("Crouch toggle", `COMMAND_ID_DUCKLOCK`); each weapon keeps its ammo in retail (`KeepCurrentAmmo` 1, `CClientWeaponMgr::ChangeWeapon`); a popup closes on any new key or either mouse button in retail (`CInterfaceMgr`); NOLF2 has no sunglasses (`OVM_SS` is never made; the scope and camera are M-G34); Shift+Esc for the console waits for M-E5 (noted there) |
+| 4f5b3fa documentation moves to docs/ | | ported: `BUILDING.md`, `LICENSE-NOTES.md`, `MODERN.md`, `RETAIL_BUGS.md` and `SETUP-NOTES.md` in `docs/`, every reference outside `src/` updated (the source's comments name items as "MODERN.md M-...", as nolfsrc's do); `build/package.sh` puts no document in the archives |
+| 113b4f4 install guide, console and variables, changelog, credits | | ported, written for NOLF2: `docs/INSTALL.md`, `docs/CONSOLE.md`, `docs/VARIABLES.md`, `CHANGELOG.md`, README's documentation table and credits |
+
+Found while writing `docs/CONSOLE.md` and `docs/VARIABLES.md`, not fixed:
+retail's cheat table gives `gimmemod` the gear (no code gives a single
+modification); `envbumpmapenable`, which the Performance screen writes, is
+read by nothing (the renderer reads `EnvBumpMap`); `RunInBackground` may
+not keep a single-player game running, the local server freezing game
+time unless `alwaysfocused` is set (to test).
+
+`make game` and `make modern` pass after each code commit and at the
+end; `make progress` (check) passes unchanged; `make test` passes for the
+release and the modern build (the release build's once judged "NO HUD"
+on a first run, then passed: the run's own timing, not a change here).
