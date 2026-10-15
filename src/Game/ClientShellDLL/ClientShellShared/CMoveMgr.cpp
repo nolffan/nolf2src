@@ -36,6 +36,10 @@
 #ifdef NOLF2SRC_MODERN
 // MODERN.md M-G47: the controller's left stick
 #include "../modern/xinput/clientpad.h"
+
+// MODERN.md M-E4: how long since the head broke the surface of the water
+// (UpdateInLiquid)
+static float s_fModernSurfaced = 0.0f;
 #endif
 
 #define SPECTATOR_ACCELERATION			100000.0f
@@ -264,6 +268,9 @@ void CMoveMgr::InitWorldData()
     m_bSwimmingOnSurface    = LTFALSE;
     m_bSwimmingJump         = LTFALSE;
     m_bCanSwimJump          = LTFALSE;
+#ifdef NOLF2SRC_MODERN
+	s_fModernSurfaced		= 0.0f;	// MODERN.md M-E4
+#endif
 	m_hStandingOnPoly		= INVALID_HPOLY;
 	m_bUsingPlayerModel		= LTFALSE;
 
@@ -709,7 +716,21 @@ void CMoveMgr::UpdateInLiquid(CContainerInfo *pInfo)
 
 		if (bMoving)  // Turn off y acceleration and velocity
 		{
+#ifdef NOLF2SRC_MODERN
+			// MODERN.md M-E4: the rise stopped here the frame after the
+			// head (the camera, a frame late) broke the surface, so the
+			// faster the frame rate the lower the player floated: 3 units
+			// lower at 120 frames a second than at 60, and a jump out of
+			// the water starts that much lower. The rise lasts two 60ths
+			// of a second at any rate (at 60 it stops here at once, as it
+			// did). As nolfsrc's 7855bf1.
+			float fModernDt = g_pGameClientShell->GetFrameTime();
+			bool bModernRising = (s_fModernSurfaced + 2.0f * fModernDt < 2.0f / 60.0f - 0.0001f);
+			s_fModernSurfaced += fModernDt;
+			if (!bModernRising && (vVel.y > 0.0f || curAccel.y > 0.0f))
+#else
 			if (vVel.y > 0.0f || curAccel.y > 0.0f)
+#endif
 			{
 				vVel.y = 0.0f;
 				curAccel.y = 0.0f;
@@ -1331,6 +1352,9 @@ void CMoveMgr::UpdateNormalMotion()
 	if ((IsLiquid(m_eLastContainerCode) && !bHeadInLiquid) && !m_bOnGround && !m_bBodyOnLadder )
 	{
         m_bSwimmingOnSurface = LTTRUE;
+#ifdef NOLF2SRC_MODERN
+		s_fModernSurfaced = 0.0f;	// MODERN.md M-E4: see UpdateInLiquid
+#endif
 	}
 	else if (bHeadInLiquid)  // See if we went back under...
 	{
@@ -1538,6 +1562,20 @@ void CMoveMgr::UpdateNormalMotion()
 		if (bOkayToJump)
 		{
 			vel.y = fJumpVel;
+#ifdef NOLF2SRC_MODERN
+			// MODERN.md M-E4: a jump out of the water also gets this
+			// frame's swim-up acceleration (vAccel.y, above), so the
+			// frame's length decided how high it went: 496 units a second
+			// after the jump frame at 60 frames a second, 472 at 120. Give
+			// it a 60th of a second's worth at any rate faster than 60.
+			// As nolfsrc's 7855bf1.
+			if (m_bBodyInLiquid && vAccel.y > 0.0f)
+			{
+				float fModernDt = g_pGameClientShell->GetFrameTime();
+				if (fModernDt < 1.0f / 60.0f)
+					vel.y += vAccel.y * (1.0f / 60.0f - fModernDt);
+			}
+#endif
 
             m_bJumped            = LTTRUE;
             m_bSwimmingOnSurface = LTFALSE;

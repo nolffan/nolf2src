@@ -40,6 +40,7 @@ NOLF2 no longer has are listed at the end, so nobody looks again.
 * [Above 100 frames a second the AIs slow down](#above-100-frames-a-second-the-ais-slow-down)
 * [The player walks slower, and crouches slower still, at high frame rates](#the-player-walks-slower-and-crouches-slower-still-at-high-frame-rates)
 * [Aim, fire sparks and debris change with the frame rate](#aim-fire-sparks-and-debris-change-with-the-frame-rate)
+* [Out of the water, the player floats lower and jumps lower at high frame rates](#out-of-the-water-the-player-floats-lower-and-jumps-lower-at-high-frame-rates)
 * [`CLTTransform::Inverse` returns its input](#clttransforminverse-returns-its-input)
 * [`StopSecondary` and `StopMotif` can loop for ever](#stopsecondary-and-stopmotif-can-loop-for-ever)
 * [`FACEOBJECT` normalises a zero vector](#faceobject-normalises-a-zero-vector)
@@ -225,6 +226,27 @@ Three amounts are per frame where they mean per time:
   speed of 15/√dt (116 units a second at 60, 260 at 300), so at high frame
   rates it stops sooner.
 
+### Out of the water, the player floats lower and jumps lower at high frame rates
+`CMoveMgr::UpdateInLiquid`, `UpdateNormalMotion` (CShell.dll) ·
+`src/Game/ClientShellDLL/ClientShellShared/CMoveMgr.cpp`
+
+> **FIXED in the modern build** (`NOLF2SRC_MODERN`, MODERN.md M-E4): the
+> rise lasts two 60ths of a second, and the jump gets a 60th of a second's
+> swim-up push, at any frame rate (nolfsrc's fix). The release build keeps
+> the retail code.
+
+NOLF1's bug, unchanged. Swimming up, the rise stops the frame after the
+head (the camera, which lags a frame) breaks the surface, so the faster the
+frame rate the lower the player floats. And a jump out of the water also
+gets that frame's swim-up acceleration on top of the jump's speed, so its
+height depends on the frame's length. Measured (a temporary per-frame log,
+C13S03's pool): floating 3 units lower at 120 frames a second than at 60;
+the upward speed after the jump frame 472 units a second at 120, 496 at
+60; the jump's top 61 units above where it started at 120, 71.5 at 60. With
+the fix: the float height as at 60, 495 units a second, 67 units. In NOLF1
+the lower float let the head bob dip the camera back under, and the jumps
+to climb out were lost; NOLF2's swimming did not dip it in the test.
+
 ### Snow ignores the size of its weather volume
 `CWeatherFX::CreateSnow` (CShell.dll) · `src/Game/ClientShellDLL/ClientShellShared/WeatherFX.cpp`
 
@@ -394,7 +416,7 @@ constructor set: the console's `version` and the log line "LithTech build
 
 > **FIXED in the modern build** (`NOLF2SRC_MODERN`): the mouse's whole
 > buffer is read and each look axis hands on the sum of the frame's
-> motion, once (MODERN.md M-E3); the frame rate is limited to 300 by
+> motion, once (MODERN.md M-E3); the frame rate is limited to 240 by
 > default (M-E4). The sensitivity's scale is kept, so a setting turns as
 > it did in 2002 (about 1.2x then, 1x now); the Mouse screen's "Input
 > rate", the smoothing, is gone.

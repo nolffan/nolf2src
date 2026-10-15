@@ -731,7 +731,8 @@ void cm_HandleMaxFPS(uint32 frameTicks)
 // run as fast as it could. Parts of NOLF2 went wrong at high frame rates
 // (the music above 100, M-G30; the AIs, the particles, per-frame pushes
 // and dampings: see MODERN.md), so the modern build limits it: to MaxFPS
-// (300 unless set; 0 is no limit; at most 1000), and in multiplayer to
+// (240 unless set: the fastest common refresh rate; 0 is no limit; at
+// most 1000), and in multiplayer to
 // 60 at most, where a faster frame rate is untried. Each frame waits
 // until 1/MaxFPS has passed since the last one ended, sleeping while more
 // than two milliseconds are left (the timer runs at 1 ms: timemgr.cpp)
