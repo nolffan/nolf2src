@@ -80,8 +80,15 @@ LTRESULT ILTModel::GetNodeName( HOBJECT hObj, HMODELNODE hNode, char *name, uint
 	FN_NAME(ILTModel::GetNodeName);
     CHECK_PARAMS2(hObj && hObj->m_ObjectType == OT_MODEL);
 
+#ifdef NOLF2SRC_MODERN
+	// MODERN.md M-E45: retail tested hNode > NumNodes(), so node
+	// NumNodes() read one past the node list.
+	if( !name || maxLen == 0 || (hNode >= hObj->ToModel()->GetModelDB()->NumNodes()) )
+		RETURN_ERROR(1, GetNodeName, LT_INVALIDPARAMS);
+#else
 	if( maxLen == 0 || (hNode > hObj->ToModel()->GetModelDB()->NumNodes()) )
 		RETURN_ERROR(1, GetNodeName, LT_INVALIDPARAMS);
+#endif
 
 	LTStrCpy(name, hObj->ToModel()->GetModelDB()->GetNode(hNode)->GetName(), maxLen );
 

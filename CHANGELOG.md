@@ -55,6 +55,14 @@ covers each change in detail, under its item number (M-E1, M-G2 and so on).
 - **DirectInput no longer enumerates every device at startup**: only the
   keyboard and mouse are opened, as the controller is read through XInput.
   A Windows 11 startup crash was inside that enumeration. (M-E33)
+- **Engine checks against crashes and corruption**: a model node one past
+  the last, an animation whose keyframes all lie at time 0, a malformed
+  world file (a polygon of more than 40 vertices, a texture name or node
+  index out of range), an object DLL of the wrong version (freed twice) or
+  with a bad property type, a nested message too large for its size field,
+  and a string read from a message that left the rest of it out of step.
+  Compressed vectors decode without their small loss. Saves and the network
+  format are unchanged. (M-E45 to M-E54)
 
 ## The modern build, compared with retail
 

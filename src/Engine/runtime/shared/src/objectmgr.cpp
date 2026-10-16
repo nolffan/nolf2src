@@ -186,6 +186,11 @@ void LTObject::Clear()
     m_ForceIgnoreLimitSqr = 1000.0f * 1000.0f; // ie: don't tell them unless they change this!
     dl_TieOff(&m_ObjectsStandingOn);
     m_StandingOnLink.m_pData = this;
+#ifdef NOLF2SRC_MODERN
+    // MODERN.md M-E47: retail left the link's prev/next as the object
+    // bank's memory had them.
+    dl_TieOff(&m_StandingOnLink);
+#endif
     sd = LTNULL;
     m_BPriority = 0;
     m_InternalFlags = 0;

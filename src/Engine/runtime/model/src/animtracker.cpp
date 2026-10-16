@@ -440,7 +440,16 @@ void trk_ScanToKeyFrame(LTAnimTracker *pTracker, uint32 msDelta, bool bProcessKe
 
 	if(pTracker->m_CurKey >= (iEndKey+1) && (pTracker->m_Flags & AT_LOOPING))
 	{
+#ifdef NOLF2SRC_MODERN
+		// MODERN.md M-E46: retail divided by endTime unchecked; an
+		// animation whose keyframes are all at time 0 divided by zero.
+		if (endTime != 0)
+			pTracker->m_TimeRef.m_Cur.m_Time %= endTime;
+		else
+			pTracker->m_TimeRef.m_Cur.m_Time = 0;
+#else
 		pTracker->m_TimeRef.m_Cur.m_Time %= endTime;
+#endif
 		pTracker->m_CurKey = 0;
 	}
 

@@ -113,6 +113,21 @@ void CCompress::DecodeCompressVector( LTVector *pVal, const CompVector *pCVec )
 	float fB, fC;
 	uint32 dwTemp;
 	
+#ifdef NOLF2SRC_MODERN
+	// MODERN.md M-E54: the encoder scales by 2^18 - 1 and retail divided
+	// by 2^18 here, so every minor axis came back short by one part in
+	// 262144. Only the decoder changes: what is written (saves, the
+	// network) is as before, and old data decodes right too.
+	dwTemp = (( pCVec->order >> 3 ) & 0x03 ) << 16;
+	uint32 temp_dwB = pCVec->dwB + dwTemp;
+	fB = ( pCVec->fA * temp_dwB ) / ( float )(( 1 << 18 ) - 1 );
+	if( pCVec->order & ( 1 << 5 ))
+		fB *= -1.0f;
+
+	dwTemp = ( pCVec->order & 0x03 ) << 16;
+	uint32 temp_dwC = pCVec->dwC + dwTemp;
+	fC = ( pCVec->fA * temp_dwC ) / ( float )(( 1 << 18 ) - 1 );
+#else
 	dwTemp = (( pCVec->order >> 3 ) & 0x03 ) << 16;
 	uint32 temp_dwB = pCVec->dwB + dwTemp;
 	fB = ( pCVec->fA * temp_dwB ) / ( float )( 1 << 18 );
@@ -122,6 +137,7 @@ void CCompress::DecodeCompressVector( LTVector *pVal, const CompVector *pCVec )
 	dwTemp = ( pCVec->order & 0x03 ) << 16;
 	uint32 temp_dwC = pCVec->dwC + dwTemp;
 	fC = ( pCVec->fA * temp_dwC ) / ( float )( 1 << 18 );
+#endif
 	if( pCVec->order & ( 1 << 2 ))
 		fC *= -1.0f;
 

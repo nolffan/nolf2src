@@ -69,6 +69,16 @@ NOLF2 no longer has are listed at the end, so nobody looks again.
 * [When the engine stops the dedicated server, its error is lost and a deleted lock is taken](#when-the-engine-stops-the-dedicated-server-its-error-is-lost-and-a-deleted-lock-is-taken)
 * [The dedicated server's console line can lose its terminator](#the-dedicated-servers-console-line-can-lose-its-terminator)
 * [The dedicated server prints its operator's command as a format](#the-dedicated-server-prints-its-operators-command-as-a-format)
+* [`ILTModel::GetNodeName` reads one past the node list](#iltmodelgetnodename-reads-one-past-the-node-list)
+* [`trk_ScanToKeyFrame` divides by the last keyframe's time](#trk_scantokeyframe-divides-by-the-last-keyframes-time)
+* [`LTObject::Clear` leaves the standing-on link untied](#ltobjectclear-leaves-the-standing-on-link-untied)
+* [An object DLL of the wrong version is freed twice](#an-object-dll-of-the-wrong-version-is-freed-twice)
+* [The world loader trusts a polygon's vertex count](#the-world-loader-trusts-a-polygons-vertex-count)
+* [`WriteMessage` stores a nested message's size in 16 bits](#writemessage-stores-a-nested-messages-size-in-16-bits)
+* [`CGenLTStream::WriteStream` ignores the source offset](#cgenltstreamwritestream-ignores-the-source-offset)
+* [The compressed-vector codec does not round-trip](#the-compressed-vector-codec-does-not-round-trip)
+* [The property-type guard normalises to a value that is also out of range](#the-property-type-guard-normalises-to-a-value-that-is-also-out-of-range)
+* [`ReadHStringAsString` seeks backwards, in the wrong unit](#readhstringasstring-seeks-backwards-in-the-wrong-unit)
 
 Not fixed yet because the code is in a part of the tree another piece of
 work owns: the engine's `server/`, `shared/`, `world/`, `model/`,
@@ -354,7 +364,9 @@ milliseconds, so that is ten frame times ahead, not one.
 ### `CGenLTStream::WriteStream` ignores the source offset
 `0x1000edec` (server.dll) · `src/Engine/runtime/shared/src/genltstream.cpp`
 
-Not fixed yet: the engine's `shared/`.
+> **FIXED in the modern build** (`NOLF2SRC_MODERN`, MODERN.md M-E52): the
+> source is sought to `dwMin` first (0 by default: all of it, as
+> `iltstream.h` documents). Nothing in the engine or the game calls it.
 
 NOLF1's `CBaseStream::WriteStream`, unchanged in its successor: `dwMin` is
 used to work out how much to copy and for nothing else; the source is never
@@ -364,7 +376,10 @@ sought there, so the bytes come from wherever it was.
 `0x10006c22` encoder, `0x10006d75` decoder (server.dll) ·
 `src/Engine/runtime/shared/src/compress.cpp`
 
-Not fixed yet: the engine's `shared/`.
+> **FIXED in the modern build** (`NOLF2SRC_MODERN`, MODERN.md M-E54): the
+> decoder divides by 2^18 - 1. The encoder is unchanged, so what is written
+> to saves and the network is as before, and data written by the retail
+> encoder decodes right too.
 
 NOLF1's bug, unchanged: the minor axes are encoded scaled by 2^18 - 1 and
 decoded divided by 2^18, so every vector comes back short by one part in
@@ -373,7 +388,9 @@ decoded divided by 2^18, so every vector comes back short by one part in
 ### The property-type guard normalises to a value that is also out of range
 `cb_VerifyClassDefProperties`, `0x10001db5` (server.dll) · `src/Engine/runtime/shared/src/classbind.cpp`
 
-Not fixed yet: the engine's `shared/`.
+> **FIXED in the modern build** (`NOLF2SRC_MODERN`, MODERN.md M-E50): such
+> a DLL is refused as an invalid object DLL, as nolfsrc does. The game's
+> `Object.lto` declares none.
 
 NOLF1's bug, unchanged: a `PropDef` type outside `PT_STRING`..`PT_ROTATION`
 in a loaded object DLL is rewritten to `NUM_PROPERTYTYPES` (8), one past the
@@ -383,7 +400,11 @@ last type, and the DLL is accepted.
 `CLTMessage_Read::ReadHStringAsString`, `0x10012b11` (server.dll) ·
 `src/Engine/runtime/shared/src/ltmessage.cpp`
 
-Not fixed yet: the engine's `shared/`.
+> **FIXED in the modern build** (`NOLF2SRC_MODERN`, MODERN.md M-E53): the
+> whole string is read past, in bits, whatever fits is kept, and the null
+> string comes back empty (length 0). Its one caller in the game
+> (`PowerArmor.cpp`, `MID_ATTACHMENTANIM`) reads nothing after it, so the
+> retail seek did no harm there.
 
 After reading `min(nMaxLen, nLength)` characters it should skip the rest of
 a string too long for the buffer. The test is the wrong way round
@@ -397,7 +418,12 @@ length `0xFFFF` is also read as 65535 characters.
 `CLTMessage_Write::WriteMessage`, `0x100126dc` (server.dll) ·
 `src/Engine/runtime/shared/src/ltmessage.cpp`
 
-Not fixed yet: the engine's `shared/`.
+> **FIXED in the modern build** (`NOLF2SRC_MODERN`, MODERN.md M-E48): a
+> sub-message too large for the 16-bit size is not written; an empty one
+> (size 0) goes in its place, with a console line, so the outer message
+> stays in step. The format is unchanged: saves and the other side read it
+> as before. The reader needed nothing: a size past the end is already
+> clamped to what is left (`CPacket_Read`).
 
 The size of a message written into another is in bits and written with
 `Writeuint16`: a sub-message over 65535 bits (8 KB) gets a wrong size, and
@@ -713,7 +739,8 @@ the previous one's data. The bone count from the file also indexes a
 ### `ILTModel::GetNodeName` reads one past the node list
 `0x4a7a90` (lithtech.exe; the same code in server.dll) · `src/Engine/runtime/shared/src/modellt_impl.cpp`
 
-Not fixed yet: the engine's `shared/`.
+> **FIXED in the modern build** (`NOLF2SRC_MODERN`, MODERN.md M-E45): the
+> test is `>=`, and a null name buffer is refused too.
 
 The node is checked with `hNode > NumNodes()`, where `>=` is meant: node
 `NumNodes()` reads one past `m_FlatNodeList` and calls `GetName()` through
@@ -723,7 +750,8 @@ terminate; NOLF2's accepts node 0 and uses `LTStrCpy`, but has this.)
 ### `trk_ScanToKeyFrame` divides by the last keyframe's time
 `0x100011d6` (server.dll) · `src/Engine/runtime/model/src/animtracker.cpp`
 
-Not fixed yet: the engine's `model/`.
+> **FIXED in the modern build** (`NOLF2SRC_MODERN`, MODERN.md M-E46): an
+> animation that ends at time 0 wraps to 0.
 
 NOLF1's `at_Advance` bug in its successor: a looping animation wraps with
 `%= endTime`, guarded only against one keyframe, so several keyframes all at
@@ -732,7 +760,8 @@ time 0 divide by zero.
 ### `LTObject::Clear` leaves the standing-on link untied
 `0x10021fa2` (server.dll) · `src/Engine/runtime/shared/src/objectmgr.cpp`
 
-Not fixed yet: the engine's `shared/`.
+> **FIXED in the modern build** (`NOLF2SRC_MODERN`, MODERN.md M-E47): the
+> link is tied off with the others.
 
 NOLF1's `m_StandingLink` bug, unchanged: of the object's links only this
 one gets its data pointer and no `prev`/`next`, so they are whatever the
@@ -742,7 +771,8 @@ is set.
 ### An object DLL of the wrong version is freed twice
 `cb_LoadModule`, `0x10001d42` (server.dll) · `src/Engine/runtime/shared/src/classbind.cpp`
 
-Not fixed yet: the engine's `shared/`.
+> **FIXED in the modern build** (`NOLF2SRC_MODERN`, MODERN.md M-E49): the
+> `ClassBindModule` is cleared once the module is unbound.
 
 On a version mismatch it unbinds the module (deleting the binding and
 `FreeLibrary`) but leaves the pointer in the `ClassBindModule`, and
@@ -753,7 +783,11 @@ and a delete of freed memory.
 `WorldBsp::Load`, `0x100092c1`; `w_NodeForIndex`, `0x10008e34` (server.dll) ·
 `src/Engine/runtime/world/src/de_mainworld.cpp`
 
-Not fixed yet: the engine's `world/`.
+> **FIXED in the modern build** (`NOLF2SRC_MODERN`, MODERN.md M-E51): a
+> polygon's indices past the 40 `SDiskPoly` holds are read one by one (so a
+> world that has such a polygon still loads, as it was meant to), a texture
+> name that runs past the names' length refuses the world, and so does a
+> node index below -2.
 
 A polygon is read into a stack `SDiskPoly` with room for 40 vertices,
 sized by the vertex count from the file (a `uint8`): up to 1,028 bytes go

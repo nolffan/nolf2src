@@ -65,6 +65,13 @@ Node* w_NodeForIndex(Node *pList, uint32 listSize, int index)
     {
         return NULL;
     }
+#ifdef NOLF2SRC_MODERN
+    // MODERN.md M-E51: retail let an index below -2 through to pList.
+    else if (index < 0)
+    {
+        return NULL;
+    }
+#endif
     else
     {
         return &pList[index];
@@ -435,6 +442,12 @@ ELoadWorldStatus WorldBsp::Load(ILTStream *pStream, bool bUsePlaneTypes)
         m_TextureNames[i] = &m_TextureNameData[curPos];
         for (;;)
         {
+#ifdef NOLF2SRC_MODERN
+            // MODERN.md M-E51: retail wrote past nNamesLen until it read
+            // a terminator.
+            if (curPos >= nNamesLen)
+                return LoadWorld_InvalidFile;
+#endif
             STREAM_READ(m_TextureNameData[curPos]);
             curPos++;
             if (m_TextureNameData[curPos-1] == 0)
@@ -551,11 +564,20 @@ ELoadWorldStatus WorldBsp::Load(ILTStream *pStream, bool bUsePlaneTypes)
     {
         pPoly = m_Polies[i];
 
+#ifdef NOLF2SRC_MODERN
+		// MODERN.md M-E51: retail read the whole polygon into DiskPoly,
+		// sized by the file's vertex count (up to 255), with room for
+		// MAX_WORLDPOLY_VERTS. The indices past that are read one by one.
+		uint32 nPolyVerts = pPoly->GetNumVertices();
+		uint32 nDiskVerts = (nPolyVerts < MAX_WORLDPOLY_VERTS) ? nPolyVerts : MAX_WORLDPOLY_VERTS;
+		pStream->Read(&DiskPoly, SDiskPoly::CalcPolyReadSize(nDiskVerts));
+#else
 		//read in our polygon from disk
 		pStream->Read(&DiskPoly, SDiskPoly::CalcPolyReadSize(pPoly->GetNumVertices()));
+#endif
 
-        if (DiskPoly.m_nSurface >= m_nSurfaces) 
-            return LoadWorld_InvalidFile; 
+        if (DiskPoly.m_nSurface >= m_nSurfaces)
+            return LoadWorld_InvalidFile;
 
 		//Get the plane of this polygon
 		if(DiskPoly.m_nPlane >= m_nPlanes)
@@ -563,15 +585,31 @@ ELoadWorldStatus WorldBsp::Load(ILTStream *pStream, bool bUsePlaneTypes)
 
         pPoly->SetSurface(&m_Surfaces[DiskPoly.m_nSurface]);
 		pPoly->SetPlane(&m_Planes[DiskPoly.m_nPlane]);
-        
-        // Read in the list of indices.
-		for (k=0; k < pPoly->GetNumVertices(); k++) 
-		{
-			if (DiskPoly.m_nVerts[k] >= m_nPoints) 
-				return LoadWorld_InvalidFile; 
 
-			pPoly->GetVertices()[k].m_Vertex = &m_Points[DiskPoly.m_nVerts[k]]; 
-		} 
+        // Read in the list of indices.
+#ifdef NOLF2SRC_MODERN
+		for (k=0; k < nPolyVerts; k++)
+		{
+			uint32 iVert;
+			if (k < nDiskVerts)
+				iVert = DiskPoly.m_nVerts[k];
+			else
+				STREAM_READ(iVert);
+
+			if (iVert >= m_nPoints)
+				return LoadWorld_InvalidFile;
+
+			pPoly->GetVertices()[k].m_Vertex = &m_Points[iVert];
+		}
+#else
+		for (k=0; k < pPoly->GetNumVertices(); k++)
+		{
+			if (DiskPoly.m_nVerts[k] >= m_nPoints)
+				return LoadWorld_InvalidFile;
+
+			pPoly->GetVertices()[k].m_Vertex = &m_Points[DiskPoly.m_nVerts[k]];
+		}
+#endif
 	}
 
     // Read nodes.

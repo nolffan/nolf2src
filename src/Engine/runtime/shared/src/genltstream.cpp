@@ -79,6 +79,12 @@ LTRESULT CGenLTStream::WriteStream(ILTStream &dsSource, uint32 dwMin, uint32 dwM
 		return LT_ERROR;
 
 	nLength = dwMax - dwMin;
+#ifdef NOLF2SRC_MODERN
+	// MODERN.md M-E52: retail copied from wherever dsSource was, not from
+	// dwMin (all of it, by default, as iltstream.h documents).
+	if(dsSource.SeekTo(dwMin) != LT_OK)
+		return LT_ERROR;
+#endif
 	while(nLength > 0)
 	{
 		blockSize = (nLength >= WRITESTREAM_BLOCKSIZE) ? WRITESTREAM_BLOCKSIZE : nLength;

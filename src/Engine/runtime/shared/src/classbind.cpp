@@ -23,6 +23,28 @@ define_holder(ILTServer, ilt_server);
 typedef ClassDef** (*ObjectDLLSetupFn)(int *nDefs, void *pServer, int *version);
 
 
+#ifdef NOLF2SRC_MODERN
+// MODERN.md M-E50: retail rewrote a property type outside PT_STRING..
+// PT_ROTATION to NUM_PROPERTYTYPES (8), which is out of range too, and
+// accepted the DLL. Now such a DLL is refused (as nolfsrc does): false.
+static bool cb_VerifyClassDefProperties(ClassBindModule *pModule)
+{
+    int i, j;
+    PropDef *pProp;
+
+    for (i=0; i < pModule->m_nClassDefs; i++)
+    {
+        for (j=0; j < pModule->m_pClassDefs[i]->m_nProps; j++)
+        {
+            pProp = &pModule->m_pClassDefs[i]->m_Props[j];
+
+            if (pProp->m_PropType >= NUM_PROPERTYTYPES || pProp->m_PropType < 0)
+                return false;
+        }
+    }
+    return true;
+}
+#else
 static void cb_VerifyClassDefProperties(ClassBindModule *pModule)
 {
     int i, j;
@@ -39,6 +61,7 @@ static void cb_VerifyClassDefProperties(ClassBindModule *pModule)
         }
     }
 }
+#endif
 
 #ifdef __XBOX
 extern ClassDef** ObjectDLLSetup(int *nDefs, ILTServer *pServer, int *version);
@@ -72,6 +95,29 @@ int cb_LoadModule(const char *pModuleName, bool bTempFile, ClassBindModule& clas
     classBindModule.m_hModule = hModule;
     classBindModule.m_pClassDefs = theFunction(&classBindModule.m_nClassDefs, ilt_server, version);
 
+#ifdef NOLF2SRC_MODERN
+    // MODERN.md M-E49: retail unbound the module but left it in
+    // classBindModule, and CClassMgr::Term unbound it again (a second
+    // FreeLibrary, a second delete).
+    if (*version != SERVEROBJ_VERSION)
+    {
+        bm_UnbindModule(hModule);
+        classBindModule.m_hModule = NULL;
+        classBindModule.m_pClassDefs = NULL;
+        classBindModule.m_nClassDefs = 0;
+        return CB_VERSIONMISMATCH;
+    }
+
+    // Verify all properties!
+    if (!cb_VerifyClassDefProperties(&classBindModule))
+    {
+        bm_UnbindModule(hModule);
+        classBindModule.m_hModule = NULL;
+        classBindModule.m_pClassDefs = NULL;
+        classBindModule.m_nClassDefs = 0;
+        return CB_NOTCLASSMODULE;
+    }
+#else
     if (*version != SERVEROBJ_VERSION)
     {
         bm_UnbindModule(hModule);
@@ -80,6 +126,7 @@ int cb_LoadModule(const char *pModuleName, bool bTempFile, ClassBindModule& clas
 
     // Verify all properties!
     cb_VerifyClassDefProperties(&classBindModule);
+#endif
 
     return CB_NOERROR;
 }

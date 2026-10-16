@@ -16,6 +16,21 @@ define_holder(ICompress, g_pCompressor);
 void CLTMessage_Write::WriteMessage(const ILTMessage_Read *pMsg)
 {
 	const CLTMessage_Read *pRead = reinterpret_cast<const CLTMessage_Read *>(pMsg);
+#ifdef NOLF2SRC_MODERN
+	// MODERN.md M-E48: the size, in bits, is written in 16 bits, and
+	// retail wrote a larger message's size cut short, so the reader read
+	// the rest of the outer message out of step. The format is kept (saves
+	// and the other side read it as retail does); a message too large for
+	// it is not written: an empty one goes in its place, and the outer
+	// message stays readable.
+	if (pRead->Size() > 0xFFFF)
+	{
+		dsi_ConsolePrint("WriteMessage: a nested message of %u bits is over the 65535 the format holds; not written",
+			pRead->Size());
+		m_cPacket.Writeuint16(0);
+		return;
+	}
+#endif
 	m_cPacket.Writeuint16(pRead->Size());
 	m_cPacket.WritePacket(pRead->GetPacket());
 }
@@ -208,6 +223,33 @@ uint32 CLTMessage_Read::ReadHStringAsString(char *pDest, uint32 nMaxLen)
 {
 	uint32 nLength = m_cPacket.Readuint16();
 
+#ifdef NOLF2SRC_MODERN
+	// MODERN.md M-E53: retail sought back by (buffer - length) when the
+	// buffer was the larger, left a cut string's tail unread, and sought
+	// in bits by a count of bytes; and it read the null string (0xFFFF)
+	// as 65535 characters. Now the whole string is consumed, whatever fits
+	// is kept, and the null string is an empty one.
+	if (nLength == 0xFFFF)
+	{
+		if (pDest && nMaxLen)
+			pDest[0] = 0;
+		return 0;
+	}
+
+	uint32 nRead = 0;
+	if (!pDest)
+		nMaxLen = 0;
+	if (nMaxLen)
+	{
+		--nMaxLen;
+		nRead = LTMIN(nMaxLen, nLength);
+		m_cPacket.ReadData(pDest, nRead * 8);
+		pDest[nRead] = 0;
+		pDest[nMaxLen] = 0;
+	}
+	if (nLength > nRead)
+		m_cPacket.Seek((int32)((nLength - nRead) * 8));
+#else
 	if (!pDest)
 		nMaxLen = 0;
 	if (nMaxLen)
@@ -218,6 +260,7 @@ uint32 CLTMessage_Read::ReadHStringAsString(char *pDest, uint32 nMaxLen)
 	}
 	if (nMaxLen > nLength)
 		m_cPacket.Seek(nLength - nMaxLen);
+#endif
 
 	return nLength;
 }
