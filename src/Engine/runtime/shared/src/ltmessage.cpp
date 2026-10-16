@@ -174,9 +174,18 @@ HSTRING CLTMessage_Read::ReadHString()
 	}
 	else
 	{
+#ifdef NOLF2SRC_MODERN
+		// MODERN.md M-E42: the string's terminator is the sender's to
+		// send; one sent without it was read past the buffer.
+		uint8 *pBuffer = (uint8*)alloca(nLength + 1);
+
+		m_cPacket.ReadData(pBuffer, nLength * 8);
+		pBuffer[nLength] = 0;
+#else
 		uint8 *pBuffer = (uint8*)alloca(nLength);
 
 		m_cPacket.ReadData(pBuffer, nLength * 8);
+#endif
 
 		hResult = str_CreateString(pBuffer);
 	}
@@ -298,9 +307,17 @@ HSTRING CLTMessage_Read::PeekHString() const
 	}
 	else
 	{
+#ifdef NOLF2SRC_MODERN
+		// MODERN.md M-E42: as ReadHString.
+		uint8 *pBuffer = (uint8*)alloca(nLength + 1);
+
+		cTempPacket.ReadData(pBuffer, nLength * 8);
+		pBuffer[nLength] = 0;
+#else
 		uint8 *pBuffer = (uint8*)alloca(nLength);
 
 		cTempPacket.ReadData(pBuffer, nLength * 8);
+#endif
 
 		hResult = str_CreateString(pBuffer);
 	}

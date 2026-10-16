@@ -52,6 +52,14 @@ covers each change in detail, under its item number (M-E1, M-G2 and so on).
 - **Documentation** moves to `docs/`, with new
   [`docs/INSTALL.md`](docs/INSTALL.md), [`docs/CONSOLE.md`](docs/CONSOLE.md)
   and [`docs/VARIABLES.md`](docs/VARIABLES.md).
+- **Multiplayer: what one machine can do to another.** A server with a
+  password kicks a client that gives the wrong one, and no remote client
+  plays before the join handshake (version, game files, password) is done;
+  a player's name or chat line is never printed as a format, by the
+  server's engine or by the client, and a long chat line no longer overruns
+  the client's buffer, on a retail server too; the engine ignores a
+  client's repeated hello and terminates the strings it reads from the
+  network. (M-E40 to M-E43, M-G80, M-G81)
 - **DirectInput no longer enumerates every device at startup**: only the
   keyboard and mouse are opened, as the controller is read through XInput.
   A Windows 11 startup crash was inside that enumeration. (M-E33)

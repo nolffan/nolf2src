@@ -1914,7 +1914,13 @@ LTBOOL CInterfaceMgr::OnMessage(uint8 messageID, ILTMessage_Read *pMsg)
 				else
 					FormatString(IDS_ITAGGEDHIM, szTmp,sizeof(szTmp), m_ClientInfo.GetPlayerName (nVictim));
 
+#ifdef NOLF2SRC_MODERN
+				// MODERN.md M-G80: the line holds a player's name; it is
+				// not a format.
+                g_pLTClient->CPrint("%s", szTmp);
+#else
                 g_pLTClient->CPrint(szTmp);
+#endif
 				g_pChatMsgs->AddMessage(szTmp);//,eType);
 			}
 			else
@@ -1939,7 +1945,12 @@ LTBOOL CInterfaceMgr::OnMessage(uint8 messageID, ILTMessage_Read *pMsg)
 						FormatString(IDS_HETAGGEDHIM, szTmp,sizeof(szTmp), m_ClientInfo.GetPlayerName (nScorer), m_ClientInfo.GetPlayerName (nVictim));
 				}
 
+#ifdef NOLF2SRC_MODERN
+				// MODERN.md M-G80: as above.
+                g_pLTClient->CPrint("%s", szTmp);
+#else
                 g_pLTClient->CPrint(szTmp);
+#endif
 				g_pChatMsgs->AddMessage(szTmp);
 			}
 
@@ -1955,6 +1966,11 @@ LTBOOL CInterfaceMgr::OnMessage(uint8 messageID, ILTMessage_Read *pMsg)
 
 			char szMessage[256];
 			pMsg->ReadString(szMessage, sizeof(szMessage));
+#ifdef NOLF2SRC_MODERN
+			// MODERN.md M-G80: a longer line was left unterminated (the
+			// engine terminates it too, M-E43).
+			szMessage[sizeof(szMessage) - 1] = 0;
+#endif
 			uint32 clientID = pMsg->Readuint32();
 			uint8 nTeam =  pMsg->Readuint8();
 
@@ -1987,7 +2003,13 @@ LTBOOL CInterfaceMgr::OnMessage(uint8 messageID, ILTMessage_Read *pMsg)
 				{
 
 					char szTemp[256];
+#ifdef NOLF2SRC_MODERN
+					// MODERN.md M-G80: the name and a line of up to 255
+					// characters overran szTemp; cut to fit.
+					LTSNPrintF(szTemp, sizeof(szTemp), "%s : %s", m_ClientInfo.GetPlayerName(clientID), szMessage);
+#else
 					sprintf(szTemp,"%s : %s", m_ClientInfo.GetPlayerName(clientID), szMessage);
+#endif
 
 					if( IsTeamGameType() && nTeam != INVALID_TEAM )
 					{

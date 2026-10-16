@@ -148,6 +148,12 @@ LTRESULT OnClientDisconnectPacket(CPacket_Read &cPacket, Client *pClient)
 
 LTRESULT OnCommandStringPacket(CPacket_Read &cPacket, Client *pClient)
 {
+#ifdef NOLF2SRC_MODERN
+	// MODERN.md M-E41: a packet from a connection that is no client has
+	// no client; the other handlers check.
+    if (!pClient)
+		return LT_OK;
+#endif
     if ((pClient->m_ClientFlags & CFLAG_LOCAL) == 0)
 		return LT_OK;
 
@@ -177,6 +183,11 @@ LTRESULT OnMessagePacket(CPacket_Read &cPacket, Client *pClient)
 
 LTRESULT OnConnectStagePacket(CPacket_Read &cPacket, Client *pClient)
 {
+#ifdef NOLF2SRC_MODERN
+	// MODERN.md M-E41: as OnCommandStringPacket.
+    if (!pClient)
+		return LT_OK;
+#endif
     uint8 type = cPacket.Readuint8();
 
     if (type == 0)
@@ -194,6 +205,13 @@ LTRESULT OnConnectStagePacket(CPacket_Read &cPacket, Client *pClient)
 
 LTRESULT OnHelloPacket(CPacket_Read &cPacket, Client *pClient)
 {
+#ifdef NOLF2SRC_MODERN
+	// MODERN.md M-E41: as OnCommandStringPacket; and the client says
+	// hello once (CClientMgr::StartShell). A second hello allocated a new
+	// data buffer, of a size the client chose, and leaked the first.
+    if (!pClient || (pClient->m_ClientFlags & CFLAG_GOT_HELLO))
+		return LT_OK;
+#endif
     pClient->m_ClientDataLen = cPacket.Readuint16();
     if (pClient->m_ClientDataLen)
     {

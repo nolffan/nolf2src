@@ -141,6 +141,9 @@ ClientData::ClientData( )
 {
 	m_hClient = NULL;
 	m_nLastClientUpdateTime = GetTickCount( );
+#ifdef NOLF2SRC_MODERN
+	m_nModernKickTime = 0;
+#endif
 }
 
 
@@ -1150,6 +1153,23 @@ void CGameServerShell::ProcessHandshake(HCLIENT hClient, ILTMessage_Read *pMsg)
 				//jrg - 9/4/02 in this particular case we let the client disconnect itself so that it can handle
 				//		an incorrect password a little more smoothly
 //				g_pLTServer->KickClient(hClient);
+#ifdef NOLF2SRC_MODERN
+				// MODERN.md M-G81: a client that does not disconnect
+				// itself is kicked two seconds later (UpdateMultiplayer),
+				// which leaves the answer the time to reach it; until
+				// then OnMessage ignores it.
+				ClientData* pClientData = GetClientData( hClient );
+				if( !pClientData )
+				{
+					g_pLTServer->KickClient( hClient );
+				}
+				else if( !pClientData->m_nModernKickTime )
+				{
+					pClientData->m_nModernKickTime = GetTickCount( ) + 2000;
+					if( !pClientData->m_nModernKickTime )
+						pClientData->m_nModernKickTime = 1;
+				}
+#endif
 				return;
 			}
 
@@ -1195,6 +1215,50 @@ void CGameServerShell::OnMessage(HCLIENT hSender, ILTMessage_Read *pMsg)
 	if( !pMsg )
 		return;
 
+#ifdef NOLF2SRC_MODERN
+	// MODERN.md M-G81: in a multiplayer game a remote client plays only
+	// once its handshake is done (the version, the game files' checksums
+	// and the password): until then it may only answer the handshake.
+	// Retail took every message from it, and a client that ignored a
+	// wrong password, or never shook hands, played. One whose password
+	// was wrong is ignored until it is kicked.
+	if( IsMultiplayerGame( ) && !( g_pLTServer->GetClientInfoFlags( hSender ) & CIF_LOCAL ))
+	{
+		pMsg->SeekTo(0);
+		uint8 nModernMessageID = pMsg->Readuint8();
+		pMsg->SeekTo(0);
+
+		ClientData* pClientData = GetClientData( hSender );
+		if( pClientData && pClientData->m_nModernKickTime )
+			return;
+
+		// Let through also the answers the server waits for from every
+		// player that has a client, handshake or not (PlayerTracker, and
+		// the switch of worlds waiting for a loaded client): a level's
+		// exit and save data, ready for an autoload, and loaded. The
+		// player object is new in each world, so the handshake is done
+		// again after every level change; a client still in it when the
+		// level ends would otherwise hold the switch up until it left.
+		// None of them puts a player in the game; that is
+		// MID_PLAYER_MULTIPLAYER_INIT, after the handshake.
+		CPlayerObj* pPlayer = GetPlayerFromClientList( hSender );
+		if(( !pPlayer || !pPlayer->HasDoneHandshake( )))
+		{
+			switch( nModernMessageID )
+			{
+				case MID_HANDSHAKE:
+				case MID_EXIT_LEVEL:
+				case MID_SAVE_DATA:
+				case MID_CLIENT_READY_FOR_AUTOLOAD:
+				case MID_CLIENT_LOADED:
+					break;
+				default:
+					return;
+			}
+		}
+	}
+
+#endif
 	// Let the server missionmgr handle its messages.
 	if( g_pServerMissionMgr )
 	{
@@ -4099,6 +4163,32 @@ void CGameServerShell::UpdateMultiplayer()
 	// Update game server info...
 	UpdateGameServer();
 
+#ifdef NOLF2SRC_MODERN
+	// MODERN.md M-G81: kick the clients whose password was wrong, once
+	// their time is up (ProcessHandshake). Kicked after the walk: a kick
+	// can remove the client's ClientData.
+	{
+		HCLIENT ahModernKick[MAX_CLIENTS];
+		int nModernKicks = 0;
+		uint32 nModernNow = GetTickCount( );
+		ClientDataList::const_iterator iterKick = m_ClientDataList.begin( );
+		for( ; iterKick != m_ClientDataList.end( ) && nModernKicks < MAX_CLIENTS; iterKick++ )
+		{
+			ClientData* pClientData = *iterKick;
+			if( pClientData->m_nModernKickTime && ( int32 )( nModernNow - pClientData->m_nModernKickTime ) >= 0 )
+			{
+				pClientData->m_nModernKickTime = 0;
+				ahModernKick[nModernKicks++] = pClientData->m_hClient;
+			}
+		}
+		for( int iKick = 0; iKick < nModernKicks; iKick++ )
+		{
+			g_pLTServer->CPrint( "Kicking a client: wrong password." );
+			g_pLTServer->KickClient( ahModernKick[iKick] );
+		}
+	}
+
+#endif
 	if (m_bShowMultiplayerSummary)
 	{
 		LTBOOL bReady = LTTRUE;

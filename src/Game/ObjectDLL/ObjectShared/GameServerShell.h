@@ -96,6 +96,11 @@ struct ClientData
 
 	HCLIENT m_hClient;
 	uint32 m_nLastClientUpdateTime;
+#ifdef NOLF2SRC_MODERN
+	// MODERN.md M-G81: when a client that gave the wrong password is
+	// kicked (GetTickCount); 0 while none is due.
+	uint32 m_nModernKickTime;
+#endif
 };
 
 

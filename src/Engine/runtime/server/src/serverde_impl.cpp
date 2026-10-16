@@ -818,7 +818,13 @@ void CLTServer::CPrint(const char *pMsg, ...)
 	LTVSNPrintF( msg, knBufferSize, pMsg, marker );
 	va_end(marker);
 
+#ifdef NOLF2SRC_MODERN
+	// MODERN.md M-E40: the line is already formatted; passed as the
+	// format, a '%' in a player's name or chat line was formatted again.
+	dsi_ConsolePrint("%s", msg);
+#else
 	dsi_ConsolePrint(msg);
+#endif
 }
 
 uint32 CLTServer::GetPointContainers(const LTVector *pPoint, HOBJECT *pList, uint32 maxListSize)

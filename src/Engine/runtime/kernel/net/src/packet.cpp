@@ -368,6 +368,12 @@ uint32 CPacket_Read::ReadString(char *pDest, uint32 nMaxLen)
 			++pDest;
 		}
 	} while (nNextChar != 0);
+#ifdef NOLF2SRC_MODERN
+	// MODERN.md M-E43: a string longer than the buffer filled it without
+	// a terminator, and every caller reads the buffer as a C string.
+	if (pEnd && nMaxLen && (pDest == pEnd))
+		pEnd[-1] = 0;
+#endif
 	return nResult - 1;
 }
 

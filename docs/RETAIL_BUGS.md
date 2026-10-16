@@ -58,8 +58,8 @@ NOLF2 no longer has are listed at the end, so nobody looks again.
 * [The console print writes one past its buffer](#the-console-print-writes-one-past-its-buffer)
 * [The launcher's own path can overrun a buffer](#the-launchers-own-path-can-overrun-a-buffer)
 * [Lip-sync keyframes go out of step when a bone is skipped](#lip-sync-keyframes-go-out-of-step-when-a-bone-is-skipped)
-* [Player names and chat are used as printf format strings](#player-names-and-chat-are-used-as-printf-format-strings) (on the server; see the entry)
-* [A chat line overruns a stack buffer](#a-chat-line-overruns-a-stack-buffer) (on the server; see the entry)
+* [Player names and chat are used as printf format strings](#player-names-and-chat-are-used-as-printf-format-strings)
+* [A chat line overruns a stack buffer](#a-chat-line-overruns-a-stack-buffer)
 * [`HandleAddGoal` appends without a bound](#handleaddgoal-appends-without-a-bound)
 * [The server obeys debugging and single-player messages from any client](#the-server-obeys-debugging-and-single-player-messages-from-any-client)
 * [A client's skill levels index past the skill tables](#a-clients-skill-levels-index-past-the-skill-tables)
@@ -84,6 +84,10 @@ NOLF2 no longer has are listed at the end, so nobody looks again.
 * [The compressed-vector codec does not round-trip](#the-compressed-vector-codec-does-not-round-trip)
 * [The property-type guard normalises to a value that is also out of range](#the-property-type-guard-normalises-to-a-value-that-is-also-out-of-range)
 * [`ReadHStringAsString` seeks backwards, in the wrong unit](#readhstringasstring-seeks-backwards-in-the-wrong-unit)
+* [The join password and the handshake are not enforced](#the-join-password-and-the-handshake-are-not-enforced)
+* [The server keeps a client's first hello and trusts the client pointer](#the-server-keeps-a-clients-first-hello-and-trusts-the-client-pointer)
+* [`ReadHString` assumes the string is terminated](#readhstring-assumes-the-string-is-terminated)
+* [`CPacket_Read::ReadString` leaves a cut string unterminated](#cpacket_readreadstring-leaves-a-cut-string-unterminated)
 
 Every other entry says under its heading why it is not fixed. Most are
 left as retail on purpose: the snow volumes, sprite systems and particle
@@ -879,8 +883,10 @@ Only the operator can type it, unlike the remote players' names and chat
 > it prints or relays them, and the dedicated server's console and log
 > print their lines as text (`WriteConsoleString("%s", ...)`, `fputs`).
 > A client connected to a modern server, retail or not, so never receives a
-> `%`. Not fixed yet: the engine's `CLTServer::CPrint` (the server package)
-> and the client's own printing (`CShell.dll`).
+> `%`. And (M-E40) the engine's `CLTServer::CPrint` passes its formatted
+> line on with a `"%s"` format, and (M-G80) the client prints its kill and
+> tag lines through `"%s"`, so a modern client is safe on a retail server
+> too. The release build keeps the retail calls.
 
 NOLF1's LithTech format-string hole, wider in NOLF2. On the server, a taunt
 line goes straight to `CPrint(szString)`, and a chat line is `sprintf`ed
@@ -900,7 +906,9 @@ line writes through the stack on the server and on everyone who sees it.
 > **FIXED in the modern build, on the server** (`NOLF2SRC_MODERN`,
 > MODERN.md M-G5): the server prints without the buffer and cuts the line to
 > 200 characters before relaying it, which a client's buffer holds with any
-> name. Not fixed yet in the client's own code (`CShell.dll`).
+> name. And in the client (M-G80): the received line is terminated and the
+> name and line are cut to the buffer (`LTSNPrintF`), so a modern client is
+> safe on a retail server too. The release build keeps the retail code.
 
 New in NOLF2: a chat line of up to 255 characters is `sprintf`ed as
 `"%s: %s"` with the player's name into `char szMsg[256]` on the server, and
@@ -957,7 +965,14 @@ row (whose level-0 cost is 0, so it is free), and later the modifier tables
 `CGameServerShell::ProcessHandshake`, `OnMessage` (Object.lto) ·
 `src/Game/ObjectDLL/ObjectShared/GameServerShell.cpp`
 
-Not fixed yet: it needs a test with a client and a server on two machines.
+> **FIXED in the modern build** (`NOLF2SRC_MODERN`, MODERN.md M-G81): in a
+> multiplayer game the server takes nothing from a remote client but its
+> handshake, and the answers a level change waits for, until the handshake
+> is done; and a client that gave the wrong
+> password is ignored and, if it has not left by then, kicked two seconds
+> later (the client still gets the answer, and leaves on its own as
+> before). Tested with a client and a dedicated server in two containers
+> (`tools/mptest.sh`). The release build keeps the retail code.
 
 NOLF1 sent the password to anyone who asked; NOLF2 checks a hash of it on
 the server. But on a wrong password the server only tells the client
@@ -972,7 +987,9 @@ server and skips the handshake's checks of the game files' checksums.
 `OnCommandStringPacket`, `0x10027b3a` (server.dll) ·
 `src/Engine/runtime/server/src/s_net.cpp`
 
-Not fixed yet: the engine's `server/`.
+> **FIXED in the modern build** (`NOLF2SRC_MODERN`, MODERN.md M-E41): the
+> three handlers check the client, and a hello after the first is
+> ignored. The release build keeps the retail handlers.
 
 A second hello replaces the client's data buffer (up to 64 KB, the size the
 client gives) without freeing the first, as often as the client likes; and
@@ -983,11 +1000,29 @@ others make.
 `CLTMessage_Read::ReadHString`, `0x100129bb`; `PeekHString`, `0x10012d2a`
 (server.dll) · `src/Engine/runtime/shared/src/ltmessage.cpp`
 
-Not fixed yet: the engine's `shared/`.
+> **FIXED in the modern build** (`NOLF2SRC_MODERN`, MODERN.md M-E42): the
+> buffer has room for a terminator, which is written after the characters
+> read. The release build keeps the retail code.
 
 The characters are read into an `alloca` buffer of the given length and
 passed to `str_CreateString`, which reads to a terminator: a string sent
 without one is read past the buffer.
+
+### `CPacket_Read::ReadString` leaves a cut string unterminated
+`CPacket_Read::ReadString`, `0x10024aa2` (server.dll), `0x45f2c0`
+(Lithtech.exe) · `src/Engine/runtime/kernel/net/src/packet.cpp`
+
+> **FIXED in the modern build** (`NOLF2SRC_MODERN`, MODERN.md M-E43): a
+> string cut to the buffer ends with a terminator in its last byte. The
+> release build keeps the retail code.
+
+`ILTMessage_Read::ReadString(buffer, size)` copies characters until the
+string's terminator and stops storing them when the buffer is full,
+without terminating it. The game reads what other machines send this way
+into fixed buffers and uses them as C strings: a chat line on the server
+(`HandlePlayerMessage`, 256 bytes) and on every client
+(`CInterfaceMgr::OnMessage`), player names in the server-command lists. A
+line longer than the buffer is then read, and printed or copied, past it.
 
 ---
 
