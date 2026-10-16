@@ -64,6 +64,11 @@ NOLF2 no longer has are listed at the end, so nobody looks again.
 * [`InitLevel`'s trace misspells a parameter](#initlevels-trace-misspells-a-parameter)
 * [A gamepad's buttons are bound by their instance number](#a-gamepads-buttons-are-bound-by-their-instance-number)
 * [The console's keys test Ctrl whatever key they ask about](#the-consoles-keys-test-ctrl-whatever-key-they-ask-about)
+* [The dedicated server's console drops or holds back what is printed while no world runs](#the-dedicated-servers-console-drops-or-holds-back-what-is-printed-while-no-world-runs)
+* [The dedicated server counts unique players with a broken comparison](#the-dedicated-server-counts-unique-players-with-a-broken-comparison)
+* [When the engine stops the dedicated server, its error is lost and a deleted lock is taken](#when-the-engine-stops-the-dedicated-server-its-error-is-lost-and-a-deleted-lock-is-taken)
+* [The dedicated server's console line can lose its terminator](#the-dedicated-servers-console-line-can-lose-its-terminator)
+* [The dedicated server prints its operator's command as a format](#the-dedicated-server-prints-its-operators-command-as-a-format)
 
 Not fixed yet because the code is in a part of the tree another piece of
 work owns: the engine's `server/`, `shared/`, `world/`, `model/`,
@@ -539,6 +544,40 @@ engine variable index, so the walk only stops when `Get` finds nothing past
 the end of the table. It also has no `End` or `PrevItem`, so completing
 backwards (Shift+Tab, once the entry above is fixed) finds nothing.
 
+### The dedicated server's console drops or holds back what is printed while no world runs
+`CServerDlg::UpdateUI` (NOLF2Srv.exe) · `src/Game/ServerApp/ServerDlg.cpp`
+
+> **FIXED in the modern build** (`NOLF2SRC_MODERN`, MODERN.md M-G74): the
+> lines are taken and written to the console first, also while a world
+> loads. The release build keeps the retail order.
+
+Every 100 ms `UpdateUI` takes the lines the engine and the game printed
+from the server thread's list into a list of its own, and writes them to
+the console at its end. On the way it returns twice. While a world loads
+(between the game's pre-load and post-load messages) it returns before
+taking them, so they wait -- for ever, if the load never finishes. And
+when no world has been loaded yet (`m_nCurLevel_Shell` is -1 until the
+game reports the first one) it returns after taking them, so they are lost.
+In a normal start the first world loads within one 100 ms tick and nothing
+is lost (read from the code; not seen in a test run); a slow start, or a
+first world that does not load, loses or holds back what the engine and
+the game print about it, on the console and in the log (`+errorlog`).
+
+### The dedicated server counts unique players with a broken comparison
+`CServerDlg::ClientIP::operator<` (NOLF2Srv.exe), used by
+`CServerDlg::OnShellAddClient` · `src/Game/ServerApp/ServerDlg.h`
+
+> **FIXED in the modern build** (`NOLF2SRC_MODERN`, MODERN.md M-G74): the
+> first part that differs decides. The release build keeps the retail
+> comparison.
+
+The "Total players" count (visits / unique addresses) keeps each player's
+address in a `std::set`, ordered by a comparison that returns true when
+*any* of the four parts is smaller: `1.2.3.4 < 2.1.3.4` and `2.1.3.4 <
+1.2.3.4` are both true. That is not an ordering, so the set can hold one
+address twice or take a new one for one it has: the unique count is wrong
+once players come from addresses like these.
+
 ---
 
 ## Crashes and corruption: checks that are missing
@@ -721,6 +760,49 @@ sized by the vertex count from the file (a `uint8`): up to 1,028 bytes go
 into 168. The texture-name loop writes past its length the same way, and
 `w_NodeForIndex` lets an index below -2 through to `&pList[index]`. Only a
 malformed world file triggers them.
+
+### When the engine stops the dedicated server, its error is lost and a deleted lock is taken
+`CServerDlg::UpdateUI`, `CServerDlg::ServerUpdate` (NOLF2Srv.exe) ·
+`src/Game/ServerApp/ServerDlg.cpp`
+
+> **FIXED in the modern build** (`NOLF2SRC_MODERN`, MODERN.md M-G74): the
+> waiting lines are taken first, written to the console after the stop,
+> and `UpdateUI` returns there. The release build keeps the retail code.
+
+When the engine's update fails, the server thread puts the engine's error
+in the console's list and asks to stop. `UpdateUI` stops the server, and
+`StopServer` empties that list -- the error is never shown -- and deletes
+the critical section, which `UpdateUI` then enters and leaves (an
+`EnterCriticalSection` on a deleted section, undefined) before it returns
+for want of a world.
+
+### The dedicated server's console line can lose its terminator
+`CServerDlg::WriteConsoleString` (NOLF2Srv.exe) · `src/Game/ServerApp/ServerDlg.cpp`
+
+> **FIXED in the modern build** (`NOLF2SRC_MODERN`, MODERN.md M-G5): the
+> line is formatted into 497 characters and terminated, which leaves room
+> for the line end. The release build keeps the retail buffer handling.
+
+NOLF1's, unchanged: the line is formatted into a 500-byte buffer with
+`_vsnprintf(str, 499, ...)`, which leaves no terminating zero for a line of
+499 characters or more; the `strlen` that follows runs past it, and the
+`strcat` of `"\r\n"` writes past the buffer's end for a line of 498 or
+more. The game's console messages to the server application
+(`SERVERAPP_CONSOLEMESSAGE`) are read into a 1,024-byte buffer, so they
+can be that long.
+
+### The dedicated server prints its operator's command as a format
+`CServerDlg::OnConsoleSend` (NOLF2Srv.exe) · `src/Game/ServerApp/ServerDlg.cpp`
+
+> **FIXED in the modern build** (`NOLF2SRC_MODERN`, MODERN.md M-G74): the
+> line is passed with a `"%s"` format. The release build keeps the retail
+> call.
+
+The command typed into the server's console is echoed as `"<< Server >>
+<command>"` through `WriteConsoleString(sMsg)`, the line as the format: a
+`%s` or `%n` typed there reads or writes through whatever the stack holds.
+Only the operator can type it, unlike the remote players' names and chat
+([Player names and chat are used as printf format strings](#player-names-and-chat-are-used-as-printf-format-strings)).
 
 ---
 
@@ -968,3 +1050,9 @@ Looked for and not found, so nobody looks again:
   server browser's option table: rewritten or checked in NOLF2.
 * The join password sent to anyone who asks: NOLF2 sends only whether there
   is one (but see the handshake above).
+* The dedicated server's `-nowiz` missed as the last argument, its
+  `-NetLevel` settings nothing reads, the game's option table filled
+  without a bound, and its wizard's find handle: NOLF2's `NOLF2Srv.exe` has
+  no wizard (it takes a player profile, `-profile`), every option it reads
+  has a value, the game options go over whole (`ServerGameOptions`), and its
+  file searches are `CFileFind`s, closed by their destructors.

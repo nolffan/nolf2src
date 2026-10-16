@@ -35,6 +35,14 @@ covers each change in detail, under its item number (M-E1, M-G2 and so on).
 - **Releases:** every tag `v*` makes a GitHub release with the modern
   build's archives, `nolf2src-<version>.tar.gz` and its debug build
   `nolf2src-debug-<version>.tar.gz`.
+- **The dedicated server** (`NOLF2Srv.exe`) logs its console to
+  `nolf2srv.log`, each line with its time, says where it is hosted (address,
+  port, players, LAN only or not) and why it stopped, and starts without
+  the installer's registry. `linux-server.sh` runs it on Linux, without a
+  display too. Its console no longer loses or holds back what is printed
+  while no world runs, or the error that stopped it, and counts unique
+  players right.
+  (M-G50, M-G72, M-G73, M-G74)
 - **A developer console**, opened with backquote or Shift+Esc, with
   `GetPos` and `SetPos`. (M-E5)
 - **Out of the water at high frame rates** the player floats and jumps as
@@ -196,6 +204,5 @@ These retail bugs are fixed (details in
 
 - The Internet server list (M-E6): Sierra's servers are gone; LAN play and
   direct joins work.
-- The damage flash on wide screens (M-G38), a jukebox (M-G46), the dedicated
-  server without the installer's registry (M-G50), controller rumble (M-G64)
-  and on-screen button prompts (M-G65).
+- The damage flash on wide screens (M-G38), a jukebox (M-G46), controller
+  rumble (M-G64) and on-screen button prompts (M-G65).

@@ -127,8 +127,15 @@ CServerDlg::CServerDlg(CWnd* pParent /*=NULL*/)
 	m_nMaxPlayers = 0;
 	m_nGamePlayers = 0;
 
+#ifdef NOLF2SRC_MODERN
+	// MODERN.md M-G72: the console goes to nolf2srv.log unless asked not to
+	// (+errorlog 0), each line written as it comes
+	m_bWriteErrorLog = true;
+	m_bAlwaysFlushLog = true;
+#else
 	m_bWriteErrorLog = false;
 	m_bAlwaysFlushLog = false;
+#endif
 	m_pErrorLogFile = NULL;
 
 	m_hStopEvent = CreateEvent(NULL, TRUE, FALSE, NULL);
@@ -281,7 +288,15 @@ bool CServerDlg::RunServer()
 	// Update the full ip address
 	char sAddress[128];
 	unsigned short nPort;
+#ifdef NOLF2SRC_MODERN
+	// (M-G73 prints them: nothing, should the engine not answer)
+	sAddress[0] = '\0';
+	nPort = 0;
+#endif
 	m_pServerMgr->GetTcpIpAddress( sAddress, 128, nPort );
+#ifdef NOLF2SRC_MODERN
+	sAddress[sizeof( sAddress ) - 1] = '\0';
+#endif
 
 	m_sFullTcpIpAddress = sAddress;
 	if( nPort > 0 && nPort != DEFAULT_PORT )
@@ -333,6 +348,15 @@ bool CServerDlg::RunServer()
 
 	// All done...
 	WriteConsoleString(IDS_CONSOLE_SERVERRUNNING);
+#ifdef NOLF2SRC_MODERN
+
+	// MODERN.md M-G73: where players find it
+	WriteConsoleString( "Hosting \"%s\" (%s) on %s, UDP port %u, for up to %u players; %s.",
+		( LPCTSTR )m_sServerName, ( LPCTSTR )m_sGameType, sAddress[0] ? sAddress : "this machine",
+		( unsigned )nPort, ( unsigned )m_nMaxPlayers,
+		m_ServerGameOptions.m_bLANOnly ? "LAN only" :
+		"LAN and Internet (no Internet list: players join by address)" );
+#endif
 
 	return true;
 }
@@ -483,7 +507,13 @@ DWORD CServerDlg::DoHost( )
 	// Parse the bute file.  If we didn't find the 
 	CButeMgr userProfile;
 	if( !userProfile.Parse( sProfilePath.c_str( )))
+	{
+#ifdef NOLF2SRC_MODERN
+		// MODERN.md M-G73: which file (a -profile mistyped, say)
+		WriteConsoleString( "Cannot read the profile %s.", sProfilePath.c_str( ));
+#endif
 		return IDS_NETERR_CORRUPTCONFIG;
+	}
 
 	if( !m_ServerGameOptions.LoadFromBute( userProfile ))
 		return IDS_NETERR_CORRUPTCONFIG;
@@ -761,9 +791,46 @@ void CServerDlg::UpdateUI()
 	// See if shell wants to stop itself.
 	if( m_bStopServer_Shell )
 	{
+#ifdef NOLF2SRC_MODERN
+		// MODERN.md M-G74: the shell's last lines, the engine's error that
+		// stopped it among them, are shown (StopServer empties the list),
+		// and nothing more is read: StopServer deleted the critical section
+		EnterCriticalSection( &m_CS );
+			lstShellMsgs.AddTail( &m_lstShellMsgs_Shell );
+			m_lstShellMsgs_Shell.RemoveAll( );
+		LeaveCriticalSection( &m_CS );
+
 		StopServer( );
+
+		pos = lstShellMsgs.GetHeadPosition( );
+		while( pos )
+		{
+			WriteConsoleString( "%s", ( LPCTSTR )lstShellMsgs.GetNext( pos ));
+		}
+
+		UpdateData( FALSE );
+		return;
+#else
+		StopServer( );
+#endif
 	}
 
+#ifdef NOLF2SRC_MODERN
+	// MODERN.md M-G74: the console lines first, also while a world loads
+	// (one that never finishes loading kept them for ever)
+	EnterCriticalSection( &m_CS );
+		lstShellMsgs.AddTail( &m_lstShellMsgs_Shell );
+		m_lstShellMsgs_Shell.RemoveAll( );
+	LeaveCriticalSection( &m_CS );
+
+	pos = lstShellMsgs.GetHeadPosition( );
+	while( pos )
+	{
+		WriteConsoleString( "%s", ( LPCTSTR )lstShellMsgs.GetNext( pos ));
+	}
+	lstShellMsgs.RemoveAll( );
+
+#endif
 	// Check if we're in the middle of changing levels.
 	if( m_bChangingLevels_Shell )
 		return;
@@ -782,6 +849,17 @@ void CServerDlg::UpdateUI()
 
 	// Unblock the shell thread.
 	LeaveCriticalSection( &m_CS );
+#ifdef NOLF2SRC_MODERN
+
+	// MODERN.md M-G74: (any line come since) now, before the return below
+	// while no world is loaded, which dropped them
+	pos = lstShellMsgs.GetHeadPosition( );
+	while( pos )
+	{
+		WriteConsoleString( "%s", ( LPCTSTR )lstShellMsgs.GetNext( pos ));
+	}
+	lstShellMsgs.RemoveAll( );
+#endif
 
 	// Update the server time.
 	serverRunTime = CTime::GetCurrentTime( ) - m_serverStartTime;
@@ -1254,7 +1332,12 @@ void CServerDlg::OnConsoleSend()
 	sprintf(sMsg, "<< %s >>  %s", sServer, sCmd);
 
 	// Update the UI with string.
+#ifdef NOLF2SRC_MODERN
+	// MODERN.md M-G74: the operator's line is text, not a format
+	WriteConsoleString( "%s", sMsg );
+#else
 	WriteConsoleString(sMsg);
+#endif
 
 	// Clear out the string from the control.
 	SetDlgItemText(IDC_CONSOLE_COMMAND, "");
@@ -1285,6 +1368,13 @@ BOOL CServerDlg::DestroyWindow()
 
 void CServerDlg::OnShellFatalError( int nStringId )
 {
+#ifdef NOLF2SRC_MODERN
+	// MODERN.md M-G73: the error in the console and log too, for a server
+	// nobody is watching
+	CString sError;
+	if( sError.LoadString( nStringId ))
+		WriteConsoleString( "%s", ( LPCTSTR )sError );
+#endif
 	AfxMessageBox( nStringId );
 	m_bConfirmExit = FALSE;
 	SendMessage(WM_COMMAND, IDCANCEL);
@@ -1866,6 +1956,13 @@ bool CServerDlg::InitErrorLog( )
 	m_pErrorLogFile = fopen( m_sErrorLogFileName.c_str( ), "wtc" );
 	if( !m_pErrorLogFile )
 		return false;
+#ifdef NOLF2SRC_MODERN
+
+	// MODERN.md M-G72: when this run started
+	fprintf( m_pErrorLogFile, "NOLF2Srv.exe started %s\n",
+		( LPCTSTR )CTime::GetCurrentTime( ).Format( "%Y-%m-%d %H:%M:%S" ));
+	fflush( m_pErrorLogFile );
+#endif
 
 	return true;
 }
@@ -1886,9 +1983,15 @@ bool CServerDlg::WriteToErrorLog( char const* pszMsg )
 		return false;
 
 #ifdef NOLF2SRC_MODERN
+	// MODERN.md M-G72: each line with its time, and one line end (the
+	// console's "\r\n" in a text-mode file was "\r\r\n")
+	fputs(( LPCTSTR )CTime::GetCurrentTime( ).Format( "%H:%M:%S " ), m_pErrorLogFile );
+
 	// MODERN.md M-G5: the line was formatted already; it is not a format
-	fputs( pszMsg, m_pErrorLogFile );
-	if( !pszMsg[0] || pszMsg[ strlen( pszMsg ) - 1 ] != '\n' )
+	int nLen = strlen( pszMsg );
+	while( nLen > 0 && ( pszMsg[nLen - 1] == '\r' || pszMsg[nLen - 1] == '\n' ))
+		nLen--;
+	fwrite( pszMsg, 1, nLen, m_pErrorLogFile );
 #else
 	fprintf( m_pErrorLogFile, pszMsg );
 	if( pszMsg[ strlen( pszMsg ) - 1 ] != '\n' )

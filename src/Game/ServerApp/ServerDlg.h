@@ -254,6 +254,13 @@ private:
 			{
 				if( m_nPart[i] < y.m_nPart[i] )
 					return true;
+#ifdef NOLF2SRC_MODERN
+				// MODERN.md M-G74: part by part, the first that differs
+				// decides (retail's 1.2.x.x < 2.1.x.x and 2.1.x.x <
+				// 1.2.x.x were both true)
+				if( m_nPart[i] > y.m_nPart[i] )
+					return false;
+#endif
 			}
 
 			return false;
