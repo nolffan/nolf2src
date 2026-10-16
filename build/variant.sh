@@ -79,7 +79,7 @@ echo "== $VARIANT tree: src/ build/ tools/ -> out/build-$VARIANT/ (sources only;
 mkdir -p "$TREE"
 python3 tools/releasesrc.py mirror "$REPO/src" "$TREE/src"
 rm -rf "$TREE/build" "$TREE/tools"
-tar -C "$REPO" -cf - --exclude='__pycache__' build tools | tar -C "$TREE" -xf -
+tar -C "$REPO" -cf - --exclude='__pycache__' --exclude='.git' build tools | tar -C "$TREE" -xf -
 # the compilers, and the retail game where build/retail.sh looks for it
 [ -L "$TREE/toolchains" ] || ln -s ../../toolchains "$TREE/toolchains"
 [ -L "$TREE/rez" ] || ln -s ../../rez "$TREE/rez"

@@ -89,10 +89,12 @@ binary, and the evidence, is `progress/COMPILERS.md`.
 
 ## Building
 
-Needs docker and the two submodules (`git submodule update --init`):
-`toolchains/` (the compilers) and `rez/` (which fetches the European discs
-from archive.org and installs the game with its 1.3 update, and the USA
-discs, for the public archive's install scripts).
+Needs docker and three submodules (`git submodule update --init`):
+`tools/` (the build's scripts, tests and byte-matching tools, shared with
+the NOLF and Contract J.A.C.K. reconstructions), `toolchains/` (the
+compilers) and `rez/` (which fetches the European discs from archive.org
+and installs the game with its 1.3 update, and the USA discs, for the
+public archive's install scripts).
 
 ```sh
 make            # out/nolf2-legacy-release/ and its -private / -public .tar.gz

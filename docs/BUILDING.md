@@ -8,6 +8,13 @@ parts of it by hand, and how the game is packaged.
 * **Linux with Docker.** The compilers are Win32 programs and run under Wine
   in a container; the host needs nothing else (no Wine, no Python).
 * **The submodules**: `git submodule update --init`.
+  * `tools/`, the build's scripts, its tests (`playtest.sh`, `srvtest.sh`,
+    `mptest.sh`) and the byte-matching and scoring tools: a repository of
+    its own, shared with the reconstructions of *No One Lives Forever*
+    (nolfsrc) and *Contract J.A.C.K.* (cjacksrc), so a tool one of them
+    makes serves the others. A tool reads the project from its own files
+    (`progress/targets.py`; `build/env.sh` names the variant macros and the
+    header directory). See `tools/README.md`.
   * `toolchains/`, the compilers (Visual C++ 6.0 SP5 and the other
     revisions), the DirectX 8.1 SDK and Microsoft's DirectMusic. See
     `toolchains/README.md`.
@@ -194,7 +201,7 @@ beforehand keeps its own text, and gets the archives added. Its steps are the ma
 above, so a run can be reproduced locally:
 
 ```sh
-git submodule update --init                 # toolchains/, rez/, ext/ffmpeg
+git submodule update --init                 # tools/, toolchains/, rez/, ext/ffmpeg
 make image && make retail sdk               # (CI: the image from its layer cache, IMAGE_BUILD=0)
 export NOLF2_ARCHIVES=public
 make && make progress && make debug && make modern && make modern-debug

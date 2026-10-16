@@ -17,6 +17,11 @@ if ! command -v wine >/dev/null 2>&1; then
 fi
 export WINEDEBUG=-all
 export WINEDLLOVERRIDES="mscoree,mshtml="
+# the variant macros tools/releasesrc.py resolves, and the project's own
+# header directory tools/mkdeps.py follows (the shared tools/ also serve
+# the other games' projects)
+export RELEASESRC_VARIANTS="NOLF2SRC_MODERN NOLF2SRC_DEBUG"
+export MKDEPS_PROJECT_INCLUDE=src/nolf2src
 
 # Extra flags for every compile and every link, for the debug and modern
 # builds (build/variant.sh sets them). Empty otherwise -- and the release
@@ -57,7 +62,7 @@ nolf2src_release_tree() {
     python3 "$REPO/tools/releasesrc.py" sync "$REPO/src" "$tree/src" || exit 1
     python3 "$REPO/tools/releasesrc.py" outputs "$REPO/src" "$tree/src" || exit 1
     rm -rf "$tree/build" "$tree/tools"
-    tar -C "$REPO" -cf - --exclude='__pycache__' build tools | tar -C "$tree" -xf -
+    tar -C "$REPO" -cf - --exclude='__pycache__' --exclude='.git' build tools | tar -C "$tree" -xf -
     [ -L "$tree/toolchains" ] || ln -s ../../toolchains "$tree/toolchains"
     ( cd "$tree" && NOLF2SRC_IN_RELEASE_TREE=1 bash "build/$script" "$@" ) || rc=$?
     python3 "$REPO/tools/releasesrc.py" outputs "$tree/src" "$REPO/src" || exit 1

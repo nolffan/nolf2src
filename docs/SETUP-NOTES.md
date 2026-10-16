@@ -87,8 +87,11 @@ would just share NOLF's assumptions. Suggested order:
    nolfsrc, nolf2src and cjacksrc.
 
 Doing it once nolf2src's scorer works means two real users shape the config.
-In the meantime nolf2src keeps renamed copies, and its tools README says they
-are not adapted yet.
+
+That is how it went: the tools became target-driven in nolf2src (step 1 is
+`progress/targets.py`, step 2 the tools reading it), and the shared repository
+is github.com/nolffan/tools, carried as `tools/` by nolf2src and cjacksrc,
+and by nolfsrc at a commit from before the target-driven tools.
 
 ## Next steps
 

@@ -8,8 +8,10 @@
 #                 fails if a function recorded as identical stops matching
 #   make help     everything else
 #
-# Needs only docker on the host and the two submodules (`git submodule update
-# --init`): the compilers, toolchains/ (toolchains/README.md), and rez/, which
+# Needs only docker on the host and three submodules (`git submodule update
+# --init`): the build's scripts and checks, tools/ (shared with the NOLF and
+# Contract J.A.C.K. projects; tools/README.md), the compilers, toolchains/
+# (toolchains/README.md), and rez/, which
 # fetches the redump images of the European discs from archive.org and
 # installs the game from them with the 1.3 update (rez/README.md; `make
 # retail`, which every build runs first, does it once, and fetches the USA
@@ -38,7 +40,7 @@ DOCKER_RUN = docker run --rm --init --name $(CONTAINER) \
 TOOLCHAIN_FILES = toolchains/msvc-6.00-8966/BIN/cl.exe toolchains/msvc-6.00-9782/Common/MSDev98/Bin/RC.EXE \
 	toolchains/dxsdk-8.1/include/d3d8.h
 
-.PHONY: all game debug modern modern-debug image retail sdk check-rez check-ext check-toolchain test progress progress-update shell clean distclean help
+.PHONY: all game debug modern modern-debug image retail sdk check-tools check-rez check-ext check-toolchain test progress progress-update shell clean distclean help
 
 all: game
 
@@ -106,18 +108,21 @@ retail: check-rez image
 sdk: check-rez image
 	@$(DOCKER_RUN) bash -c 'source build/jupiter.sh && jupiter_install && jupiter_verify'
 
-check-rez:
+check-tools:
+	@[ -f tools/retailextract.py ] || { echo "error: tools/ is empty -- the build's scripts and checks are the tools/ submodule: run git submodule update --init (see tools/README.md)" >&2; exit 1; }
+
+check-rez: check-tools
 	@[ -f rez/install-games.sh ] || { echo "error: rez/ is empty -- the disc images and their installer are the rez/ submodule: run git submodule update --init (see rez/README.md)" >&2; exit 1; }
 
 check-ext:
 	@[ -f ext/ffmpeg/LICENSE.md ] || { echo "error: ext/ffmpeg is empty -- the modern build's Bink player is built on the ext/ffmpeg submodule: run git submodule update --init ext/ffmpeg" >&2; exit 1; }
 
-check-toolchain:
+check-toolchain: check-tools
 	@for f in $(TOOLCHAIN_FILES); do \
 	  [ -f "$$f" ] || { echo "error: $$f is missing -- the compilers are the toolchains/ submodule: run git submodule update --init (see toolchains/README.md)" >&2; exit 1; }; \
 	done
 
-test: image
+test: check-tools image
 	@[ -f $(TEST_GAME)/Lithtech.exe ] || { echo "error: no $(TEST_GAME)/ -- build it first (make, or make debug/modern/modern-debug)" >&2; exit 1; }
 	$(DOCKER_RUN) env PLAYTEST_NAME=$(TEST_NAME) PLAYTEST_SCRIPT=tools/playtest-newgame.txt bash tools/playtest.sh $(TEST_GAME) - 5
 

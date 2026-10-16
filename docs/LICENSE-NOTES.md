@@ -10,6 +10,7 @@
 | `src/modern/binkw32/` | written for this project: the modern build's Bink player (adapted from nolfsrc's, the same project's for NOLF1) | no licence is declared |
 | `ext/ffmpeg` (submodule) | **FFmpeg**, upstream at github.com/FFmpeg/FFmpeg, pinned to n8.1.3 | LGPL-2.1-or-later as the modern build configures it (no GPL or non-free parts enabled); see its `LICENSE.md` |
 | `rez/` (submodule) | the disc images' installer; the images themselves are fetched from archive.org | see `rez/README.md` |
+| `tools/` (submodule) | the build's scripts, tests and byte-matching tools, shared with the NOLF and Contract J.A.C.K. projects | ours; see `tools/README.md` |
 | `toolchains/` (submodule) | the compilers, assembled from public copies of the original media | see `toolchains/README.md` |
 
 What a build puts in a game directory, by origin (`MANIFEST.txt` in the

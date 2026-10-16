@@ -8,3 +8,6 @@
 	path = ext/ffmpeg
 	url = git@github.com:FFmpeg/FFmpeg.git
 	shallow = true
+[submodule "tools"]
+	path = tools
+	url = git@github.com:nolffan/tools.git
