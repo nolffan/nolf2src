@@ -42,7 +42,9 @@ NOLF2 no longer has are listed at the end, so nobody looks again.
 * [The player walks slower, and crouches slower still, at high frame rates](#the-player-walks-slower-and-crouches-slower-still-at-high-frame-rates)
 * [Aim, fire sparks and debris change with the frame rate](#aim-fire-sparks-and-debris-change-with-the-frame-rate)
 * [Out of the water, the player floats lower and jumps lower at high frame rates](#out-of-the-water-the-player-floats-lower-and-jumps-lower-at-high-frame-rates)
+* [The server list reselects the wrong row](#the-server-list-reselects-the-wrong-row)
 * [The attached-camera animation clamp skips ten frames](#the-attached-camera-animation-clamp-skips-ten-frames)
+* [Mouse look overshoots, unevenly, and more at high frame rates](#mouse-look-overshoots-unevenly-and-more-at-high-frame-rates)
 * [`CLTTransform::Inverse` returns its input](#clttransforminverse-returns-its-input)
 * [The multiplayer timer runs on while paused](#the-multiplayer-timer-runs-on-while-paused)
 * [`StopSecondary` and `StopMotif` can loop for ever](#stopsecondary-and-stopmotif-can-loop-for-ever)
@@ -83,11 +85,15 @@ NOLF2 no longer has are listed at the end, so nobody looks again.
 * [The property-type guard normalises to a value that is also out of range](#the-property-type-guard-normalises-to-a-value-that-is-also-out-of-range)
 * [`ReadHStringAsString` seeks backwards, in the wrong unit](#readhstringasstring-seeks-backwards-in-the-wrong-unit)
 
-Not fixed yet because the code is in a part of the tree another piece of
-work owns: the engine's `server/`, `shared/`, `world/`, `model/`,
-`kernel/net` and `kernel/io` (the server package) and the client game
-`CShell.dll` (`src/Game/ClientShellDLL`, being byte-matched). Those entries
-say so.
+Every other entry says under its heading why it is not fixed. Most are
+left as retail on purpose: the snow volumes, sprite systems and particle
+colours, because the levels and effects were tuned with them; and what is
+cosmetic, harmless or never reached by the game -- the engine's version
+string, `CLTDirectMusicMgr::Stop`, the retail console's name completion,
+`_findclose` on an unopened handle, the server's error messages that name
+the wrong function, and the checks reported at the wrong debug level. The bomb defuse has not been seen in the game, and
+`CP_DAMAGE` needs more than a guard. The renderer's `SetCamera` viewport
+and the multiplayer entries not marked fixed are still open.
 
 ---
 
@@ -301,7 +307,8 @@ read from the attributes again. Every snow volume snows at the same rate.
 ### The server list reselects the wrong row
 `CScreenJoin::DisplayCurServerList` (CShell.dll) · `src/Game/ClientShellDLL/TO2/ScreenJoin.cpp`
 
-Not fixed yet: `CShell.dll`.
+> **FIXED in the modern build** (`NOLF2SRC_MODERN`, MODERN.md M-G26): the
+> index is compared. The release build keeps the retail line.
 
 Rebuilding the list, `if (nServerIndex = m_nSelectedServer)` assigns where
 it means to compare. With any server but the first selected, every row
@@ -332,8 +339,8 @@ by all appearances: `!= DEVICETYPE_JOYSTICK && != DEVICETYPE_GAMEPAD`.
 `CBaseParticleSystemFX::GetRandomColorInRange` (CShell.dll) ·
 `src/Game/ClientShellDLL/ClientShellShared/BaseParticleSystemFX.cpp`
 
-Not fixed yet: `CShell.dll`; the fix also changes how smoke, trails and
-explosions look.
+Not fixed: the fix changes how smoke, trails and explosions look, which
+were tuned as they are.
 
 The red component is picked between the two colours, and green and blue are
 scaled from it as `m_vColorRange.y * fColorR / m_vColorRange.x`, without
@@ -1022,8 +1029,9 @@ Minor: these change what the engine reports, not what it does.
 ### Error messages that name the wrong function
 
 > **FIXED in the modern build, in the client** (`NOLF2SRC_MODERN`,
-> MODERN.md M-E11): the rows marked fixed report their own names. The server
-> ones wait for the server package.
+> MODERN.md M-E11): the rows marked fixed report their own names. The
+> others, in the server's code, are not fixed: they change only what a
+> failed check prints.
 
 The engine's parameter checks report through a macro taking the function's
 name; these were copied from a neighbour and the name never changed. Every
