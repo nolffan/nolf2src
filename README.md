@@ -110,7 +110,9 @@ Each game directory has `linux-run.sh`, which starts the game with the
 host's Wine through its launcher, `NOLF2.exe`, as the retail game starts:
 click Play. To go straight into a level when testing a build, use
 `tools/playtest.sh` (`make test` and `make shell`; its header has the
-options).
+options). `linux-server.sh` runs the dedicated server `NOLF2Srv.exe`
+(under `xvfb-run` without a display; `docs/INSTALL.md`, "A dedicated
+server").
 
 `build/build.mk` builds Monolith's workspace as Developer Studio would:
 `tools/dsp2mk.py` reads `TO2.dsw` and the project files and writes the

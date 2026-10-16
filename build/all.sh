@@ -124,6 +124,9 @@ rm -f "$OUT/linux-run-launcher.sh"           # linux-run.sh's name before it rep
                                              # the launcher-less script
 cp build/game-scripts/linux-run.sh "$OUT/"
 chmod +x "$OUT/linux-run.sh"
+# linux-server.sh: a dedicated server, NOLF2Srv.exe, with the host's Wine
+# (headless under xvfb-run; usage in its header)
+cp build/game-scripts/linux-server.sh "$OUT/" && chmod +x "$OUT/linux-server.sh"
 if [ "${NOLF2_MIDDLEWARE:-retail}" = open ]; then
     rm -f "$OUT/windows-run.bat"
 else

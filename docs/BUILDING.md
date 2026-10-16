@@ -71,6 +71,22 @@ make clean        # remove out/ and every build output in the source tree
 make distclean    # clean, and remove the docker image
 ```
 
+The dedicated server has tests of its own, run in `make shell`:
+`tools/srvtest.sh` starts a game directory's `NOLF2Srv.exe` unattended under
+Xvfb on a co-operative profile of its own, checks that it is still running
+and then that Stop Server stops it, and prints the end of its log
+(`nolf2srv.log`); `tools/mptest.sh` has the game join such a server over
+the LAN. Their runs are in `out/srvtest/<name>/` and `out/mptest/<name>/`:
+
+```sh
+G=out/nolf2-modern-release
+SRVTEST_NAME=modern tools/srvtest.sh $G/server.dll 60 $G
+MPTEST_NAME=modern MPTEST_KEYS='Down Down Return Return w2 Down Return w2 F5 w4 Down Down Return w20 space w15' \
+    tools/mptest.sh $G/server.dll $G/Lithtech.exe 30 $G
+# (in the modern game the found server is one Down further than mptest.sh's
+# default keys go)
+```
+
 `make progress` scores what the last `make` built (it compiles nothing); the
 retail images it compares against are extracted into `out/reference/` the
 first time. `progress/README.md` describes the scoring.

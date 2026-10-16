@@ -220,6 +220,7 @@ typed in the chat line (`T`) during play, e.g. `god`.
 | `Profiles/` | Your player profiles: key bindings and most options. |
 | `Save/` | Saved games. |
 | `launchcmds.txt` | The command line the launcher last started the game with. |
+| `nolf2srv.log`, `BanList.txt` | The dedicated server's log (below), and the players banned from a server, written when one stops. |
 | `SHA256SUMS` | The checksum of every file of the release (`sha256sum -c SHA256SUMS`). |
 
 ## Multiplayer
@@ -228,3 +229,48 @@ Sierra's servers for the Internet server list are gone, so the list is
 empty. LAN games and joining a server by its address work. The modern build
 does not play with retail 1.3 players and servers: the game code differs,
 which the handshake checks.
+
+## A dedicated server
+
+The game directory also has the game's stand-alone server, `NOLF2Srv.exe`:
+a server with no player of its own, which keeps hosting a game for others
+to join over the LAN or by its address.
+
+Its settings are a player profile's: the game type, missions, number of
+players, port, password and options that the game's Multiplayer > Host
+screens save in `Profiles/<name>.txt` (and the mission lists in the
+`Profiles/<name>/` folder). Set them up there first.
+
+- **From the game:** Multiplayer > Host, turn on "Dedicated server", and
+  start: the game closes and the server starts with your profile.
+- **Windows:** start `NOLF2Srv.exe`. With one profile it uses it; with
+  several it asks which. `NOLF2Srv.exe -profile <name>` names it.
+- **Linux:**
+
+  ```sh
+  ./linux-server.sh                      # the only profile, or it asks which
+  ./linux-server.sh --profile Player -name "My server" -port 27888
+  ```
+
+  Without a display (a server machine, a container) it runs under
+  `xvfb-run`, a virtual display, which then needs to be installed (`xvfb`),
+  and the profile must be named when there are several.
+  `./linux-server.sh --help` lists the options.
+
+On the command line `-profile <name>` picks the profile, and `-name
+<session name>` and `-port <port>` override its own. To set up a server on a
+machine where the game is never played, copy a profile (`Profiles/<name>.txt`
+and its folder) from one where it is.
+
+The server's console is written to `nolf2srv.log` in the game directory,
+emptied at each start. The modern build always writes it, with the time of
+each line, and adds where it is hosted (address, UDP port, players, LAN
+only or not) and any error that stops it; `+errorlog 0` turns it off. The
+legacy build writes it only with `+errorlog 1` (`linux-server.sh` passes
+that).
+
+The server answers on UDP port 27888 (or the profile's port, or `-port`):
+let it through the firewall for players on other machines. It runs until
+Stop Server is clicked, or the process is ended (Ctrl+C for
+`linux-server.sh`). The Internet server list is gone (above), so players
+outside the LAN join it by its address.

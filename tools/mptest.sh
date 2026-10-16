@@ -67,7 +67,7 @@ setup() {   # setup <dir>: binaries copied, data linked
 setup "$RUN/server"
 cp "$DLL" "$RUN/server/server.dll"
 mkdir -p "$RUN/server/Profiles/srvtest/Campaigns"
-printf '[Multiplayer]\r\nGameType = 1\r\nPort = 27888\r\nLANOnly = 1\r\nDedicated = 1\r\n' > "$RUN/server/Profiles/srvtest.txt"
+printf '[Multiplayer]\r\nGameType = 1\r\nPort = 27888\r\nLANOnly = TRUE\r\nDedicated = TRUE\r\n' > "$RUN/server/Profiles/srvtest.txt"
 printf '[MissionList]\r\nMission0=0\r\nMission1=1\r\nLoopMissions=1\r\n' > "$RUN/server/Profiles/srvtest/Campaigns/default_campaign.txt"
 setup "$RUN/client"
 cp "$EXE" "$RUN/client/Lithtech.exe"
