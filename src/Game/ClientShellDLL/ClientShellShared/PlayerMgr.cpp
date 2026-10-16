@@ -3506,7 +3506,13 @@ void CPlayerMgr::UpdateCameraPosition()
 
 			if( (dwCurTime > 0) && (dwCurTime < dwPrevTime) )
 			{
+#ifdef NOLF2SRC_MODERN
+				// MODERN.md M-G87: animation times are in milliseconds, so one
+				// frame's time is a thousand times its seconds.
+				uint32 dwFrameTime = (uint32)(1000.0f * g_pGameClientShell->GetFrameTime());
+#else
 				uint32 dwFrameTime = (uint32)(10000.0f * g_pGameClientShell->GetFrameTime());
+#endif
 				g_pModelLT->SetCurAnimTime( hPlayer, MAIN_TRACKER, dwPrevTime + dwFrameTime );
 			}
 			dwPrevTime = dwCurTime;

@@ -42,7 +42,9 @@ NOLF2 no longer has are listed at the end, so nobody looks again.
 * [The player walks slower, and crouches slower still, at high frame rates](#the-player-walks-slower-and-crouches-slower-still-at-high-frame-rates)
 * [Aim, fire sparks and debris change with the frame rate](#aim-fire-sparks-and-debris-change-with-the-frame-rate)
 * [Out of the water, the player floats lower and jumps lower at high frame rates](#out-of-the-water-the-player-floats-lower-and-jumps-lower-at-high-frame-rates)
+* [The attached-camera animation clamp skips ten frames](#the-attached-camera-animation-clamp-skips-ten-frames)
 * [`CLTTransform::Inverse` returns its input](#clttransforminverse-returns-its-input)
+* [The multiplayer timer runs on while paused](#the-multiplayer-timer-runs-on-while-paused)
 * [`StopSecondary` and `StopMotif` can loop for ever](#stopsecondary-and-stopmotif-can-loop-for-ever)
 * [`FACEOBJECT` normalises a zero vector](#faceobject-normalises-a-zero-vector)
 * [`Body::FaceDir` and `FacePos` test for zero before flattening](#bodyfacedir-and-facepos-test-for-zero-before-flattening)
@@ -53,6 +55,7 @@ NOLF2 no longer has are listed at the end, so nobody looks again.
 * [`cis_GetSurfaceDims` writes through unchecked pointers](#cis_getsurfacedims-writes-through-unchecked-pointers)
 * [The console print writes one past its buffer](#the-console-print-writes-one-past-its-buffer)
 * [The launcher's own path can overrun a buffer](#the-launchers-own-path-can-overrun-a-buffer)
+* [Lip-sync keyframes go out of step when a bone is skipped](#lip-sync-keyframes-go-out-of-step-when-a-bone-is-skipped)
 * [Player names and chat are used as printf format strings](#player-names-and-chat-are-used-as-printf-format-strings) (on the server; see the entry)
 * [A chat line overruns a stack buffer](#a-chat-line-overruns-a-stack-buffer) (on the server; see the entry)
 * [`HandleAddGoal` appends without a bound](#handleaddgoal-appends-without-a-bound)
@@ -353,9 +356,10 @@ in the particle-lifespan one, so speed 2 doubles the rate in two modes and
 halves it in the third.
 
 ### The attached-camera animation clamp skips ten frames
-`CPlayerMgr` (CShell.dll) · `src/Game/ClientShellDLL/ClientShellShared/PlayerMgr.cpp`
+`CPlayerMgr::UpdateCameraPosition` (CShell.dll) · `src/Game/ClientShellDLL/ClientShellShared/PlayerMgr.cpp`
 
-Not fixed yet: `CShell.dll`.
+> **FIXED in the modern build** (`NOLF2SRC_MODERN`, MODERN.md M-G87): one
+> frame's time in milliseconds. The release build keeps the retail code.
 
 When the player's attached-camera animation would run backwards, it is set
 to the previous time plus `10000.0f * GetFrameTime()`: animation times are
@@ -522,7 +526,9 @@ equal to `transform`.
 `CInterfaceTimer::Draw`, `0x100eb260` (CShell.dll) ·
 `src/Game/ClientShellDLL/ClientShellShared/InterfaceTimer.cpp`, `InterfaceTimer.h`
 
-Not fixed yet: `CShell.dll`.
+> **FIXED in the modern build** (`NOLF2SRC_MODERN`, MODERN.md M-G85): the
+> time left is taken when the timer is set and held while it is paused, as
+> in the source release. The release build keeps the retail code.
 
 The timer works out the time left from the game time on every draw and
 never reads the pause flag the server sends with it
@@ -728,13 +734,23 @@ characters overruns `sExe` at start-up.
 ### Lip-sync keyframes go out of step when a bone is skipped
 `HandleNodeControlLipSync` (CShell.dll) · `src/Game/ClientShellDLL/ClientShellShared/NodeController.cpp`
 
-Not fixed yet: `CShell.dll`.
+> **FIXED in the modern build** (`NOLF2SRC_MODERN`, MODERN.md M-G86): a
+> skipped bone's keyframes are skipped in the file, a file with more bones
+> than node controls is played as a lip flap (as a file of the wrong
+> version is), and a bone name is cut to the buffer. The release build
+> keeps the retail code.
 
 A `.lip` file names its bones, then gives each one's keyframes. A bone the
 model does not have, or one no node control is free for, is skipped in the
 second loop without reading its keyframe block, so every later bone reads
 the previous one's data. The bone count from the file also indexes a
 32-entry array, and the bone name length fills a 256-byte buffer, unchecked.
+In the shipped game the jaw comes first in every file, so the player's own
+lines (the player's model has only the jaw) come out right; 226 files list
+`Face_LLower` and `Face_RLower`, which the common human skeleton lacks,
+before `Face_UpperLip`, which on such a model would move with
+`Face_LLower`'s keys -- but the speakers found for them (Cate, Hawkins,
+Isako, Volkov) have every one of those bones.
 
 ### `ILTModel::GetNodeName` reads one past the node list
 `0x4a7a90` (lithtech.exe; the same code in server.dll) · `src/Engine/runtime/shared/src/modellt_impl.cpp`

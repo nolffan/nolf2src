@@ -574,6 +574,16 @@ void CNodeController::HandleNodeControlLipSync( char const* pszSoundFile, LTFLOA
 	uint32 cKeyframes	= 0;
 	pStream->Read(&cKeyframes, sizeof(cKeyframes));
 
+#ifdef NOLF2SRC_MODERN
+	// MODERN.md M-G86: no more bones than aiNodeControls below has room for.
+	if (cBones > (uint32)kMaxNodeControls)
+	{
+		pStream->Release();
+		HandleNodeControlLipFlap( szSound, fRadius );
+		return;
+	}
+
+#endif
 	LTBOOL bSubtitles = LTFALSE;
 	m_hSound = m_pCharacterFX->PlayLipSyncSound(szSound, fRadius, bSubtitles, m_bSubtitlePriority);
 	if( !m_hSound )
@@ -591,11 +601,21 @@ void CNodeController::HandleNodeControlLipSync( char const* pszSoundFile, LTFLOA
 		int nBoneSize = 0;
 		pStream->Read(&nBoneSize, sizeof(nBoneSize));
 
+#ifdef NOLF2SRC_MODERN
+		// MODERN.md M-G86: no more of the name than szBone holds; the rest
+		// is skipped.
+		int nBoneRead = (nBoneSize < 0) ? 0 : ((nBoneSize > 255) ? 255 : nBoneSize);
+		pStream->Read(szBone, nBoneRead);
+		if (nBoneSize > nBoneRead)
+			pStream->SeekTo(pStream->GetPos() + (uint32)(nBoneSize - nBoneRead));
+		szBone[nBoneRead] = '\0';
+#else
 		//now read in the bone name
 		pStream->Read(szBone, nBoneSize);
 
 		//end the string appropriately
 		szBone[nBoneSize] = '\0';
+#endif
 
 	 	ModelNode eModelNode = g_pModelButeMgr->GetSkeletonNode(m_pCharacterFX->GetModelSkeleton(), szBone);
 		if( eModelNode == eModelNodeInvalid )
@@ -632,6 +652,14 @@ void CNodeController::HandleNodeControlLipSync( char const* pszSoundFile, LTFLOA
 		{
 			pStream->Read(m_aNodeControls[aiNodeControls[iBone]].aKeyframes, sizeof(NCKEYFRAME) * cKeyframes);
 		}
+#ifdef NOLF2SRC_MODERN
+		else
+		{
+			// MODERN.md M-G86: a bone skipped above has its keyframes skipped
+			// here, so the bones after it read their own.
+			pStream->SeekTo(pStream->GetPos() + sizeof(NCKEYFRAME) * cKeyframes);
+		}
+#endif
 	}
 
 	pStream->Release();

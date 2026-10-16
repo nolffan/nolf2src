@@ -63,6 +63,11 @@ covers each change in detail, under its item number (M-E1, M-G2 and so on).
   and a string read from a message that left the rest of it out of step.
   Compressed vectors decode without their small loss. Saves and the network
   format are unchanged. (M-E45 to M-E54)
+- **Retail bugs fixed:** a paused on-screen timer no longer counts down; a
+  lip-sync line whose file names a bone the speaker's model lacks no longer
+  moves the later bones with the wrong bone's motion; and with the camera
+  on the player's head, an animation stepping back is moved on one frame,
+  not ten. (M-G85, M-G86, M-G87)
 
 ## The modern build, compared with retail
 

@@ -22,6 +22,9 @@ static void BuildTimeString(char* aBuffer, int nTime);
 CInterfaceTimer::CInterfaceTimer() 
 {
 	m_fTime		= 0.0f;
+#ifdef NOLF2SRC_MODERN
+	m_fTimeLeft	= 0.0f;	// MODERN.md M-G85
+#endif
 	m_bPause	= LTFALSE;
 	m_pTimeStr	= LTNULL;
 	m_nBaseSize = 0;
@@ -49,7 +52,14 @@ void CInterfaceTimer::Draw()
 
 	// RETAIL: reconstructed from the retail 1.3 CShell.dll (0x100eb260): the
 	// time left is counted from the game time on every draw, paused or not.
+#ifdef NOLF2SRC_MODERN
+	// MODERN.md M-G85: not while the timer is paused.
+	if( !m_bPause )
+		m_fTimeLeft = m_fTime - g_pLTClient->GetGameTime( );
+	float fTimeLeft = m_fTimeLeft;
+#else
 	float fTimeLeft = m_fTime - g_pLTClient->GetGameTime( );
+#endif
 
 	// Update/Draw the timer if there is anytime left...
 	if( fTimeLeft <= 0.0f )
@@ -133,6 +143,18 @@ void CInterfaceTimer::Draw()
 	m_pTimeStr->Render();
 }
 
+#ifdef NOLF2SRC_MODERN
+// MODERN.md M-G85: the server sends the game time the timer ends at, which
+// for a paused timer is the time left counted from when it was sent. Take
+// the time left then; Draw counts it down only while the timer runs.
+void CInterfaceTimer::SetTime(LTFLOAT fTime, bool bPause)
+{
+	m_fTime		= fTime;
+	m_fTimeLeft	= fTime - g_pLTClient->GetGameTime( );
+	m_bPause	= bPause;
+}
+
+#endif
 static void BuildTimeString(char* aBuffer, int nTime)
 {
 	if (nTime > 9)
