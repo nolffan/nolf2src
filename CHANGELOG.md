@@ -44,6 +44,9 @@ covers each change in detail, under its item number (M-E1, M-G2 and so on).
 - **Documentation** moves to `docs/`, with new
   [`docs/INSTALL.md`](docs/INSTALL.md), [`docs/CONSOLE.md`](docs/CONSOLE.md)
   and [`docs/VARIABLES.md`](docs/VARIABLES.md).
+- **DirectInput no longer enumerates every device at startup**: only the
+  keyboard and mouse are opened, as the controller is read through XInput.
+  A Windows 11 startup crash was inside that enumeration. (M-E33)
 
 ## The modern build, compared with retail
 
@@ -121,7 +124,8 @@ covers each change in detail, under its item number (M-E1, M-G2 and so on).
   the d-pad or left stick, A, B and Start; A skips cut-scenes. (M-G61)
 - **A Controller screen** with look speed, invert look and dead zones, in
   place of retail's joystick set-up. (M-G62)
-- DirectInput joysticks are no longer used. (M-E21)
+- DirectInput joysticks are no longer used, and DirectInput no longer
+  enumerates the machine's devices at startup. (M-E21, M-E33)
 
 ### Sound and movies
 

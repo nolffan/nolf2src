@@ -1223,9 +1223,37 @@ bool input_Init(InputMgr *pMgr, ConsoleState *pState)
 		PadDevice_GetInstance( &instance );
 		DeviceEnumCallback( &instance, LTNULL );
 	}
-#endif
+
+	// MODERN.md M-E33: the keyboard and the mouse are the only other
+	// devices, each described by its own GetDeviceInfo, not EnumDevices.
+	// That walks every HID device on the machine looking for game
+	// controllers, which are left out (M-E21), and on some Windows 11 PCs it
+	// crashed doing so (an access violation in RtlAllocateHeap, inside
+	// dinput.dll, at startup).  The descriptions are the ones EnumDevices
+	// gave, so bindings saved by name or by ##keyboard / ##mouse still match.
+	{
+		static const GUID* s_pGuids[] = { &GUID_SysKeyboard, &GUID_SysMouse };
+		int i;
+
+		for( i = 0; i < 2; i++ )
+		{
+			LPDIRECTINPUTDEVICE8	pDev = LTNULL;
+			DIDEVICEINSTANCEA		instance;
+
+			if( g_pDirectInput->CreateDevice( *s_pGuids[i], &pDev, LTNULL ) != DI_OK || !pDev )
+				continue;
+
+			memset( &instance, 0, sizeof(instance) );
+			instance.dwSize = sizeof(instance);
+			if( pDev->GetDeviceInfo( &instance ) == DI_OK )
+				DeviceEnumCallback( &instance, LTNULL );
+			pDev->Release();
+		}
+	}
+#else
 	// Enumerate devices so we know what's there.
 	g_pDirectInput->EnumDevices( 0, DeviceEnumCallback, LTNULL, DIEDFL_ATTACHEDONLY );
+#endif
 
 	return true;
 }
