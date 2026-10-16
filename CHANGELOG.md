@@ -17,6 +17,24 @@ covers each change in detail, under its item number (M-E1, M-G2 and so on).
 - **Windows, legacy build: `windows-run.bat`** starts the game without the
   launcher, and `windows-install.bat` registers the game as the original
   installer did, for the retail launcher. (issue #1)
+- **The installers refuse a release copied over another installation.**
+  Each public archive carries a `SHA256SUMS` of every file of the release
+  and every file the installer writes; `linux-install.sh` and
+  `windows-install.bat` check the directory against it first, and stop if
+  a file is missing, changed or not part of the release (saves, profiles,
+  settings, logs and screenshots are allowed). After an install,
+  `sha256sum -c SHA256SUMS` checks every file.
+- **One way to start the game on Linux: `linux-run.sh` opens the launcher**,
+  `NOLF2.exe`, as the game starts on Windows. It replaces both the old
+  `linux-run.sh`, which skipped the launcher, and `linux-run-launcher.sh`;
+  its arguments go to the launcher, which passes them to the game. The
+  modern build starts as Options > Display last left it (a fresh install in
+  a window; `./linux-run.sh ++windowed 1` forces one), and needs nothing in
+  the registry. The modern build's archive no longer carries a
+  `nolf2cmds.txt`, which only the legacy build's `windows-run.bat` reads.
+- **Releases:** every tag `v*` makes a GitHub release with the modern
+  build's archives, `nolf2src-<version>.tar.gz` and its debug build
+  `nolf2src-debug-<version>.tar.gz`.
 - **A developer console**, opened with backquote or Shift+Esc, with
   `GetPos` and `SetPos`. (M-E5)
 - **Out of the water at high frame rates** the player floats and jumps as

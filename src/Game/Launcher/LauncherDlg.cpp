@@ -1014,7 +1014,7 @@ BOOL CLauncherDlg::LaunchGame(DWORD dwAction)
 	// MODERN.md M-L6: custom/ -- the game DLLs built from source -- after
 	// the updates, so that no archive's (the 1.3 update's are zeroed in this
 	// build) overrides them. RETAIL: custom came before the patches and
-	// updates; the registry windows-install.bat and linux-run-launcher.sh
+	// updates; the registry windows-install.bat and linux-run.sh
 	// write has it after the update already, a retail install's has not.
 	if(sNewCmdLine.Right(12) != " -rez custom")
 	{

@@ -16,11 +16,23 @@
 # builds the docker image into a layer cache; then the four builds run at
 # the same time, each in a job of its own that restores both. None of the
 # builds needs another's output.
+#
+# Pushing a tag (v*, e.g. v0.1.0-alpha) also makes a GitHub release of it,
+# with the modern build's public archives attached (the job "release"),
+# named for the tag: nolf2-modern-release-public.tar.gz as
+# nolf2src-<tag>.tar.gz and nolf2-modern-debug-public.tar.gz as
+# nolf2src-debug-<tag>.tar.gz, each repacked to unpack to a directory of
+# that name. The legacy build is not attached. A tag with a hyphen in it is
+# marked a pre-release. A release of that tag made by hand beforehand is
+# kept, with its text; the archives are added to it, replacing ones of the
+# same name. A new release's text is .github/release-notes.md, followed by
+# GitHub's generated list of changes.
 name: Public archives
 
 on:
   push:
     branches: [master]
+    tags: ['v*']
   pull_request:
   workflow_dispatch:
 
@@ -172,3 +184,55 @@ jobs:
           path: out/${{ matrix.name }}-public.tar.gz
           archive: false
           if-no-files-found: error
+
+  release:
+    if: startsWith(github.ref, 'refs/tags/v')
+    needs: build
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    permissions:
+      contents: write          # create the release and upload to it
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          sparse-checkout: .github
+          sparse-checkout-cone-mode: false
+
+      # Each by its name: the build jobs upload the .tar.gz itself
+      # (archive: false), which download-artifact reads from v8 on.
+      - uses: actions/download-artifact@v8
+        with:
+          name: nolf2-modern-release-public.tar.gz
+          path: dist
+      - uses: actions/download-artifact@v8
+        with:
+          name: nolf2-modern-debug-public.tar.gz
+          path: dist
+
+      - name: Release ${{ github.ref_name }}
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+          TAG: ${{ github.ref_name }}
+        run: |
+          find dist -type f -ls
+          if ! gh release view "$TAG" >/dev/null 2>&1; then
+            pre=; case "$TAG" in *-*) pre=--prerelease ;; esac
+            sed -e "s|{{TAG}}|$TAG|g" -e "s|{{REPO}}|$GH_REPO|g" \
+                .github/release-notes.md | sed '/^<!--/,/^-->/d' > notes.md
+            gh release create "$TAG" --verify-tag --notes-file notes.md \
+                --generate-notes $pre --title "$TAG"
+          fi
+          # Repacked so that each unpacks to a directory of its own name,
+          # not the build's nolf2-modern-release/ or nolf2-modern-debug/.
+          repack() {   # <build name> <release name>
+            rm -rf x && mkdir x
+            tar -C x -xzpf "$(find dist -name "$1-public.tar.gz")"
+            mv "x/$1" "x/$2"
+            tar -C x -cf - "$2" | gzip -6 > "up/$2.tar.gz"
+          }
+          mkdir up
+          repack nolf2-modern-release "nolf2src-$TAG"
+          repack nolf2-modern-debug "nolf2src-debug-$TAG"
+          for f in up/*.tar.gz; do echo "$f: $(tar -tzf "$f" | head -1)"; done
+          gh release upload "$TAG" up/*.tar.gz --clobber

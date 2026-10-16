@@ -56,8 +56,8 @@ places:
   in the file given with `-cmdfile`). Each `+Name` takes exactly one
   argument, the word after it. You can add these in the launcher
   (`NOLF2.exe`, Options, the command-line box) or give them to
-  `linux-run.sh`, which passes any argument it does not know to the engine
-  unchanged, e.g. `./linux-run.sh +Exec mycmds.cfg`.
+  `linux-run.sh`, which hands its arguments to the launcher, which passes
+  them on to the engine, e.g. `./linux-run.sh +Exec mycmds.cfg`.
 - **`autoexec.cfg`**, then **`display.cfg`** (other names with `-config
   <file>` and `-display <file>`). One line per command or variable.
 - **A file run with `Exec`**, e.g. `+Exec mycmds.cfg` on the command line.
@@ -90,7 +90,7 @@ opens only while you are playing.
 | Command | Arguments | What it does |
 |---|---|---|
 | `quit` | | Quit the game. |
-| `World` | `<name>` | Start a game on a world. Give the path from the game's root, e.g. `worlds\...`; `.dat` is added if missing. (The game's own way to start in a level is the `RunWorld` variable: `linux-run.sh --world`.) |
+| `World` | `<name>` | Start a game on a world. Give the path from the game's root, e.g. `worlds\...`; `.dat` is added if missing. (The game's own way to start in a level is the `RunWorld` variable: `./linux-run.sh -gogame +runworld <name>`.) |
 | `serv` | `<command ...>` | Run the rest of the line on the server's console. The server takes it only from its local client (single player, or the host). |
 | `Exec` | `<file>` | Run a file of console commands and variables. |
 | `Set` | | Print every client console variable and its value. |

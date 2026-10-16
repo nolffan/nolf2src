@@ -1,22 +1,32 @@
 #!/bin/sh
-# linux-run.sh -- start No One Lives Forever 2 (built from source) with Wine.
+# linux-run.sh -- start No One Lives Forever 2 (built from source) with Wine,
+# through its launcher, NOLF2.exe (ours, built from src/Game/Launcher), the
+# way the retail game starts.
 #
-#   ./linux-run.sh [options] [engine args...]
+#   ./linux-run.sh [launcher args...]
 #
-# Options:
-#   --fullscreen          full screen
-#   --windowed            a window
-#   --borderless          (modern build) a borderless window over the whole
-#                         desktop, at the desktop's resolution
-#   --res WxH             the window / screen mode to start in
-#                         Without these the game starts as it was last left
-#                         (Options > Display: its window mode and
-#                         resolution), and the first time (no Windowed in
-#                         autoexec.cfg yet) in a 640x480 window.
-#   --world <path>        go straight into a level, e.g.
-#                         --world 'Worlds\RetailSinglePlayer\C01S01'
-#   --help                this text
-# Anything else is handed to the engine unchanged (e.g. +DisableSound 1).
+# Click "Play" (the first time, the launcher asks for a detail setting
+# first). The launcher writes launchcmds.txt and starts Lithtech.exe with it
+# (`Lithtech.exe -cmdfile launchcmds.txt`); its Display and Options buttons
+# set the renderer's resolution and the engine's options. Arguments are
+# handed to the launcher, which passes them on to the engine after its own
+# (later ones win), e.g.
+#   ./linux-run.sh ++windowed 1                  a window, whatever Display says
+#   ./linux-run.sh ++windowed 1 ++WindowMode 2   (modern build) a borderless
+#                                                window over the whole desktop
+#   ./linux-run.sh +DisableSound 1               no sound
+#   ./linux-run.sh -gogame                       start the game at once,
+#                                                without the launcher's window
+#   ./linux-run.sh --help                        this text
+#
+# The modern build starts as it was last left (Options > Display, or the
+# launcher's Display: full screen, a window or a borderless window, and the
+# resolution); a fresh install (an autoexec.cfg with no Windowed yet) in a
+# window, at the resolution of the detail setting picked first (borderless
+# when that is as large as the desktop). The legacy
+# build always starts in a window (++windowed 1, before the arguments, so
+# ./linux-run.sh ++windowed 0 still asks for full screen), as its Display
+# has no window mode.
 #
 # Environment:
 #   WINEPREFIX   the Wine prefix to use (default: $HOME/.wine-nolf2, created on
@@ -25,12 +35,24 @@
 #   WINEDEBUG    Wine's log channels (default: fixme-all, which silences
 #                DirectMusic's chatter)
 #
-# This does what the retail NOLF2.exe launcher does: it starts
-# `Lithtech.exe -cmdfile <command file>` from the game directory. The command
-# file (run-cmds.txt, rewritten every run) is nolf2cmds.txt's rez stack plus
-# the options above. On the first run autoexec.cfg -- the game's settings,
-# rewritten on every exit -- starts as a copy of the shipped one
-# (autoexec.cfg.retail).
+# The modern build's launcher needs nothing from the registry (it plays the
+# game in its own directory, docs/MODERN.md M-L6, and keeps its settings
+# under the user's key, M-L7). The legacy build's is the retail one, which
+# reads what the retail installer left in the registry, and this script
+# writes that into its Wine prefix, under HKLM\Software\Monolith
+# Productions\No One Lives Forever 2\1.0:
+#   * InstallDir: this directory (the launcher changes to it).
+#   * UpdateNum, UpdateCommandLine1: the archives it adds after its own
+#     (GAME.REZ, GAME2.REZ, GAMEDLL.REZ, SOUND.REZ, custom): the 1.3
+#     update's, as its installer wrote -- and, after it, custom/ again,
+#     holding the game DLLs built from source, so that the update's (zeroed)
+#     retail DLLs cannot override them (later archives win).
+#   * Disable Movies: on, with RAD's binkw32.dll, whose movies stall under
+#     some Wine setups. (The modern build's own Bink player, on FFmpeg, plays
+#     them.)
+# No disc is needed: NOLF2's launcher only looks for one to install from.
+# On the first run autoexec.cfg -- the game's settings, rewritten on every
+# exit -- starts as a copy of the shipped one (autoexec.cfg.retail).
 #
 # Sound: the engine's own snddrv.dll plays through DirectSound, so it needs
 # Wine's audio working on this machine (winecfg > Audio); +DisableSound 1
@@ -38,61 +60,47 @@
 # implements; Microsoft's DirectMusic can be installed in the prefix:
 #   WINEPREFIX=~/.wine-nolf2 winetricks dmband dmcompos dmime dmloader \
 #       dmscript dmstyle dmsynth dmusic dmusic32 dswave gmdls
-# The intro movies are off (+DisableMovies 1) with RAD's binkw32.dll, whose
-# movies stall under some Wine setups; on in the modern build, whose own
-# Bink player (on FFmpeg; MANIFEST.txt lists it as EXT) plays them.
 set -e
 cd "$(dirname "$0")"
-
-WINDOWED=
-WINDOWMODE=
-RES=
-WORLD=
-EXTRA=
-while [ $# -gt 0 ]; do
-    case "$1" in
-        --fullscreen) WINDOWED=0 ;;
-        --windowed)   WINDOWED=1; WINDOWMODE=1 ;;
-        --borderless) WINDOWED=1; WINDOWMODE=2 ;;
-        --res)        RES="${2:?--res needs WxH}"; shift ;;
-        --world)      WORLD="${2:?--world needs a world path}"; shift ;;
-        --help|-h)    sed -n '2,/^set -e$/{/^set -e$/d;p}' "./${0##*/}" | sed 's/^# \{0,1\}//'; exit 0 ;;
-        *)            EXTRA="$EXTRA $1" ;;
-    esac
-    shift
-done
-MOVIES=1
-grep -q '^EXT .*	binkw32\.dll$' MANIFEST.txt 2>/dev/null && MOVIES=0
-# The first run (autoexec.cfg, the shipped one, has no Windowed yet): a
-# 640x480 window, unless asked otherwise.
-if [ ! -f autoexec.cfg ] || ! grep -qi '^"windowed"' autoexec.cfg; then
-    WINDOWED="${WINDOWED:-1}"
-    RES="${RES:-640x480}"
-fi
-if [ -n "$RES" ]; then
-    W="${RES%x*}"; H="${RES#*x}"
-    case "$W$H" in *[!0-9]*|"") echo "linux-run.sh: --res wants WxH, e.g. 1024x768" >&2; exit 2 ;; esac
-fi
-
+case "${1:-}" in
+--help|-h) sed -n '2,/^set -e$/{/^set -e$/d;p}' "./${0##*/}" | sed 's/^# \{0,1\}//'; exit 0 ;;
+esac
 WINEPREFIX="${WINEPREFIX:-$HOME/.wine-nolf2}"
 WINEDEBUG="${WINEDEBUG:-fixme-all}"
 export WINEPREFIX WINEDEBUG
 WINE="${WINE:-wine}"
 command -v "$WINE" >/dev/null 2>&1 || { echo "linux-run.sh: '$WINE' not found -- install Wine (32-bit support needed)" >&2; exit 1; }
+[ -f GAME.REZ ] || { echo "linux-run.sh: the game's data is not here yet -- run ./linux-install.sh first" >&2; exit 1; }
+
+# The modern build: its own Bink player (MANIFEST.txt lists it as EXT).
+MODERN=
+grep -q '^EXT .*	binkw32\.dll$' MANIFEST.txt 2>/dev/null && MODERN=1
 
 [ -f autoexec.cfg ] || cp autoexec.cfg.retail autoexec.cfg
 mkdir -p Save
+WINDOWED="++windowed 1"
+if [ -n "$MODERN" ]; then
+    WINDOWED=""
+    # a fresh install: a window, until Display says otherwise
+    grep -qi '^"windowed"' autoexec.cfg || printf '"Windowed" "1"\r\n' >> autoexec.cfg
+fi
 
-# The rez stack from nolf2cmds.txt (its -rez arguments; build/all.sh wrote it),
-# then our settings: later arguments override earlier ones.
-REZ=$(tr -d '\r' < nolf2cmds.txt | tr ' ' '\n' | awk '$0=="-rez"{getline n; printf "-rez %s ", n}')
-{
-    printf '%s+DisableMovies %s' "$REZ" "$MOVIES"
-    [ -n "$RES" ] && printf ' ++screenwidth %s ++screenheight %s ++bitdepth 32' "$W" "$H"
-    [ -n "$WINDOWED" ] && printf ' ++windowed %s' "$WINDOWED"
-    [ -n "$WINDOWMODE" ] && printf ' ++WindowMode %s' "$WINDOWMODE"
-    [ -n "$WORLD" ] && printf ' +runworld %s' "$WORLD"
-    printf '%s\r\n' "$EXTRA"
-} > run-cmds.txt
+# a prefix to set up: make it now if it does not exist yet
+[ -d "$WINEPREFIX/dosdevices" ] || "$WINE" wineboot -i >/dev/null 2>&1 || true
+if [ -z "$MODERN" ]; then
+    DIR="$("$WINE" winepath -w "$(pwd)" 2>/dev/null)"
+    KEY='HKLM\Software\Monolith Productions\No One Lives Forever 2\1.0'
+    # Both registry views: in a 64-bit prefix `wine reg` writes the 64-bit
+    # one, while NOLF2.exe, a 32-bit program, reads HKLM\Software through the
+    # 32-bit one (Wow6432Node). (A 32-bit prefix has one view; the /reg:64
+    # write then fails, harmlessly.)
+    reg() { "$WINE" reg add "$@" /reg:32 /f >/dev/null 2>&1
+            "$WINE" reg add "$@" /reg:64 /f >/dev/null 2>&1 || true; }
+    reg "$KEY" /v InstallDir         /t REG_SZ    /d "$DIR"
+    reg "$KEY" /v NetRegionCode      /t REG_SZ    /d EN
+    reg "$KEY" /v UpdateNum          /t REG_DWORD /d 2
+    reg "$KEY" /v UpdateCommandLine1 /t REG_SZ    /d '-rez Update_v1x3.rez -rez custom'
+    reg "$KEY" /v 'Disable Movies'   /t REG_DWORD /d 1
+fi
 
-exec "$WINE" Lithtech.exe -cmdfile run-cmds.txt
+exec "$WINE" NOLF2.exe $WINDOWED "$@"

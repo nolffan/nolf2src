@@ -103,7 +103,20 @@ Every game directory is packaged twice by `build/package.sh`:
   `nolf2-update_1x3.exe`: `linux-install.sh` and `windows-install.bat`
   (`tools/mkinstall.py`). They check every file they write against its
   SHA-256, so the result is the private archive's directory, byte for byte.
-  The one to give to other people.
+  Its last file, `SHA256SUMS`, lists every file of the archive and every
+  file the scripts write (but `autoexec.cfg` and `Profiles/Default.prf`,
+  which they write only if missing and the game rewrites); the scripts
+  check the directory against it first and stop if a file of the archive is
+  missing or changed, or a file is there that is neither the archive's nor
+  one they or the game write (a release unpacked over another installation
+  or an older release). The one to give to other people.
+
+`nolf2cmds.txt`, the engine's command file as the build writes it (the rez
+stack, `custom/` last), is in the game directory and the private archive,
+for `tools/playtest.sh`, and in the legacy build's public archive, for its
+`windows-run.bat`. The launcher never reads it: it writes its own
+`launchcmds.txt` on every Play. So the modern build's public archive has
+none.
 
 `LICENSE-NOTES.md` says what each holds and under whose terms.
 
@@ -151,7 +164,17 @@ same time (one failing still lets the others finish), runs `make progress`
 on the release build (a function recorded as byte-identical that stops
 matching fails the run), and keeps the four public archives as the run's
 artifacts, each the `.tar.gz` itself rather than a zip around it. The
-private archives are never made there. Its steps are the make targets
+private archives are never made there.
+
+Pushing a tag `v*` (e.g. `v0.1.0-alpha`) runs it on the tag too, and once
+all four builds pass, the job "release" makes a GitHub release of the tag
+(a pre-release when the tag has a hyphen) with the modern build's public
+archives attached, named for the tag: `nolf2src-<tag>.tar.gz` and
+`nolf2src-debug-<tag>.tar.gz`, each repacked to unpack to a directory of
+that name. The legacy build is not attached. A new release's text is
+`.github/release-notes.md` (`{{TAG}}` and `{{REPO}}` filled in), followed
+by GitHub's generated list of changes; a release of the tag made by hand
+beforehand keeps its own text, and gets the archives added. Its steps are the make targets
 above, so a run can be reproduced locally:
 
 ```sh

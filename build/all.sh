@@ -50,7 +50,7 @@
 #                         rez stack (nolf2cmds.txt); the engine (Lithtech.exe,
 #                         server.dll, snddrv.dll, ServerDir.dll, ltmsg.dll),
 #                         the dedicated server and the launcher NOLF2.exe
-#                         (linux-run-launcher.sh plays through it) in the game's
+#                         (linux-run.sh plays through it) in the game's
 #                         root. Every
 #                         binary of the game is then built here but the
 #                         third-party runtime of step 2. Each built engine
@@ -113,15 +113,17 @@ python3 tools/retailextract.py resources "$RETAIL" "$OUT"
 mkdir -p "$OUT/Save" "$OUT/custom" "$OUT/Profiles"
 [ -f "$OUT/Profiles/Default.prf" ] || cp "$OUT/Default.prf.retail" "$OUT/Profiles/Default.prf"
 bash build/nolf2cmds.sh > "$OUT/nolf2cmds.txt"
-# linux-run.sh / linux-run-launcher.sh: start the game with the host's Wine,
-# directly or through our NOLF2.exe (build/game-scripts/; usage in their
-# headers). windows-run.bat, in the legacy build only: the same on Windows,
-# without the retail launcher, which wants the installer's registry values
-# (the modern build's launcher needs none: docs/MODERN.md M-L6); with the
-# CRLF line endings cmd needs (the tree's text files have LF).
+# linux-run.sh: start the game with the host's Wine, through our NOLF2.exe
+# (build/game-scripts/; usage in its header). windows-run.bat, in the legacy
+# build only: the game on Windows without the retail launcher, which wants
+# the installer's registry values (the modern build's launcher needs none:
+# docs/MODERN.md M-L6); with the CRLF line endings cmd needs (the tree's
+# text files have LF).
 rm -f "$OUT/run.sh" "$OUT/run-launcher.sh"   # their names before the linux- prefix
-cp build/game-scripts/linux-run.sh build/game-scripts/linux-run-launcher.sh "$OUT/"
-chmod +x "$OUT/linux-run.sh" "$OUT/linux-run-launcher.sh"
+rm -f "$OUT/linux-run-launcher.sh"           # linux-run.sh's name before it replaced
+                                             # the launcher-less script
+cp build/game-scripts/linux-run.sh "$OUT/"
+chmod +x "$OUT/linux-run.sh"
 if [ "${NOLF2_MIDDLEWARE:-retail}" = open ]; then
     rm -f "$OUT/windows-run.bat"
 else

@@ -45,7 +45,7 @@ legacy build keeps matching the retail one.
 |---|---|
 | Game DLLs | `CShell.dll`, `Object.lto`, `ClientFx.fxd`, `CRes.dll`, `SRes.dll` compile from Monolith's workspace (`src/Game/TO2.dsw`, Final configuration) and run in the game. Each is the retail binary's exact size, compiled with VC6 SP5 (build 8966) as retail was. `ClientFx.fxd`, `CRes.dll` and `SRes.dll` are byte for byte the retail ones apart from link time stamps; `CShell.dll` and `Object.lto` are close but not yet identical. |
 | Dedicated server | `NOLF2Srv.exe` compiles; its code is the retail one's but for two `CButeMgr` functions (`libs/ButeMgr`), where SP5 orders two loads the other way round. |
-| Launcher | `NOLF2.exe` compiles against the DirectX 8.1 SDK; every code segment matches the retail one's. It is in the game directory, and starts the game under Wine (`linux-run-launcher.sh` gives it the registry values the retail installer wrote). |
+| Launcher | `NOLF2.exe` compiles against the DirectX 8.1 SDK; every code segment matches the retail one's. It is in the game directory, and starts the game under Wine (`linux-run.sh`; in the legacy build it also writes the registry values the retail installer wrote). |
 | Engine | Built here and in the game: `Lithtech.exe` and `server.dll` from the LithTech Jupiter engine source (a 2006 distribution of NOLF2's engine line, back-ported to 2002: `docs/engine/PLAN.md`), with no SecuROM; `snddrv.dll` and `ltmsg.dll` (byte for byte retail's but for its time stamp) reconstructed from the retail binaries; `ServerDir.dll` from the LithTech Jupiter SDK's source (WONAPI and the 2002 `CServerDir_Titan`, brought to the 1.3 interface; rez/ fetches the SDK, nothing of it is committed). Under Wine the game runs: the menus, a new game, the first level played with sound, saving and loading (`make test`). Nothing of the retail engine is in the game directory: every binary there is built here but the third-party runtime (Bink, the Microsoft C++ and MFC DLLs; the modern build plays the movies with its own Bink player on FFmpeg). |
 | Scoring | `make progress` scores every binary function by function against the retail 1.3 ones (below, and `progress/README.md`). |
 
@@ -106,9 +106,11 @@ make help       # everything else
 `make modern` also needs the `ext/ffmpeg` submodule (FFmpeg, pinned to a
 release; `git submodule update --init ext/ffmpeg`): `build/ext.sh` builds
 the modern build's `binkw32.dll` on it, with Zig (in the build image).
-Each game directory has `linux-run.sh`, which starts the engine directly
-with the host's Wine, and `linux-run-launcher.sh`, which starts it through
-the launcher, as the retail install does.
+Each game directory has `linux-run.sh`, which starts the game with the
+host's Wine through its launcher, `NOLF2.exe`, as the retail game starts:
+click Play. To go straight into a level when testing a build, use
+`tools/playtest.sh` (`make test` and `make shell`; its header has the
+options).
 
 `build/build.mk` builds Monolith's workspace as Developer Studio would:
 `tools/dsp2mk.py` reads `TO2.dsw` and the project files and writes the
@@ -146,9 +148,16 @@ On Windows, drop both images and the update onto `windows-install.bat` (or
 put them in the game folder and double-click it), then start `NOLF2.exe`.
 Either script finds them in the game directory or the one above it by
 itself, and can be run again: a file already in place is checked and kept.
+The archive is the whole game, not a patch: its last file, `SHA256SUMS`,
+lists every file of it and every file the scripts write, and they check
+the directory against it first, refusing one that holds anything else (a
+release unpacked over another installation). After an install,
+`sha256sum -c SHA256SUMS` checks every file.
 The public archive is made only if `rez/isos/` has the `.iso` images of
 both releases' discs (`make retail` fetches them; `tools/mkinstall.py`).
-The GitHub Actions workflow builds the four public archives on every push
+The GitHub Actions workflow builds the four public archives on every push,
+and for a tag `v*` makes a GitHub release with the modern build's two
+attached as `nolf2src-<tag>.tar.gz` and `nolf2src-debug-<tag>.tar.gz`
 (`docs/BUILDING.md`). For players, [`docs/INSTALL.md`](docs/INSTALL.md)
 walks through it.
 

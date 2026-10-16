@@ -13,16 +13,21 @@
 #   .zip   redump's download as archive.org serves it (the .cue and .bin)
 #
 # and <update> is Sierra's English 1.3 update, nolf2-update_1x3.exe, as it
-# was published. A .bin, .cue or .zip is first converted to a temporary .iso
-# in this directory (about 0.6 GB a disc, removed at the end). The script
-# checks each file's SHA-256, then copies the game's data out of them into
-# this directory -- the .rez archives (with the retail game DLLs inside them
-# zeroed: the game DLLs here are built from source), the movies, the shipped
-# settings, and Bink and the Microsoft runtime where this build uses them --
-# and checks every file it writes. Nothing is installed or run from the
-# discs or the update, and nothing else is changed. It can be run again: a
-# file already in place is checked and kept. Then play with ./linux-run.sh
-# (or ./linux-run-launcher.sh).
+# was published. First the script checks that this directory is the release
+# unpacked, and nothing else: every file SHA256SUMS lists is here and
+# unchanged, and no file is here that the release does not have, nor one the
+# game writes as it runs (check_dir; it refuses a release copied over
+# another installation). A .bin, .cue or .zip is then converted to a
+# temporary .iso in this directory (about 0.6 GB a disc, removed at the
+# end). The script checks each file's SHA-256, then copies the game's data
+# out of them into this directory -- the .rez archives (with the retail game
+# DLLs inside them zeroed: the game DLLs here are built from source), the
+# movies, the shipped settings, and Bink and the Microsoft runtime where
+# this build uses them -- and checks every file it writes. Nothing is
+# installed or run from the discs or the update, and nothing else is
+# changed. It can be run again: a file already in place is checked and
+# kept, and saves, profiles, settings, logs and screenshots are left alone.
+# Then play with ./linux-run.sh.
 #
 # NOLF2's setup stores its files compressed, in InstallShield cabinets that
 # span both discs, and the update packs its own into a Microsoft cabinet:
@@ -40,6 +45,66 @@ for t in python3 sha256sum stat sed; do
 done
 
 data() { sed -n '/^__NOLF2_INSTALL_DATA__$/,$p' "$SELF" | tail -n +2; }
+
+# This directory: the release unpacked, and nothing else? SHA256SUMS (the
+# archive's last file) lists every file the archive holds and every file
+# this script writes. Each of the archive's must be here as it was shipped,
+# and nothing may be here that is neither, nor what the game writes as it
+# runs (saves, profiles, settings, logs, screenshots, the launcher's command
+# file, mods) nor a disc image or the update -- which is what copying the
+# release over another installation, or over an older release, leaves.
+check_dir() {
+    local sums="$HERE/SHA256SUMS" sha rel tag n=0
+    local -A SUM WRITE
+    local -a bad=() extra=()
+    [ -f "$sums" ] || {
+        echo "$ME: SHA256SUMS is missing: run the script in the directory the release unpacked to" >&2
+        exit 1; }
+    while read -r sha rel; do SUM[$rel]=$sha; done < "$sums"
+    while read -r tag rel _; do [ "$tag" = F ] && WRITE[$rel]=1; done < <(data)
+    echo "checking this directory ..."
+    for rel in "${!SUM[@]}"; do
+        [ -n "${WRITE[$rel]:-}" ] && continue           # the script writes it
+        if [ ! -f "$HERE/$rel" ]; then bad+=("missing: $rel")
+        elif [ "$(sha256sum < "$HERE/$rel" | cut -d' ' -f1)" != "${SUM[$rel]}" ]; then
+            bad+=("changed: $rel")
+        fi
+    done
+    while IFS= read -r -d '' rel; do
+        rel=${rel#./}
+        { [ -n "${SUM[$rel]:-}" ] || [ -n "${WRITE[$rel]:-}" ]; } && continue
+        shopt -s nocasematch
+        case "$rel" in
+        SHA256SUMS|autoexec.cfg|display.cfg|s_autoexec.cfg|launchcmds.txt|run-cmds.txt|BanList.txt) ;;
+        nolf2-update_1x3.exe) ;;
+        Save/*|Profiles/*|custom/Mods/*|custom/Resources/*) ;;
+        *.part|*/Thumbs.db|Thumbs.db|*/desktop.ini|desktop.ini|*/.DS_Store|.DS_Store) ;;
+        */*) extra+=("$rel") ;;
+        *.log|*.bmp|*.tga|*.iso|*.bin|*.cue|*.zip) ;;    # top level only
+        *) extra+=("$rel") ;;
+        esac
+        shopt -u nocasematch
+    done < <(cd "$HERE" && find . \( -type f -o -type l \) -print0)
+    [ ${#bad[@]} -eq 0 ] && [ ${#extra[@]} -eq 0 ] && return 0
+    {
+        echo
+        echo "$ME: this directory is not just this release, unpacked:"
+        for rel in "${bad[@]}"; do echo "  $rel"; done
+        for rel in "${extra[@]}"; do
+            n=$((n + 1))
+            [ $n -le 20 ] && echo "  not part of it: $rel"
+        done
+        [ $n -le 20 ] || echo "  ... and $((n - 20)) more files not part of it"
+        echo
+        echo "The release is the whole game, not a patch: do not copy it over another"
+        echo "installation, or over an older release. Unpack it into a new, empty"
+        echo "directory and run linux-install.sh there. (Your saved games and profiles"
+        echo "are in the old directory's Save/ and Profiles/: copy those folders across"
+        echo "afterwards.)"
+    } >&2
+    exit 1
+}
+check_dir
 
 # The images: their sizes and checksums, and the sets the game installs
 # from, from the list.

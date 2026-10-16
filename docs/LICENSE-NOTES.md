@@ -54,7 +54,7 @@ project's own files, none of the retail game's:
 | `snddrv.dll`, `ltmsg.dll` | built here from this project's reconstructions (Monolith's code in substance; `ltmsg.dll`'s strings are the retail DLL's) | as above |
 | `binkw32.dll` (modern builds only) | our Bink player statically linked with FFmpeg | LGPL-2.1-or-later (FFmpeg); the source is `src/modern/binkw32/` and `ext/ffmpeg`, rebuilt by `build/ext.sh` |
 | `.pdb`, `.map` (debug builds only) | the linker's, for the binaries above | as those binaries |
-| `linux-run.sh`, `linux-run-launcher.sh`, `linux-install.sh`, `windows-install.bat`, `nolf2cmds.txt`, `MANIFEST.txt` | written for this project (the install scripts by `tools/mkinstall.py`, with the sizes and SHA-256 of the disc images, the update and the retail files they read, and where on the images each file's bytes are) | no licence is declared |
+| `linux-run.sh`, `linux-install.sh`, `windows-install.bat`, `windows-run.bat`, `nolf2cmds.txt`, `MANIFEST.txt`, `SHA256SUMS` | written for this project (the install scripts by `tools/mkinstall.py`, with the sizes and SHA-256 of the disc images, the update and the retail files they read, and where on the images each file's bytes are) | no licence is declared |
 
 It has no `.rez` archive, movie, setting or profile of the retail game, no
 RAD Bink and no Microsoft runtime DLL. The install scripts copy those from

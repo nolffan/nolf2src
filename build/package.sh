@@ -16,7 +16,11 @@
 #                               linux-install.sh / windows-install.bat copy
 #                               out of the player's own disc images and 1.3
 #                               update (tools/mkinstall.py): the one to give
-#                               to other people. It needs the images of both
+#                               to other people. Its SHA256SUMS lists every
+#                               file of the archive and every file the
+#                               scripts write; they refuse a directory that
+#                               is not the archive unpacked. It needs the
+#                               images of both
 #                               releases' discs in rez/isos/ (rez/fetch-isos.sh
 #                               nolf2-eu nolf2-usa); without them it is
 #                               skipped.
@@ -31,11 +35,15 @@
 # Links are stored as the files they point to (-h). Each archive is a fresh
 # install, whatever has been played in the directory: no saves (an empty
 # Save/), no logs, no player profiles but the shipped default one,
-# autoexec.cfg as the shipped one (autoexec.cfg.retail), nolf2cmds.txt as
-# the build writes it (build/nolf2cmds.sh), and none of the per-machine
-# state linux-run.sh and linux-run-launcher.sh create; the public one has
-# neither autoexec.cfg nor the default profile, which its install scripts
-# write.
+# autoexec.cfg as the shipped one (autoexec.cfg.retail), none of what the
+# launcher and the game write as they run (launchcmds.txt, display.cfg,
+# BanList.txt) nor the per-machine state linux-run.sh creates; the public
+# one has neither autoexec.cfg nor the default profile, which its install
+# scripts write. nolf2cmds.txt, the engine's command file as the build
+# writes it (build/nolf2cmds.sh), is in the private archive (for
+# tools/playtest.sh) and in the legacy build's public one, whose
+# windows-run.bat starts the engine with it; the launcher never reads it
+# (it writes launchcmds.txt), so the modern build's public archive has none.
 # Each is written beside and renamed into place, so a failed run never
 # leaves a truncated one; the <name>.tar.gz and plain .tar older builds made
 # are removed.
@@ -58,9 +66,15 @@ mkdir -p "$PARENT/$STAGE/Profiles"
 cp "$OUT/Default.prf.retail" "$PARENT/$STAGE/Profiles/Default.prf"
 bash "$HERE/nolf2cmds.sh" > "$PARENT/$STAGE/nolf2cmds.txt"
 
+# The modern build (its own Bink player: MANIFEST.txt lists it as EXT) has
+# no windows-run.bat, the one reader of nolf2cmds.txt a player has.
+CMDS="$STAGE/nolf2cmds.txt"
+grep -q '^EXT .*	binkw32\.dll$' "$OUT/MANIFEST.txt" 2>/dev/null && CMDS=
+
 # what neither archive holds
 EXCLUDE=(--exclude="$NAME/Save/*" --exclude="$NAME/Profiles/*" --exclude="$NAME/autoexec.cfg"
-         --exclude="$NAME/nolf2cmds.txt" --exclude='*.log' --exclude=run-cmds.txt
+         --exclude="$NAME/nolf2cmds.txt" --exclude="$NAME/display.cfg" --exclude="$NAME/BanList.txt"
+         --exclude='*.log' --exclude=run-cmds.txt
          --exclude=launchcmds.txt --exclude=cd --exclude='*.part')
 
 rm -f "$PARENT/$NAME.tar" "$PARENT/$NAME.tar.gz"
@@ -90,10 +104,32 @@ elif [ $rc != 0 ]; then
     exit $rc
 fi
 sed "s|^|$NAME/|" "$PARENT/$STAGE/disc-files.txt" > "$PARENT/$STAGE/exclude.txt"
-tar -C "$PARENT" -h -cf - "${EXCLUDE[@]}" \
+tar -C "$PARENT" -h -cf "$PARENT/$STAGE/public.tar" "${EXCLUDE[@]}" \
     --anchored --no-wildcards --exclude-from="$PARENT/$STAGE/exclude.txt" \
     --transform="s|^$STAGE/|$NAME/|" \
-    "$NAME" "$STAGE/nolf2cmds.txt" "$STAGE/linux-install.sh" "$STAGE/windows-install.bat" |
-    gzip -6 > "$PUB.part"
+    "$NAME" $CMDS "$STAGE/linux-install.sh" "$STAGE/windows-install.bat"
+# Last, SHA256SUMS: every file of the archive and every file the install
+# scripts write, but the two they write only once, which the game rewrites
+# (autoexec.cfg and Profiles/Default.prf). The scripts check the directory
+# against it before they install, and `sha256sum -c SHA256SUMS` checks an
+# install.
+python3 - "$PARENT/$STAGE/public.tar" "$PARENT/$STAGE/disc-sums.txt" \
+    > "$PARENT/$STAGE/SHA256SUMS" <<'PY'
+import hashlib, sys, tarfile
+lines = []
+with tarfile.open(sys.argv[1]) as t:
+    for m in t:
+        rel = m.name.split("/", 1)[1] if "/" in m.name else ""
+        if m.isfile() and rel:
+            lines.append(f"{hashlib.sha256(t.extractfile(m).read()).hexdigest()}  {rel}")
+lines += open(sys.argv[2]).read().splitlines()
+names = [l[66:] for l in lines]
+if len(set(n.lower() for n in names)) != len(names):
+    sys.exit("package.sh: a file twice in SHA256SUMS")
+for l in sorted(lines, key=lambda l: l[66:].lower()):
+    sys.stdout.write(l + "\n")
+PY
+tar -C "$PARENT" -rf "$PARENT/$STAGE/public.tar" --transform="s|^$STAGE/|$NAME/|" "$STAGE/SHA256SUMS"
+gzip -6 < "$PARENT/$STAGE/public.tar" > "$PUB.part"
 mv "$PUB.part" "$PUB"
 echo "   $PUB: $(du -h "$PUB" | cut -f1) (unpacks to $NAME/; its data from the discs)"

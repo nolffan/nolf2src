@@ -68,9 +68,11 @@ list goes at the end of each script, after a marker line; the scripts' code
 is build/game-scripts/linux-install.sh and windows-install.ps1 (the .bat's
 header is written here).
 
-Writes <outdir>/linux-install.sh, <outdir>/windows-install.bat and
+Writes <outdir>/linux-install.sh, <outdir>/windows-install.bat,
 <outdir>/disc-files.txt, the game directory's paths the scripts write (the
-archive leaves them out). <isodir> is rez/isos/, which must hold the .iso of
+archive leaves them out), and <outdir>/disc-sums.txt, the SHA-256 of each of
+those but the `once` files, which the game rewrites (build/package.sh puts
+them in the archive's SHA256SUMS). <isodir> is rez/isos/, which must hold the .iso of
 both discs of both releases (rez/fetch-isos.sh nolf2-eu nolf2-usa); the
 update is rez/'s (rez/artifacts/patches/, assembled if it is not there),
 and the retail game rez/ installs, rez/games/nolf2-eu-1.3/, says which
@@ -504,7 +506,7 @@ def main():
         vlines.append(f"V {n} {size} {sha} {rp}")
         vlines += lines
 
-    records, literal = [], 0
+    records, sums, literal = [], [], 0
     for rel in sorted(wanted, key=str.lower):
         rp = wanted[rel]
         path = os.path.join(game, rel)
@@ -514,6 +516,7 @@ def main():
         literal += ops.literal
         size, sha = os.path.getsize(path), sha256(path)
         records.append(f"F {rel} {size} {sha} - {sources[rp]}")
+        sums.append(f"{sha}  {rel}")
         records.extend(ops.lines())
         records.append("E")
         if rel in SETTINGS:
@@ -553,6 +556,8 @@ def main():
     with open(os.path.join(outdir, "disc-files.txt"), "w") as f:
         for rel in written:
             f.write(rel + "\n")
+    with open(os.path.join(outdir, "disc-sums.txt"), "w", newline="\n") as f:
+        f.write("".join(line + "\n" for line in sums))
     print(f"   install scripts: {len(written)} files from {len(sources)} retail files "
           f"on the discs and in the update, {literal} bytes of ours")
 
@@ -574,7 +579,9 @@ rem   (or its .cue), or redump's .zip download; a .bin or .zip is first
 rem   converted to a temporary .iso in this folder (about 0.6 GB a disc,
 rem   removed at the end).
 rem
-rem It checks each file's SHA-256, copies the game's data out of them into
+rem First it checks that this folder is the release unpacked and nothing
+rem else (SHA256SUMS: not copied over another installation or an older
+rem release). It checks each file's SHA-256, copies the game's data out of them into
 rem this folder and checks every file it writes. Nothing is installed or run
 rem from them. In the legacy build it then registers the game as the
 rem original installer did (the registry values the retail launcher reads:

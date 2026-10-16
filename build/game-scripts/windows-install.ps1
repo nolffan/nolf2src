@@ -3,7 +3,8 @@
 # own path and the files dropped on it). Windows PowerShell 5.1; ASCII
 # only, as it reads a .ps1 without a byte-order mark as the ANSI code page.
 #
-# What linux-install.sh does: find the two disc images and the 1.3 update
+# What linux-install.sh does: check that the folder is the release unpacked
+# and nothing else (SHA256SUMS), find the two disc images and the 1.3 update
 # (the arguments, or the files in the game folder or the one above it; a
 # redump .bin, .cue or .zip converted to a temporary .iso first), check
 # their sizes and SHA-256, unpack the update's cabinet, then write each file
@@ -52,6 +53,63 @@ $marker = '__NOLF2_INSTALL' + '_DATA__'
 $at = $text.IndexOf("`n" + $marker)
 if ($at -lt 0) { Fail 'the file list is missing from the .bat' }
 $lines = $text.Substring($at + 1 + $marker.Length) -split "`r?`n" | Where-Object { $_ -ne '' }
+
+# This folder: the release unpacked, and nothing else? (linux-install.sh's
+# check_dir.) SHA256SUMS lists every file the archive holds and every file
+# this script writes. Each of the archive's must be here as it was shipped,
+# and nothing may be here that is neither, nor what the game writes as it
+# runs (saves, profiles, settings, logs, screenshots, the launcher's command
+# file, mods) nor a disc image or the update. Names compare without case, as
+# Windows does (a hashtable's keys and -like do).
+$sumsPath = Join-Path $here 'SHA256SUMS'
+if (-not (Test-Path -LiteralPath $sumsPath -PathType Leaf)) {
+    Fail 'SHA256SUMS is missing: run windows-install.bat in the folder the release unpacked to'
+}
+$sums = @{}
+foreach ($l in [IO.File]::ReadAllLines($sumsPath)) {
+    if ($l.Length -gt 66) { $sums[$l.Substring(66)] = $l.Substring(0, 64) }
+}
+$writes = @{}
+foreach ($l in $lines) {
+    if ($l.StartsWith('F ')) { $writes[$l.Split(' ')[1]] = $true }
+}
+Write-Host 'checking this folder ...'
+$bad = @()
+foreach ($rel in $sums.Keys) {
+    if ($writes.ContainsKey($rel)) { continue }          # this script writes it
+    $path = Join-Path $here ($rel.Replace('/', [IO.Path]::DirectorySeparatorChar))
+    if (-not (Test-Path -LiteralPath $path -PathType Leaf)) { $bad += "missing: $rel" }
+    elseif ((Get-Sha256 $path) -ne $sums[$rel]) { $bad += "changed: $rel" }
+}
+$extra = @()
+$top = @('SHA256SUMS', 'autoexec.cfg', 'display.cfg', 's_autoexec.cfg', 'launchcmds.txt',
+         'run-cmds.txt', 'BanList.txt', 'nolf2-update_1x3.exe')
+$anywhere = @('Save/*', 'Profiles/*', 'custom/Mods/*', 'custom/Resources/*', '*.part')
+$topPatterns = @('*.log', '*.bmp', '*.tga', '*.iso', '*.bin', '*.cue', '*.zip')
+$hereLength = $here.TrimEnd('\', '/').Length + 1
+foreach ($f in @(Get-ChildItem -LiteralPath $here -Recurse -File -Force)) {
+    $rel = $f.FullName.Substring($hereLength).Replace('\', '/')
+    if ($sums.ContainsKey($rel) -or $writes.ContainsKey($rel)) { continue }
+    if ($top -contains $rel) { continue }
+    if (@($anywhere | Where-Object { $rel -like $_ }).Count) { continue }
+    if (@('Thumbs.db', 'desktop.ini', '.DS_Store') -contains $f.Name) { continue }
+    if (-not $rel.Contains('/') -and @($topPatterns | Where-Object { $rel -like $_ }).Count) { continue }
+    $extra += $rel
+}
+if ($bad.Count -or $extra.Count) {
+    Write-Host ''
+    Write-Host 'windows-install: this folder is not just this release, unpacked:' -ForegroundColor Red
+    foreach ($b in $bad) { Write-Host "  $b" }
+    foreach ($e in ($extra | Select-Object -First 20)) { Write-Host "  not part of it: $e" }
+    if ($extra.Count -gt 20) { Write-Host "  ... and $($extra.Count - 20) more files not part of it" }
+    Write-Host ''
+    Write-Host 'The release is the whole game, not a patch: do not copy it over another'
+    Write-Host 'installation, or over an older release. Unpack it into a new, empty'
+    Write-Host 'folder and run windows-install.bat there. (Your saved games and profiles'
+    Write-Host 'are in the old folder''s Save and Profiles folders: copy them across'
+    Write-Host 'afterwards.)'
+    exit 1
+}
 
 # The images (D: a disc's .iso, U: the update), their redump .bin sizes (R)
 # and the sets the game installs from (S <name> <id>...).
@@ -413,7 +471,7 @@ if (-not (Test-Path -LiteralPath $save)) { New-Item -ItemType Directory -Path $s
 # from its own folder with no registry at all: docs/MODERN.md M-L6; its
 # MANIFEST.txt lists its own binkw32.dll as EXT). The legacy build's
 # launcher, NOLF2.exe, is the retail one, so the values are the retail
-# installer's and the 1.3 update's (linux-run-launcher.sh writes them in its
+# installer's and the 1.3 update's (linux-run.sh writes them in its
 # Wine prefix): it offers "Play" only when HKLM\SOFTWARE\Monolith
 # Productions\No One Lives Forever 2\1.0 has an InstallDir (issue #1:
 # without it, "Install", and an error), and builds the engine's command
