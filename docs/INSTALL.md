@@ -110,7 +110,9 @@ music is DirectMusic, which Wine only partly implements; `linux-run.sh
 3. In the shortcut's Properties > Compatibility, force a Proton version.
 
 The controller works as an Xbox-style pad (see [Controller](#controller)).
-These steps are untested so far.
+On the Steam Deck the modern build starts full screen at the Deck's own
+1280x800 (Steam tells the game it runs on a Deck); Options > Display
+changes it. These steps are untested so far.
 
 ## Windows
 
@@ -172,12 +174,16 @@ wrong, please report it.
 
 ## First start
 
-- **Screen.** The game starts at the resolution of the detail setting the
-  launcher asks for the first time; with `linux-run.sh`, in a window.
+- **Screen.** The modern build starts the first time in a window, the
+  largest that fits your desktop (16:9 sizes on a 16:9 desktop, e.g.
+  1600x900 on a 1920x1080 one); on a Steam Deck, full screen at 1280x800.
   Choose the resolution and window mode in Options > Display (or the
   launcher's Display button). Window mode can be Full screen, Window or
-  Borderless window, and the game starts as you last left it. Wide screens are supported: the view widens, and the
-  menus and HUD keep their shape.
+  Borderless window, and the game starts as you last left it. Wide screens
+  are supported: the view widens, and the menus and HUD keep their shape.
+  The legacy build starts the first time at the resolution of the detail
+  setting the launcher asks for (640x480 to 1024x768); full screen on
+  Windows, a window with `linux-run.sh`.
 - **Frame rate.** The game is limited to 240 frames a second by default.
   Options > Display > "Frame rate limit" offers 30 to 300 or none.
   Multiplayer always runs at 60 at most.

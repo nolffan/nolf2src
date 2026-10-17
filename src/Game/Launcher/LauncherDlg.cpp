@@ -1118,6 +1118,25 @@ BOOL CLauncherDlg::LaunchGame(DWORD dwAction)
 
 	// Add display settings to the command-line if requested...
 
+#ifdef NOLF2SRC_MODERN
+	// MODERN.md M-L8: a fresh install starts at the launcher's default
+	// display (a framed window that fits the desktop; on a Steam Deck the
+	// panel's mode, full screen), with or without the Display dialog (whose
+	// Cancel leaves no renderer chosen); the detail setting's resolution,
+	// below, gives way to it
+	if (CDisplayMgr::ModernIsFreshInstall() &&
+		(!theApp.m_bUseDisplaySettings || !g_pDisplayMgr || !g_pDisplayMgr->GetCurrentRenderer()))
+	{
+		if (!g_pDisplayMgr)
+			g_pDisplayMgr = new CDisplayMgr();
+		if (g_pDisplayMgr->GetNumRenderers() > 0 || g_pDisplayMgr->Init("", "display.cfg"))
+		{
+			g_pDisplayMgr->ModernSetDefault();
+			if (!g_pDisplayMgr->GetDisplaySettingsString().IsEmpty())
+				theApp.m_bUseDisplaySettings = TRUE;
+		}
+	}
+#endif
 	if (theApp.m_bUseDisplaySettings && g_pDisplayMgr)
 	{
 		CString sDisplay = g_pDisplayMgr->GetDisplaySettingsString();

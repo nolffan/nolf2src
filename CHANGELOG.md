@@ -14,6 +14,12 @@ covers each change in detail, under its item number (M-E1, M-G2 and so on).
   plays the game in its own folder and offers Play, never "Install"; its
   settings and the game's are kept for your Windows user, so no
   administrator is needed. (M-L6, M-L7, M-G71; issue #1)
+- **A fresh install starts in a window that fits the desktop**, the
+  largest of the desktop's shape (1600x900 on a 1920x1080 desktop), on
+  Windows and Linux alike, instead of at the detail setting's 640x480 to
+  1024x768; on a Steam Deck, full screen at its 1280x800. The launcher's
+  Display dialog shows it; later runs keep what Options > Display or the
+  launcher chose. (M-L8)
 - **Windows, legacy build: `windows-run.bat`** starts the game without the
   launcher, and `windows-install.bat` registers the game as the original
   installer did, for the retail launcher. (issue #1)

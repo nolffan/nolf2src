@@ -847,6 +847,11 @@ BOOL CDisplayMgr::Init(const char* sDir, const char* sConfigFile)
 		m_nModernWindowMode = nWindowMode;
 	else
 		m_nModernWindowMode = (nWidth >= GetSystemMetrics(SM_CXSCREEN) && nHeight >= GetSystemMetrics(SM_CYSCREEN)) ? 2 : 1;
+
+	// MODERN.md M-L8: a fresh install starts at the launcher's default,
+	// which the Display dialog then shows
+	if (ModernIsFreshInstall())
+		ModernSetDefault();
 #endif
 
 	// All done...
@@ -885,6 +890,132 @@ void CDisplayMgr::ModernReadWindowMode(const char* sFile, int* pWindowed, int* p
 	}
 
 	fclose(pFile);
+}
+
+// MODERN.md M-L8: a fresh install, where the game has never run: it writes
+// display.cfg (the mode, and the window mode) at every start and its
+// settings, the window mode with them, into autoexec.cfg on exit, while the
+// shipped autoexec.cfg names no window mode. A config the game has written
+// keeps what Options > Display or the Display dialog chose.
+BOOL CDisplayMgr::ModernIsFreshInstall()
+{
+	int nWindowed = -1, nWindowMode = -1, nWidth = -1, nHeight = -1;
+	ModernReadWindowMode("autoexec.cfg", &nWindowed, &nWindowMode, &nWidth, &nHeight);
+	nWidth = nHeight = -1;
+	ModernReadWindowMode("display.cfg", &nWindowed, &nWindowMode, &nWidth, &nHeight);
+	return(nWindowed == -1 && nWindowMode == -1 && nWidth == -1 && nHeight == -1);
+}
+
+// Steam sets SteamDeck=1 on a Steam Deck, and Proton passes it on
+static BOOL ModernIsSteamDeck()
+{
+	char sValue[8];
+	DWORD n = GetEnvironmentVariable("SteamDeck", sValue, sizeof(sValue));
+	return(n > 0 && n < sizeof(sValue) && strcmp(sValue, "1") == 0);
+}
+
+// A window can be any size (MODERN.md M-E2), so a window's default need not
+// be a display mode: the common sizes of 4:3, 16:9, 16:10 and 21:9 screens
+// are candidates too (the adapter can list only the desktop's own mode, as
+// Wine does on a desktop without mode switching)
+static const int s_aModernWindowSizes[][2] =
+{
+	{ 640, 480 }, { 800, 600 }, { 1024, 768 }, { 1152, 864 }, { 1280, 960 }, { 1600, 1200 },
+	{ 1280, 720 }, { 1366, 768 }, { 1600, 900 }, { 1920, 1080 }, { 2560, 1440 }, { 3200, 1800 }, { 3840, 2160 },
+	{ 1280, 800 }, { 1440, 900 }, { 1680, 1050 }, { 1920, 1200 }, { 2560, 1600 },
+	{ 2560, 1080 }, { 3440, 1440 }
+};
+
+// a candidate size: the largest that fits so far (*pAnyW, *pAnyH), and the
+// largest of the shape nShapeW:nShapeH, within 1% (1366x768 is 16:9)
+static void ModernConsiderSize(int nW, int nH, int nMaxW, int nMaxH, int nShapeW, int nShapeH,
+	int* pAnyW, int* pAnyH, int* pShapedW, int* pShapedH)
+{
+	if (nW > nMaxW || nH > nMaxH) return;
+	if (nW * nH > *pAnyW * *pAnyH)
+	{
+		*pAnyW = nW;
+		*pAnyH = nH;
+	}
+	if (nShapeW > 0 && nShapeH > 0 && abs(nW * nShapeH - nH * nShapeW) * 100 <= nH * nShapeW &&
+		nW * nH > *pShapedW * *pShapedH)
+	{
+		*pShapedW = nW;
+		*pShapedH = nH;
+	}
+}
+
+// The default display: the renderer's display, 32-bit (all the list has),
+// and
+// * a framed window (Windowed 1, WindowMode 1) at the largest size whose
+//   window -- frame and title bar, the engine's style -- fits the desktop's
+//   work area: of the desktop's own shape if one fits (wide screens are
+//   Hor+), else of any; a size the adapter has no mode for is added to the
+//   list, as the game's Display screen lists a window's size;
+// * on a Steam Deck, full screen at the panel's 1280x800, or the largest
+//   mode that fits it: the desktop there (gamescope's) can report a larger
+//   size than the panel's. Full screen needs a mode the adapter lists; with
+//   none that fits, a borderless window over the desktop, which gamescope
+//   scales to the panel.
+void CDisplayMgr::ModernSetDefault()
+{
+	CRenderer* pRen = m_pCurRenderer ? m_pCurRenderer : GetFirstRenderer();
+	if (!pRen) return;
+	CDisplay* pDis = pRen->GetCurrentDisplay() ? pRen->GetCurrentDisplay() : pRen->GetFirstDisplay();
+	if (!pDis) return;
+
+	BOOL bDeck = ModernIsSteamDeck();
+	int nMaxW = 1280, nMaxH = 800;		// the room
+	int nShapeW = 0, nShapeH = 0;		// the shape preferred (none)
+	if (!bDeck)
+	{
+		RECT rcWork;
+		if (!SystemParametersInfo(SPI_GETWORKAREA, 0, &rcWork, 0))
+			SetRect(&rcWork, 0, 0, GetSystemMetrics(SM_CXSCREEN), GetSystemMetrics(SM_CYSCREEN));
+		RECT rcFrame = { 0, 0, 0, 0 };
+		AdjustWindowRect(&rcFrame, WS_OVERLAPPED | WS_CAPTION | WS_SYSMENU | WS_MINIMIZEBOX, FALSE);
+		nMaxW = (rcWork.right - rcWork.left) - (rcFrame.right - rcFrame.left);
+		nMaxH = (rcWork.bottom - rcWork.top) - (rcFrame.bottom - rcFrame.top);
+		nShapeW = GetSystemMetrics(SM_CXSCREEN);
+		nShapeH = GetSystemMetrics(SM_CYSCREEN);
+	}
+
+	int nAnyW = 0, nAnyH = 0, nShapedW = 0, nShapedH = 0;
+	CResolution* pSmallest = NULL;
+	CResolution* pRes;
+	for (pRes = pDis->GetFirstResolution(); pRes; pRes = pDis->GetNextResolution())
+	{
+		if (!pSmallest || pRes->GetWidth() * pRes->GetHeight() < pSmallest->GetWidth() * pSmallest->GetHeight())
+			pSmallest = pRes;
+		ModernConsiderSize(pRes->GetWidth(), pRes->GetHeight(), nMaxW, nMaxH, nShapeW, nShapeH,
+			&nAnyW, &nAnyH, &nShapedW, &nShapedH);
+	}
+	if (!bDeck)
+	{
+		for (int i = 0; i < (int)(sizeof(s_aModernWindowSizes) / sizeof(s_aModernWindowSizes[0])); i++)
+			ModernConsiderSize(s_aModernWindowSizes[i][0], s_aModernWindowSizes[i][1], nMaxW, nMaxH, nShapeW, nShapeH,
+				&nAnyW, &nAnyH, &nShapedW, &nShapedH);
+	}
+
+	int nW = nShapedW ? nShapedW : nAnyW;
+	int nH = nShapedW ? nShapedH : nAnyH;
+	int nWindowMode = bDeck ? 0 : 1;
+	if (!nW)
+	{
+		// nothing fits: a window at the smallest size; a Steam Deck borderless
+		nW = bDeck ? 0 : 640;
+		nH = bDeck ? 0 : 480;
+		if (bDeck) nWindowMode = 2;
+	}
+
+	pRes = nW ? pDis->FindResolution(nW, nH, 32) : pSmallest;
+	if (!pRes && nW) pRes = pDis->AddResolution(nW, nH, 32);
+	if (!pRes) return;
+
+	m_pCurRenderer = pRen;
+	pRen->SetCurrentDisplay(pDis);
+	pDis->SetCurrentResolution(pRes);
+	m_nModernWindowMode = nWindowMode;
 }
 #endif
 		

@@ -21,12 +21,13 @@
 #
 # The modern build starts as it was last left (Options > Display, or the
 # launcher's Display: full screen, a window or a borderless window, and the
-# resolution); a fresh install (an autoexec.cfg with no Windowed yet) in a
-# window, at the resolution of the detail setting picked first (borderless
-# when that is as large as the desktop). The legacy
+# resolution). A fresh install, where the game has never run, starts in a
+# window, the largest that fits the desktop (of the desktop's shape if one
+# does); on a Steam Deck (SteamDeck=1, which Steam sets) full screen at
+# 1280x800. The launcher chooses that, as it does on Windows. The legacy
 # build always starts in a window (++windowed 1, before the arguments, so
 # ./linux-run.sh ++windowed 0 still asks for full screen), as its Display
-# has no window mode.
+# has no window mode; the first time at the detail setting's resolution.
 #
 # Environment:
 #   WINEPREFIX   the Wine prefix to use (default: $HOME/.wine-nolf2, created on
@@ -79,11 +80,7 @@ grep -q '^EXT .*	binkw32\.dll$' MANIFEST.txt 2>/dev/null && MODERN=1
 [ -f autoexec.cfg ] || cp autoexec.cfg.retail autoexec.cfg
 mkdir -p Save
 WINDOWED="++windowed 1"
-if [ -n "$MODERN" ]; then
-    WINDOWED=""
-    # a fresh install: a window, until Display says otherwise
-    grep -qi '^"windowed"' autoexec.cfg || printf '"Windowed" "1"\r\n' >> autoexec.cfg
-fi
+[ -z "$MODERN" ] || WINDOWED=""
 
 # a prefix to set up: make it now if it does not exist yet
 [ -d "$WINEPREFIX/dosdevices" ] || "$WINE" wineboot -i >/dev/null 2>&1 || true

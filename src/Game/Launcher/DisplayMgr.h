@@ -180,13 +180,17 @@ public:
 	// borderless window (the engine's Windowed and WindowMode)
 	int						GetModernWindowMode() { return(m_nModernWindowMode); }
 	void					SetModernWindowMode(int nMode) { m_nModernWindowMode = nMode; }
+	// MODERN.md M-L8: a fresh install (the game has never run here), and
+	// the display it starts with
+	static BOOL				ModernIsFreshInstall();
+	void					ModernSetDefault();
 #endif
 
 private:
 	int						EnumerateRenderers(const char* sDir);
 	BOOL					ReadConfigFile(const char* sFile);
 #ifdef NOLF2SRC_MODERN
-	void					ModernReadWindowMode(const char* sFile, int* pWindowed, int* pWindowMode, int* pWidth, int* pHeight);
+	static void				ModernReadWindowMode(const char* sFile, int* pWindowed, int* pWindowMode, int* pWidth, int* pHeight);
 #endif
 
 
