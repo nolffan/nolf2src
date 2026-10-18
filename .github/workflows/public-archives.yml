@@ -27,6 +27,19 @@
 # kept, with its text; the archives are added to it, replacing ones of the
 # same name. A new release's text is .github/release-notes.md, followed by
 # GitHub's generated list of changes.
+#
+# A push to master whose four builds pass updates the pre-release "nightly"
+# the same way: the tag nightly is moved to the commit, its archives are
+# replaced by the commit's -- named for it, nolf2src-nightly-<commit>.tar.gz
+# and nolf2src-debug-nightly-<commit>.tar.gz (the first 7 digits of the
+# hash), each unpacking to a directory of that name, so a download and an
+# install say what they were built from -- and the text is
+# .github/nightly-notes.md (the commit and date) followed by
+# release-notes.md. The new archives go up before the old ones are deleted.
+# It is edited in place, not made anew, so its page stays the same and
+# watchers are not notified of every merge, and it is never marked the
+# latest release. A run whose commit is no longer master's head (one re-run
+# later, say) leaves it alone.
 name: Public archives
 
 on:
@@ -187,7 +200,9 @@ jobs:
           if-no-files-found: error
 
   release:
-    if: startsWith(github.ref, 'refs/tags/v')
+    if: >-
+      startsWith(github.ref, 'refs/tags/v') ||
+      (github.event_name == 'push' && github.ref == 'refs/heads/master')
     needs: build
     runs-on: ubuntu-24.04
     timeout-minutes: 30
@@ -210,17 +225,52 @@ jobs:
           name: nolf2-modern-debug-public.tar.gz
           path: dist
 
-      - name: Release ${{ github.ref_name }}
+      - name: Release ${{ startsWith(github.ref, 'refs/tags/v') && github.ref_name || 'nightly' }}
         env:
           GH_TOKEN: ${{ github.token }}
           GH_REPO: ${{ github.repository }}
-          TAG: ${{ github.ref_name }}
+          SHA: ${{ github.sha }}
+          TAG: ${{ startsWith(github.ref, 'refs/tags/v') && github.ref_name || 'nightly' }}
         run: |
+          # The archives' names after nolf2src-: the tag, or for the nightly
+          # the commit it was built from.
+          ARCHIVE="$TAG"
+          if [ "$TAG" = nightly ]; then ARCHIVE="nightly-${SHA:0:7}"; fi
+
           find dist -type f -ls
-          if ! gh release view "$TAG" >/dev/null 2>&1; then
+          notes() {   # the release text for $TAG, into notes.md
+            sed -e "s|{{TAG}}|$TAG|g" -e "s|{{ARCHIVE}}|$ARCHIVE|g" -e "s|{{REPO}}|$GH_REPO|g" \
+                .github/release-notes.md | sed '/^<!--/,/^-->/d' > body.md
+            if [ "$TAG" = nightly ]; then
+              sed -e "s|{{SHA}}|$SHA|g" -e "s|{{SHORT}}|${SHA:0:7}|g" \
+                  -e "s|{{REPO}}|$GH_REPO|g" -e "s|{{DATE}}|$(date -u '+%Y-%m-%d %H:%M UTC')|g" \
+                  .github/nightly-notes.md | cat - body.md > notes.md
+            else
+              mv body.md notes.md
+            fi
+          }
+          if [ "$TAG" = nightly ]; then
+            head="$(gh api "repos/$GH_REPO/git/ref/heads/master" --jq .object.sha)"
+            if [ "$head" != "$SHA" ]; then
+              echo "master is at $head now, not $SHA: the nightly is left as it is"
+              exit 0
+            fi
+            notes
+            if gh release view nightly >/dev/null 2>&1; then
+              # Moved, or made again if it was deleted by hand.
+              gh api -X PATCH "repos/$GH_REPO/git/refs/tags/nightly" \
+                  -f sha="$SHA" -F force=true >/dev/null ||
+                gh api -X POST "repos/$GH_REPO/git/refs" \
+                    -f ref=refs/tags/nightly -f sha="$SHA" >/dev/null
+              gh release edit nightly --prerelease --latest=false \
+                  --title "Nightly (${SHA:0:7})" --notes-file notes.md
+            else
+              gh release create nightly --target "$SHA" --prerelease --latest=false \
+                  --title "Nightly (${SHA:0:7})" --notes-file notes.md
+            fi
+          elif ! gh release view "$TAG" >/dev/null 2>&1; then
             pre=; case "$TAG" in *-*) pre=--prerelease ;; esac
-            sed -e "s|{{TAG}}|$TAG|g" -e "s|{{REPO}}|$GH_REPO|g" \
-                .github/release-notes.md | sed '/^<!--/,/^-->/d' > notes.md
+            notes
             gh release create "$TAG" --verify-tag --notes-file notes.md \
                 --generate-notes $pre --title "$TAG"
           fi
@@ -233,7 +283,17 @@ jobs:
             tar -C x -cf - "$2" | gzip -6 > "up/$2.tar.gz"
           }
           mkdir up
-          repack nolf2-modern-release "nolf2src-$TAG"
-          repack nolf2-modern-debug "nolf2src-debug-$TAG"
+          repack nolf2-modern-release "nolf2src-$ARCHIVE"
+          repack nolf2-modern-debug "nolf2src-debug-$ARCHIVE"
           for f in up/*.tar.gz; do echo "$f: $(tar -tzf "$f" | head -1)"; done
           gh release upload "$TAG" up/*.tar.gz --clobber
+          # The nightly keeps only this commit's archives, deleted once the
+          # new ones are up so the page is never without a download.
+          if [ "$TAG" = nightly ]; then
+            gh release view nightly --json assets --jq '.assets[].name' |
+              while read -r a; do
+                case "$a" in nolf2src-nightly-${SHA:0:7}.tar.gz|nolf2src-debug-nightly-${SHA:0:7}.tar.gz) ;;
+                  *) echo "deleting $a"; gh release delete-asset nightly "$a" --yes < /dev/null ;;
+                esac
+              done
+          fi

@@ -14,6 +14,16 @@ example):
 | `nolf2src-<version>.tar.gz` | **The one you want.** The game built from source with the modern build's fixes and features ([`CHANGELOG.md`](../CHANGELOG.md)). |
 | `nolf2src-debug-<version>.tar.gz` | The same with debug information. If the game crashes, it writes a backtrace to `nolf2src.log`. |
 
+To try changes before the next release, there is the
+[nightly](https://github.com/nolffan/nolf2src/releases/tag/nightly): the
+latest `master`, rebuilt each time a change is merged and its builds pass.
+Its archives are named for the commit they were built from,
+`nolf2src-nightly-<commit>.tar.gz` and
+`nolf2src-debug-nightly-<commit>.tar.gz` (the first seven digits of its
+hash), and each unpacks to a directory of that name. It has had no testing
+beyond the builds, so expect the occasional new bug; say in a bug report
+that you are on a nightly, and which commit. It installs like any release.
+
 The legacy build, the game built as it shipped (version 1.3), bugs
 included, is kept for archive purposes and is not attached to releases. To
 get it, build it ([`BUILDING.md`](BUILDING.md)); each build on GitHub
