@@ -88,6 +88,7 @@ the variable exists, or does something, only in the modern build.
 |---|---|---|
 | `MaxFPS` | 240 (retail: 0, and ignored in the final build) | The most frames a second; 0 is no limit; at most 1000. In multiplayer (hosting or joining) 60 at most, also when it is 0. Display screen: "Frame rate limit" (30, 60, 75, 100, 120, 144, 165, 200, 240, 300, none). |
 | `ShowFramerate` | 0 | 1 shows the frame rate, averaged over 30 frames, at the top of the screen in play. No menu. |
+| `FrameTimeLog` | 0 | A number of milliseconds: every frame that takes at least that long is written to `frametime.log` in the game directory (and the console) with what its time went on, and every ten seconds a summary (frames, average rate, worst frame, frames over the threshold, each part's average); 0 is off. `CONSOLE.md`, "Measuring frame times". No menu. |
 | `Windowed` | 0 (unset) | 0 full screen, 1 a window (retail variable; the Display screen's and the launcher's "Window mode" now set it, and a change applies at once). Saved in `display.cfg` too. |
 | `WindowMode` | 0 (unset) | With `Windowed` 1: 1 a framed window, 2 a borderless window over the whole primary monitor at the desktop's resolution. 0 (a config from before the setting) is a framed window unless the mode is as large as the desktop, which is borderless. Display: "Window mode" (Full screen, Window, Borderless window). Saved in `display.cfg` too. |
 | `RunInBackground` | 0 | In a window: 1 lets the game play on when its window loses the focus, instead of pausing. Display: "Run in background". |

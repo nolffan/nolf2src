@@ -1373,6 +1373,10 @@ uint32 CGameClientShell::OnEngineInitialized(RMode *pMode, LTGUID *pAppGuid)
 void CGameClientShell::OnEngineTerm()
 {
     UnhookWindow();
+#ifdef NOLF2SRC_MODERN
+	// MODERN.md M-E59: the controller's scan thread ends before the DLL goes
+	Pad_Term();
+#endif
 
 	GetInterfaceMgr( )->Term();
 

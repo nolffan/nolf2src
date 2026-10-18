@@ -49,6 +49,34 @@ floor below that point, facing as before: single player only, for a living
 player. It is retail's `Teleport` command, which the final build left
 doing nothing, done through the server.
 
+**Modern build: measuring frame times** (`FrameTimeLog`, [`MODERN.md`](MODERN.md)
+M-E58). When the game stutters or its frame rate drops, type
+`FrameTimeLog 20` in the console (or start the game with `+FrameTimeLog 20`,
+e.g. `./linux-run.sh +FrameTimeLog 20`, or in the launcher's command-line
+box, to catch the start too). From then on every frame that takes 20 ms or
+more (under 50 frames a second; any number of milliseconds will do) is
+written to `frametime.log` in the game directory, and to the console, and
+every ten seconds a summary line: the frames, the average rate, the worst
+frame, how many were over the threshold, and what an average frame went on.
+`FrameTimeLog 0` stops it and closes the file; `ShowFramerate 1` shows the
+rate on screen meanwhile. A line reads
+
+    123.456    48.2 ms:  input 0.1  net 0.0  server 1.2  game 0.8  objects 0.1  render 9.6  present 35.9  sound 0.1  video 0.0  limit 0.0  other 0.4
+
+the seconds since the log started, the frame's time, and its parts in
+milliseconds: `input` the keyboard, mouse and controller; `net` messages
+between the game and its server (and the game's handling of them);
+`server` the game world's own update (the AIs, physics, triggers; single
+player and a host); `game` the client game's update (interface, player,
+effects); `objects` the engine's animation of the client's objects;
+`render` drawing the world and the interface's 3D; `present` showing the
+frame (where a frame waits for the graphics card, and for V-sync);
+`sound`, `video` (movies); `limit` the frame limiter's wait (`MaxFPS`);
+`other` the rest (the window's messages between frames). A level loading
+takes a long frame by nature. What helps to report is when slow frames come
+(one every second, every few seconds, on entering an area, in combat), and
+which part grows.
+
 Otherwise, and in the retail build, commands can only come from these
 places:
 

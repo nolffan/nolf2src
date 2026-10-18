@@ -10,6 +10,16 @@ covers each change in detail, under its item number (M-E1, M-G2 and so on).
 
 ## Unreleased
 
+- **No more hitch every second without a controller.** The game looked
+  for a controller in each of XInput's four slots once a second, in the
+  middle of a frame, and on Windows asking about an empty slot can take
+  milliseconds; it now looks from a thread of its own. A controller plugged
+  in is still found within a second. (M-E59)
+- **`FrameTimeLog`: what a slow frame was spent on.** `FrameTimeLog 20` in
+  the console (or `+FrameTimeLog 20` on the command line) writes every
+  frame of 20 ms or more to `frametime.log`, with its time split into
+  input, server, game, drawing, present, sound and the rest, and a summary
+  every ten seconds (`docs/CONSOLE.md`). (M-E58)
 - **The launcher plays on Windows without an installer's registry.** It
   plays the game in its own folder and offers Play, never "Install"; its
   settings and the game's are kept for your Windows user, so no

@@ -355,6 +355,11 @@ void Pad_Update(float fFrameTime)
 	}
 }
 
+void Pad_Term()
+{
+	PadRead_Term();
+}
+
 void Pad_GetLook(float* pYaw, float* pPitch)
 {
 	float fLen = (float)sqrt(s_fLookX * s_fLookX + s_fLookY * s_fLookY);

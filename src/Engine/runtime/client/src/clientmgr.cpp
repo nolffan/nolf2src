@@ -756,6 +756,9 @@ static void cm_ModernFrameLimit(bool bMultiplayer)
     float fTicksPerSecond = (float)cnt_NumTicksPerSecond();
     float fWantedTicks = fTicksPerSecond / fFPS;
 
+    // M-E58: the wait is the frame log's "limit"
+    CModernFrameSection cSection(MFL_LIMIT);
+
     if (s_bCounting)
     {
         for (;;)
@@ -792,6 +795,201 @@ static void cm_ModernConsoleEvent()
         i_client_shell->OnEvent(LTEVENT_CONSOLE, bUp);
 }
 
+// MODERN.md M-E58: FrameTimeLog <ms>. Every frame that took at least that
+// long, from the start of one CClientMgr::Update to the start of the next,
+// is written to frametime.log in the game's directory (and the console),
+// with what it was spent on: the sections (clientmgr.h) less the ones they
+// hold, "game" the client shell's own update (the game DLL's logic and
+// interface, without the engine's drawing and present it asks for), and
+// "other" what no section has: the window messages between frames and the
+// rest of the update. Every ten seconds a summary line: the frames, the
+// average rate, the worst frame, the frames over the threshold and each
+// part's average. 0 (the default) is off: no timing then, and the file is
+// closed.
+#include <time.h>
+
+extern float g_CV_FrameTimeLog;
+
+bool    g_bModernFrameLog = false;
+DWORD   g_dwModernFrameLogThread = 0;
+__int64 g_aModernFrameTicks[MFL_COUNT];
+
+namespace
+{
+    enum
+    {
+        MFL_PART_INPUT,
+        MFL_PART_NET,
+        MFL_PART_SERVER,
+        MFL_PART_GAME,
+        MFL_PART_OBJECTS,
+        MFL_PART_RENDER,
+        MFL_PART_PRESENT,
+        MFL_PART_SOUND,
+        MFL_PART_VIDEO,
+        MFL_PART_LIMIT,
+        MFL_PART_OTHER,
+        MFL_PARTS
+    };
+
+    const char* const s_apModernFrameParts[MFL_PARTS] =
+    {
+        "input", "net", "server", "game", "objects", "render", "present",
+        "sound", "video", "limit", "other"
+    };
+
+    FILE*         s_pModernFrameLog = NULL;
+    LARGE_INTEGER s_ModernFrameStart;
+    bool          s_bModernFrameStarted = false;
+    LARGE_INTEGER s_ModernLogStart;
+    bool          s_bModernSummaryStarted = false;
+    double        s_fModernSummaryStart;
+    uint32        s_nModernSummaryFrames;
+    uint32        s_nModernSummarySlow;
+    double        s_fModernSummaryWorst;
+    double        s_afModernSummaryParts[MFL_PARTS];
+}
+
+static void cm_ModernFrameLogLine(const char *pLine)
+{
+    if (s_pModernFrameLog)
+    {
+        fputs(pLine, s_pModernFrameLog);
+        fputc('\n', s_pModernFrameLog);
+        fflush(s_pModernFrameLog);
+    }
+}
+
+static void cm_ModernFrameLogParts(char *pLine, size_t nSize, const double *pParts)
+{
+    size_t nLen = strlen(pLine);
+    int i;
+
+    for (i = 0; i < MFL_PARTS && nLen + 24 < nSize; i++)
+    {
+        sprintf(&pLine[nLen], "  %s %.1f", s_apModernFrameParts[i], pParts[i]);
+        nLen += strlen(&pLine[nLen]);
+    }
+}
+
+static void cm_ModernFrameLog()
+{
+    LARGE_INTEGER Now, Freq;
+    double fNow, fFrame, afMS[MFL_COUNT], afParts[MFL_PARTS];
+    char szLine[512];
+    int i;
+
+    if (g_CV_FrameTimeLog <= 0.0f)
+    {
+        if (s_pModernFrameLog)
+        {
+            fclose(s_pModernFrameLog);
+            s_pModernFrameLog = NULL;
+        }
+        g_bModernFrameLog = false;
+        s_bModernFrameStarted = false;
+        return;
+    }
+
+    QueryPerformanceCounter(&Now);
+    QueryPerformanceFrequency(&Freq);
+
+    if (!s_pModernFrameLog)
+    {
+        time_t nTime = time(NULL);
+        char szTime[64];
+
+        s_pModernFrameLog = fopen("frametime.log", "a");
+        if (!s_pModernFrameLog)
+        {
+            // Nowhere to write: off until it is set again
+            dsi_ConsolePrint("FrameTimeLog: cannot write frametime.log");
+            g_CV_FrameTimeLog = 0.0f;
+            g_bModernFrameLog = false;
+            return;
+        }
+        strftime(szTime, sizeof(szTime), "%Y-%m-%d %H:%M:%S", localtime(&nTime));
+        sprintf(szLine, "%s FrameTimeLog %g: each frame of %g ms or more (seconds since this line, its ms, its parts' ms); MaxFPS %g; %ux%u",
+            szTime, g_CV_FrameTimeLog, g_CV_FrameTimeLog, g_CV_MaxFPS,
+            (unsigned)r_GetRenderStruct()->m_Width, (unsigned)r_GetRenderStruct()->m_Height);
+        cm_ModernFrameLogLine(szLine);
+        s_ModernLogStart = Now;
+        s_bModernFrameStarted = false;
+        s_bModernSummaryStarted = false;
+    }
+
+    // Seconds since the log started, from whole milliseconds: Direct3D runs
+    // the FPU at single precision, too coarse for the counter's own value
+    fNow = (double)((Now.QuadPart - s_ModernLogStart.QuadPart) / (Freq.QuadPart / 1000)) / 1000.0;
+
+    if (s_bModernFrameStarted)
+    {
+        fFrame = (double)(Now.QuadPart - s_ModernFrameStart.QuadPart) * 1000.0 / (double)Freq.QuadPart;
+        for (i = 0; i < MFL_COUNT; i++)
+            afMS[i] = (double)g_aModernFrameTicks[i] * 1000.0 / (double)Freq.QuadPart;
+
+        afParts[MFL_PART_INPUT]   = afMS[MFL_INPUT];
+        afParts[MFL_PART_NET]     = afMS[MFL_NET];
+        afParts[MFL_PART_SERVER]  = afMS[MFL_SERVER];
+        afParts[MFL_PART_OBJECTS] = afMS[MFL_OBJECTS];
+        afParts[MFL_PART_RENDER]  = afMS[MFL_RENDER];
+        afParts[MFL_PART_PRESENT] = afMS[MFL_PRESENT];
+        afParts[MFL_PART_SOUND]   = afMS[MFL_SOUND];
+        afParts[MFL_PART_VIDEO]   = afMS[MFL_VIDEO];
+        afParts[MFL_PART_LIMIT]   = afMS[MFL_LIMIT];
+        afParts[MFL_PART_GAME]    = afMS[MFL_SHELL] - afMS[MFL_NET] - afMS[MFL_SERVER] -
+            afMS[MFL_OBJECTS] - afMS[MFL_RENDER] - afMS[MFL_PRESENT];
+        afParts[MFL_PART_OTHER]   = fFrame - afMS[MFL_SHELL] - afMS[MFL_INPUT] -
+            afMS[MFL_SOUND] - afMS[MFL_VIDEO] - afMS[MFL_LIMIT];
+
+        if (fFrame >= g_CV_FrameTimeLog)
+        {
+            sprintf(szLine, "%10.3f %7.1f ms:", fNow, fFrame);
+            cm_ModernFrameLogParts(szLine, sizeof(szLine), afParts);
+            cm_ModernFrameLogLine(szLine);
+            dsi_ConsolePrint("%s", szLine);
+            s_nModernSummarySlow++;
+        }
+
+        s_nModernSummaryFrames++;
+        if (fFrame > s_fModernSummaryWorst)
+            s_fModernSummaryWorst = fFrame;
+        for (i = 0; i < MFL_PARTS; i++)
+            s_afModernSummaryParts[i] += afParts[i];
+
+        if (fNow - s_fModernSummaryStart >= 10.0)
+        {
+            double fSpan = fNow - s_fModernSummaryStart;
+
+            for (i = 0; i < MFL_PARTS; i++)
+                s_afModernSummaryParts[i] /= (double)s_nModernSummaryFrames;
+            sprintf(szLine, "%10.3f summary of %.1f s: %u frames, %.1f fps, worst %.1f ms, %u of %g ms or more; average ms:",
+                fNow, fSpan, s_nModernSummaryFrames,
+                (double)s_nModernSummaryFrames / fSpan, s_fModernSummaryWorst,
+                s_nModernSummarySlow, g_CV_FrameTimeLog);
+            cm_ModernFrameLogParts(szLine, sizeof(szLine), s_afModernSummaryParts);
+            cm_ModernFrameLogLine(szLine);
+            s_bModernSummaryStarted = false;
+        }
+    }
+
+    if (!s_bModernSummaryStarted)
+    {
+        s_fModernSummaryStart = fNow;
+        s_nModernSummaryFrames = 0;
+        s_nModernSummarySlow = 0;
+        s_fModernSummaryWorst = 0.0;
+        memset(s_afModernSummaryParts, 0, sizeof(s_afModernSummaryParts));
+        s_bModernSummaryStarted = true;
+    }
+
+    g_dwModernFrameLogThread = GetCurrentThreadId();
+    g_bModernFrameLog = true;
+    memset(g_aModernFrameTicks, 0, sizeof(g_aModernFrameTicks));
+    s_ModernFrameStart = Now;
+    s_bModernFrameStarted = true;
+}
+
 #endif
 LTRESULT CClientMgr::Update()
 {
@@ -807,10 +1005,17 @@ LTRESULT CClientMgr::Update()
     cnt_StartCounter(totalCounter);
 
 #endif
+#ifdef NOLF2SRC_MODERN
+    // M-E58: the frame log, at the frame's start
+    cm_ModernFrameLog();
+#endif
 
     // Update videos.
     if (m_pVideoMgr)
 	{
+#ifdef NOLF2SRC_MODERN
+        CModernFrameSection cSection(MFL_VIDEO);	// M-E58
+#endif
         m_pVideoMgr->UpdateVideos();
     }
 
@@ -889,18 +1094,27 @@ LTRESULT CClientMgr::Update()
     if (dsi_IsClientActive())
 	{
         CountAdder cntAdd(&g_Ticks_Input);
+#ifdef NOLF2SRC_MODERN
+        CModernFrameSection cSection(MFL_INPUT);	// M-E58
+#endif
         ProcessAllInput(false);
     }
 
     // Update client shells.
     if (m_pCurShell)
     {
+#ifdef NOLF2SRC_MODERN
+        CModernFrameSection cSection(MFL_SHELL);	// M-E58
+#endif
         dResult = m_pCurShell->Update();
         if (dResult != LT_OK)
             return ProcessError(dResult);
     }
     else if (i_client_shell != NULL)
 	{
+#ifdef NOLF2SRC_MODERN
+        CModernFrameSection cSection(MFL_SHELL);	// M-E58
+#endif
         // If we don't have any client shells right now, do a 'fake' update.
         m_NetMgr.Update("Client: ", m_CurTime);
 
@@ -914,7 +1128,14 @@ LTRESULT CClientMgr::Update()
     }
 
     // Update all sounds.
+#ifdef NOLF2SRC_MODERN
+    {
+        CModernFrameSection cSection(MFL_SOUND);	// M-E58
+        UpdateAllSounds();
+    }
+#else
 	UpdateAllSounds();
+#endif
 
     // Update the console if it's up.
     if (dsi_IsConsoleUp())
@@ -1067,6 +1288,10 @@ void CClientMgr::ShowDrawSurface(uint flags)
 	#endif // LITHTECH_ESD
 
     graph_mgr->Mgr()->Draw();
+#ifdef NOLF2SRC_MODERN
+
+    CModernFrameSection cSection(MFL_PRESENT);	// M-E58
+#endif
 
     if (r_GetRenderStruct()->m_bInitted) {
         r_GetRenderStruct()->SwapBuffers(flags); }
@@ -1933,6 +2158,9 @@ bool CClientMgr::Render(CameraInstance *pCamera, int drawMode, LTObject **pObjec
 
 	{
 		CountAdder cntAdd(&g_Ticks_Render);
+#ifdef NOLF2SRC_MODERN
+        CModernFrameSection cSection(MFL_RENDER);	// M-E58
+#endif
 
         // Set Internal DrawPrim's camera to the current rendering camera
         // This is required for model OBBs to draw properly.
@@ -2366,6 +2594,9 @@ void CClientMgr::UpdateObjects()
 {
 	g_Ticks_UpdateObjects = 0;
 	CountAdder cntUpdate(&g_Ticks_UpdateObjects);
+#ifdef NOLF2SRC_MODERN
+    CModernFrameSection cSection(MFL_OBJECTS);	// M-E58
+#endif
 
     UpdateAnimations();
     UpdateParticleSystems();

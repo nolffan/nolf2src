@@ -26,6 +26,10 @@ class CUserProfile;
 // menus' keys and A's
 void	Pad_Update(float fFrameTime);
 
+// M-E59: CGameClientShell::OnEngineTerm: stop looking for a pad (the
+// thread that does must end before the DLL is unloaded)
+void	Pad_Term();
+
 // M-G47: the right stick, as this frame's turn (yaw) and look (pitch) in
 // radians; 0 outside play
 void	Pad_GetLook(float* pYaw, float* pPitch);
