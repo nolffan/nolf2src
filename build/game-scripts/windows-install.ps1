@@ -544,7 +544,4 @@ if ($modern) {
 } else {
     Write-Host 'Could not write the game into the registry: NOLF2.exe may offer only "Install".' -ForegroundColor Yellow
 }
-if (-not $modern) {
-    Write-Host 'If NOLF2.exe will not play, windows-run.bat starts the game without it.'
-}
 exit 0

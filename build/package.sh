@@ -4,8 +4,7 @@
 #   build/package.sh out/nolf2-<legacy|modern>-<release|debug>
 #
 # writes two archives, each unpacking to <name>/ (then <name>/linux-run.sh --
-# see its header; Wine needed there -- or, on Windows, NOLF2.exe, or the
-# legacy build's windows-run.bat):
+# see its header; Wine needed there -- or, on Windows, NOLF2.exe):
 #
 #   out/<name>-private.tar.gz   the whole directory, the retail game's data
 #                               included: for your own machines, and anyone
@@ -41,9 +40,8 @@
 # one has neither autoexec.cfg nor the default profile, which its install
 # scripts write. nolf2cmds.txt, the engine's command file as the build
 # writes it (build/nolf2cmds.sh), is in the private archive (for
-# tools/playtest.sh) and in the legacy build's public one, whose
-# windows-run.bat starts the engine with it; the launcher never reads it
-# (it writes launchcmds.txt), so the modern build's public archive has none.
+# tools/playtest.sh) but not the public one: the launcher never reads it
+# (it writes launchcmds.txt).
 # Each is written beside and renamed into place, so a failed run never
 # leaves a truncated one; the <name>.tar.gz and plain .tar older builds made
 # are removed.
@@ -65,11 +63,6 @@ cp "$OUT/autoexec.cfg.retail" "$PARENT/$STAGE/autoexec.cfg"
 mkdir -p "$PARENT/$STAGE/Profiles"
 cp "$OUT/Default.prf.retail" "$PARENT/$STAGE/Profiles/Default.prf"
 bash "$HERE/nolf2cmds.sh" > "$PARENT/$STAGE/nolf2cmds.txt"
-
-# The modern build (its own Bink player: MANIFEST.txt lists it as EXT) has
-# no windows-run.bat, the one reader of nolf2cmds.txt a player has.
-CMDS="$STAGE/nolf2cmds.txt"
-grep -q '^EXT .*	binkw32\.dll$' "$OUT/MANIFEST.txt" 2>/dev/null && CMDS=
 
 # what neither archive holds
 EXCLUDE=(--exclude="$NAME/Save/*" --exclude="$NAME/Profiles/*" --exclude="$NAME/autoexec.cfg"
@@ -107,7 +100,7 @@ sed "s|^|$NAME/|" "$PARENT/$STAGE/disc-files.txt" > "$PARENT/$STAGE/exclude.txt"
 tar -C "$PARENT" -h -cf "$PARENT/$STAGE/public.tar" "${EXCLUDE[@]}" \
     --anchored --no-wildcards --exclude-from="$PARENT/$STAGE/exclude.txt" \
     --transform="s|^$STAGE/|$NAME/|" \
-    "$NAME" $CMDS "$STAGE/linux-install.sh" "$STAGE/windows-install.bat"
+    "$NAME" "$STAGE/linux-install.sh" "$STAGE/windows-install.bat"
 # Last, SHA256SUMS: every file of the archive and every file the install
 # scripts write, but the two they write only once, which the game rewrites
 # (autoexec.cfg and Profiles/Default.prf). The scripts check the directory

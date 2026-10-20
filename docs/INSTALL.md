@@ -142,9 +142,7 @@ registers the game the way the original installer did: for all users when
 it runs as an administrator (right-click > Run as administrator), otherwise
 for your Windows user only, which is enough for the launcher. If you move
 the game folder, run `windows-install.bat` again (it checks the files and
-keeps them). The legacy build also has `windows-run.bat`, which starts the
-game directly, without the launcher or the registry. It hands its arguments
-to the game, e.g. `windows-run.bat +ScreenWidth 2560 +ScreenHeight 1440`.
+keeps them).
 
 Windows support has had less testing than Linux. The programs are not
 signed, so SmartScreen may warn before the first start. If something goes
@@ -158,7 +156,7 @@ wrong, please report it.
   newer release: the modern build's launcher finds the game in its own
   folder and needs no registry; for the legacy build, run
   `windows-install.bat` again (with your images, as before; nothing is
-  copied twice), or play with `windows-run.bat`.
+  copied twice).
 - **"Bad Image ... csh*.tmp is either not designed to run on Windows or it
   contains an error" (0xc000012f), then "Missing shell DLL cshell.dll"**:
   `Lithtech.exe` was started without `-rez custom` last. The game's own

@@ -136,10 +136,8 @@ Every game directory is packaged twice by `build/package.sh`:
 
 `nolf2cmds.txt`, the engine's command file as the build writes it (the rez
 stack, `custom/` last), is in the game directory and the private archive,
-for `tools/playtest.sh`, and in the legacy build's public archive, for its
-`windows-run.bat`. The launcher never reads it: it writes its own
-`launchcmds.txt` on every Play. So the modern build's public archive has
-none.
+for `tools/playtest.sh`. The launcher never reads it: it writes its own
+`launchcmds.txt` on every Play. So the public archive has none.
 
 `LICENSE-NOTES.md` says what each holds and under whose terms.
 

@@ -114,12 +114,10 @@ mkdir -p "$OUT/Save" "$OUT/custom" "$OUT/Profiles"
 [ -f "$OUT/Profiles/Default.prf" ] || cp "$OUT/Default.prf.retail" "$OUT/Profiles/Default.prf"
 bash build/nolf2cmds.sh > "$OUT/nolf2cmds.txt"
 # linux-run.sh: start the game with the host's Wine, through our NOLF2.exe
-# (build/game-scripts/; usage in its header). windows-run.bat, in the legacy
-# build only: the game on Windows without the retail launcher, which wants
-# the installer's registry values (the modern build's launcher needs none:
-# docs/MODERN.md M-L6); with the CRLF line endings cmd needs (the tree's
-# text files have LF).
+# (build/game-scripts/; usage in its header). On Windows the launcher,
+# NOLF2.exe, is the way in.
 rm -f "$OUT/run.sh" "$OUT/run-launcher.sh"   # their names before the linux- prefix
+rm -f "$OUT/windows-run.bat"                 # the legacy build's, no longer made
 rm -f "$OUT/linux-run-launcher.sh"           # linux-run.sh's name before it replaced
                                              # the launcher-less script
 cp build/game-scripts/linux-run.sh "$OUT/"
@@ -127,11 +125,6 @@ chmod +x "$OUT/linux-run.sh"
 # linux-server.sh: a dedicated server, NOLF2Srv.exe, with the host's Wine
 # (headless under xvfb-run; usage in its header)
 cp build/game-scripts/linux-server.sh "$OUT/" && chmod +x "$OUT/linux-server.sh"
-if [ "${NOLF2_MIDDLEWARE:-retail}" = open ]; then
-    rm -f "$OUT/windows-run.bat"
-else
-    sed 's/\r*$/\r/' build/game-scripts/windows-run.bat > "$OUT/windows-run.bat"
-fi
 
 if [ "${NOLF2_MIDDLEWARE:-retail}" = open ]; then
     step "2. open runtime: our Bink player on FFmpeg (build/ext.sh); the Microsoft runtime from $RETAIL"

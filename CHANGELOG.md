@@ -30,9 +30,8 @@ covers each change in detail, under its item number (M-E1, M-G2 and so on).
   1024x768; on a Steam Deck, full screen at its 1280x800. The launcher's
   Display dialog shows it; later runs keep what Options > Display or the
   launcher chose. (M-L8)
-- **Windows, legacy build: `windows-run.bat`** starts the game without the
-  launcher, and `windows-install.bat` registers the game as the original
-  installer did, for the retail launcher. (issue #1)
+- **Windows, legacy build: `windows-install.bat` registers the game** as
+  the original installer did, for the retail launcher. (issue #1)
 - **The installers refuse a release copied over another installation.**
   Each public archive carries a `SHA256SUMS` of every file of the release
   and every file the installer writes; `linux-install.sh` and
@@ -46,8 +45,8 @@ covers each change in detail, under its item number (M-E1, M-G2 and so on).
   its arguments go to the launcher, which passes them to the game. The
   modern build starts as Options > Display last left it (a fresh install in
   a window; `./linux-run.sh ++windowed 1` forces one), and needs nothing in
-  the registry. The modern build's archive no longer carries a
-  `nolf2cmds.txt`, which only the legacy build's `windows-run.bat` reads.
+  the registry. The archives no longer carry a `nolf2cmds.txt`, which
+  the launcher never reads.
 - **Releases:** every tag `v*` makes a GitHub release with the modern
   build's archives, `nolf2src-<version>.tar.gz` and its debug build
   `nolf2src-debug-<version>.tar.gz`.
