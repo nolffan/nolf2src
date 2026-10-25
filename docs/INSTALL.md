@@ -98,15 +98,15 @@ every file of it (all but your settings, `autoexec.cfg` and
    ./linux-run.sh
    ```
 
-   This opens the game's launcher, `NOLF2.exe`: click Play. The first time,
-   it asks for a detail setting first. The launcher's Display button sets
-   the resolution and the window mode.
+   This starts the game immediately with your saved settings. To open the
+   launcher, run `WINEPREFIX=~/.wine-nolf2 wine NOLF2Launcher.exe` (use your
+   chosen prefix if different). Its Display and Options buttons set the
+   resolution, window mode and advanced options.
 
    The game uses its own Wine prefix, `~/.wine-nolf2`, which is created on
    the first run, so your own prefix is left alone. Arguments go to the
    game: `./linux-run.sh ++windowed 1` starts it in a window whatever
-   Options > Display says, and `./linux-run.sh -gogame` skips the
-   launcher's window. `./linux-run.sh --help` says more.
+   Options > Display says. `./linux-run.sh --help` says more.
 
 Sound needs Wine's audio to work on your machine (`winecfg`, Audio tab). The
 music is DirectMusic, which Wine only partly implements; `linux-run.sh
@@ -131,7 +131,8 @@ changes it. These steps are untested so far.
 2. Drop both disc images and `nolf2-update_1x3.exe` onto
    `windows-install.bat`, or put them in the game folder and double-click
    it.
-3. Start `NOLF2.exe`, the launcher, and click Play.
+3. Start `NOLF2.exe` to play immediately. Open `NOLF2Launcher.exe` for the
+   interactive launcher and its settings.
 
 The modern build's launcher plays the game in its own folder, with no
 registry and no administrator needed.
@@ -177,7 +178,7 @@ wrong, please report it.
 
   (`Engine.REZ` is opened by the engine itself.) Settings can follow the
   command file, e.g. `Lithtech.exe -cmdfile nolf2cmds.txt +ScreenWidth 2560
-  +ScreenHeight 1440`. The launcher, `NOLF2.exe`, does this for you (it
+  +ScreenHeight 1440`. The launcher, `NOLF2Launcher.exe`, does this for you (it
   writes its command line to `launchcmds.txt`).
 
 ## First start

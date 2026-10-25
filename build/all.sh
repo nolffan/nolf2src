@@ -104,6 +104,9 @@ BUILT=(
     src/Game/built/Final/libs/ServerDir/ServerDir.dll  ServerDir.dll
     src/Engine/built/Final/ltmsg/ltmsg.dll        ltmsg.dll
 )
+case "${NOLF2SRC_CFLAGS:-}" in
+    *NOLF2SRC_MODERN*) BUILT+=("$B/Launcher/NOLF2Launcher.exe" NOLF2Launcher.exe) ;;
+esac
 
 step "1. resources: game data from $RETAIL -> $OUT"
 python3 tools/retailextract.py resources "$RETAIL" "$OUT"

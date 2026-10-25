@@ -26,6 +26,9 @@ class CLauncherDlg : public CMoveDialog
 {
 // Construction
 public:
+#ifdef NOLF2SRC_MODERN
+	BOOL LaunchDirect();
+#endif
 	CLauncherDlg(CWnd* pParent = NULL);	// standard constructor
 
 // Dialog Data

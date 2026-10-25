@@ -202,10 +202,18 @@ endef
 # objects are linked too: the others refer to the type information in them
 # (LNK1211 without).
 Z7 := $(findstring /Z7,$(NOLF2SRC_CFLAGS))
-define binary
+define link_binary
 $(call tool,$(1),$(4) | wine-drives,\
     cd $(2) && { printf '%s\n' $(call q,$(NOLF2SRC_LDFLAGS) $(3) /map:$(call ws,$(ROOT)/$(basename $(1))).map $(subst /,\,$(5) $(if $(Z7),$(6)))) > $(1:%=$(ROOT)/%).rsp; } && \
     $(ENV_GAME) $(WINE) $(LINK) '@$(call ws,$(ROOT)/$(1)).rsp')
+endef
+
+# Modern builds link both names from the same launcher objects. At startup
+# the original game filename selects direct launch; *Launcher.exe selects UI.
+MODERN_LAUNCHER := $(findstring NOLF2SRC_MODERN,$(NOLF2SRC_CFLAGS))
+define binary
+$(call link_binary,$(1),$(2),$(3),$(4),$(5),$(6))
+$(if $(and $(MODERN_LAUNCHER),$(filter %/NOLF2.exe,$(1))),$(call link_binary,$(patsubst %.exe,%Launcher.exe,$(1)),$(2),$(subst NOLF2.exe,NOLF2Launcher.exe,$(3)),$(4),$(5),$(6)))
 endef
 
 # $(call custom,<outputs>,<input>,<project dir>,<commands>): a source's
@@ -259,6 +267,10 @@ ifneq ($(DSP_OK),ok)
 $(error tools/dsp2mk.py failed: $(file <$(DEPDIR)/dsp2mk-engine.log))
 endif
 include $(DEPDIR)/engine.mk
+
+ifneq ($(MODERN_LAUNCHER),)
+Launcher: src/Game/built/Final/Launcher/NOLF2Launcher.exe
+endif
 
 .PHONY: all game
 all game: $(PROJECTS_WANTED) $(SERVERDIR_WANTED) $(SNDDRV_WANTED) $(LTMSG_WANTED) $(ENGINE_WANTED)

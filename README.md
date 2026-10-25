@@ -109,8 +109,10 @@ make help       # everything else
 release; `git submodule update --init ext/ffmpeg`): `build/ext.sh` builds
 the modern build's `binkw32.dll` on it, with Zig (in the build image).
 Each game directory has `linux-run.sh`, which starts the game with the
-host's Wine through its launcher, `NOLF2.exe`, as the retail game starts:
-click Play. To go straight into a level when testing a build, use
+host's Wine through `NOLF2.exe`. Modern builds start immediately with the
+launcher's saved settings and wait until `Lithtech.exe` exits; open
+`NOLF2Launcher.exe` for the interactive launcher. Legacy builds open the
+launcher: click Play. To go straight into a level when testing a build, use
 `tools/playtest.sh` (`make test` and `make shell`; its header has the
 options). `linux-server.sh` runs the dedicated server `NOLF2Srv.exe`
 (under `xvfb-run` without a display; `docs/INSTALL.md`, "A dedicated

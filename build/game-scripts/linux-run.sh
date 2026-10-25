@@ -1,12 +1,15 @@
 #!/bin/sh
 # linux-run.sh -- start No One Lives Forever 2 (built from source) with Wine,
-# through its launcher, NOLF2.exe (ours, built from src/Game/Launcher), the
-# way the retail game starts.
+# through NOLF2.exe: direct start in modern builds, the interactive launcher
+# in legacy builds (built from src/Game/Launcher).
 #
-#   ./linux-run.sh [launcher args...]
+#   ./linux-run.sh [game args...]
 #
-# Click "Play" (the first time, the launcher asks for a detail setting
-# first). The launcher writes launchcmds.txt and starts Lithtech.exe with it
+# Modern builds start immediately using the same saved settings and wait
+# until Lithtech.exe exits. Open NOLF2Launcher.exe in the same Wine
+# prefix for the interactive launcher (Display and Options).
+# Legacy builds: click "Play" and choose a detail setting on first run.
+# The launcher writes launchcmds.txt and starts Lithtech.exe with it
 # (`Lithtech.exe -cmdfile launchcmds.txt`); its Display and Options buttons
 # set the renderer's resolution and the engine's options. Arguments are
 # handed to the launcher, which passes them on to the engine after its own

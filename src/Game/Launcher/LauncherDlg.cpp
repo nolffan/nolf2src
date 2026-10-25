@@ -798,6 +798,21 @@ void CLauncherDlg::OnDestroy()
 //
 // ----------------------------------------------------------------------- //
 
+#ifdef NOLF2SRC_MODERN
+BOOL CLauncherDlg::LaunchDirect()
+{
+	// Honor the launcher's existing automatic multiplayer/server switches.
+	DWORD dwAction = ACTION_PLAY;
+	if(theApp.m_bGoMultiHost) dwAction = ACTION_HOSTGAME;
+	else if(theApp.m_bGoMultiJoin) dwAction = ACTION_JOINGAME;
+	else if(theApp.m_bGoMultiFind) dwAction = ACTION_FINDINTERNETSERVERS;
+	else if(theApp.m_bGoServer && !theApp.m_bGoGame) dwAction = ACTION_STANDALONESERVER;
+	BOOL bStarted = LaunchGame(dwAction);
+	if(bStarted && dwAction == ACTION_STANDALONESERVER)
+		theApp.m_dwGameExitCode = ERROR_SUCCESS;
+	return bStarted;
+}
+#endif
 BOOL CLauncherDlg::LaunchGame(DWORD dwAction)
 {
 	if(dwAction == ACTION_STANDALONESERVER)
@@ -815,7 +830,12 @@ BOOL CLauncherDlg::LaunchGame(DWORD dwAction)
 	}
 
 	// See if we need to bring up the detail settings dialog box
+#ifdef NOLF2SRC_MODERN
+	// Direct starts keep the profile/default performance settings.
+	if(!theApp.m_bDirectLaunch && ((!theApp.m_bHasProfile) || theApp.m_bRestoreDefaults))
+#else
 	if((!theApp.m_bHasProfile) || (theApp.m_bRestoreDefaults))
+#endif
 	{
 		CDetailSettingsDlg dlg;
 		int nRet = dlg.DoModal();
@@ -1233,7 +1253,11 @@ BOOL CLauncherDlg::LaunchGame(DWORD dwAction)
 
 	// In debug builds, check if we should display the command line string...
 
+#ifdef NOLF2SRC_MODERN
+	if (!theApp.m_bDirectLaunch && (GetAsyncKeyState(VK_SHIFT) & 0x80000000))
+#else
 	if (GetAsyncKeyState(VK_SHIFT) & 0x80000000)
+#endif
 	{
 		int nRet = theApp.MessageBox(sNewCmdLine, "Command Line String", MB_OKCANCEL);
 		if (nRet == IDCANCEL)
@@ -1255,15 +1279,49 @@ BOOL CLauncherDlg::LaunchGame(DWORD dwAction)
 		return FALSE;
 	}
 
+#ifdef NOLF2SRC_MODERN
+	int nWritten = fprintf(fp, "%s", (LPCTSTR)sNewCmdLine);
+	int nClosed = fclose(fp);
+	if(nWritten < 0 || nClosed != 0)
+	{
+		theApp.MessageBox(IDS_CANTOPENCOMMANDFILE, IDS_GAME_NAME, MB_OK | MB_ICONEXCLAMATION);
+		return FALSE;
+	}
+#else
 	fprintf(fp, sNewCmdLine);
 	fclose(fp);
+#endif
 
+#ifdef NOLF2SRC_MODERN
+	// Use a clean startup structure and the engine in this install.
+	memset(&si, 0, sizeof(si));
+	si.cb = sizeof(si);
+	CString csExe = theApp.m_csInstallDir;
+	if(!csExe.IsEmpty() && csExe.Right(1) != "\\") csExe += "\\";
+	csExe += "Lithtech.exe";
+	CString csLine = "\"" + csExe + "\" -cmdfile launchcmds.txt";
+	BOOL bStarted = CreateProcess(csExe, csLine.GetBuffer(0), NULL, NULL, FALSE,
+		CREATE_DEFAULT_ERROR_MODE | CREATE_NEW_PROCESS_GROUP, NULL, NULL, &si, &pi);
+	csLine.ReleaseBuffer();
+	if(!bStarted)
+#else
 	if (!CreateProcess(NULL, "lithtech.exe -cmdfile launchcmds.txt", NULL, NULL, FALSE, CREATE_DEFAULT_ERROR_MODE | CREATE_NEW_PROCESS_GROUP,	NULL, NULL, &si, &pi))
+#endif
 	{
 		theApp.MessageBox(IDS_CANTLAUNCHCLIENTEXE, IDS_GAME_NAME, MB_OK | MB_ICONEXCLAMATION);
 		return(FALSE);
 	}
 
+#ifdef NOLF2SRC_MODERN
+	CloseHandle(pi.hThread);
+	if(theApp.m_bDirectLaunch)
+	{
+		if(WaitForSingleObject(pi.hProcess, INFINITE) == WAIT_OBJECT_0)
+			GetExitCodeProcess(pi.hProcess, &theApp.m_dwGameExitCode);
+	}
+	CloseHandle(pi.hProcess);
+
+#endif
 	return TRUE;
 }
 

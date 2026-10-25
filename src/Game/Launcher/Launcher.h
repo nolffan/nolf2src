@@ -58,6 +58,11 @@ class CLauncherApp : public CWinApp
 {
 public:
 	CLauncherApp();
+#ifdef NOLF2SRC_MODERN
+	BOOL m_bDirectLaunch;
+	DWORD m_dwGameExitCode;
+	virtual int ExitInstance();
+#endif
 
 	// General variables
 	CRegMgr32 m_RegMgr;						// Registry manager object
