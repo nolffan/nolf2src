@@ -288,6 +288,17 @@ void CD3D_Device::SetPresentationParams(D3DPRESENT_PARAMETERS& PresentationParam
 	PresentationParam.FullScreen_RefreshRateInHz		= D3DPRESENT_RATE_DEFAULT; //D3DPRESENT_RATE_UNLIMITED
 	PresentationParam.FullScreen_PresentationInterval	= (g_bRunWindowed || g_CV_VSyncOnFlip.m_Val) ? D3DPRESENT_INTERVAL_DEFAULT : D3DPRESENT_INTERVAL_IMMEDIATE;
 #ifdef NOLF2SRC_MODERN
+	// MODERN.md M-E62: Wine uses this interval for windowed presents too.
+	// DEFAULT can wait for the monitor even with VSyncOnFlip off (including
+	// a borderless window). Ask explicitly for no wait there. Native D3D8
+	// requires DEFAULT in a window, so keep its parameters as before.
+	if (g_bRunWindowed && !g_CV_VSyncOnFlip.m_Val)
+	{
+		HMODULE hNTDLL = GetModuleHandle("ntdll.dll");
+		if (hNTDLL && GetProcAddress(hNTDLL, "wine_get_version"))
+			PresentationParam.FullScreen_PresentationInterval = D3DPRESENT_INTERVAL_IMMEDIATE;
+	}
+
 	// M-E13: a multisampled back buffer is never lockable, and Direct3D 8
 	// refuses a device that asks for both (retail asked, full screen, so its
 	// antialiasing could not start on Windows). Only the screen locks

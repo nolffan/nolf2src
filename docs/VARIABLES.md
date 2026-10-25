@@ -112,7 +112,7 @@ the variable exists, or does something, only in the modern build.
 | `BitDepth` | 32 | The screen's colour depth. Saved in `display.cfg`. |
 | `CardDesc` | (none) | The Direct3D device to use; the launcher passes it as `++CardDesc`. |
 | `HardwareCursor` | 0 (shipped 1) | 1 uses the hardware cursor in the menus. `DisableHardwareCursor 1` (the launcher's "Disable Hardware Cursor") forbids it. Display: "Hardware cursor". |
-| `VSyncOnFlip` | 1 | 1 waits for the display's refresh. Display: "V Sync". |
+| `VSyncOnFlip` | 1 | 1 waits for the display's refresh. Under Wine, 0 explicitly requests immediate presentation in windows too (including borderless full screen). Display: "V Sync". |
 | `GammaR`, `GammaG`, `GammaB` | 1, 1, 1 | Gamma. Display: "Gamma" sets all three. |
 | `BackBufferCount` | 2 | Back buffers: 2 is triple buffering. Performance: "Triple buffering"; the launcher's "Disable Triplebuffering" greys it out. |
 | `ForceClear` | 0 (shipped 1) | 1 clears the whole screen every frame. |

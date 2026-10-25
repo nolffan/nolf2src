@@ -10,6 +10,10 @@ covers each change in detail, under its item number (M-E1, M-G2 and so on).
 
 ## Unreleased
 
+- **V-sync off in a window under Wine:** explicitly requests immediate
+  presentation, including borderless full screen, instead of leaving the
+  interval at its default, which Wine can synchronize to the display even
+  with an unlimited frame rate. (M-E62)
 - **No more hitch every second without a controller.** The game looked
   for a controller in each of XInput's four slots once a second, in the
   middle of a frame, and on Windows asking about an empty slot can take
