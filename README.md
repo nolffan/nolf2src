@@ -186,6 +186,8 @@ This project builds on the work of others:
   Entertainment), for the LithTech Jupiter engine: `src/Engine/runtime/` is
   its source, back-ported to 2002
   ([`docs/LICENSE-NOTES.md`](docs/LICENSE-NOTES.md)).
+- [StenApp](https://github.com/StenApp) for generously sharing his invaluable,
+  in-depth knowledge of all things NOLF and LithTech.
 - **NOLF 2 Modernizer** by HeyThereCoffeee (haekb):
   <https://github.com/haekb/nolf2-modernizer>. Many of the modern build's
   fixes and features were found and designed there;
