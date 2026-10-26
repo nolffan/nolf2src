@@ -18,12 +18,7 @@ define_holder(ILTRenderStyles, g_pRenderStylesInterface);
 CD3DRenderStyle::CD3DRenderStyle()
 {
 	m_pD3DOptions												= NULL;
-	m_pD3DOptions = new RSD3DOptions;
-	if(m_pD3DOptions)
-	{
-		memset(m_pD3DOptions, 0, sizeof(RSD3DOptions));
-	}
-
+	// RETAIL: no Direct3D options until they are set (Lithtech.exe 0x5129cf)
 
 	m_pNext														= NULL;
 }
@@ -213,8 +208,7 @@ bool CD3DRenderStyle::CopyRenderStyle(CRenderStyle* pSrcRenderStyle)
 	// Dynamic Lighting...
 	m_LightingMaterial		= pSrcD3DRenderStyle->m_LightingMaterial;
 
-	//
-	pSrcRenderStyle->GetDirect3D_Options(m_pD3DOptions);
+	// RETAIL: the Direct3D options are not copied (Lithtech.exe 0x5131d7)
 
 	// Render Passes...
 	for (list<CD3DRenderPass>::iterator it = pSrcD3DRenderStyle->m_RenderPasses.begin(); it != pSrcD3DRenderStyle->m_RenderPasses.end(); ++it)

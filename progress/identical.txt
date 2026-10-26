@@ -7075,6 +7075,7 @@ Lithtech.exe	sub_421980
 Lithtech.exe	sub_421a70
 Lithtech.exe	sub_421a90
 Lithtech.exe	sub_421b00
+Lithtech.exe	sub_421b50
 Lithtech.exe	sub_421b90
 Lithtech.exe	sub_421bc0
 Lithtech.exe	sub_421c20
@@ -10838,6 +10839,7 @@ Lithtech.exe	sub_512830
 Lithtech.exe	sub_512870
 Lithtech.exe	sub_5128d0
 Lithtech.exe	sub_512930
+Lithtech.exe	sub_512970
 Lithtech.exe	sub_5129f0
 Lithtech.exe	sub_512a10
 Lithtech.exe	sub_512a20
@@ -10856,6 +10858,7 @@ Lithtech.exe	sub_512cb0
 Lithtech.exe	sub_512cd0
 Lithtech.exe	sub_512dd0
 Lithtech.exe	sub_513040
+Lithtech.exe	sub_5131c0
 Lithtech.exe	sub_513520
 Lithtech.exe	sub_513550
 Lithtech.exe	sub_5135b0

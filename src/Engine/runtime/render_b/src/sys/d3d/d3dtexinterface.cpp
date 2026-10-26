@@ -304,10 +304,16 @@ bool CSysTexInterface::ReleaseTextureHandle(const HTEXTURE hTexture)
 	// (OLD comment) KLS - The texture will be cleaned up on level switch, don't delete it now
 	// since both the engine and game code may be reference this texture.
 	
-	if(pTexture->GetRefCount() == 0) 
+#ifdef NOLF2SRC_MODERN
+	// MODERN.md M-E65: Jupiter's later fix, kept in the modern build
+	if(pTexture->GetRefCount() == 0)
 	{
-		g_pClientMgr->FreeSharedTexture(hTexture); 
+		g_pClientMgr->FreeSharedTexture(hTexture);
 	}
+#else
+	// RETAIL: the block is still commented out; the texture is freed with
+	// the level's (Lithtech.exe 0x421b50)
+#endif
 
 	return true;
 }
