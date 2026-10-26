@@ -70,6 +70,7 @@ Background, in this directory:
 | 18 | `console`: the developer console in the modern build (docs/MODERN.md M-E5), with nolfsrc's `GetPos`/`SetPos` (its M-P2-14) and Shift+Esc (M-P2-15) | 12, 17 | done: the engine's own console revived behind the define (keys, drawing at any resolution, completion, answers), the game paused under it in single player, `GetPos`/`SetPos`; tested in play at 640x480, 1920x1080 and 4K and over a multiplayer client (`tools/playtest-console.txt`); 2 `docs/RETAIL_BUGS.md` entries |
 | 19 | `winlaunch`: issue #1 -- on Windows the launcher offered only "Install" (no installer registry) and `Lithtech.exe` typed by hand failed with "Bad Image" / "Missing shell DLL" (no `-rez custom`) | 10, 8 | done: legacy build: `windows-install.bat` registers the game, `windows-run.bat`; the modern build's launcher needs no registry and no administrator (M-L6, M-L7, M-G71); tested under Wine in fresh prefixes (notes); not yet on real Windows; 1 `docs/RETAIL_BUGS.md` entry |
 | 20 | `serverdir`: why `ServerDir.dll` scored 33.8% (207 identical, 129 near, 130 unwritten) | 9 | done: the 2002 SDK `CServerDir_Titan` replaced by NOLF2's 1.3 one from the F.E.A.R. source release, with `TitanTest.cpp` linked as retail did; 207 -> 417 identical, 0 near, 130 -> 0 unwritten, 1 -> 0 unplaced (33.8% -> 99.3%; the rest is 75 rows too small to place) |
+| 21 | `unwritten`: the engine's unwritten functions (Lithtech.exe 54, server.dll 5) identified and written or shown not to be functions; cjacksrc's engine cross-referenced and ported where NOLF2's retail code agrees | 9 | done: Lithtech.exe unwritten 53 -> 8, identical 5,891 -> 5,928 (+16,019 bytes); server.dll unwritten 17 -> 0, identical 2,513 -> 2,527; three tools changes (enumeration); the cjacksrc map in the notes; 1 `docs/RETAIL_BUGS.md` entry |
 
 ## Notes per package
 
@@ -1745,3 +1746,155 @@ WONAPI (middleware, not scored) was not examined: `exematch.py` finds
 1,794 of our WONAPI.lib's functions in retail and not 858 (unreferenced
 COMDATs among them), and the image's .rdata/.data differ from retail's.
 
+### 21. unwritten
+
+**Result** (against master after srvplace and headerinit, whose scorer
+and precompiled headers had moved Lithtech.exe's unwritten 54 -> 53 and
+server.dll's 5 -> 17). Lithtech.exe: unwritten 53 -> 8, identical 5,891 ->
+5,928 (1,224,417 -> 1,240,436 bytes), near 191 -> 145, unplaced 135 -> 131
+(false starts gone). server.dll:
+unwritten 17 -> 0, identical 2,513 -> 2,527 (298,707 -> 299,415 bytes),
+near 38 -> 34, unplaced 15 -> 9. The other images: unplaced down by 1-3 in five of
+them, a launcher's unwritten 2 -> 1 (the enumeration fixes). One recorded
+identical row lost on purpose: server.dll `sub_10009c15` was the body of
+`dalloc` behind a zero-size test we did not have; `dalloc` now matches the
+whole function at 0x10009c0b.
+
+**What the unwritten rows were.** Most were not functions of their own:
+- *False starts* (the enumeration): 74 dwords of `.rsrc` UTF-16 text in
+  `.text`'s range, dwords in the copy protection's code section `.cms_t`,
+  E8/68 bytes inside operands read as call/push targets, `gap` starts behind
+  an operand's C3, and coincidental dwords in `.data`/`.cms_d`. They cut
+  `CSoundMgr::Update` (0x4afb50), `CLTDirectMusicMgr::InitLevel`
+  (0x43cdf0), `DrawDynamicParticles` (0x544960, four pieces),
+  `d3d_DrawPolyGrid`, `d3d_D3DFormatToString`, `CD3D_Shell::BuildDeviceList`,
+  `i_IntersectSweptSphere`, three shader `Flush`es, ltmem's and
+  clientshell's header-constant initializers and more into pieces nothing
+  could pair. Fixed generally in tools (`enumfuncs.py`: no pointers from the
+  resource/relocation directories or a second code section; rule 4f, a
+  lone `movl $vtbl,(%ecx) ; ret` behind padding), the rest by hand in the
+  new `progress/Lithtech-screen-exclude.csv` (each row "NOT A FUNCTION:
+  interior of X (0x...)", so its bytes go to X) and two
+  `progress/extent-splits.csv` starts (~CPixelShaderMgr 0x509620, reached
+  only by a thunk's jmp; 0x5546c0 is now rule 4f's).
+- *The compiler's vector iterators* `??_H`/`??_I` (0x401000, 0x404920;
+  server.dll 0x10001537): ours were there, identical, but `progress.py`
+  dropped them from our side; now scored (`unlinked` where not linked).
+- *`LockPVS`* (0x4c6c10): a console variable commented out in the fear
+  tree; `d3d_TagVisibleLeaves` reads it.
+- *ltmem's heap* (0x51eab0..0x51ec18, server.dll 0x10048cd0..0x10048def):
+  `g_arySimpleHeaps[4]` and `g_GeneralHeap` of the fear tree's
+  `ltmemheap.cpp`, unused, kept by their initializers (eh vector
+  constructor: ltmem is /GX). `src/libs/ltmem/ltmemheap.cpp` with the fear
+  tree's heap headers; nothing references it, so both links `/include` it
+  (what pulled it into retail's links is not known; in the exe it lies after
+  `d3d_optimizedsurface.obj`, ours after ltmemstats).
+- *`dalloc`'s zero-size test* (server.dll 0x10009c0b), commented out in
+  the fear tree.
+- *The swept-sphere module* (0x437910 = SweptSphereToPolyEdges with Edge
+  inlined, 0x438060 = SweptSphereToObjectCB with WorldModel inlined,
+  server.dll 0x100109a6 = SweptSphereToPoint): retail compiles
+  `intersectsweptsphere.cpp` with full optimisation; the fear tree's
+  `#pragma optimize("", off)` / `("as", on)` is later. Without it all ten
+  functions are identical in server.dll, and all six of Lithtech.exe's
+  (where four of the ten are inlined).
+
+**Left (8, Lithtech.exe).** 0x4cb620 and 0x4cc680: two of
+the 14 `CRenderShader_*` destructors (retail has ten of 409 bytes, which
+expand `~_Vector_base<CInternalSection>` inline, and three of 382, which
+call it, 0x4cff70; all of ours are 382: a VC6 inlining-order question, see
+guide 09); 0x4e6b00, a 97-byte `~_Vector_base` (72-byte elements) retail
+keeps out of line, and 0x4f0720 (87) the same for 8-byte elements
+(`SSectionRBIndex`); 0x501010 (117), `__unguarded_linear_insert` of a
+shader's `SSectionRBIndex` sort (68-byte sections), out of line in retail;
+0x4e94a0 (93, a shader member that releases the section vector and the
+vertex buffer, many callers). All template code of `d3d_renderworld.obj`
+whose inlining differs from ours (guide 09's budget and forward-only
+inliner), or whose counterparts are among its wrongly paired instances --
+the scorer's pairings inside that object are unreliable (package 9b), so
+pair them by `callseq.py` before writing anything. The other two,
+0x50a0c0 (27) and 0x558b20 (11), are small initializer-group rows that
+became unwritten with headerinit's precompiled headers; not looked at.
+
+**Merged with package 20** (serverdir), whose rule 4e (funclet jump
+targets) and this package's tools are both in: Lithtech.exe has 9 unwritten,
+not 8, and 128 unplaced. The ninth is 0x4e6760 (260 bytes), which rule 4e
+splits off 0x4e6670: a destructor of a vector of 12-byte elements (two
+pointers and a vector; it calls 0x458950, 0x505e50 and 0x49a340), right
+after `CRenderModelInfoList::FreeListMemory`. Package 20 alone had paired it
+(near) with `~CPixelShaderMgr`, which this package places at 0x509620, so
+it is honestly unwritten now. Unplaced is this package's 131 less the three
+functions rule 4e places (`~CClassMgr`, `ci_Term`, `~CSAccess`).
+
+**cjacksrc** (`~/src/cjacksrc`, Contract J.A.C.K.'s engine, seeded from
+this tree and then matched to CJ's retail with VC7.1). 446 of its 566
+engine sources are still ours byte for byte; 120 differ. Its `RETAIL:`
+hunks are CJ's code, so each one was checked against NOLF2's retail code
+(imports at the site, the call sequence, a constant) before it was ported,
+and measured. Ported and confirmed (identical unless said):
+- `kernel/mem/.../de_memory.cpp`: `dalloc`'s zero-size test (both images).
+- `world/src/intersectsweptsphere.cpp`: no optimizer pragmas.
+- `kernel/src/sys/win/bindmgr.cpp/.h`: kernel32 directly, no
+  `LTLibraryLoader` and no `bm_CreateHandleBinding`; `ltlibraryloader.cpp`
+  left out of both projects (its functions were all unplaced; its 12-byte
+  `OpenLibrary` had been standing in for `cnt_StartCounterFinal`, which now
+  takes 0x41b3d0).
+- `render_a`: `pixelshadermgr.cpp` (FreeShader tests the slot and re-reads
+  the vector; the destructor at 0x509620), `tagnodes.cpp` (LockPVS),
+  `modelshadowshader.cpp` (Direct3D 8's `D3DRS_ZBIAS`, both functions),
+  `VertexBufferController.cpp` (streams before indices),
+  `d3d_rendershader_lightmap.cpp` (ValidateShader's clamp order),
+  `rendershadowlist.cpp` (RenderModelPieces leaves fog alone),
+  `d3d_renderworld_occluder.cpp` (SplitPlane/SplitPlane2D go on over every
+  outline), `d3d_optimizedsurface.cpp` + `d3d_surface.cpp` +
+  `shared/.../renderstruct.h` (one 3D blit, whole tiles, no 0.51 clamp, no
+  `BlitRequest::m_bUseOld`; `d3d_OptimizeSurface`'s tile edges),
+  `3d_ops.cpp` (PVModelAspect; near, closer), `devicelightlist.cpp` (bytes;
+  near, closer).
+- `client`: `clientde_impl.cpp` (GetVersionInfoExt/GetPerformanceInfo left
+  NULL), `consolecommands.cpp` (ShowVersionInfo's missing test;
+  `docs/RETAIL_BUGS.md`), `clientmgr.cpp` (Render without the DrawPrim
+  camera), `winclientde_impl.cpp` (cis_MaskedDraw's 16-bit template form;
+  no `m_bUseOld`, which made cis_InternalScale/TransformSurfaceToSurface and
+  cis_DoDrawSurfaceToSurface identical too).
+- `kernel/src/sys/win/ltdirectmusic_impl.cpp`: CommandThread without COM
+  set-up (now inlined in its bootstrap, identical), the constructor without
+  `m_hThread = NULL` (identical), Term without CloseHandle and
+  ChangeIntensity without the segment-state test (both read off retail's
+  code, 0x43cc21.. and 0x43df17; still near, so not yet in
+  `docs/RETAIL_BUGS.md`: the handle leak and the unchecked pointer are
+  retail bugs to list once they match).
+- `model/src/model.cpp`: no server-side deletion in ModelPiece::Term
+  (server.dll 0x10015415 has no loop; size-exact near now).
+Each retail-only difference is kept behind `#ifdef NOLF2SRC_MODERN` with the
+fear tree's code (handle closed, pointer tested, function pointers set,
+DrawPrim camera, the server's deletion, COM in the music thread, the
+screen's aspect for the player-view model).
+
+Tried and reverted: `clientshell.cpp`'s Term (CJ unhooks the net handler
+only if it is still the shell's; NOLF2's does not: 0.98 -> 0.67).
+
+**Where the two engines differ** (do not port): CJ's 24-byte engine
+variables and anti-cheat list, the unguaranteed-data protocol (`s_client`,
+`packetdefs.h`, `udpdriver`, `netmgr.h`), `GetUDPSocket`/`OpenSocket`, the
+shared shader draw range and per-world sections (`d3d_rendershader_base.h`,
+`d3d_renderworld.*`), CJ's render-style file layout
+(`d3d_renderstyle.cpp`), ATI caps (`d3d_device.cpp`), the shadow tween slot
+(`rendershadowlist.cpp`'s queue), `ps_UpdateParticleBoundingBox`,
+`D3DFMT_W11V11U10` (NOLF2's image has none), CJ's console (`console.*`,
+`winconsole_impl.*`), `clientmgr.h`'s resource-tree vector, the extra render
+console variables, `ReallyClose_far` 10, VC7.1's MS STL instead of STLport.
+
+**For later passes: cjacksrc functions to try next** (NOLF2 near, a cjacksrc
+`RETAIL:` hunk not yet checked against NOLF2): `CD3DDrawPrim::DrawPrim`
+(POLYGT4/FT4/G4/F4: only the last draw's result checked) and
+`SetCamera`, `CD3D_Shell::BuildDeviceList` (the Intel T&L rule),
+`CLightTable::LoadLightGroup`, `CD3DRenderStyle::CopyRenderStyle` /
+`SetDefaults` (no Direct3D options), `CD3D_RenderBlock::ExtendSkyBounds`,
+`CD3D_Device::PreCalcSomeDeviceCaps` (the SurfDesc size), and the
+`d3dmeshrendobj_skel.cpp` signed bone index. The method that worked:
+scratch scripts joined our scorer's pairs with cjacksrc's (`progress.py`'s
+PLACED_SYMS/NEAR_PAIRS, cjacksrc's read with its own tools under
+`python3 -B` so nothing is written there), listed every cj hunk marked
+`RETAIL` beside our status for that function, and compared each near
+function's masked bytes before and after a change.

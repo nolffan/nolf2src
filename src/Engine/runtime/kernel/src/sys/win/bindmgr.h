@@ -28,7 +28,6 @@ void bm_UnbindModule(CBindModuleType *hModule);
 
 // Create a binding for the given handle
 // Providing a NULL pointer will use the default module handle
-CBindModuleType *bm_CreateHandleBinding(const char *pModuleName, void *pHandle);
 
 // Calls the DLL's SetInstanceHandle function.
 LTRESULT bm_SetInstanceHandle(CBindModuleType *hModule);

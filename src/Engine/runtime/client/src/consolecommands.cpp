@@ -698,7 +698,11 @@ static void con_ShowVersionInfo(int argc, char *argv[])
 {
 	// Sanity checks
 	IFBREAKRETURN(ilt_client == NULL);
-	if (ilt_client->GetVersionInfoExt == NULL ) return; 
+#ifdef NOLF2SRC_MODERN
+	if (ilt_client->GetVersionInfoExt == NULL ) return;
+#endif
+	// RETAIL: no test for the function (as Contract J.A.C.K.'s;
+	// docs/RETAIL_BUGS.md)
 
 	LTVERSIONINFOEXT info;
 

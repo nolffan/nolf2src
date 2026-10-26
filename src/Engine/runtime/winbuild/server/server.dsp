@@ -26,6 +26,9 @@ CFG=server - Win32 Final
 # (retail's own objects have no EH frame: only rezmgr and stdlith do). Files marked
 # Exclude_From_Build do not compile yet (docs/engine/PLAN.md);
 # runtime/*/nolf2src_*_stubs.cpp stands in for what of them the link needs.
+# The link /include-s ltmem's heap object (ltmemheap.cpp: its globals'
+# construction and destruction, retail 0x10048cd0..0x10048def), which
+# retail links though nothing calls it.
 # Begin Project
 # PROP AllowPerConfigDependencies 0
 # PROP Scc_ProjName ""
@@ -58,7 +61,7 @@ BSC32=bscmake.exe
 # ADD BSC32 /nologo
 LINK32=link.exe
 # ADD BASE LINK32 kernel32.lib user32.lib /nologo /subsystem:windows /dll /machine:I386
-# ADD LINK32 kernel32.lib user32.lib ole32.lib winmm.lib wsock32.lib /nologo /subsystem:windows /dll /machine:I386 /out:"..\..\..\built\Final\server\server.dll"
+# ADD LINK32 kernel32.lib user32.lib ole32.lib winmm.lib wsock32.lib /include:?g_GeneralHeap@@3VCGeneralHeapGroup@@A /nologo /subsystem:windows /dll /machine:I386 /out:"..\..\..\built\Final\server\server.dll"
 !ENDIF 
 
 # Begin Target
@@ -237,10 +240,6 @@ SOURCE=..\..\kernel\net\src\localdriver.cpp
 
 SOURCE=..\..\kernel\src\sys\win\lthread.cpp
 # SUBTRACT CPP /YX /Yc /Yu
-# End Source File
-# Begin Source File
-
-SOURCE=..\..\kernel\src\sys\win\ltlibraryloader.cpp
 # End Source File
 # Begin Source File
 

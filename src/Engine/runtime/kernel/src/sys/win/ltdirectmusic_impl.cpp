@@ -570,47 +570,45 @@ DWORD CLTDirectMusicMgr::CommandThread_Bootstrap(void *pData)
 
 uint32 CLTDirectMusicMgr::CommandThread()
 {
+#ifdef NOLF2SRC_MODERN
 	// initialize com for this thread - more voodoo ? than what is required ... not sure
-	if (!FAILED(CoInitialize(LTNULL)))
-	{
-	
-		DMUS_NOTIFICATION_PMSG* pPmsg;
-
-		HANDLE aWait[2];
-		aWait[0] = m_cExitNotificationThread.GetEvent();
-		aWait[1] = m_cNotify.GetEvent();;
-
-		// loop until our exit flag is set
-		while (WaitForMultipleObjects(2, aWait, FALSE, INFINITE) != WAIT_OBJECT_0)
-		{
-			// loop through all directmusic notification messages
-			while (S_OK == m_pPerformance->GetNotificationPMsg(&pPmsg))
-			{
-
-				// if this is a segment notification
-				if (pPmsg->guidNotificationType == GUID_NOTIFICATION_SEGMENT)
-				{
-					HandleSegmentNotification(pPmsg);
-				}
-
-				// free the notification message we are finished with it
-					m_pPerformance->FreePMsg((DMUS_PMSG*)pPmsg); 
-			}
-		}
-
-		// stop directmusic notifications
-		m_pPerformance->SetNotificationHandle(0, 0);
-
-		CoUninitialize();
-
-		return 0;
-
-	}
-	else
-	{
+	if (FAILED(CoInitialize(LTNULL)))
 		return 1;
+#endif
+	// RETAIL: no COM set-up of its own for this thread (Lithtech.exe
+	// 0x43c7e0; as Contract J.A.C.K.'s)
+	DMUS_NOTIFICATION_PMSG* pPmsg;
+
+	HANDLE aWait[2];
+	aWait[0] = m_cExitNotificationThread.GetEvent();
+	aWait[1] = m_cNotify.GetEvent();;
+
+	// loop until our exit flag is set
+	while (WaitForMultipleObjects(2, aWait, FALSE, INFINITE) != WAIT_OBJECT_0)
+	{
+		// loop through all directmusic notification messages
+		while (S_OK == m_pPerformance->GetNotificationPMsg(&pPmsg))
+		{
+
+			// if this is a segment notification
+			if (pPmsg->guidNotificationType == GUID_NOTIFICATION_SEGMENT)
+			{
+				HandleSegmentNotification(pPmsg);
+			}
+
+			// free the notification message we are finished with it
+				m_pPerformance->FreePMsg((DMUS_PMSG*)pPmsg); 
+		}
 	}
-	
+
+	// stop directmusic notifications
+	m_pPerformance->SetNotificationHandle(0, 0);
+
+#ifdef NOLF2SRC_MODERN
+	CoUninitialize();
+#endif
+
+	return 0;
 }
 
 
@@ -648,7 +646,11 @@ CLTDirectMusicMgr::CLTDirectMusicMgr()
 
 	m_nPaused = 0;
 
+#ifdef NOLF2SRC_MODERN
 	m_hThread = NULL;
+#endif
+	// RETAIL: m_hThread is left to Init (Lithtech.exe 0x43c8a0; as Contract
+	// J.A.C.K.'s)
 };
 
 
@@ -763,10 +765,17 @@ LTRESULT CLTDirectMusicMgr::Term()
 		LTDMConOutWarning("WARNING! LTDirectMusicMgr thread did not exit on time!\n");
 	}
 
-	// Release our handle
+#ifdef NOLF2SRC_MODERN
+	// Release our handle (docs/engine/PLAN.md, unwritten)
 	CloseHandle( m_hThread );
 
 	m_hThread = NULL;
+#else
+	// RETAIL: the thread's handle is never closed (Term, Lithtech.exe
+	// 0x43cbe0: SetEvent, WaitForSingleObject, TermDirectMusic,
+	// CoUninitialize; as Contract J.A.C.K.'s; docs/engine/PLAN.md,
+	// unwritten)
+#endif
 
 	// Terminate directmusic 
 	TermDirectMusic();
@@ -1487,8 +1496,14 @@ LTRESULT CLTDirectMusicMgr::ChangeIntensity(const int nNewIntensity, const LTDME
 		// play segment
 		m_pPerformance->PlaySegment(pTransition->GetDMSegment(), nFlags, 0, &pDMSegmentState );
 
-		// [kml] Check that pointer!
+#ifdef NOLF2SRC_MODERN
+		// [kml] Check that pointer! (docs/engine/PLAN.md, unwritten)
 		if(pDMSegmentState)
+#else
+		// RETAIL: no test of the segment state (ChangeIntensity, Lithtech.exe
+		// 0x43df17; as Contract J.A.C.K.'s; docs/engine/PLAN.md,
+		// unwritten)
+#endif
 		{
 		// Get the IDirectMusicSegmentState8 interface
 		HRESULT hr = pDMSegmentState->QueryInterface(IID_IDirectMusicSegmentState8,

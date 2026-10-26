@@ -55,6 +55,7 @@ NOLF2 no longer has are listed at the end, so nobody looks again.
 * [`CMusicMgr::SetMood` reads before its level table](#cmusicmgrsetmood-reads-before-its-level-table)
 * [`ci_GetLightRadius` and `ci_SetLightRadius` do not check the handle](#ci_getlightradius-and-ci_setlightradius-do-not-check-the-handle)
 * [`cis_GetSurfaceDims` writes through unchecked pointers](#cis_getsurfacedims-writes-through-unchecked-pointers)
+* [The console's `ShowVersionInfo` calls a null function](#the-consoles-showversioninfo-calls-a-null-function)
 * [The console print writes one past its buffer](#the-console-print-writes-one-past-its-buffer)
 * [The launcher's own path can overrun a buffer](#the-launchers-own-path-can-overrun-a-buffer)
 * [Lip-sync keyframes go out of step when a bone is skipped](#lip-sync-keyframes-go-out-of-step-when-a-bone-is-skipped)
@@ -707,6 +708,20 @@ one indexes before the table.
 
 NOLF1's `ci_SetLightRadius` bug, and now its getter too: both read the
 object type straight off the handle, so a null one faults.
+
+### The console's `ShowVersionInfo` calls a null function
+`con_ShowVersionInfo`, `0x41ad20`; `CLTClient::InitFunctionPointers`,
+`0x40bfb0` (lithtech.exe) · `src/Engine/runtime/client/src/consolecommands.cpp`,
+`clientde_impl.cpp`
+
+> **FIXED in the modern build** (`NOLF2SRC_MODERN`): the two function
+> pointers are set and the command tests for them, as the fear tree has it.
+
+`InitFunctionPointers` never sets `ILTClient::GetVersionInfoExt` or
+`GetPerformanceInfo` (`in_GetVersionInfoExt` is not even in the image), and
+`ShowVersionInfo` calls `GetVersionInfoExt` without testing it: the console
+command faults. The game itself calls neither. Contract J.A.C.K.'s engine
+has the same.
 
 ### `cis_GetSurfaceDims` writes through unchecked pointers
 `0x4932f0` (lithtech.exe) · `src/Engine/runtime/client/src/sys/win/winclientde_impl.cpp`

@@ -38,7 +38,10 @@ CFG=Lithtech - Win32 Final
 # CUDPDriver::ReallyJoinSession (0x48caf0) loses one register load.
 # Files marked Exclude_From_Build do not compile yet: they are each module
 # package's worklist (docs/engine/PLAN.md); runtime/*/nolf2src_*_stubs.cpp
-# stands in for what of them the link needs.
+# stands in for what of them the link needs. The link /include-s ltmem's
+# heap object (ltmemheap.cpp: its globals' construction and destruction,
+# retail 0x51eab0..0x51ec18), which retail links though nothing calls it;
+# what pulled it in there is not known.
 # Begin Project
 # PROP AllowPerConfigDependencies 0
 # PROP Scc_ProjName ""
@@ -70,7 +73,7 @@ BSC32=bscmake.exe
 # ADD BSC32 /nologo
 LINK32=link.exe
 # ADD BASE LINK32 kernel32.lib user32.lib /nologo /subsystem:windows /machine:I386
-# ADD LINK32 d3dx8.lib kernel32.lib user32.lib gdi32.lib advapi32.lib ole32.lib winmm.lib wsock32.lib dinput8.lib dxguid.lib d3d8.lib /nologo /subsystem:windows /machine:I386 /out:"..\..\..\built\Final\Lithtech\Lithtech.exe"
+# ADD LINK32 d3dx8.lib kernel32.lib user32.lib gdi32.lib advapi32.lib ole32.lib winmm.lib wsock32.lib dinput8.lib dxguid.lib d3d8.lib /include:?g_GeneralHeap@@3VCGeneralHeapGroup@@A /nologo /subsystem:windows /machine:I386 /out:"..\..\..\built\Final\Lithtech\Lithtech.exe"
 !ENDIF 
 
 # Begin Target
@@ -380,10 +383,6 @@ SOURCE=..\..\kernel\src\sys\win\lthread.cpp
 # Begin Source File
 
 SOURCE=..\..\client\src\ltinfo_impl.cpp
-# End Source File
-# Begin Source File
-
-SOURCE=..\..\kernel\src\sys\win\ltlibraryloader.cpp
 # End Source File
 # Begin Source File
 

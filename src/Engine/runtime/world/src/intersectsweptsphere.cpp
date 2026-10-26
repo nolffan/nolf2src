@@ -1,9 +1,10 @@
 
-// For some reason we can't use certain optimizations in this module or 
-// else the raycasting is all screwed up.  This module also can't use
-// precompiled headers or else these pragmas don't take effect.
-#pragma optimize("", off)
-#pragma optimize("as", on)
+// RETAIL: the fear tree turns the optimizer down here ("For some reason we
+// can't use certain optimizations in this module or else the raycasting is
+// all screwed up"); NOLF2's is compiled like the rest: register arguments,
+// the static helpers inlined (Lithtech.exe's SweptSphereToBSP_R 0x437470
+// has SweptSphereToPoly and SweptSphereToPolyVertices in it), the two
+// pragmas not there (as Contract J.A.C.K.'s).
 
 #include "bdefs.h"
 #include "de_world.h"

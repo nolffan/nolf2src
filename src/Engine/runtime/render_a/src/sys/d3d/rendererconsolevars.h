@@ -96,7 +96,7 @@ RCONVAR(g_CV_DebugRBTime, "DebugRBTime", int, 0);
 RCONVAR(g_CV_DebugRBDraw, "DebugRBDraw", int, 1);
 RCONVAR(g_CV_DebugRBOldOccludeeShape, "DebugRBOldOccludeeShape", int, 0);
 RCONVAR(g_CV_DebugRBFindSlivers, "DebugRBFindSlivers", int, 0);
-//RCONVAR(g_CV_LockPVS, "LockPVS", int, 0);
+RCONVAR(g_CV_LockPVS, "LockPVS", int, 0);	// RETAIL: Lithtech.exe 0x4c51d0; d3d_TagVisibleLeaves reads it
 RCONVAR(g_CV_DisableRenderObjectGroups, "DisableRenderObjectGroups", int, 0);
 
 //------------------------------
