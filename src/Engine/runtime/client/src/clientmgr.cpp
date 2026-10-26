@@ -2162,9 +2162,14 @@ bool CClientMgr::Render(CameraInstance *pCamera, int drawMode, LTObject **pObjec
         CModernFrameSection cSection(MFL_RENDER);	// M-E58
 #endif
 
+#ifdef NOLF2SRC_MODERN
         // Set Internal DrawPrim's camera to the current rendering camera
         // This is required for model OBBs to draw properly.
         g_pLTDrawPrimInternal->SetCamera(static_cast<HOBJECT>(pCamera));
+#endif
+        // RETAIL: no internal DrawPrim camera around the scene (Lithtech.exe
+        // 0x40f8d0; as Contract J.A.C.K.'s); the fear tree sets it for model
+        // OBBs and the console.
 
 		if (g_CV_RenderEnable) {
 			renderStatus = pRenderStruct->RenderScene(&sceneDesc);
@@ -2174,9 +2179,11 @@ bool CClientMgr::Render(CameraInstance *pCamera, int drawMode, LTObject **pObjec
     	m_WaterMark.Draw();
 #endif // COMPILE_JUPITER_EVAL
 
+#ifdef NOLF2SRC_MODERN
         // Reset the camera to NULL
         // This is required for the console to draw properly
         g_pLTDrawPrimInternal->SetCamera(NULL);
+#endif
 
 		if (g_CV_DrawDebugGeometry) {
 			drawAllDebugGeometry(); }                       // Draw all debug geometry here...

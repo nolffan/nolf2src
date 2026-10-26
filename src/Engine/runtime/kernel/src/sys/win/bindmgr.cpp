@@ -2,16 +2,18 @@
 
 #include "bindmgr.h"
 #include "ltmodule.h"
-#include "syslibraryloader.h"
 
 #define BINDTYPE_SERVER	0
 #define BINDTYPE_DLL	1
 
 #include <string>
 
+// RETAIL: NOLF2's bind manager calls kernel32 itself, not the 2004 tree's
+// LTLibraryLoader (Lithtech.exe 0x402a50.., server.dll 0x1000173d..), as
+// Contract J.A.C.K.'s does (this file is cjacksrc's)
 typedef struct
 {
-	HLTMODULE	m_hInstance;
+	HINSTANCE	m_hInstance;
 	int			m_Type;
 
 	// Holds name of dll file so that it can be
@@ -30,9 +32,9 @@ int bm_BindModule(const char *pModuleName, bool bTempFile, CBindModuleType *&pMo
 {
 	// Check if we already have this module loaded.  If we do
 	// then we don't need to do the setmasterdatabase.
-	bool bModuleAlreadyLoaded = LTLibraryLoader::IsLibraryLoaded(pModuleName);
+	bool bModuleAlreadyLoaded = (GetModuleHandle(pModuleName) != NULL);
 
-	HLTMODULE hModule = LTLibraryLoader::OpenLibrary(pModuleName);
+	HINSTANCE hModule = LoadLibrary(pModuleName);
 	if (hModule == NULL)
 	{
 		return BIND_CANTFINDMODULE;
@@ -43,7 +45,7 @@ int bm_BindModule(const char *pModuleName, bool bTempFile, CBindModuleType *&pMo
 	if( !bModuleAlreadyLoaded )
 	{
 		//merge our interface database with the database in the DLL we just loaded.
-		TSetMasterFn pSetMasterFn = (TSetMasterFn)LTLibraryLoader::GetProcAddress(hModule, "SetMasterDatabase");
+		TSetMasterFn pSetMasterFn = (TSetMasterFn)GetProcAddress(hModule, "SetMasterDatabase");
 		
 		//check if the function existed.
 		if (pSetMasterFn != NULL)
@@ -53,23 +55,15 @@ int bm_BindModule(const char *pModuleName, bool bTempFile, CBindModuleType *&pMo
 		}
 	}
 
-	pModule = bm_CreateHandleBinding(bTempFile ? pModuleName : "", (void*)hModule);
-	return BIND_NOERROR;
-}
-
-CBindModuleType *bm_CreateHandleBinding(const char *pModuleName, void *pHandle)
-{
-	if (pHandle == NULL)
-	{
-		pHandle = LTLibraryLoader::GetMainHandle();
-	}
+	// RETAIL: the binding made here (no bm_CreateHandleBinding)
 	WinBind *pBind;
 	LT_MEM_TRACK_ALLOC(( pBind = new WinBind ),LT_MEM_TYPE_MISC);
-	pBind->m_hInstance = (HLTMODULE)pHandle;
+	pBind->m_hInstance = hModule;
 	pBind->m_Type = BINDTYPE_DLL;
-	pBind->m_sTempFileName = pModuleName;
+	pBind->m_sTempFileName = bTempFile ? pModuleName : "";
 
-	return (CBindModuleType *)pBind;
+	pModule = (CBindModuleType *)pBind;
+	return BIND_NOERROR;
 }
 
 void bm_UnbindModule(CBindModuleType *hModule)
@@ -80,7 +74,7 @@ void bm_UnbindModule(CBindModuleType *hModule)
 
 	if(pBind->m_Type == BINDTYPE_DLL)
 	{
-		LTLibraryLoader::CloseLibrary(pBind->m_hInstance);
+		FreeLibrary(pBind->m_hInstance);
 	}
 
 	// Delete the temporary file.
@@ -114,7 +108,7 @@ LTRESULT bm_SetInstanceHandle(CBindModuleType *hModule)
 		RETURN_ERROR(1, bm_SetInstanceHandle, LT_INVALIDPARAMS);
 	}
 
-	fn = (SetInstanceHandleFn)LTLibraryLoader::GetProcAddress(pBind->m_hInstance, "SetInstanceHandle");
+	fn = (SetInstanceHandleFn)GetProcAddress(pBind->m_hInstance, "SetInstanceHandle");
 	if(fn)
 	{
 		fn((void*)pBind->m_hInstance);
@@ -145,7 +139,7 @@ void* bm_GetFunctionPointer(CBindModuleType *hModule, const char *pFunctionName)
 
 	ASSERT(pBind);
 
-	return (void*)LTLibraryLoader::GetProcAddress(pBind->m_hInstance, pFunctionName);
+	return (void*)GetProcAddress(pBind->m_hInstance, pFunctionName);
 }
 
 

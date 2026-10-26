@@ -483,6 +483,7 @@ void ModelPiece::Term()
 #ifdef DE_RENDER_COMPILE
 			if (m_pRenderObjects[i]) g_Device.DestroyRenderObject(m_pRenderObjects[i]);
 #endif
+#ifdef NOLF2SRC_MODERN
 #ifdef DE_SERVER_COMPILE
 			if (m_pRenderObjects[i])
 			{
@@ -491,6 +492,10 @@ void ModelPiece::Term()
 				m_pRenderObjects[i] = NULL;
 			}
 #endif
+#endif
+			// RETAIL: no server-side deletion of the empty render objects
+			// (server.dll 0x10015415 has no loop; as Contract J.A.C.K.'s;
+			// docs/engine/PLAN.md, unwritten)
 		}
 	}
 

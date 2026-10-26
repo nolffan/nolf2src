@@ -397,7 +397,7 @@ void d3d_TagVisibleLeaves(const ViewParams& Params)
 			g_Device.m_pRenderWorld->StartFrame(Params);
 	}
 
-//	if(!g_CV_LockPVS)
+	if(!g_CV_LockPVS.m_Val)	// RETAIL: Lithtech.exe 0x51b76b (as Contract J.A.C.K.'s)
 	{
 		// Rebuild the visible set.
 		pVisibleSet->ClearSet();

@@ -1,0 +1,33 @@
+addr,reason
+0x00437f19,NOT A FUNCTION: interior of i_IntersectSweptSphere (0x00437d30); a `gap` start behind the 0xC3 byte of an fmul operand (d8 cb)
+0x0043d039,NOT A FUNCTION: interior of CLTDirectMusicMgr::InitLevel (0x0043cdf0; vtable 0x57d2b4 slot 3); the call target of an E8 byte inside a movl operand at 0x43d034
+0x004b0000,NOT A FUNCTION: interior of CSoundMgr::Update (0x004afb50); 0x004b0000 is a round dword in the copy protection's data (.cms_d)
+0x004c1323,NOT A FUNCTION: interior of an ltmem initializer (0x004c1320; flds/fmuls/fstps/ret); call target of an E8 byte inside an operand
+0x004c132d,NOT A FUNCTION: interior of an ltmem initializer (0x004c1320); call target of an E8 byte inside an operand at 0x4c12cd
+0x004c1343,NOT A FUNCTION: interior of an ltmem initializer (0x004c1340; flds/fdivs/fstps/ret); call target of an E8 byte inside an operand
+0x004c134d,NOT A FUNCTION: interior of an ltmem initializer (0x004c1340); call target of an E8 byte inside an operand at 0x4c12ed
+0x004c1363,NOT A FUNCTION: interior of an atexit registration (0x004c1360; push/call/pop/ret); call target of an E8 byte inside an operand at 0x4c1303
+0x004c1483,NOT A FUNCTION: interior of an ltmemstats initializer (0x004c1480); call target of an E8 byte inside an operand
+0x004c148d,NOT A FUNCTION: interior of an ltmemstats initializer (0x004c1480); call target of an E8 byte inside an operand at 0x4c142d
+0x004c14a3,NOT A FUNCTION: interior of an ltmemstats initializer (0x004c14a0); call target of an E8 byte inside an operand
+0x004c14ad,NOT A FUNCTION: interior of an ltmemstats initializer (0x004c14a0); call target of an E8 byte inside an operand at 0x4c144d
+0x004d2393,NOT A FUNCTION: interior of 0x004d2060 (an instruction boundary but behind a lea; nothing calls it); a dword in the copy protection's data (.cms_d)
+0x004d8b1c,NOT A FUNCTION: interior of a vector _M_insert_overflow (0x004d88b0); the operand of a 68 byte read as push imm32 (mid-instruction at 0x4d8b1b)
+0x004e0001,NOT A FUNCTION: interior of CRenderShader_Base<Gouraud>::Flush (0x004dfdf0); a dword in the copy protection's data (.cms_d)
+0x004e1b19,NOT A FUNCTION: interior of CRenderShader_Base<Lightmap_Texture_EnvMap>::Flush (0x004e19a0; vtable 0x57f4a0 slot 8) behind an add; a dword in the copy protection's data (.cms_d)
+0x004e4f49,NOT A FUNCTION: interior of a shader's Flush (0x004e4f00; vtable slot 8) (mid-instruction); unaligned bytes in .data
+0x004f4544,NOT A FUNCTION: interior of 0x004f43f0 (mid-instruction); a dword in .data
+0x00504753,NOT A FUNCTION: interior of d3d_D3DFormatToString (0x00504590); one of its switch arms (after jmp 0x504857); a dword in .rdata
+0x0050492f,NOT A FUNCTION: interior of d3d_D3DFormatToString (0x00504590); its switch's byte index table; a dword in .data
+0x00505342,NOT A FUNCTION: interior of CD3D_Shell::BuildDeviceList (0x00504ec0) (mid-instruction); a dword repeated in .data
+0x00544e45,NOT A FUNCTION: interior of DrawDynamicParticles (0x00544960) (mid-instruction); unaligned bytes in .data
+0x0054524f,NOT A FUNCTION: interior of DrawDynamicParticles (0x00544960) (mid-instruction); a dword in .data
+0x00545350,NOT A FUNCTION: interior of DrawDynamicParticles (0x00544960) (mid-instruction); a dword in the copy protection's data (.cms_d)
+0x00547d55,NOT A FUNCTION: interior of d3d_DrawPolyGrid (0x00546210) (mid-instruction); the call target of an E8 byte inside a movl operand at 0x547d50
+0x00554684,NOT A FUNCTION: interior of a clientshell initializer (0x00554680); call target of an E8 byte inside an operand
+0x0055468e,NOT A FUNCTION: interior of a clientshell initializer (0x00554680); call target of an E8 byte inside an operand at 0x55462d
+0x005546a4,NOT A FUNCTION: interior of a clientshell initializer (0x005546a0); call target of an E8 byte inside an operand
+0x005546ae,NOT A FUNCTION: interior of a clientshell initializer (0x005546a0); call target of an E8 byte inside an operand at 0x55464d
+0x005546b8,NOT A FUNCTION: the padding behind a clientshell initializer (0x005546a0)
+0x005546c4,NOT A FUNCTION: interior of a one-store destructor (0x005546c0: movl $vtbl,(%ecx) ; ret); call target of an E8 byte inside an operand at 0x554663
+0x00562f79,NOT A FUNCTION: interior of a thiscall thunk (0x00562f70: mov $obj,%ecx ; jmp); a dword in the copy protection's data (.cms_d)

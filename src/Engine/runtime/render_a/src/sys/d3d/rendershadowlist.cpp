@@ -386,8 +386,8 @@ static void RenderModelPieces( ModelInstance* pInstance )
 		StateSet ssZRead(D3DRS_ZENABLE, D3DZB_FALSE);
 		StateSet ssZWrite(D3DRS_ZWRITEENABLE, FALSE);
 
-		// Disable fog for shadows.
-		StateSet ssFogEnable(D3DRS_FOGENABLE, FALSE);
+		// RETAIL: fog left as it is (as Contract J.A.C.K.'s; the fear tree
+		// disables it here: "Disable fog for shadows")
 
 		for (uint32 nCurrPiece = 0; nCurrPiece < nNumPieces; nCurrPiece++)
 		{

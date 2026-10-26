@@ -1,7 +1,7 @@
 # Sourced by build/all.sh and the Makefile: the LithTech Jupiter SDK (build
 # 51, March 2002), the engine licensees' SDK, whose source has what
-# Monolith's release lacks for ServerDir.dll -- WONAPI and CServerDir_Titan
-# (tools/jupitersrc.py). The rez/ submodule fetches its CD image from
+# Monolith's release lacks for ServerDir.dll -- WONAPI, its WON/Titan
+# library (tools/jupitersrc.py). The rez/ submodule fetches its CD image from
 # archive.org and installs its "Source Code" file group (rez/README.md,
 # "sdk/"); nothing of it is committed here (docs/LICENSE-NOTES.md).
 #

@@ -10,10 +10,15 @@
 #
 #   build/reference.sh            (in the build container, or on a host with
 #                                  Python 3; no Wine involved)
+#   build/reference.sh tables     only the function tables, from the images
+#                                  already there (build/progress.sh, when
+#                                  tools/enumfuncs.py is newer than them)
 set -e
 cd "$(dirname "${BASH_SOURCE[0]}")/.."
-source build/retail.sh
-python3 tools/retailextract.py reference "$(retail_dir)" out/reference
+if [ "${1:-}" != tables ]; then
+    source build/retail.sh
+    python3 tools/retailextract.py reference "$(retail_dir)" out/reference
+fi
 
 # The function table of each image (tools/enumfuncs.py --csv): addr, size,
 # how the start was found, and the name an error-tag literal or export gives
@@ -25,6 +30,7 @@ for pair in server:server.dll Lithtech:Lithtech.exe ServerDir:ServerDir.dll sndd
     python3 tools/enumfuncs.py "out/reference/${pair#*:}" \
         --csv "out/reference/${pair%%:*}-functions.csv" | tail -1
 done
+[ "${1:-}" = tables ] && exit 0
 # ... and its vtables, one row per slot (tools/vtabaudit.py), which
 # tools/vtabcheck.py compares our linked images against.
 for pair in server:server.dll Lithtech:Lithtech.exe; do

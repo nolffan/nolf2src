@@ -43,6 +43,16 @@ for f in Lithtech.exe server.dll ServerDir.dll snddrv.dll ltmsg.dll \
     fi
 done
 
+# the function tables are derived by tools/enumfuncs.py: a newer
+# enumerator (a rule that finds more starts) means new tables
+for f in out/reference/*-functions.csv; do
+    if [ tools/enumfuncs.py -nt "$f" ]; then
+        echo "== tools/enumfuncs.py changed: the function tables again"
+        bash build/reference.sh tables
+        break
+    fi
+done
+
 python3 tools/progress.py
 echo
 if [ "$mode" = check ]; then

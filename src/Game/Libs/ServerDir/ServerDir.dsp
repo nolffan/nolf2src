@@ -22,11 +22,13 @@ CFG=ServerDir - Win32 Final
 
 # nolf2src: ServerDir.dll, which Monolith's release has only the headers
 # and import library of (final/serverdir.lib). Written for this project:
-# the Jupiter SDK's ServerDir.dsp (a static library) as a DLL --
-# CServerDir_Titan and stdafx with that project's Release flags, plus _FINAL
-# (no TitanTest) and SERVERDIR_EXPORTS (IServerDir.h), linked with the SDK's
-# WONAPI (its own WONAPI.dsp, Release; ServerDir.dsw) into the DLL whose
-# exports are retail's. tools/jupitersrc.py puts the SDK's files here.
+# CServerDir_Titan, TitanTest and stdafx (the F.E.A.R. source release's
+# libs/ServerDir/, NOLF2's 1.3 code) with the Jupiter SDK's ServerDir.dsp
+# Release flags, plus _FINAL (TitanTest.h's empty TitanTest_Init/Term; its
+# console commands are left unreferenced and dropped by the link, but its
+# globals are constructed, as in retail), linked with the SDK's WONAPI (its
+# own WONAPI.dsp, Release; ServerDir.dsw) into the DLL whose exports are
+# retail's. tools/jupitersrc.py puts the SDK's WONAPI in place.
 
 # Begin Project
 # PROP AllowPerConfigDependencies 0
@@ -50,7 +52,7 @@ RSC=rc.exe
 # PROP Ignore_Export_Lib 0
 # PROP Target_Dir ""
 # ADD BASE CPP /nologo /MD /W3 /GX /O2 /D "WIN32" /D "NDEBUG" /D "_WINDOWS" /YX /FD /c
-# ADD CPP /nologo /MD /W3 /GX /O2 /I ".\\" /I "..\..\..\Engine\sdk\inc" /I "..\..\..\libs\STLPORT-4.0\STLPORT" /I "..\..\libs\wonapi" /D "WIN32" /D "NDEBUG" /D "_WINDOWS" /D "_FINAL" /D "SERVERDIR_EXPORTS" /YX /FD /c
+# ADD CPP /nologo /MD /W3 /GX /O2 /I ".\\" /I "..\..\..\Engine\sdk\inc" /I "..\..\..\libs\STLPORT-4.0\STLPORT" /I "..\..\libs\wonapi" /I "..\..\ClientRes\Shared" /D "WIN32" /D "NDEBUG" /D "_WINDOWS" /D "_FINAL" /YX /FD /c
 # ADD BASE MTL /nologo /D "NDEBUG" /mktyplib203 /win32
 # ADD MTL /nologo /D "NDEBUG" /mktyplib203 /win32
 # ADD BASE RSC /l 0x409 /d "NDEBUG"
@@ -78,6 +80,10 @@ SOURCE=.\CServerDir_Titan.cpp
 
 SOURCE=.\stdafx.cpp
 # End Source File
+# Begin Source File
+
+SOURCE=.\TitanTest.cpp
+# End Source File
 # End Group
 # Begin Group "Header Files"
 
@@ -97,6 +103,10 @@ SOURCE=.\IServerDir_Titan.h
 # Begin Source File
 
 SOURCE=.\stdafx.h
+# End Source File
+# Begin Source File
+
+SOURCE=.\TitanTest.h
 # End Source File
 # Begin Source File
 
