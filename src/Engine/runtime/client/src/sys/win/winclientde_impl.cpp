@@ -367,19 +367,13 @@ static LTRESULT cis_MaskedDraw(bool bSameSurface,
 
 	for(y=0; y < rectHeight; y++)
 	{
+		// RETAIL: the template's 16-bit form only (Lithtech.exe 0x49380e; as
+		// Contract J.A.C.K.'s)
 		if(g_ScreenFormat.GetType() == BPP_16)
 		{
-			
-			cis_MaskedDrawLine16(pSrcLine, pDestLine, rectWidth,
+			cis_MaskedDrawLine(pSrcLine, pDestLine, rectWidth,
 				&pMaskData[((pSrcRect->top+y)&maskMaskY)*maskPitch], maskMaskX,
-				pSrcRect->left);
-			
-		}
-		else if(g_ScreenFormat.GetType() == BPP_32)
-		{
-			cis_MaskedDrawLine32(pSrcLine, pDestLine, rectWidth,
-				&pMaskData[((pSrcRect->top+y)&maskMaskY)*maskPitch], maskMaskX,
-				pSrcRect->left);
+				pSrcRect->left, (Pixel16*)LTNULL);
 		}
 		
 		pSrcLine += srcPitch;
@@ -769,7 +763,6 @@ static LTRESULT cis_InternalScaleSurfaceToSurface(HSURFACE hDest, HSURFACE hSrc,
 					blitRequest.m_pDestRect = &destRect;
 					blitRequest.m_BlitOptions = (tType == 0) ? BLIT_TRANSPARENT : 0;
 					blitRequest.m_Alpha = pSrc->m_Alpha;
-					blitRequest.m_bUseOld = true;
 					
 					r_GetRenderStruct()->BlitToScreen(&blitRequest);
 

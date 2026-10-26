@@ -119,13 +119,13 @@ uint32 dm_GetNumAllocations()
 
 void* dalloc(size_t size)
 {
-	//[DLK] Removed to avoid allocation errors with D3DXEffectCompiler
-	/*
+	// RETAIL: NOLF2 keeps the zero-size check the fear tree removed
+	// ("[DLK] Removed to avoid allocation errors with D3DXEffectCompiler"):
+	// Lithtech.exe 0x423fc0, server.dll 0x10009c0b (as Contract J.A.C.K.'s)
 	if(size == 0)
 	{
 		return NULL;
 	}
-	*/
 
 	unsigned long fullAllocSize;
 

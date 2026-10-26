@@ -87,10 +87,11 @@ CPixelShaderMgr::CPixelShaderMgr()
 
 CPixelShaderMgr::~CPixelShaderMgr()
 {
+	// RETAIL: FreeShader tests the slot itself (Lithtech.exe 0x509620; as
+	// Contract J.A.C.K.'s)
 	for(uint32 nCurrShader = 0; nCurrShader < m_PixelShaders.size(); nCurrShader++)
 	{
-		if(m_PixelShaders[nCurrShader])
-			FreeShader(nCurrShader);
+		FreeShader(nCurrShader);
 	}
 }
 
@@ -279,13 +280,14 @@ bool CPixelShaderMgr::ReleasePixelShader(const CPixelShaderHandle& hShader)
 //frees the shader in the specified slot of the list
 void CPixelShaderMgr::FreeShader(uint32 nShader)
 {
-	SPixelShader* pShader = m_PixelShaders[nShader];
-	if(!pShader)
+	// RETAIL: the vector element read each time (Lithtech.exe 0x509620,
+	// inlined in the destructor; as Contract J.A.C.K.'s)
+	if(!m_PixelShaders[nShader])
 		return;
 
-	if(pShader->m_bCreated)
+	if(m_PixelShaders[nShader]->m_bCreated)
 	{
-		PD3DDEVICE->DeletePixelShader(pShader->m_hShader);
+		PD3DDEVICE->DeletePixelShader(m_PixelShaders[nShader]->m_hShader);
 	}
 
 	delete m_PixelShaders[nShader];

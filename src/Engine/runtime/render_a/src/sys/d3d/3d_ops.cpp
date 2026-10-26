@@ -67,7 +67,14 @@ void d3d_SetReallyClose(CReallyCloseData* pData)
 
 	PD3DDEVICE->SetViewport(&ViewportData);
 
+#ifdef NOLF2SRC_MODERN
+	// the player-view model in the screen's own aspect (the fear tree's)
 	float aspect = g_ViewParams.m_fScreenWidth / g_ViewParams.m_fScreenHeight;
+#else
+	// RETAIL: the PVModelAspect console variable (Lithtech.exe 0x54bb3f; as
+	// Contract J.A.C.K.'s)
+	float aspect = g_CV_PVModelAspect.m_Val;
+#endif
 
 	// Setup the projection transform by using the power of D3D.
 	D3DXMATRIX NewProj;

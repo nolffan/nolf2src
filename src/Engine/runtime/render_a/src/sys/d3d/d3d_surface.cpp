@@ -32,7 +32,6 @@ extern FormatMgr g_FormatMgr;
 
 extern void d3d_DestroyTiles(RSurface *pSurface);
 extern void d3d_BlitToScreen3D(BlitRequest *pRequest);
-extern void d3d_BlitToScreen3D_Old(BlitRequest *pRequest);
 extern void d3d_WarpToScreen3D(BlitRequest *pRequest);
 extern int  d3d_RenderScene(SceneDesc* pDesc);
 
@@ -291,10 +290,8 @@ void d3d_BlitToScreen(BlitRequest *pRequest)
 	// Can this be drawn as an optimized 2D surface?
 	if (pRSurface->m_pTiles && g_bInOptimized2D && g_Device.IsIn3D()) 
 	{
-		if (pRequest->m_bUseOld)
-			d3d_BlitToScreen3D_Old(pRequest); 
-		else
-			d3d_BlitToScreen3D(pRequest); 
+		// RETAIL: no second 3D blit to choose (Lithtech.exe 0x51c16a)
+		d3d_BlitToScreen3D(pRequest); 
 	}
 	else 
 	{

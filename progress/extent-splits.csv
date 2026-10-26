@@ -7,4 +7,5 @@ snddrv.dll,0x10008460,CWinSync_CSAuto::~CWinSync_CSAuto (LeaveCriticalSection): 
 snddrv.dll,0x10008570,CWinSync_Event::~CWinSync_Event (CloseHandle): jump target of funclets 0x1000a76a ...; enumerated inside SetStreamVolume 0x10008470
 snddrv.dll,0x10008ce0,an empty destructor (a bare ret; CountAdder::~CountAdder among others the linker folds into one): jump target of funclets 0x1000a70b ...; enumerated inside DecompressASI 0x10008a10
 snddrv.dll,0x10008e80,an STLport vector destructor: jump target of funclets 0x1000a83b ...; enumerated inside 0x10008e70
+Lithtech.exe,0x00509620,CPixelShaderMgr::~CPixelShaderMgr (DeletePixelShader through the device's vtable +0x168; LoadPixelShader follows): the jmp target of the singleton's atexit thunk 0x509790 (mov $obj,%ecx ; jmp); enumerated inside the IClientFileMgr holder's exit thunk 0x509610
 snddrv.dll,0x10009be0,_Node_Alloc_Lock's destructor: jump target of funclets 0x1000acc3 and 0x1000ace3; enumerated inside __node_alloc::deallocate 0x10009aa0

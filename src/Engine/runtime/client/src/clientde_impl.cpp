@@ -3301,8 +3301,17 @@ void CLTClient::InitFunctionPointers()
 	IsLobbyLaunched = ci_IsLobbyLaunched;
 	GetTcpIpAddress = ci_GetTcpIpAddress;
 
+#ifdef NOLF2SRC_MODERN
+	// the two are set, so the console's ShowVersionInfo works
+	// (docs/RETAIL_BUGS.md)
 	GetVersionInfoExt = in_GetVersionInfoExt;
 	GetPerformanceInfo = in_GetPerformanceInfo;
+#else
+	// RETAIL: GetVersionInfoExt and GetPerformanceInfo are left NULL
+	// (InitFunctionPointers, Lithtech.exe 0x40bfb0; in_GetVersionInfoExt is
+	// not in the image), though the console's ShowVersionInfo calls the
+	// first (docs/RETAIL_BUGS.md); as Contract J.A.C.K.'s
+#endif
 
 	SetConsoleEnable = ci_SetConsoleEnable;
 

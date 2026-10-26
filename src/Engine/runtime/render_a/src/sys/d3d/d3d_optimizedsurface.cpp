@@ -309,9 +309,11 @@ bool d3d_OptimizeSurface(HLTBUFFER hBuffer, PValue transparentColor )
 				pTile->m_SrcImageRect.right = nCurrX + pTile->m_nXPixels;
 				pTile->m_SrcImageRect.bottom = nCurrY + pTile->m_nYPixels;
 
-				if(x > 0 && x < nTilesX - 1)
+				// RETAIL: every tile but the first loses its last pixel
+				// (Lithtech.exe 0x51d7f0; as Contract J.A.C.K.'s)
+				if(x > 0)
 					pTile->m_SrcImageRect.right--;
-				if(y > 0 && y < nTilesY - 1)
+				if(y > 0)
 					pTile->m_SrcImageRect.bottom--;
 
 				//handle square textures
@@ -488,99 +490,12 @@ bool d3d_GetOptimized2DColor(HLTCOLOR &color)
 }
 
 
-const float fSub = 0.51f;
+// RETAIL: the one 3D blit, each whole tile scaled from the source rectangle
+// to the destination, without the fill-convention clamp (no 0.51f in the
+// image) (Lithtech.exe 0x51de90; d3d_BlitToScreen calls nothing else). The
+// fear tree's clipped blit and the choice between the two (BlitRequest's
+// m_bUseOld) are later. This file is cjacksrc's, whose engine has it so.
 void d3d_BlitToScreen3D(BlitRequest *pRequest)
-{
-	RSurface* pRSurface	= (RSurface*)pRequest->m_hBuffer;
-	SurfaceTiles* pTiles = pRSurface->m_pTiles;
-
-	assert(pTiles);
-	if (!pTiles) return;
-
-	StateSet ssAlphaBlendEnable(D3DRS_ALPHABLENDENABLE, pRSurface->m_bTilesTransparent || (pRequest->m_Alpha != 1.0f));
-
-	// Make sure the states we want are set!
-	VERIFY_RENDERSTATE(D3DRS_FOGENABLE, FALSE);
-	VERIFY_RENDERSTATE(D3DRS_ZENABLE, FALSE);
-	VERIFY_RENDERSTATE(D3DRS_ZWRITEENABLE, FALSE);
-	VERIFY_RENDERSTATE(D3DRS_SRCBLEND, D3DBLEND_SRCALPHA);
-	VERIFY_RENDERSTATE(D3DRS_DESTBLEND, D3DBLEND_INVSRCALPHA);
-
-	LTRect* pSrcRect		= pRequest->m_pSrcRect;
-	float	srcRectWidth	= (float)(pSrcRect->right - pSrcRect->left);
-	float	srcRectHeight	= (float)(pSrcRect->bottom - pSrcRect->top);
-	
-	LTRect* pDestRect		= pRequest->m_pDestRect;
-	float	destRectWidth	= (float)(pDestRect->right - pDestRect->left);
-	float	destRectHeight	= (float)(pDestRect->bottom - pDestRect->top);
-
-	// Init default stuff in the verts.
-	TLVertex verts[4];		
-	verts[0].color = verts[1].color = verts[2].color = verts[3].color = g_Optimized2DColor;
-	verts[0].rgb.a = verts[1].rgb.a = verts[2].rgb.a = verts[3].rgb.a = (uint8)(pRequest->m_Alpha * 255.0f);
-	verts[0].rhw = verts[1].rhw = verts[2].rhw = verts[3].rhw = 1.0f;
-
-	// Remember the previous texture in there.
-	LPDIRECT3DBASETEXTURE8 pOldTexture = NULL;
-	D3D_CALL(PD3DDEVICE->GetTexture(0, &pOldTexture));
-	
-	SurfaceTile* pTile;
-	float destLeft, destRight, destTop, destBottom;
-	float tDestLeft, tDestTop, tDestRight, tDestBottom;
-	HRESULT hResult;
-	LTRect rcIntersection;
-	int nXOffset = pSrcRect->left;
-	int nYOffset = pSrcRect->top;
-
-	// Draw each tile.
-	for(uint32 nXTile = 0; nXTile < pTiles->m_nTilesX; nXTile++) 
-	{
-		for(uint32 nYTile = 0; nYTile < pTiles->m_nTilesY; nYTile++) 
-		{
-			pTile = &pTiles->m_Tiles[nYTile * pTiles->m_nTilesX + nXTile];
-			if (!GetRectIntersection(&rcIntersection, pSrcRect, &pTile->m_SrcImageRect))
-				continue;
-
-			destLeft	= (float)pDestRect->left + (float)(rcIntersection.left - nXOffset);
-			destRight	= (float)pDestRect->left + (float)(rcIntersection.right - nXOffset);
-			destTop		= (float)pDestRect->top + (float)(rcIntersection.top - nYOffset);
-			destBottom  = (float)pDestRect->top + (float)(rcIntersection.bottom - nYOffset);
-
-			tDestLeft	= (float)(rcIntersection.left - pTile->m_SrcImageRect.left) / (float)pTile->m_nTileWidth;
-			tDestRight	= (float)(rcIntersection.right - pTile->m_SrcImageRect.left) / (float)pTile->m_nTileWidth;
-			tDestTop	= (float)(rcIntersection.top - pTile->m_SrcImageRect.top) / (float)pTile->m_nTileHeight;
-			tDestBottom = (float)(rcIntersection.bottom - pTile->m_SrcImageRect.top) / (float)pTile->m_nTileHeight;
-
-			// This adjusts for the DX fill convention so the optimized surfaces cover
-			// the same pixels that nonoptimized surfaces would.
-			destLeft = LTMAX(0.0f, destLeft - fSub);
-			destTop = LTMAX(0.0f, destTop - fSub);
-			destRight = LTMAX(0.0f, destRight - fSub);
-			destBottom = LTMAX(0.0f, destBottom - fSub);
-
-			// Draw the poly!
-			verts[0].m_Vec.Init(destLeft, destTop, 1.0f);
-			verts[1].m_Vec.Init(destRight, destTop, 1.0f);
-			verts[2].m_Vec.Init(destRight, destBottom, 1.0f);
-			verts[3].m_Vec.Init(destLeft, destBottom, 1.0f);
-
-			verts[0].SetTCoords(tDestLeft, tDestTop);
-			verts[1].SetTCoords(tDestRight, tDestTop);
-			verts[2].SetTCoords(tDestRight, tDestBottom);
-			verts[3].SetTCoords(tDestLeft, tDestBottom);
-
-			d3d_SetTextureDirect(pTile->m_pTexture, 0);
-
-			D3D_CALL(PD3DDEVICE->SetVertexShader(TLVERTEX_FORMAT));
-			hResult = D3D_CALL(PD3DDEVICE->DrawPrimitiveUP(D3DPT_TRIANGLEFAN, 2, verts, sizeof(TLVertex)));
-		}
-	}
-
-	d3d_SetTextureDirect(pOldTexture, 0);
-	InvalidateRect(pDestRect);
-}
-
-void d3d_BlitToScreen3D_Old(BlitRequest *pRequest)
 {
 	RSurface*		pRSurface	= (RSurface*)pRequest->m_hBuffer;
 	SurfaceTiles*	pTiles		= pRSurface->m_pTiles;
@@ -631,13 +546,6 @@ void d3d_BlitToScreen3D_Old(BlitRequest *pRequest)
 			float tDestRight  = ((float)pTile->m_nXPixels - 0.5f) / pTile->m_nTileWidth;
 			float tDestTop	= 0.5f / pTile->m_nTileHeight;
 			float tDestBottom = ((float)pTile->m_nYPixels - 0.5f) / pTile->m_nTileHeight;
-
-			// This adjusts for the DX fill convention so the optimized surfaces cover
-			// the same pixels that nonoptimized surfaces would.
-			destLeft = LTMAX(0.0f, destLeft - fSub);
-			destTop = LTMAX(0.0f, destTop - fSub);
-			destRight = LTMAX(0.0f, destRight - fSub);
-			destBottom = LTMAX(0.0f, destBottom - fSub);
 
 			// Draw the poly!
 			verts[0].m_Vec.Init(destLeft, destTop, 1.0f);
