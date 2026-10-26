@@ -106,12 +106,19 @@ otherwise be counted twice, once as an unwritten shipped function and once
 as an unplaced one of ours. So the scorer also joins the two sides, and a
 function joined this way is `near`:
 
+0. **By reference**: an identical function's relocated operands name the
+   same things in both images (our link's dword against the shipped dword
+   at the same offset), so a function it calls is placed at the shipped
+   callee, and a vtable it installs is paired with the shipped one and
+   then slot for slot (a table nothing identical installs is found by the
+   slots already placed identical). Self-contradicting evidence is dropped.
 1. **By name**: a function named for the shipped address it reconstructs
    (`sub_<addr>`) is placed there, however differently it compiled.
 2. **By object**: the linker lays an object's functions out together, so a
    shipped function nothing is placed at, whose nearest placed neighbours are
-   object X's, is one of X's; X's unplaced functions are matched to those by
-   size, closest first (within a factor of two).
+   object X's, is one of X's; X's unplaced functions are first aligned with
+   those in order between X's own placed functions, and what is left is
+   matched by size, closest first (within a factor of two).
 3. **By link order**: what is left, between two neighbouring functions placed
    in both images (our `.map` gives our addresses), is aligned in order by
    size.
