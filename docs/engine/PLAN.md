@@ -1898,3 +1898,45 @@ PLACED_SYMS/NEAR_PAIRS, cjacksrc's read with its own tools under
 `python3 -B` so nothing is written there), listed every cj hunk marked
 `RETAIL` beside our status for that function, and compared each near
 function's masked bytes before and after a change.
+
+### exeplace
+
+Lithtech.exe's larger unplaced functions, rebased onto `integrate` (7057491):
+where unwritten made the same change (bind manager, the 3D blit and
+`m_bUseOld`, the client function slots, the DirectMusic thread,
+intersectsweptsphere's pragmas, tile edges, the split rows), master's is kept.
+
+**Added here.**
+- `SoundSys` keeps retail's null-pointer `Term` (RETAIL_BUGS.md, M-E64):
+  the extra block keeps it out of its callers, so `CSoundMgr::Update`
+  (2,427 bytes) and `SoundSys` match.
+- `d3d_SwapBuffers` locks a pixel of the back buffer under `VSyncOnFlip`
+  before presenting (0x51cfef; release build only, M-E63).
+- `CD3DRenderStyle` has no Direct3D options until they are set, and
+  `CopyRenderStyle` does not copy them (both match).
+- `ps_UpdateParticleBoundingBox` is retail's (moved to the system's
+  position, not rotated or scaled) and `inline`, expanded in both callers;
+  `ps_EndUpdatingPositions` pairs with 0x460230 (x87 order of the half-box
+  left).
+- `ReleaseTextureHandle` only counts down in the release build (0x421b50);
+  the modern build keeps Jupiter's free (M-E65). M-E66 documents the
+  DirectMusic thread's COM set-up kept in the modern build.
+
+**Score against 7057491.** Lithtech.exe 5,928 -> 5,936 identical (+5,211
+bytes), unplaced 128 -> 126, unwritten 9.
+
+**Left.**
+- The CRenderShader_Base template family: 13 `~CRenderShader_*` (409
+  bytes; ours calls `~_Vector_base<CInternalSection>` out of line, retail
+  expands it: one unit of inline budget short, shown by padding the base
+  destructor), `Lock`, `push_back()` (ours sets an EH state after
+  `_M_insert_overflow` for the `_Tp()` temporary; removing `~allocator`
+  loses 185 functions of the object, a user-declared `CRenderBlockData()`
+  changes nothing), `SortSections`.
+- Twelve catch blocks of vector reallocations after a `ret $0xc`
+  (0x4f0d6d..0x4f45cd) are scored as near to our `FinalizeUnlock`s;
+  marking them NOT A FUNCTION frees eight `FinalizeUnlock` instances retail
+  seems to expand, so unplaced rises.
+- The Lib_UI tail in the SecuROM pages could be placed against the MP
+  demo's plaintext (`tools/demoimports.py plain`) if progress.py matched
+  the `encrypted` range against it.
