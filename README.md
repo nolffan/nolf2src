@@ -75,6 +75,10 @@ is the whole game.
 | `ltmsg.dll` | the engine's messages, not in the total | 5 / 5 resources | 2,054 / 2,054 bytes | `████████████████████` 100.0% | 0 | -- |
 | `CRes.dll` | the game's client resources, not in the total | 484 / 484 resources | 622,940 / 622,940 bytes | `████████████████████` 100.0% | 0 | -- |
 | `SRes.dll` | the game's server resources, not in the total | no resources | -- | -- | -- | -- |
+| `Lithtech.exe:rsrc` | the engine's resources, not in the total | 18 / 27 resources | 9,772 / 18,762 bytes | `██████████░░░░░░░░░░` 52.0% | 2 | -- |
+| `server.dll:rsrc` | the engine's server's resources, not in the total | 2 / 2 resources | 760 / 760 bytes | `████████████████████` 100.0% | 0 | -- |
+| `NOLF2.exe:rsrc` | the launcher's resources, not in the total | 112 / 112 resources | 4,963,404 / 4,963,404 bytes | `████████████████████` 100.0% | 0 | -- |
+| `NOLF2Srv.exe:rsrc` | the dedicated server's resources, not in the total | 17 / 17 resources | 936,722 / 936,722 bytes | `████████████████████` 100.0% | 0 | -- |
 | **All** | | **29,201 / 33,035** | **5,171,224 / 5,275,236 bytes** | `███████████████████░` **98.0%** | **12** | **141** |
 <!-- progress:end -->
 

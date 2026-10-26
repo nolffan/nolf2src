@@ -256,4 +256,23 @@ TARGETS = [
          # the 1.3 SRes.dll has an empty resource directory: nothing to
          # score but its presence
          built="src/Game/built/Final/ServerRes/TO2/SRes.dll"),
+    # The other images' resources (version blocks, dialogs, string tables,
+    # icons, bitmaps), each a target of its own beside the image's code, as
+    # nolfsrc scores them. ServerDir.dll and snddrv.dll have none.
+    dict(label="Lithtech.exe:rsrc", what="the engine's resources",
+         kind="resources", shipped=REFERENCE + "/Lithtech.exe",
+         stem="Lithtech-rsrc",
+         built="src/Engine/built/Final/Lithtech/Lithtech.exe", optional=True),
+    dict(label="server.dll:rsrc", what="the engine's server's resources",
+         kind="resources", shipped=REFERENCE + "/server.dll",
+         stem="server-rsrc",
+         built="src/Engine/built/Final/server/server.dll", optional=True),
+    dict(label="NOLF2.exe:rsrc", what="the launcher's resources",
+         kind="resources", shipped=REFERENCE + "/NOLF2.exe",
+         stem="NOLF2-rsrc",
+         built="src/Game/built/Final/Launcher/NOLF2.exe"),
+    dict(label="NOLF2Srv.exe:rsrc", what="the dedicated server's resources",
+         kind="resources", shipped=REFERENCE + "/NOLF2Srv.exe",
+         stem="NOLF2Srv-rsrc",
+         built="src/Game/built/Final/ServerApp/NOLF2Srv.exe"),
 ]

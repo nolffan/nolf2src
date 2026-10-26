@@ -22,8 +22,9 @@ added there, with the evidence for its ranges.
 | Binary | Compared against | Our side |
 |---|---|---|
 | `CShell.dll`, `Object.lto`, `ClientFx.fxd`, `NOLF2.exe`, `NOLF2Srv.exe`, `ServerDir.dll`, `snddrv.dll` | the retail 1.3 binaries, extracted from the installed game into `out/reference/` (`build/reference.sh`) | the image `make` built (`src/Game/built/Final/...`) and every object and library of ours its link read, from the link's response file beside it (`<image>.rsp`) |
-| `Lithtech.exe`, `server.dll` | the same | nothing yet: no source. Every function is unwritten, and counted |
+| `Lithtech.exe`, `server.dll` | the same | the images built from the engine's source (`src/Engine/`, a reconstruction: `docs/engine/PLAN.md`), scored as the game's are |
 | `CRes.dll`, `SRes.dll`, `ltmsg.dll` | the same | resource by resource: their only code is the C runtime's DLL entry and an empty `DllMain`. Listed after the code, not in the total. The 1.3 `SRes.dll` has no resources at all |
+| `<image>:rsrc` (`Lithtech.exe`, `server.dll`, `NOLF2.exe`, `NOLF2Srv.exe`) | the same images' resources | the resources of our images, resource by resource: each image's resources are a target of their own beside its code (version blocks, dialogs, string tables, icons, bitmaps), listed after the code and not in the total, which counts code only. `identical.txt` lists them as `<image>:rsrc<TAB>rsrc:<type>/<name>/<language>`. `ServerDir.dll` and `snddrv.dll` have no resources |
 
 The retail images have no symbols, so their functions are enumerated from
 the code itself (call targets, vtables, callbacks, exports, ...), and each
