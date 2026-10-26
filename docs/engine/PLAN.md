@@ -1940,3 +1940,49 @@ bytes), unplaced 128 -> 126, unwritten 9.
 - The Lib_UI tail in the SecuROM pages could be placed against the MP
   demo's plaintext (`tools/demoimports.py plain`) if progress.py matched
   the `encrypted` range against it.
+
+### rendershader
+
+The CRenderShader_Base template family (d3d_rendershader_base.h).
+
+**Found.** Retail's d3d_renderworld.obj compiles the shader template in a
+different order from ours: each `CRenderShader_Base<X>`'s virtual functions
+follow its destructor (`~Base` at 0x4d1ce0, then PreviewRenderBlock,
+PreviewSection, Lock...) and come after the STL helpers ours compiles later,
+and InitRenderBlocks/SortSections come after the `_M_insert_overflow` group.
+VC6 instantiates an out-of-class template member later than an in-class one:
+with every member function of `CRenderShader_Base` defined outside the class
+(the constructor stays in it) ours takes retail's order. The order decides
+exception states: a function compiled after the implicit
+`~_STL_alloc_proxy<T>` (an empty `ret`) registers no state for it (measured
+with throwaway files: `~_Vector_base<uint>` compiled after the proxy's
+destructor has no EH frame, one compiled before has). That was the extra
+state in `push_back()` (the `_Tp()` temporary's vector) and the EH frames of
+`~CRenderBlockData` (0x4f0780) and `~vector<SSectionRBIndex>` (0x4f0720,
+which ICF folds twelve instances into). Lock's locked-vertex push is the
+default `push_back()` (retail stores nothing on the fast path; no `plv`).
+
+**Score** (master a906dd0): Lithtech.exe identical 5,936 -> 5,983 (+30,909
+bytes), near 137 -> 81, unwritten 9 -> 6, unplaced 126 -> 118. Now
+identical: all 12 Lock and push_back(), the 12 `_M_insert_overflow` of the
+render-block vector (0x4f0b90.., whose catch blocks at 0x4f0d6d.. were the
+"FinalizeUnlock" nears), FinalizeUnlock (0x4e94a0), 0x4e6b00, 0x4f0720,
+six SortSections.
+
+**Left.**
+- The destructors: ours still 382 bytes for the ten direct ones (0x4cb620
+  and 0x4cc680 unwritten, eight near) and ~CRenderShader_Gouraud (404).
+  The inline budget is tight: dropping `m_aVBs.clear()` (a probe) inlines
+  the last `~_Vector_base<CInternalSection>` in all of them, fullbright ones
+  included (retail's three fullbright destructors, 0x4cca40.., must stay 382
+  and do now). A dead `ASSERT` in `~Base` moved the fullbright cut to the
+  render-block vector instead: the decision is per call site against the
+  size so far, not a fixed depth. `std::vector<SVertex*>` for the locked
+  vertices also inlines it in all 13 but loses Lock and FinalizeUnlock.
+  Next to try: CInternalSection's and CRenderBlockData's members out of
+  class like the shader's (it changes which callees are compiled before the
+  derived destructors, compiled right after AllocShader).
+- 0x501010 (`__unguarded_linear_insert`) and the other SortSections; Flush
+  (+53, register allocation, not inlining).
+- exematch counts over one object are inflated by ICF duplicates; measure
+  with `make progress`.
