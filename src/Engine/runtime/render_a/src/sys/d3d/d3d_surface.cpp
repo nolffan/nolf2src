@@ -630,12 +630,41 @@ void d3d_MakeCubicEnvMap(const char* pszPrefix, uint32 nSize, const SceneDesc& I
 }
 
 
+#ifndef NOLF2SRC_MODERN
+// RETAIL: with VSyncOnFlip, lock and unlock a pixel of the back buffer before
+// the frame is presented, which makes the driver finish drawing it first
+// (Lithtech.exe 0x51cfef, inlined in d3d_SwapBuffers). The modern build
+// presents without it (MODERN.md M-E63).
+static void d3d_SyncBackBuffer()
+{
+	LPDIRECT3DSURFACE8 pBackBuffer;
+	if (FAILED(PD3DDEVICE->GetBackBuffer(0, D3DBACKBUFFER_TYPE_MONO, &pBackBuffer)))
+		return;
+
+	D3DLOCKED_RECT LockedRect;
+	RECT rLock;
+	rLock.left		= 0;
+	rLock.top		= 0;
+	rLock.right		= 1;
+	rLock.bottom	= 1;
+	if (SUCCEEDED(pBackBuffer->LockRect(&LockedRect, &rLock, D3DLOCK_READONLY)))
+		pBackBuffer->UnlockRect();
+
+	pBackBuffer->Release();
+}
+#endif
+
 void d3d_SwapBuffers(uint flags)
 {
 	CSAccess cLoadRenderCSLock(&g_Device.GetLoadRenderCS());
-	
+
 	if (!PD3DDEVICE)
 		return;
+
+#ifndef NOLF2SRC_MODERN
+	if (g_CV_VSyncOnFlip.m_Val)
+		d3d_SyncBackBuffer();
+#endif
 
 	if ((flags & FLIPSCREEN_DIRTY) != 0) 
 	{

@@ -180,7 +180,7 @@ minutes.
 | `identical.txt` | every function verified identical (`target<TAB>function`): the baseline the test holds the build to. Written by `make progress-update` |
 | `summary.json` | per-target counts and bytes of the recorded run; the README table is rendered from it |
 | `COMPILERS.md` | which compiler and flags built each retail binary, and the evidence |
-| `<stem>-screen-exclude.csv` | (none yet) per image, enumerated addresses examined by hand. A reason that starts `NOT A FUNCTION` or `NOT GAME CODE` removes the row from the count; any other reason marks the address `attempted` in an image whose addresses `src/` cites |
+| `<stem>-screen-exclude.csv` | (`Lithtech-screen-exclude.csv`: stray pointers that split a function's extent) per image, enumerated addresses examined by hand. A reason that starts `NOT A FUNCTION` or `NOT GAME CODE` removes the row from the count; any other reason marks the address `attempted` in an image whose addresses `src/` cites |
 | `extent-splits.csv` | function starts the enumeration misses, with the evidence (`snddrv.dll`'s small destructors, which only exception funclets reach) |
 
 The CSVs change what is counted, so a change to them is a change to the

@@ -116,6 +116,17 @@ ILTSoundSys* SoundSys(bool bTerminate)
 				// grab the default snddrv.dll NOTE: does't call Init on it. 
 				g_pSoundSys = ILTSoundFactory::GetSoundFactory()->MakeSoundSystem(LTNULL);
 
+#ifndef NOLF2SRC_MODERN
+				// RETAIL: when there is no default driver either, Term is
+				// called through the null pointer (Lithtech.exe 0x4ae646;
+				// docs/RETAIL_BUGS.md). The extra block is also what keeps
+				// this function too big to be inlined into its callers.
+				if (g_pSoundSys == LTNULL)
+				{
+					g_pSoundSys->Term();
+					g_pSoundSys = LTNULL;
+				}
+#endif
 
 		  }
 

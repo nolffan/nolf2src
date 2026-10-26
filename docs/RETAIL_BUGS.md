@@ -79,6 +79,7 @@ NOLF2 no longer has are listed at the end, so nobody looks again.
 * [`trk_ScanToKeyFrame` divides by the last keyframe's time](#trk_scantokeyframe-divides-by-the-last-keyframes-time)
 * [`LTObject::Clear` leaves the standing-on link untied](#ltobjectclear-leaves-the-standing-on-link-untied)
 * [An object DLL of the wrong version is freed twice](#an-object-dll-of-the-wrong-version-is-freed-twice)
+* [With no sound driver at all, the sound system is terminated through a null pointer](#with-no-sound-driver-at-all-the-sound-system-is-terminated-through-a-null-pointer)
 * [The world loader trusts a polygon's vertex count](#the-world-loader-trusts-a-polygons-vertex-count)
 * [`WriteMessage` stores a nested message's size in 16 bits](#writemessage-stores-a-nested-messages-size-in-16-bits)
 * [`CGenLTStream::WriteStream` ignores the source offset](#cgenltstreamwritestream-ignores-the-source-offset)
@@ -820,6 +821,17 @@ On a version mismatch it unbinds the module (deleting the binding and
 `FreeLibrary`) but leaves the pointer in the `ClassBindModule`, and
 `CClassMgr::Term` unbinds it again (`0x1000201a`): a second `FreeLibrary`
 and a delete of freed memory.
+
+### With no sound driver at all, the sound system is terminated through a null pointer
+`SoundSys`, `0x4ae646` (Lithtech.exe) · `src/Engine/runtime/sound/src/soundmgr.cpp`
+
+> **FIXED in the modern build** (`NOLF2SRC_MODERN`, MODERN.md M-E64): the
+> block is left out.
+
+When the named driver fails and the default `snddrv.dll` cannot be made
+either, `SoundSys` tests the pointer it just got for null and, when it is,
+calls `Term` through it. Only a game directory without its sound driver
+reaches it.
 
 ### The world loader trusts a polygon's vertex count
 `WorldBsp::Load`, `0x100092c1`; `w_NodeForIndex`, `0x10008e34` (server.dll) ·
