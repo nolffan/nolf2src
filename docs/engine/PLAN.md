@@ -1986,3 +1986,51 @@ six SortSections.
   (+53, register allocation, not inlining).
 - exematch counts over one object are inflated by ICF duplicates; measure
   with `make progress`.
+
+### smallverify
+
+A measurement change, no code work. `small` functions (fewer than 8
+unmasked bytes, placed by shape) are now verified in the linked images:
+tools/progress.py builds a mapping of our addresses to shipped ones from
+the identical functions (their relocated operands, typed by the COFF
+relocation -- exematch.parse_obj_masked can now return the types --, their
+own addresses, the slots of vtables they pair, import slots by name; any
+contradiction dropped), and a small function whose unmasked bytes match
+and whose every operand maps to the shipped operand at the same offset
+is identical. Repeated to a fixed point (a verified function's address
+maps too). It is tried at the address its own maps to, at its shape
+placement, and (all operands mapped) at any same-length function, so many
+are moved off the arbitrary sibling the shape placement gave them.
+
+**Score against 87380c5.** small -> identical: Lithtech.exe +278,
+server.dll +306, ServerDir +40, snddrv +16, NOLF2.exe +28, NOLF2Srv +75,
+CShell +921, Object.lto +2,515, ClientFx +24 (4,203 functions, +26.7 KB).
+No recorded identical lost. server.dll unwritten 0 -> 2, accepted: the
+join had placed ReadObject (CLTMessage_Read_Server) at 0x100135f2 by
+object order, and it is now proven identical elsewhere; transformlt_impl's
+`_$E29` sat at 0x10048b60 by shape and an operand refutes it there.
+Lithtech.exe unplaced 118 -> 119, accepted: with the new anchors the
+join's link-order alignment no longer places d3d_renderworld's
+`CRenderShader_Base<..DualTexture..>::PreviewSection` (458 bytes); the
+short initializers counted by shape only change names.
+
+**Left.**
+- About 1,500 functions stay small: an operand of theirs (mostly a BSS
+  global or a string only initializers reference) is in no identical
+  function. A mapping by symbol + offset from our .map (a reference to
+  g+8 when identical code only names g+4) would verify more; so would
+  mapping the C runtime's statics (`_atexit`) by name or bytes.
+- `tools/progress.py --refuted[=target]` lists ~205 refuted ones
+  (Lithtech 62, server 34, CShell 52, Object 39, ClientFx 7, snddrv 5,
+  NOLF2Srv 5, ServerDir 1). Most are still shape misplacements among
+  sibling initializers whose right address is held by another unverified
+  one (e.g. CShell's `_$E` of VehicleMgr.obj, Lithtech's model.obj
+  `_$E34..40` each naming g_ModelMgr's neighbour). A swap whenever the
+  holder is merely unmapped at the vacated address made the count worse
+  (1,357) in a first try -- something in that pass is wrong; worth
+  redoing as an assignment. Candidates for real differences:
+  ServerDir `??1CSDTitan_RequestEntry_Noop` installs
+  `??_7CSDTitan_RequestEntry` where retail installs another table;
+  Lithtech `??1CRezTypeHashTable` calls a `~CBaseHash` other than the one
+  identical code calls; the `ObjectBank<..>::AllocVoid` instances in
+  CShell, Object.lto and NOLF2Srv call another `Allocate` than ours.

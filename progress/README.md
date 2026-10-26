@@ -30,7 +30,25 @@ the code itself (call targets, vtables, callbacks, exports, ...), and each
 of our compiled functions is searched for in the image. A function is
 **identical** when our bytes equal the retail bytes everywhere except where
 the linker writes an address (relocations, which an unlinked object leaves
-blank). Libraries of ours (ButeMgr, StdLith, LTGuiMgr, ...) are built from
+blank). A function that is almost all relocations (fewer than 8 other
+bytes) cannot be found that way, so it is placed by shape and then checked
+in the two LINKED images, where the relocations are resolved: the
+identical functions' relocated operands (the dword our link wrote against
+the shipped one at the same offset, or the targets a rel32 reaches), their
+own addresses, the slots of the vtables they install and the import slots
+(by name) give a mapping of our addresses to the shipped ones, from which
+anything self-contradicting (one of ours seen with two shipped addresses,
+or the reverse) is dropped. A short function whose other bytes match and
+whose every relocated operand maps to the shipped operand at the same
+offset is **identical**; its own address then joins the mapping, and the
+check repeats until nothing new is proven. It is tried at the address its
+own maps to, where the shape put it, and, when every operand maps, at any
+shipped function of its length (a recurring shape was given an arbitrary
+one of its copies). One that is left `small` with an operand that maps
+somewhere else is moved to a copy of its shape where nothing disagrees;
+where none exists it is *refuted* -- a real difference, such as
+initializing the wrong global -- and `tools/progress.py --refuted` lists
+those. Libraries of ours (ButeMgr, StdLith, LTGuiMgr, ...) are built from
 source and scored inside the binaries that link them; NOLF2's source
 release ships no prebuilt library to compare them with on their own.
 
@@ -40,7 +58,7 @@ Each retail function gets one status (`out/progress/functions.csv`):
 |---|---|
 | `identical` | our code is the retail code, relocations aside |
 | `near` | we have the function, but the bytes differ |
-| `small` | we have it, but it is almost all relocations (global initializers), so there is nothing to compare: reconstructed, not verified |
+| `small` | we have it, but it is almost all relocations (global initializers, thunks, one-line wrappers), and not everything those relocations name is known yet (below): reconstructed, not verified |
 | `attempted` | no match, but the address is cited in `src/` or recorded in the CSVs here |
 | `todo` | nothing of ours corresponds to it yet |
 | `crt` | outside the binary's own code (`app` in `targets.py`): the C runtime's static parts, import thunks, the `.text$x` exception funclets, the launcher's incremental-link thunk table: listed, not counted |
@@ -99,8 +117,8 @@ Both at zero means the build is complete: every shipped function has a
 written, placed counterpart, near or identical, and nothing of ours is left
 over. Identity is then a matter of converging the near ones.
 
-A function is placed first by its bytes (identical, or `small` by shape), then
-by similarity (`near`: same length within 15% and most unmasked bytes
+A function is placed first by its bytes (identical, or `small` by shape and
+then identical where its relocations are verified, above), then by similarity (`near`: same length within 15% and most unmasked bytes
 agreeing). What both miss -- a function written right but compiled with
 other registers, another block order, a different member offset -- would
 otherwise be counted twice, once as an unwritten shipped function and once
@@ -137,7 +155,8 @@ there.
 `make progress` fails if either count goes up; `make progress COVERED=1`
 fails unless both are zero everywhere. `tools/progress.py --unplaced=<target>`
 and `--todo=<target>` (and `--attempted`, `--near`, `--small`) list them,
-and `--nears` lists the near matches closest first.
+`--nears` lists the near matches closest first, and `--refuted[=<target>]`
+the small functions a verified relocation contradicts.
 
 This is the per-function measure. A whole binary is byte-perfect only once
 every function is identical *and* it links in the same order, with the same

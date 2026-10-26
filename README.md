@@ -63,19 +63,19 @@ is the whole game.
 
 | Binary | | Byte-identical functions | Byte-identical code | | Unwritten | Unplaced |
 |---|---|--:|--:|---|--:|--:|
-| `Lithtech.exe` | the engine | 5,983 / 6,846 | 1,276,556 / 1,345,403 bytes | `██████████████████░░` 94.8% | 6 | 118 |
-| `server.dll` | the engine's server | 2,527 / 3,472 | 299,415 / 310,878 bytes | `███████████████████░` 96.3% | 0 | 8 |
-| `ServerDir.dll` | the server directory (WON Titan) | 417 / 492 | 88,565 / 89,212 bytes | `███████████████████░` 99.2% | 0 | 0 |
-| `snddrv.dll` | the sound driver | 194 / 236 | 35,073 / 35,599 bytes | `███████████████████░` 98.5% | 0 | 0 |
-| `NOLF2.exe` | the launcher | 310 / 408 | 49,137 / 49,925 bytes | `███████████████████░` 98.4% | 1 | 7 |
-| `NOLF2Srv.exe` | the dedicated server | 468 / 595 | 85,760 / 87,292 bytes | `███████████████████░` 98.2% | 1 | 1 |
-| `CShell.dll` | the game: client | 5,414 / 7,224 | 1,305,485 / 1,326,222 bytes | `███████████████████░` 98.4% | 0 | 2 |
-| `Object.lto` | the game: server objects | 9,255 / 13,262 | 1,873,201 / 1,909,666 bytes | `███████████████████░` 98.0% | 2 | 6 |
-| `ClientFx.fxd` | the game: client effects | 385 / 499 | 119,616 / 121,029 bytes | `███████████████████░` 98.8% | 1 | 1 |
+| `Lithtech.exe` | the engine | 6,261 / 6,846 | 1,278,575 / 1,345,403 bytes | `███████████████████░` 95.0% | 6 | 119 |
+| `server.dll` | the engine's server | 2,833 / 3,472 | 301,601 / 310,878 bytes | `███████████████████░` 97.0% | 2 | 8 |
+| `ServerDir.dll` | the server directory (WON Titan) | 457 / 492 | 88,815 / 89,212 bytes | `███████████████████░` 99.5% | 0 | 0 |
+| `snddrv.dll` | the sound driver | 210 / 236 | 35,176 / 35,599 bytes | `███████████████████░` 98.8% | 0 | 0 |
+| `NOLF2.exe` | the launcher | 338 / 408 | 49,288 / 49,925 bytes | `███████████████████░` 98.7% | 1 | 7 |
+| `NOLF2Srv.exe` | the dedicated server | 543 / 595 | 86,191 / 87,292 bytes | `███████████████████░` 98.7% | 1 | 1 |
+| `CShell.dll` | the game: client | 6,335 / 7,224 | 1,313,803 / 1,326,222 bytes | `███████████████████░` 99.0% | 0 | 2 |
+| `Object.lto` | the game: server objects | 11,770 / 13,262 | 1,886,260 / 1,909,666 bytes | `███████████████████░` 98.7% | 2 | 6 |
+| `ClientFx.fxd` | the game: client effects | 409 / 499 | 119,817 / 121,029 bytes | `███████████████████░` 98.9% | 1 | 1 |
 | `ltmsg.dll` | the engine's messages, not in the total | 5 / 5 resources | 2,054 / 2,054 bytes | `████████████████████` 100.0% | 0 | -- |
 | `CRes.dll` | the game's client resources, not in the total | 484 / 484 resources | 622,940 / 622,940 bytes | `████████████████████` 100.0% | 0 | -- |
 | `SRes.dll` | the game's server resources, not in the total | no resources | -- | -- | -- | -- |
-| **All** | | **24,953 / 33,034** | **5,132,808 / 5,275,226 bytes** | `███████████████████░` **97.3%** | **11** | **143** |
+| **All** | | **29,156 / 33,034** | **5,159,526 / 5,275,226 bytes** | `███████████████████░` **97.8%** | **13** | **144** |
 <!-- progress:end -->
 
 Every function in that table is recorded in `progress/identical.txt`, and
