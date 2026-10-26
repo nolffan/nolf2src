@@ -77,7 +77,8 @@ is the whole game's code, the engine's included.
     GameSpy's query reporting inside it. We build it from the LithTech
     Jupiter SDK's source, but it is not the game's code: its objects are
     left out of our side (`third_party`), so they neither match nor count
-    as unplaced. `ServerDir.dll`'s score is `CServerDir_Titan.cpp`'s.
+    as unplaced. `ServerDir.dll`'s score is `CServerDir_Titan.cpp`'s and
+    `TitanTest.cpp`'s.
   STLport and MS STL templates instantiated in the game's own objects are
   compiled from headers here, like any inline function, and are counted.
 * **SecuROM.** `Lithtech.exe`'s code at 0x565000..0x56a000 (five pages) is

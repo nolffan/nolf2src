@@ -46,7 +46,7 @@ legacy build keeps matching the retail one.
 | Game DLLs | `CShell.dll`, `Object.lto`, `ClientFx.fxd`, `CRes.dll`, `SRes.dll` compile from Monolith's workspace (`src/Game/TO2.dsw`, Final configuration) and run in the game. Each is the retail binary's exact size, compiled with VC6 SP5 (build 8966) as retail was. `ClientFx.fxd`, `CRes.dll` and `SRes.dll` are byte for byte the retail ones apart from link time stamps; `CShell.dll` and `Object.lto` are close but not yet identical. |
 | Dedicated server | `NOLF2Srv.exe` compiles; its code is the retail one's but for two `CButeMgr` functions (`libs/ButeMgr`), where SP5 orders two loads the other way round. |
 | Launcher | `NOLF2.exe` compiles against the DirectX 8.1 SDK; every code segment matches the retail one's. It is in the game directory, and starts the game under Wine (`linux-run.sh`; in the legacy build it also writes the registry values the retail installer wrote). |
-| Engine | Built here and in the game: `Lithtech.exe` and `server.dll` from the LithTech Jupiter engine source (a 2006 distribution of NOLF2's engine line, back-ported to 2002: `docs/engine/PLAN.md`), with no SecuROM; `snddrv.dll` and `ltmsg.dll` (byte for byte retail's but for its time stamp) reconstructed from the retail binaries; `ServerDir.dll` from the LithTech Jupiter SDK's source (WONAPI and the 2002 `CServerDir_Titan`, brought to the 1.3 interface; rez/ fetches the SDK, nothing of it is committed). Under Wine the game runs: the menus, a new game, the first level played with sound, saving and loading (`make test`). Nothing of the retail engine is in the game directory: every binary there is built here but the third-party runtime (Bink, the Microsoft C++ and MFC DLLs; the modern build plays the movies with its own Bink player on FFmpeg). |
+| Engine | Built here and in the game: `Lithtech.exe` and `server.dll` from the LithTech Jupiter engine source (a 2006 distribution of NOLF2's engine line, back-ported to 2002: `docs/engine/PLAN.md`), with no SecuROM; `snddrv.dll` and `ltmsg.dll` (byte for byte retail's but for its time stamp) reconstructed from the retail binaries; `ServerDir.dll` from Monolith's 1.3 `CServerDir_Titan` (as the F.E.A.R. source release carries it) and the LithTech Jupiter SDK's WONAPI (rez/ fetches the SDK, nothing of it is committed). Under Wine the game runs: the menus, a new game, the first level played with sound, saving and loading (`make test`). Nothing of the retail engine is in the game directory: every binary there is built here but the third-party runtime (Bink, the Microsoft C++ and MFC DLLs; the modern build plays the movies with its own Bink player on FFmpeg). |
 | Scoring | `make progress` scores every binary function by function against the retail 1.3 ones (below, and `progress/README.md`). |
 
 ## Progress
@@ -63,19 +63,19 @@ is the whole game.
 
 | Binary | | Byte-identical functions | Byte-identical code | | Unwritten | Unplaced |
 |---|---|--:|--:|---|--:|--:|
-| `Lithtech.exe` | the engine | 5,891 / 6,892 | 1,224,417 / 1,345,385 bytes | `██████████████████░░` 91.0% | 53 | 135 |
-| `server.dll` | the engine's server | 2,513 / 3,470 | 298,707 / 310,859 bytes | `███████████████████░` 96.0% | 17 | 15 |
-| `ServerDir.dll` | the server directory (WON Titan) | 207 / 508 | 29,800 / 88,203 bytes | `██████░░░░░░░░░░░░░░` 33.7% | 130 | 1 |
+| `Lithtech.exe` | the engine | 5,891 / 6,901 | 1,224,417 / 1,345,409 bytes | `██████████████████░░` 91.0% | 53 | 126 |
+| `server.dll` | the engine's server | 2,513 / 3,473 | 298,707 / 310,878 bytes | `███████████████████░` 96.0% | 17 | 13 |
+| `ServerDir.dll` | the server directory (WON Titan) | 417 / 492 | 88,565 / 89,212 bytes | `███████████████████░` 99.2% | 0 | 0 |
 | `snddrv.dll` | the sound driver | 194 / 236 | 35,073 / 35,599 bytes | `███████████████████░` 98.5% | 0 | 0 |
 | `NOLF2.exe` | the launcher | 309 / 406 | 49,095 / 49,876 bytes | `███████████████████░` 98.4% | 1 | 8 |
-| `NOLF2Srv.exe` | the dedicated server | 468 / 587 | 85,760 / 86,985 bytes | `███████████████████░` 98.5% | 2 | 9 |
-| `CShell.dll` | the game: client | 5,414 / 7,216 | 1,305,485 / 1,326,160 bytes | `███████████████████░` 98.4% | 0 | 9 |
-| `Object.lto` | the game: server objects | 9,254 / 13,253 | 1,873,159 / 1,909,614 bytes | `███████████████████░` 98.0% | 3 | 14 |
-| `ClientFx.fxd` | the game: client effects | 385 / 497 | 119,616 / 121,011 bytes | `███████████████████░` 98.8% | 1 | 3 |
+| `NOLF2Srv.exe` | the dedicated server | 468 / 595 | 85,760 / 87,292 bytes | `███████████████████░` 98.2% | 1 | 1 |
+| `CShell.dll` | the game: client | 5,414 / 7,224 | 1,305,485 / 1,326,222 bytes | `███████████████████░` 98.4% | 0 | 2 |
+| `Object.lto` | the game: server objects | 9,254 / 13,262 | 1,873,159 / 1,909,666 bytes | `███████████████████░` 98.0% | 3 | 6 |
+| `ClientFx.fxd` | the game: client effects | 385 / 499 | 119,616 / 121,029 bytes | `███████████████████░` 98.8% | 1 | 1 |
 | `ltmsg.dll` | the engine's messages, not in the total | 5 / 5 resources | 2,054 / 2,054 bytes | `████████████████████` 100.0% | 0 | -- |
 | `CRes.dll` | the game's client resources, not in the total | 484 / 484 resources | 622,940 / 622,940 bytes | `████████████████████` 100.0% | 0 | -- |
 | `SRes.dll` | the game's server resources, not in the total | no resources | -- | -- | -- | -- |
-| **All** | | **24,635 / 33,065** | **5,021,112 / 5,273,692 bytes** | `███████████████████░` **95.2%** | **207** | **194** |
+| **All** | | **24,845 / 33,088** | **5,079,877 / 5,275,183 bytes** | `███████████████████░` **96.2%** | **76** | **157** |
 <!-- progress:end -->
 
 Every function in that table is recorded in `progress/identical.txt`, and

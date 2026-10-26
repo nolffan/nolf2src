@@ -55,7 +55,7 @@ parts of it by hand, and how the game is packaged.
 |---|---|---|
 | 1. resources | the game data from the retail game: the `.rez` archives (the retail game DLLs inside them zeroed), the movies, the shipped `autoexec.cfg` and default profile | `out/nolf2-legacy-release/` |
 | 2. third-party runtime | Bink (`binkw32.dll`) and the Microsoft C++ and MFC runtime DLLs from the retail game: licensed binaries with no source. The modern build takes only the Microsoft runtime, and builds its own `binkw32.dll` | `out/nolf2-legacy-release/` |
-| 2b. Jupiter SDK source | WONAPI and `CServerDir_Titan`, which `ServerDir.dll` is built from, from the installed SDK (`tools/jupitersrc.py`; never committed) | `src/Game/Libs/` |
+| 2b. Jupiter SDK source | WONAPI, the library `ServerDir.dll` is built with, from the installed SDK (`tools/jupitersrc.py`; never committed) | `src/Game/Libs/` |
 | 3. compile | `build/compile.sh`: every compile and link, by `build/build.mk` -- the libraries, the game DLLs, the launcher and the dedicated server from Monolith's workspace, `ServerDir.dll`, `snddrv.dll`, the engine (`Lithtech.exe`, `server.dll`) and `ltmsg.dll` | `src/Game/built/`, `src/Engine/built/` |
 | 4. assemble | the built binaries into the game directory; the game DLLs go in `custom/`, last in the rez stack | `out/nolf2-legacy-release/` |
 | 5. audit | every PE file in the game directory listed with its origin (`MANIFEST.txt`); the build fails if one is unaccounted for, or if a `.rez` archive still holds one | |

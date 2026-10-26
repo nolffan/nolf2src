@@ -155,12 +155,18 @@ TARGETS = [
          app=[(0x10001000, 0x1004d1d0)]),
     dict(label="ServerDir.dll", what="the server directory (WON Titan)",
          kind="image", shipped=REFERENCE + "/ServerDir.dll", stem="ServerDir",
-         # src/Game/Libs/ServerDir/ServerDir.dsw: CServerDir_Titan.cpp
-         # (Monolith's) and WONAPI.lib, the WON/Titan client library, both
-         # from the LithTech Jupiter SDK (tools/jupitersrc.py)
+         # src/Game/Libs/ServerDir/ServerDir.dsw: CServerDir_Titan.cpp and
+         # TitanTest.cpp (Monolith's, from the F.E.A.R. source release) and
+         # WONAPI.lib, the WON/Titan client library, from the LithTech
+         # Jupiter SDK (tools/jupitersrc.py)
          built="src/Game/built/Final/libs/ServerDir/ServerDir.dll",
-         # Monolith's code is CServerDir_Titan.obj, 0x10001000..0x10017a40
-         # (its last functions are global initializers). WONAPI.lib follows
+         # Monolith's code is CServerDir_Titan.obj, 0x10001000..0x10016d70,
+         # then TitanTest.obj to 0x10017a40: its globals' initializers
+         # (g_sWONCommunity = L"NOLF2", g_sWONProduct, g_sWONCurPath =
+         # L"/NOLF2", g_lWONServerList, g_sWONCDKey) and the STLport code
+         # they and WONAPI instantiate first there; its console program is
+         # unreferenced and dropped by the link. Our link places both
+         # objects the same, byte for byte but for addresses. WONAPI.lib follows
          # as one block: its Common.obj's AsyncOp::AsyncOp at 0x10017a40 is
          # the first function of the library in our link too, and
          # libscan.py puts WONAPI.lib's functions at single addresses up to

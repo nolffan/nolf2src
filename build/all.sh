@@ -26,8 +26,8 @@
 #                         game, and our own binkw32.dll -- a Bink player on
 #                         FFmpeg, built from src/modern/binkw32/ and the
 #                         ext/ffmpeg submodule by build/ext.sh.
-#   2b. Jupiter SDK source  WONAPI and CServerDir_Titan, which ServerDir.dll
-#                         is built from and Monolith's release lacks: from
+#   2b. Jupiter SDK source  WONAPI, the library ServerDir.dll is built with
+#                         and Monolith's release lacks: from
 #                         the LithTech Jupiter SDK, as rez/ fetches it
 #                         (build/jupiter.sh; `make` fetches it once), into
 #                         src/Game/Libs/ (tools/jupitersrc.py; not committed).
@@ -139,7 +139,7 @@ else
     python3 tools/retailextract.py thirdparty "$RETAIL" "$OUT"
 fi
 
-step "2b. Jupiter SDK source: WONAPI, CServerDir_Titan -> src/Game/Libs/"
+step "2b. Jupiter SDK source: WONAPI -> src/Game/Libs/"
 python3 tools/jupitersrc.py "$(jupiter_source)" src
 
 step "3. compile: Monolith's workspace (build/compile.sh: build/build.mk, ${NOLF2SRC_JOBS:-$(nproc)} jobs)"

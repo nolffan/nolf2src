@@ -69,9 +69,10 @@ PROJECTS_WANTED := ClientShellDLL Object ClientFxDLL ClientRes ServerRes ServerA
 
 # ServerDir.dll, of which Monolith's release has only the headers and the
 # import library: src/Game/Libs/ServerDir/ServerDir.dsw (written for this
-# project) builds it from the LithTech Jupiter SDK's source -- WONAPI and
-# CServerDir_Titan, which tools/jupitersrc.py copies into src/Game/Libs/ from
-# rez/ (build/all.sh does, first).
+# project) builds it from CServerDir_Titan (src/Game/Libs/ServerDir/, from
+# the F.E.A.R. source release) and the LithTech Jupiter SDK's WONAPI, which
+# tools/jupitersrc.py copies into src/Game/Libs/ from rez/ (build/all.sh
+# does, first).
 SERVERDIR_WANTED := ServerDir
 
 # The engine's sound driver, SndDrv.dll, of which Monolith's release has

@@ -69,6 +69,7 @@ Background, in this directory:
 | 17 | `nolfsync`: nolfsrc's commits since package 16 (its history rewritten: a99873c, 549ea60, 3bc4fac, 7855bf1, a97a06c, 1a7a95c, 39d8636, bc52297, 82d0759, 4f5b3fa, 113b4f4), each ported where NOLF2 needs it | 14, 15, 16 | done: out of the water at high frame rates and a 240 default limit (M-E4; 1 `docs/RETAIL_BUGS.md` entry); the documentation in `docs/` with an install guide, console and variables, changelog and credits; the rest already here, not applicable or waiting for M-E5 (notes) |
 | 18 | `console`: the developer console in the modern build (docs/MODERN.md M-E5), with nolfsrc's `GetPos`/`SetPos` (its M-P2-14) and Shift+Esc (M-P2-15) | 12, 17 | done: the engine's own console revived behind the define (keys, drawing at any resolution, completion, answers), the game paused under it in single player, `GetPos`/`SetPos`; tested in play at 640x480, 1920x1080 and 4K and over a multiplayer client (`tools/playtest-console.txt`); 2 `docs/RETAIL_BUGS.md` entries |
 | 19 | `winlaunch`: issue #1 -- on Windows the launcher offered only "Install" (no installer registry) and `Lithtech.exe` typed by hand failed with "Bad Image" / "Missing shell DLL" (no `-rez custom`) | 10, 8 | done: legacy build: `windows-install.bat` registers the game, `windows-run.bat`; the modern build's launcher needs no registry and no administrator (M-L6, M-L7, M-G71); tested under Wine in fresh prefixes (notes); not yet on real Windows; 1 `docs/RETAIL_BUGS.md` entry |
+| 20 | `serverdir`: why `ServerDir.dll` scored 33.8% (207 identical, 129 near, 130 unwritten) | 9 | done: the 2002 SDK `CServerDir_Titan` replaced by NOLF2's 1.3 one from the F.E.A.R. source release, with `TitanTest.cpp` linked as retail did; 207 -> 417 identical, 0 near, 130 -> 0 unwritten, 1 -> 0 unplaced (33.8% -> 99.3%; the rest is 75 rows too small to place) |
 
 ## Notes per package
 
@@ -1688,3 +1689,59 @@ group members of retail's holder objects that the scorer leaves (the
 19-byte `PI_x` twins: five per object), the rest Lib_UI `*_impl` functions
 past the SecuROM pages and folded small functions. No other header
 initializer shape has a surplus worth a change.
+
+### 20. serverdir
+
+**The cause was the source, not the compile.** Our `CServerDir_Titan.cpp`
+was the LithTech Jupiter SDK's (March 2002), patched by hand to the 1.3
+interface (`src/nolf2src/jupiter/serverdir.patch`): an earlier version
+than retail's. Retail's strings (`ping_%d`, `frags_%d`, `hostport`,
+`mapname`: GameSpy query keys) are not in it. The F.E.A.R. source release
+carries NOLF2's own 1.3 server directory in `Dev/Source/libs/ServerDir/`:
+the same `IServerDir.h` and `IServerDir_Titan.h` as the 1.3 release, byte
+for byte, `DEFAULT_TITAN_PRODUCT_STRING ("NOLF2")`, `ClientResShared.h`
+(its CMakeLists points at `../../NOLF2/ClientRes/Shared`), the GameSpy
+support. Its WONAPI is the SDK's but for modern-compiler edits. With it
+(`src/Game/Libs/ServerDir/`, committed; jupitersrc.py now copies WONAPI
+alone and the patches are gone) 396 functions matched at once. The flags
+(`/MD /W3 /GX /O2`, `/YX`) were right; the pch order no longer changes the
+object (no pch, its own pch and stdafx's give the same code).
+
+What was left, and why:
+- `SetActivePeer` (+145 bytes): retail calls STLport's no-argument
+  `push_back()`, which default-constructs in place; F.E.A.R.'s copy pushes
+  a local `SPeerData` (a modern-STL edit). Changed back.
+- The object's tail (37 unwritten, 0x10016d70..0x10017a40, and the lost
+  `operator+(const string&, const char*)` at 0x100178a0) is `TitanTest.obj`:
+  the initializers of its globals (`g_sWONCommunity = L"NOLF2"`,
+  `g_sWONProduct`, `g_sWONCurPath = L"/NOLF2"`, `g_lWONServerList`,
+  `g_sWONCDKey`) and the STLport code instantiated first there (the
+  `operator+` is called only from WONAPI; its COMDAT comes from
+  TitanTest.obj, first in link order). Retail linked `TitanTest.cpp` even
+  with `_FINAL`: the console program is unreferenced and dropped by
+  `/OPT:REF` (its strings too, `/O2` implies `/GF /Gy`), the globals stay.
+  The .dsp now lists it. The Rich header agrees: retail has 13 cl 8966 C++
+  objects; ours had 12 and now has 13, and the `0x04` counts match too.
+  The built DLL is retail's size (479,232 bytes) and `CServerDir_Titan.obj`
+  + `TitanTest.obj` (to 0x10017a40) differ from retail only in addresses.
+- 4 unplaced (`~CWinSync_CSAuto`, `~CWinSync_CS`, `~CWinSync_Event`,
+  `~_Node_Alloc_Lock`): in retail at the same addresses, but reached only by
+  `jmp` from exception-unwind funclets, which `tools/enumfuncs.py` did not
+  follow, so they merged into the rows before them. New rule 4e: the jump
+  target of a funclet (`lea/mov ecx,<slot>` or `mov ecx,imm32`, optionally
+  `add ecx,imm`, then `jmp rel32`) is a start. Every target gains
+  (measured on master after headerinit): unplaced CShell 9 -> 2, Object
+  14 -> 6, NOLF2Srv 9 -> 1, ClientFx 3 -> 1, Lithtech 135 -> 126, server
+  15 -> 13; unwritten NOLF2Srv 2 -> 1; no recorded function lost.
+
+**The function tables are derived** (`out/reference/*-functions.csv`), so
+a tree with the old tables would score the new baseline wrong:
+`build/progress.sh` now rebuilds them (`build/reference.sh tables`) when
+`tools/enumfuncs.py` is newer than they are, and enumfuncs writes a new file
+over the old one, never through a worktree's hard link.
+
+Left: 75 `small` rows (647 bytes), functions too short to place by bytes.
+WONAPI (middleware, not scored) was not examined: `exematch.py` finds
+1,794 of our WONAPI.lib's functions in retail and not 858 (unreferenced
+COMDATs among them), and the image's .rdata/.data differ from retail's.
+

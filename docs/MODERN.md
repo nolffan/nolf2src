@@ -328,4 +328,4 @@ these; each against the modern build:
 | What | Why |
 |---|---|
 | The game's FOV console variables (`FovX`, `FovY`, `FovXInterface`, ...) | M-E1 widens the drawn view in the engine instead: the game reads its camera angles back (zoom, the underwater effect) and would compound a game-side widening every frame. |
-| The `sierraup.cfg` crash in `ServerDir.dll` | not a modern item: retail checks for the missing file, and so does our build in both variants (`src/nolf2src/jupiter/serverdir2-sierraup.patch`). |
+| The `sierraup.cfg` crash in `ServerDir.dll` | not a modern item: retail checks for the missing file, and so does our build in both variants (`CServerDir_Titan::LoadDirServerList`, 1.3's code; the SDK's 2002 code did not check). |
