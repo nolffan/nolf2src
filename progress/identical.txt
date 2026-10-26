@@ -22887,6 +22887,16 @@ server.dll	sub_1000fe12
 server.dll	sub_100100d4
 server.dll	sub_100101e1
 server.dll	sub_10010204
+server.dll	sub_1001025f
+server.dll	sub_1001045e
+server.dll	sub_10010536
+server.dll	sub_1001062b
+server.dll	sub_1001069c
+server.dll	sub_1001095c
+server.dll	sub_100109a6
+server.dll	sub_10010ac0
+server.dll	sub_10010d0b
+server.dll	sub_10010d76
 server.dll	sub_10010e46
 server.dll	sub_10010ea2
 server.dll	sub_10010ee4

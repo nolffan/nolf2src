@@ -1574,3 +1574,67 @@ the registry only when MANIFEST.txt has no `EXT` `binkw32.dll`, i.e. the
 legacy build, with Disable Movies 1). The tests above of those parts no
 longer apply; `tools/playtest-launcher.txt` (modern, fresh prefix) was run
 again after the change.
+
+### srvplace
+
+`server.dll`'s 1,154 unplaced functions (1,100 of them `_$E` initializers
+of 5 and 19 bytes, the rest tiny accessors and a few larger functions).
+
+**What they were.** Almost all real extras, from one cause: retail's
+`server.dsp` used the precompiled header, `/Yu"bdefs.h"` (`/Yc` on
+`bdefs.cpp`), as Jupiter's and Contract J.A.C.K.'s do; ours had none.
+`math_phys.h` (through `ltbasetypes.h` -> `ltrotation.h` ->
+`coordinate_frame.h`) defines `PI` as `(float)(4 * atan(1.0))`, `PI_2`..,
+`RADIANS_PER_DEGREE`, `DEGREES_PER_RADIAN` and the three `WORLD_*`
+vectors: nine dynamic initializers (a `jmp` thunk and a body each, 0xF2
+bytes) in every object at `/O1`, which cannot fold `atan`. Retail has the
+group in 19 objects only (`51 51 d9 e8 dd 1c 24 e8`: 19 in retail, 100 in
+ours; retail's .text 22 KB smaller): with a precompiled header VC6 emits a
+header's initializers in the `/Yc` object alone, so only `bdefs.obj` and
+the files compiled without the header have them. The groups' places in
+retail (at each object's start, matched against ours) name those files:
+`bindmgr`, `counter`, `de_file`, `de_memory`, `de_nodes`, `debugging`,
+`dsys_interface`, `dutil`, `lthread`, `ltmodule`, `ltobjref`,
+`server_interface`, `sounddata`, `streamsim`, `stringmgr`, `timemgr`,
+`wave` -- mostly `sys/win` -- so those are `SUBTRACT CPP /YX /Yc /Yu`, with
+`interface_linkage` and `ltquatbase`, which do not include `bdefs.h`. The
+5- and 19-byte rows were the surplus of those shapes (the scorer counts
+short functions by shape), so any 5-byte `jmp` accessor could carry the
+label. A bonus: `intersectsweptsphere.cpp`'s `#pragma optimize("", off)` /
+`("as", on)` sit above its `#include "bdefs.h"`, and `/Yu` skips
+everything above it, as retail's compile did: all ten of its functions
+are now identical (`i_IntersectSweptSphere` 2,105 bytes -> retail's 587).
+
+**The scorer** (tools 26a8abc, progress/README.md): the real misses were
+functions whose bytes cannot place them. It now pairs by reference
+(each identical function's relocated operands: the callee or vtable our
+link wrote against the shipped one at the same offset; a vtable then slot
+for slot, found by its already-identical slots when nothing identical
+installs it), and within an object aligns in order before matching by
+size. That placed all 32 `CLTServerInterface` methods by their vtable
+slots, where the object join had put initializer thunks (13 of them
+unplaced), and `i_IntersectSweptSphere` by its caller. On master's build:
+no identical change; Lithtech.exe unwritten 54 -> 49, unplaced 1,215 ->
+1,212 (12 KB fewer unplaced bytes), server.dll 5 -> 4 / 1,154 -> 1,153,
+ServerDir.dll unwritten 131 -> 130, Object.lto 4 -> 3 / 15 -> 14.
+
+**Score** (server.dll, master -> now): identical 2,503 -> 2,513, bytes
+295,660 -> 298,707 (95.1% -> 96.1%), near 55 -> 38, unplaced 1,154 -> 15
+(14,245 -> 221 bytes), unwritten 5 -> 17. Of the 1,154: about 1,120 real
+extras (the initializer groups of 81 objects and what their shapes
+labelled), 32 scorer misses (`CLTServerInterface`, `i_IntersectSweptSphere`
+and its object). The unwritten rise is honest: 13 shipped functions of
+the same shapes (two more groups: one `/O1` group at 0x10048696, just
+before ltmem's block, and one in a library at 0x1004c170) were "covered"
+only by our surplus thunks.
+
+**Left.** `interface_linkage.obj` still has a group retail's lacks (it
+cannot take the header: no `bdefs.h`), and the two groups above are ours
+to find (the 0x10048696 object is not identified: retail's tail order
+there is transformlt_impl, server_iltphysics, shared_iltphysics, the
+group, ltmem). The 15 unplaced are short accessors
+(`LTLibraryLoader`'s, `CounterFinal::StartMicro`, ...) retail inlined or
+folded, and `bm_CreateHandleBinding`. **Lithtech.dsp very likely needs the
+same** `/Yu"bdefs.h"` (Contract J.A.C.K.'s has it); at `/O2` `PI` folds,
+so there it is the `WORLD_*` vectors -- left to the package working on
+Lithtech.exe's initializers.
