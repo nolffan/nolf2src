@@ -10,6 +10,9 @@ covers each change in detail, under its item number (M-E1, M-G2 and so on).
 
 ## Unreleased
 
+- **Damage flashes fill widescreen views.** The health and armor hit
+  flashes widen with the viewport while keeping their original height,
+  fade and intensity. (M-G89)
 - **V-sync off in a window under Wine:** explicitly requests immediate
   presentation, including borderless full screen, instead of leaving the
   interval at its default, which Wine can synchronize to the display even

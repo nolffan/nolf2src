@@ -1,6 +1,9 @@
 #include "stdafx.h"
 #include "BaseFx.h"
 #include "ClientFX.h"
+#ifdef NOLF2SRC_MODERN
+#include "spritefx.h"
+#endif
 
 CBaseFXProps::CBaseFXProps() : 
 	m_pScaleKeys		(NULL),
@@ -408,6 +411,55 @@ bool CBaseFX::Update(float tmFrameTime)
 		{
 			LTVector vScale;
 			vScale.Init(m_scale, m_scale, m_scale);
+#ifdef NOLF2SRC_MODERN
+			// MODERN.md M-G89: player-view sprites are screen overlays (the
+			// taking-health/armor flash). Widen them with the viewport, from
+			// the authored scale each frame, so they keep covering the screen.
+			// Models and effects attached to weapon nodes keep their shape.
+			if (dwObjectType == OT_SPRITE && GetProps()->m_nFollowType == UP_PLAYERVIEW && m_hCamera)
+			{
+				uint32 nFlags = 0;
+				m_pLTClient->Common()->GetObjectFlags(m_hObject, OFT_Flags, nFlags);
+				if (nFlags & FLAG_REALLYCLOSE)
+				{
+					bool bFullScreen = false;
+					int nLeft = 0, nTop = 0, nRight = 0, nBottom = 0;
+					m_pLTClient->GetCameraRect(m_hCamera, &bFullScreen, &nLeft, &nTop, &nRight, &nBottom);
+					uint32 nWidth = 0, nHeight = 0;
+					if (bFullScreen)
+						m_pLTClient->GetSurfaceDims(m_pLTClient->GetScreenSurface(), &nWidth, &nHeight);
+					else if (nRight > nLeft && nBottom > nTop)
+					{
+						nWidth = nRight - nLeft;
+						nHeight = nBottom - nTop;
+					}
+					if (nHeight && (float)nWidth / (float)nHeight > 4.0f / 3.0f)
+					{
+						float fAspect = (float)nWidth / (float)nHeight;
+						vScale.x *= fAspect * 0.75f;
+
+						// Both shipped hit flashes use the 512-pixel ArmorHit sprite.
+						// Its original quad is slightly inset. Fit that asset to the
+						// really-close projection without acquiring its texture, and
+						// keep subsequent scale keys relative to the first key.
+						if (m_nFXType == eSpriteFX &&
+							_stricmp(static_cast<const CSpriteProps*>(m_pProps)->m_sSpriteName, "INTERFACE\\HUD\\SPR\\ARMORHIT.SPR") == 0)
+						{
+							HCONSOLEVAR hFov = m_pLTClient->GetConsoleVar("PVModelFOV");
+							float fFov = hFov ? m_pLTClient->GetVarValueFloat(hFov) : 75.0f;
+							float fFirstScale = GetProps()->m_pScaleKeys[0].m_scale;
+							if (fFirstScale > 0.0f && m_vPos.z > 0.0f && fFov > 0.0f && fFov < 180.0f)
+							{
+								float fHalfWidth = m_vPos.z * (float)tan(fFov * MATH_PI / 360.0f) * fAspect;
+								float fFitScale = m_scale * (fHalfWidth + (float)fabs(m_vPos.x)) / (512.0f * fFirstScale);
+								if (fFitScale > vScale.x)
+									vScale.x = fFitScale;
+							}
+						}
+					}
+				}
+			}
+#endif
 
 			LTVector vCurScale;
 			m_pLTClient->GetObjectScale( m_hObject, &vCurScale );
