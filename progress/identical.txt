@@ -737,16 +737,11 @@ CShell.dll	sub_1000e4c0
 CShell.dll	sub_1000e4f0
 CShell.dll	sub_1000e520
 CShell.dll	sub_1000e53d
-CShell.dll	sub_1000e54f
 CShell.dll	sub_1000e560
-CShell.dll	sub_1000e573
 CShell.dll	sub_1000e57b
 CShell.dll	sub_1000e590
-CShell.dll	sub_1000e5bf
 CShell.dll	sub_1000e5d0
-CShell.dll	sub_1000e5ff
 CShell.dll	sub_1000e610
-CShell.dll	sub_1000e623
 CShell.dll	sub_1000e640
 CShell.dll	sub_1000e680
 CShell.dll	sub_1000e6c0
@@ -816,6 +811,7 @@ CShell.dll	sub_10011e20
 CShell.dll	sub_100121d0
 CShell.dll	sub_10012230
 CShell.dll	sub_10012243
+CShell.dll	sub_10012248
 CShell.dll	sub_10012260
 CShell.dll	sub_10012360
 CShell.dll	sub_100123a0
@@ -823,7 +819,9 @@ CShell.dll	sub_100123d0
 CShell.dll	sub_10012440
 CShell.dll	sub_10012520
 CShell.dll	sub_100125d0
+CShell.dll	sub_100125e2
 CShell.dll	sub_100125f0
+CShell.dll	sub_10012608
 CShell.dll	sub_10012620
 CShell.dll	sub_10012650
 CShell.dll	sub_10012790
@@ -982,8 +980,6 @@ CShell.dll	sub_1001e6f0
 CShell.dll	sub_1001e7d0
 CShell.dll	sub_1001e810
 CShell.dll	sub_1001e870
-CShell.dll	sub_1001e888
-CShell.dll	sub_1001e8a2
 CShell.dll	sub_1001e8b0
 CShell.dll	sub_1001e940
 CShell.dll	sub_1001e9c0
@@ -1156,6 +1152,7 @@ CShell.dll	sub_10028e40
 CShell.dll	sub_10028e70
 CShell.dll	sub_10029460
 CShell.dll	sub_10029580
+CShell.dll	sub_10029c30
 CShell.dll	sub_10029c40
 CShell.dll	sub_10029cc0
 CShell.dll	sub_10029d10
@@ -1249,7 +1246,6 @@ CShell.dll	sub_10031b90
 CShell.dll	sub_10031bb0
 CShell.dll	sub_10031bd8
 CShell.dll	sub_10031be0
-CShell.dll	sub_10031bf1
 CShell.dll	sub_10031c00
 CShell.dll	sub_10031cb0
 CShell.dll	sub_10031ce0
@@ -1302,7 +1298,6 @@ CShell.dll	sub_10034b80
 CShell.dll	sub_10034bf0
 CShell.dll	sub_10034df0
 CShell.dll	sub_10035140
-CShell.dll	sub_10035185
 CShell.dll	sub_10035190
 CShell.dll	sub_100351c0
 CShell.dll	sub_100353b0
@@ -1363,6 +1358,7 @@ CShell.dll	sub_10037fb0
 CShell.dll	sub_10038040
 CShell.dll	sub_10038070
 CShell.dll	sub_10038300
+CShell.dll	sub_1003833d
 CShell.dll	sub_10038360
 CShell.dll	sub_10038380
 CShell.dll	sub_100383b0
@@ -1787,6 +1783,7 @@ CShell.dll	sub_10049fa0
 CShell.dll	sub_1004a170
 CShell.dll	sub_1004a1b0
 CShell.dll	sub_1004a240
+CShell.dll	sub_1004a2d0
 CShell.dll	sub_1004a2e0
 CShell.dll	sub_1004ab50
 CShell.dll	sub_1004ab80
@@ -2071,7 +2068,6 @@ CShell.dll	sub_1005fc80
 CShell.dll	sub_1005fce0
 CShell.dll	sub_1005fd70
 CShell.dll	sub_1005fdd0
-CShell.dll	sub_1005feed
 CShell.dll	sub_1005ff00
 CShell.dll	sub_1005ff60
 CShell.dll	sub_1005ffd0
@@ -3388,6 +3384,7 @@ CShell.dll	sub_100ae880
 CShell.dll	sub_100ae910
 CShell.dll	sub_100ae930
 CShell.dll	sub_100ae9a0
+CShell.dll	sub_100ae9b2
 CShell.dll	sub_100ae9c0
 CShell.dll	sub_100aea90
 CShell.dll	sub_100aeb30
@@ -4616,6 +4613,7 @@ CShell.dll	sub_10100910
 CShell.dll	sub_10100a60
 CShell.dll	sub_10100d50
 CShell.dll	sub_10100f80
+CShell.dll	sub_10100fc8
 CShell.dll	sub_10100fd0
 CShell.dll	sub_10101070
 CShell.dll	sub_10101230
@@ -5001,6 +4999,7 @@ CShell.dll	sub_1011a6e0
 CShell.dll	sub_1011a750
 CShell.dll	sub_1011abd0
 CShell.dll	sub_1011acf0
+CShell.dll	sub_1011ad22
 CShell.dll	sub_1011ad30
 CShell.dll	sub_1011ae60
 CShell.dll	sub_1011aff0
@@ -5207,6 +5206,7 @@ CShell.dll	sub_10132ea0
 CShell.dll	sub_10132f60
 CShell.dll	sub_10132ff0
 CShell.dll	sub_101330d0
+CShell.dll	sub_101330f3
 CShell.dll	sub_10133100
 CShell.dll	sub_101332b0
 CShell.dll	sub_101333f0
@@ -6535,7 +6535,6 @@ Lithtech.exe	sub_40984f
 Lithtech.exe	sub_409870
 Lithtech.exe	sub_4098c0
 Lithtech.exe	sub_4098e0
-Lithtech.exe	sub_4098fb
 Lithtech.exe	sub_409910
 Lithtech.exe	sub_409950
 Lithtech.exe	sub_409980
@@ -7442,6 +7441,7 @@ Lithtech.exe	sub_434e00
 Lithtech.exe	sub_434e20
 Lithtech.exe	sub_434eb0
 Lithtech.exe	sub_434f80
+Lithtech.exe	sub_434fb0
 Lithtech.exe	sub_434fc0
 Lithtech.exe	sub_434ff0
 Lithtech.exe	sub_435060
@@ -9783,7 +9783,6 @@ Lithtech.exe	sub_4b0690
 Lithtech.exe	sub_4b08f0
 Lithtech.exe	sub_4b0919
 Lithtech.exe	sub_4b0930
-Lithtech.exe	sub_4b0959
 Lithtech.exe	sub_4b0970
 Lithtech.exe	sub_4b09b0
 Lithtech.exe	sub_4b0a00
@@ -10042,7 +10041,6 @@ Lithtech.exe	sub_4c6ad0
 Lithtech.exe	sub_4c6b20
 Lithtech.exe	sub_4c6b70
 Lithtech.exe	sub_4c6bc0
-Lithtech.exe	sub_4c6c10
 Lithtech.exe	sub_4c6c60
 Lithtech.exe	sub_4c6cb0
 Lithtech.exe	sub_4c6d00
@@ -10075,6 +10073,7 @@ Lithtech.exe	sub_4c7520
 Lithtech.exe	sub_4c7570
 Lithtech.exe	sub_4c75c0
 Lithtech.exe	sub_4c7610
+Lithtech.exe	sub_4c7660
 Lithtech.exe	sub_4c76b0
 Lithtech.exe	sub_4c7700
 Lithtech.exe	sub_4c7750
@@ -11735,6 +11734,7 @@ Lithtech.exe	sub_55a520
 Lithtech.exe	sub_55a5b0
 Lithtech.exe	sub_55a5da
 Lithtech.exe	sub_55a5f0
+Lithtech.exe	sub_55a611
 Lithtech.exe	sub_55a620
 Lithtech.exe	sub_55a650
 Lithtech.exe	sub_55a678
@@ -12260,10 +12260,10 @@ NOLF2.exe	sub_406430
 NOLF2.exe	sub_406460
 NOLF2.exe	sub_406580
 NOLF2.exe	sub_406680
-NOLF2.exe	sub_40668a
 NOLF2.exe	sub_4066b0
 NOLF2.exe	sub_4066ba
 NOLF2.exe	sub_4066e0
+NOLF2.exe	sub_4066ea
 NOLF2.exe	sub_406710
 NOLF2.exe	sub_406ab0
 NOLF2.exe	sub_406b30
@@ -13668,7 +13668,6 @@ Object.lto	sub_10030680
 Object.lto	sub_100306f0
 Object.lto	sub_10030c80
 Object.lto	sub_10030d10
-Object.lto	sub_10030d52
 Object.lto	sub_10030dd0
 Object.lto	sub_10030e80
 Object.lto	sub_10030fd0
@@ -14344,11 +14343,9 @@ Object.lto	sub_1005ad90
 Object.lto	sub_1005aea0
 Object.lto	sub_1005b030
 Object.lto	sub_1005b0e0
-Object.lto	sub_1005b162
 Object.lto	sub_1005b170
 Object.lto	sub_1005b1b6
 Object.lto	sub_1005b1d0
-Object.lto	sub_1005b223
 Object.lto	sub_1005b230
 Object.lto	sub_1005b310
 Object.lto	sub_1005b5a0
@@ -15511,13 +15508,11 @@ Object.lto	sub_100a1bd0
 Object.lto	sub_100a1cb0
 Object.lto	sub_100a1d80
 Object.lto	sub_100a1db0
-Object.lto	sub_100a1dc9
 Object.lto	sub_100a1de0
 Object.lto	sub_100a1dfe
 Object.lto	sub_100a1e10
 Object.lto	sub_100a1e2e
 Object.lto	sub_100a1e40
-Object.lto	sub_100a1e5e
 Object.lto	sub_100a1e80
 Object.lto	sub_100a1f40
 Object.lto	sub_100a1f70
@@ -15631,7 +15626,6 @@ Object.lto	sub_100a5f70
 Object.lto	sub_100a5fb0
 Object.lto	sub_100a5fe0
 Object.lto	sub_100a6010
-Object.lto	sub_100a6039
 Object.lto	sub_100a6050
 Object.lto	sub_100a6080
 Object.lto	sub_100a60b0
@@ -16425,13 +16419,9 @@ Object.lto	sub_100d1ec0
 Object.lto	sub_100d1ed0
 Object.lto	sub_100d1ef0
 Object.lto	sub_100d1f30
-Object.lto	sub_100d1f45
 Object.lto	sub_100d1f60
-Object.lto	sub_100d1f75
 Object.lto	sub_100d1f90
-Object.lto	sub_100d1fa5
 Object.lto	sub_100d1fc0
-Object.lto	sub_100d1fd5
 Object.lto	sub_100d1ff0
 Object.lto	sub_100d2011
 Object.lto	sub_100d2020
@@ -17599,7 +17589,6 @@ Object.lto	sub_10112870
 Object.lto	sub_10112930
 Object.lto	sub_10112a70
 Object.lto	sub_10112d60
-Object.lto	sub_10112d82
 Object.lto	sub_10112da0
 Object.lto	sub_10112e30
 Object.lto	sub_10112e50
@@ -17857,6 +17846,7 @@ Object.lto	sub_1011f680
 Object.lto	sub_1011f760
 Object.lto	sub_1011f810
 Object.lto	sub_1011f820
+Object.lto	sub_1011f827
 Object.lto	sub_1011f830
 Object.lto	sub_1011f840
 Object.lto	sub_1011f860
@@ -17871,6 +17861,7 @@ Object.lto	sub_1011fcd0
 Object.lto	sub_1011fd30
 Object.lto	sub_10120040
 Object.lto	sub_101202d0
+Object.lto	sub_10120314
 Object.lto	sub_10120320
 Object.lto	sub_10120460
 Object.lto	sub_10120870
@@ -17878,6 +17869,7 @@ Object.lto	sub_101208a0
 Object.lto	sub_10120dd0
 Object.lto	sub_10121280
 Object.lto	sub_101213a0
+Object.lto	sub_101213b7
 Object.lto	sub_101213c0
 Object.lto	sub_10121480
 Object.lto	sub_101214c0
@@ -18699,6 +18691,7 @@ Object.lto	sub_10143540
 Object.lto	sub_10143810
 Object.lto	sub_101438a0
 Object.lto	sub_10143920
+Object.lto	sub_1014398c
 Object.lto	sub_101439a0
 Object.lto	sub_10143a00
 Object.lto	sub_10143b70
@@ -18918,6 +18911,7 @@ Object.lto	sub_1014fe40
 Object.lto	sub_1014fe60
 Object.lto	sub_1014fe80
 Object.lto	sub_1014fee0
+Object.lto	sub_1014feeb
 Object.lto	sub_1014ff30
 Object.lto	sub_1014ffe0
 Object.lto	sub_10150060
@@ -20037,6 +20031,7 @@ Object.lto	sub_1017fb90
 Object.lto	sub_1017fc10
 Object.lto	sub_1017fda0
 Object.lto	sub_1017fdf0
+Object.lto	sub_1017fdfa
 Object.lto	sub_1017fe10
 Object.lto	sub_1017ff50
 Object.lto	sub_10180030
@@ -20334,6 +20329,7 @@ Object.lto	sub_10187bc0
 Object.lto	sub_10187c00
 Object.lto	sub_10187d20
 Object.lto	sub_10188070
+Object.lto	sub_1018808d
 Object.lto	sub_101880a0
 Object.lto	sub_101882d0
 Object.lto	sub_10188450
@@ -20765,6 +20761,7 @@ Object.lto	sub_10194620
 Object.lto	sub_10194640
 Object.lto	sub_101946c0
 Object.lto	sub_10194790
+Object.lto	sub_101947b0
 Object.lto	sub_101947c0
 Object.lto	sub_10194bb0
 Object.lto	sub_10194c50
@@ -20851,6 +20848,7 @@ Object.lto	sub_101991a0
 Object.lto	sub_101991e0
 Object.lto	sub_101992f0
 Object.lto	sub_101993c0
+Object.lto	sub_101993d0
 Object.lto	sub_101993e0
 Object.lto	sub_10199460
 Object.lto	sub_101994f0
@@ -21708,7 +21706,9 @@ Object.lto	sub_101d6c30
 Object.lto	sub_101d6e10
 Object.lto	sub_101d6f10
 Object.lto	sub_101d70e0
+Object.lto	sub_101d7105
 Object.lto	sub_101d7110
+Object.lto	sub_101d7135
 Object.lto	sub_101d7140
 Object.lto	sub_101d7170
 Object.lto	sub_101d71a0
@@ -22198,9 +22198,6 @@ Object.lto	sub_101ee230
 Object.lto	sub_101ee2d0
 Object.lto	sub_101ee750
 Object.lto	sub_101ee770
-ServerDir.dll	sub_10001010
-ServerDir.dll	sub_100010d0
-ServerDir.dll	sub_10001100
 ServerDir.dll	sub_10001130
 ServerDir.dll	sub_100011f0
 ServerDir.dll	sub_10001250
@@ -22404,6 +22401,9 @@ ServerDir.dll	sub_10016b00
 ServerDir.dll	sub_10016c90
 ServerDir.dll	sub_10016d00
 ServerDir.dll	sub_10016d40
+ServerDir.dll	sub_10016d80
+ServerDir.dll	sub_10016e40
+ServerDir.dll	sub_10016e70
 ServerDir.dll	sub_100178a0
 ltmsg.dll	rsrc:6/1/1033
 ltmsg.dll	rsrc:6/2/1033
@@ -24778,8 +24778,6 @@ server.dll	sub_10048696
 server.dll	sub_100486fe
 server.dll	sub_1004871c
 server.dll	sub_1004873a
-server.dll	sub_10048790
-server.dll	sub_10048810
 server.dll	sub_10048830
 server.dll	sub_10048850
 server.dll	sub_100488d0
@@ -24791,8 +24789,6 @@ server.dll	sub_100489b0
 server.dll	sub_10048a10
 server.dll	sub_10048a40
 server.dll	sub_10048ac0
-server.dll	sub_10048ae0
-server.dll	sub_10048b00
 server.dll	sub_10048b70
 server.dll	sub_10048bf0
 server.dll	sub_10048c10
@@ -24862,6 +24858,10 @@ server.dll	sub_1004be80
 server.dll	sub_1004bf30
 server.dll	sub_1004bff0
 server.dll	sub_1004c040
+server.dll	sub_1004c170
+server.dll	sub_1004c1f0
+server.dll	sub_1004c210
+server.dll	sub_1004c230
 server.dll	sub_1004c290
 server.dll	sub_1004c2e0
 server.dll	sub_1004c380

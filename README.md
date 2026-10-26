@@ -63,19 +63,19 @@ is the whole game.
 
 | Binary | | Byte-identical functions | Byte-identical code | | Unwritten | Unplaced |
 |---|---|--:|--:|---|--:|--:|
-| `Lithtech.exe` | the engine | 5,883 / 6,894 | 1,218,828 / 1,345,398 bytes | `██████████████████░░` 90.5% | 54 | 1,214 |
-| `server.dll` | the engine's server | 2,503 / 3,470 | 295,660 / 310,859 bytes | `███████████████████░` 95.1% | 16 | 1,165 |
+| `Lithtech.exe` | the engine | 5,883 / 6,893 | 1,218,828 / 1,345,385 bytes | `██████████████████░░` 90.5% | 54 | 1,215 |
+| `server.dll` | the engine's server | 2,503 / 3,470 | 295,660 / 310,859 bytes | `███████████████████░` 95.1% | 5 | 1,154 |
 | `ServerDir.dll` | the server directory (WON Titan) | 207 / 508 | 29,800 / 88,203 bytes | `██████░░░░░░░░░░░░░░` 33.7% | 131 | 1 |
 | `snddrv.dll` | the sound driver | 194 / 236 | 35,073 / 35,599 bytes | `███████████████████░` 98.5% | 0 | 0 |
 | `NOLF2.exe` | the launcher | 309 / 406 | 49,095 / 49,876 bytes | `███████████████████░` 98.4% | 1 | 8 |
 | `NOLF2Srv.exe` | the dedicated server | 468 / 587 | 85,760 / 86,985 bytes | `███████████████████░` 98.5% | 2 | 9 |
-| `CShell.dll` | the game: client | 5,414 / 7,218 | 1,305,485 / 1,326,186 bytes | `███████████████████░` 98.4% | 1 | 8 |
+| `CShell.dll` | the game: client | 5,414 / 7,216 | 1,305,485 / 1,326,160 bytes | `███████████████████░` 98.4% | 0 | 9 |
 | `Object.lto` | the game: server objects | 9,254 / 13,253 | 1,873,159 / 1,909,614 bytes | `███████████████████░` 98.0% | 4 | 15 |
 | `ClientFx.fxd` | the game: client effects | 385 / 497 | 119,616 / 121,011 bytes | `███████████████████░` 98.8% | 1 | 3 |
 | `ltmsg.dll` | the engine's messages, not in the total | 5 / 5 resources | 2,054 / 2,054 bytes | `████████████████████` 100.0% | 0 | -- |
 | `CRes.dll` | the game's client resources, not in the total | 484 / 484 resources | 622,940 / 622,940 bytes | `████████████████████` 100.0% | 0 | -- |
 | `SRes.dll` | the game's server resources, not in the total | no resources | -- | -- | -- | -- |
-| **All** | | **24,617 / 33,069** | **5,012,476 / 5,273,731 bytes** | `███████████████████░` **95.0%** | **210** | **2,423** |
+| **All** | | **24,617 / 33,066** | **5,012,476 / 5,273,692 bytes** | `███████████████████░` **95.0%** | **198** | **2,414** |
 <!-- progress:end -->
 
 Every function in that table is recorded in `progress/identical.txt`, and
