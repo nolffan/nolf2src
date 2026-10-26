@@ -1638,3 +1638,53 @@ folded, and `bm_CreateHandleBinding`. **Lithtech.dsp very likely needs the
 same** `/Yu"bdefs.h"` (Contract J.A.C.K.'s has it); at `/O2` `PI` folds,
 so there it is the `WORLD_*` vectors -- left to the package working on
 Lithtech.exe's initializers.
+
+### headerinit
+
+Lithtech.exe's 1,212 unplaced functions were mostly the same thing as
+server.dll's (srvplace): `math_phys.h`'s nine initializers (`PI` by
+`fld [1.0]; fld1; fpatan` -- it does not fold at `/O2` either --, `PI_2`..
+19 bytes each, the `WORLD_*` vectors 31) in every object. Counting
+`fpatan` (one per group): retail 56, ours 276. Retail's groups, placed
+against our objects by the unique exematch hits after them, sit in:
+`controlfilemgr`, `bdefs`, `client`, `client_formatmgr`, `clientmgr`,
+`compress`, `counter`, `ltmodule`, `ltobjref`, `icommandlineargs`,
+`modellt_impl`, `interface_linkage` (codeless; retail links it last, after
+`client_iltvideomgr`, at 0x4b2200); ltmem's two objects; three of the
+renderer's (`rendererconsolevars` 0x4c43b0, `memstats_world` 0x51e990,
+`texturescriptinterpreter` 0x54bf10); RezMgr's `rezmgr` and `rezhash`;
+nearly every Lib_UI object (no precompiled header there, as ours). Two
+retail `fpatan`s are not groups (inside `ltmessage` 0x442e28, as ours,
+and D3DX 0x4b4854).
+
+**Change.** `Lithtech.dsp` precompiles `bdefs.h` like server.dsp
+(`/Yc` in `bdefs.cpp`); the files above go without it; `lterror`,
+`ltquatbase` and `transformmaker`, which do not include `bdefs.h` first and
+have no group in retail, get `/FI"bdefs.h"` (with `/Yu` that takes their
+group away too). `interface_linkage` and `world_tree` (retail: after
+`winconsole_impl`) moved to retail's link order. `D3DRender.dsp`
+precompiles `precompile.h`, `/Yc` on `rendererconsolevars` (the choice
+between it and `memstats_world` is arbitrary: both have retail's group).
+`udpdriver` stays without the header although retail's has no group: with
+`/Yu` `CUDPDriver::ReallyJoinSession` (0x48caf0, 2,548 bytes) moves one
+`mov X(%esp),%esi` and stops matching -- the only function either way the
+precompiled header changed for the worse. Now 61 `fpatan` (retail 56).
+
+**Score** (Lithtech.exe, master -> now): identical 5,883 -> 5,891, bytes
+1,218,828 -> 1,224,417 (90.6% -> 91.0%), near 204 -> 191, unplaced 1,212
+-> 135 (32,112 -> 11,263 bytes), unwritten 49 -> 53. The unwritten rise is
+the six tiny shipped rows (5-27 bytes: thunks, a group's interior) that
+were "near" only against our surplus initializers. The image's layout is
+now within 0x400-0x600 bytes of retail's up to the renderer (was
+0x9000-0xb700: `ReallyJoinSession` +0x610, `CLTVideoMgr::
+StartOnScreenVideo` +0x540, `d3d_ReadExtraConsoleVariables` +0x570);
+Lib_UI is +0x2d40 (was +0x12520). Other targets unchanged.
+
+**Left.** Our extras against retail's set: `Lib_ILTSound`'s `iltsound`
+(retail has none) and `rezfile` where retail has `rezhash` (ours does not
+include `ltbasedefs.h` there; RezMgr is Jupiter's, so retail's include
+lists probably differ), `udpdriver` (above). 54 of the 135 unplaced are
+group members of retail's holder objects that the scorer leaves (the
+19-byte `PI_x` twins: five per object), the rest Lib_UI `*_impl` functions
+past the SecuROM pages and folded small functions. No other header
+initializer shape has a surplus worth a change.

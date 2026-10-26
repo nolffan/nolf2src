@@ -26,6 +26,16 @@ CFG=Lithtech - Win32 Final
 # controlfilemgr, the rest alphabetically, then the interface
 # implementations; the libraries after them in the order the retail image
 # has them (d3dx8, ltmem, the renderer, the sound loader, RezMgr, the UI).
+# interface_linkage, which has no code of its own, comes after the interface
+# implementations, as in retail. The project precompiles bdefs.h (/Yc in
+# bdefs.cpp, /Yu elsewhere): with a precompiled header VC6 emits the
+# headers' dynamic initializers (math_phys.h's PI.., WORLD_*) only in the /Yc
+# object, so retail has that group only in bdefs.obj and the files built
+# without the header, which are those whose group retail's layout shows at
+# their start (SUBTRACT CPP). lterror, ltquatbase and transformmaker do not
+# include bdefs.h first and have no group in retail: /FI"bdefs.h". udpdriver
+# is built without it although retail's has no group: with /Yu
+# CUDPDriver::ReallyJoinSession (0x48caf0) loses one register load.
 # Files marked Exclude_From_Build do not compile yet: they are each module
 # package's worklist (docs/engine/PLAN.md); runtime/*/nolf2src_*_stubs.cpp
 # stands in for what of them the link needs.
@@ -50,7 +60,7 @@ RSC=rc.exe
 # PROP Intermediate_Dir "..\..\..\built\Final\Lithtech"
 # PROP Target_Dir ""
 # ADD BASE CPP /nologo /W3 /GX /O2 /D "WIN32" /D "NDEBUG" /D "_WINDOWS" /D "_MBCS" /YX /FD /c
-# ADD CPP /nologo /MD /W3 /O2 /Ob2 /I "..\..\..\..\libs\STLPort-4.0\stlport" /I "..\..\client\src" /I "..\..\shared\src" /I "..\..\kernel\src" /I "..\..\kernel\mem\src" /I "..\..\world\src" /I "..\..\kernel\io\src" /I "..\..\kernel\net\src" /I "..\..\model\src" /I "..\..\sound\src" /I "..\..\shared\src\sys\win" /I "..\..\lithtemplate" /I "..\..\physics\src" /I "..\..\render_b\src" /I "..\..\ui\src" /I "..\..\controlfilemgr" /I "..\..\server\src" /I "..\..\kernel\src\sys\win" /I "..\..\kernel\io\src\sys\win" /I "..\..\kernel\mem\src\sys\win" /I "..\..\kernel\net\src\sys\win" /I "..\..\client\src\sys\win" /I "..\..\render_a\src\sys\d3d" /I "..\..\..\sdk\inc" /I "..\..\..\sdk\inc\physics" /I "..\..\..\..\libs\stdlith" /I "..\..\..\..\libs\lith" /I "..\..\..\libs\rezmgr" /D "WIN32" /D "NDEBUG" /D "_WINDOWS" /D "_MBCS" /D "_FINAL" /D "__D3D" /D "__D3DREND" /D "DE_CLIENT_COMPILE" /D "DE_LOCAL_SERVERBIND" /D "DIRECTENGINE_COMPILE" /D "DSNDMGR_NO_MFC" /D "MODEL_SUPPORT_ABC" /FD /c
+# ADD CPP /nologo /MD /W3 /O2 /Ob2 /I "..\..\..\..\libs\STLPort-4.0\stlport" /I "..\..\client\src" /I "..\..\shared\src" /I "..\..\kernel\src" /I "..\..\kernel\mem\src" /I "..\..\world\src" /I "..\..\kernel\io\src" /I "..\..\kernel\net\src" /I "..\..\model\src" /I "..\..\sound\src" /I "..\..\shared\src\sys\win" /I "..\..\lithtemplate" /I "..\..\physics\src" /I "..\..\render_b\src" /I "..\..\ui\src" /I "..\..\controlfilemgr" /I "..\..\server\src" /I "..\..\kernel\src\sys\win" /I "..\..\kernel\io\src\sys\win" /I "..\..\kernel\mem\src\sys\win" /I "..\..\kernel\net\src\sys\win" /I "..\..\client\src\sys\win" /I "..\..\render_a\src\sys\d3d" /I "..\..\..\sdk\inc" /I "..\..\..\sdk\inc\physics" /I "..\..\..\..\libs\stdlith" /I "..\..\..\..\libs\lith" /I "..\..\..\libs\rezmgr" /D "WIN32" /D "NDEBUG" /D "_WINDOWS" /D "_MBCS" /D "_FINAL" /D "__D3D" /D "__D3DREND" /D "DE_CLIENT_COMPILE" /D "DE_LOCAL_SERVERBIND" /D "DIRECTENGINE_COMPILE" /D "DSNDMGR_NO_MFC" /D "MODEL_SUPPORT_ABC" /Yu"bdefs.h" /FD /c
 # ADD BASE MTL /nologo /D "NDEBUG" /mktyplib203 /win32
 # ADD MTL /nologo /D "NDEBUG" /mktyplib203 /win32
 # ADD BASE RSC /l 0x409 /d "NDEBUG"
@@ -72,6 +82,7 @@ LINK32=link.exe
 # Begin Source File
 
 SOURCE=..\..\controlfilemgr\controlfilemgr.cpp
+# SUBTRACT CPP /YX /Yc /Yu
 # End Source File
 # Begin Source File
 
@@ -80,6 +91,7 @@ SOURCE=..\..\model\src\animtracker.cpp
 # Begin Source File
 
 SOURCE=..\..\shared\src\bdefs.cpp
+# ADD CPP /Yc"bdefs.h"
 # End Source File
 # Begin Source File
 
@@ -101,10 +113,12 @@ SOURCE=..\..\server\src\classmgr.cpp
 # Begin Source File
 
 SOURCE=..\..\kernel\src\sys\win\client.cpp
+# SUBTRACT CPP /YX /Yc /Yu
 # End Source File
 # Begin Source File
 
 SOURCE=..\..\client\src\client_formatmgr.cpp
+# SUBTRACT CPP /YX /Yc /Yu
 # End Source File
 # Begin Source File
 
@@ -122,6 +136,7 @@ SOURCE=..\..\client\src\clientde_impl.cpp
 # Begin Source File
 
 SOURCE=..\..\client\src\clientmgr.cpp
+# SUBTRACT CPP /YX /Yc /Yu
 # End Source File
 # Begin Source File
 
@@ -146,6 +161,7 @@ SOURCE=..\..\shared\src\collision.cpp
 # Begin Source File
 
 SOURCE=..\..\shared\src\compress.cpp
+# SUBTRACT CPP /YX /Yc /Yu
 # End Source File
 # Begin Source File
 
@@ -166,6 +182,7 @@ SOURCE=..\..\client\src\consolecommands.cpp
 # Begin Source File
 
 SOURCE=..\..\kernel\src\sys\win\counter.cpp
+# SUBTRACT CPP /YX /Yc /Yu
 # End Source File
 # Begin Source File
 
@@ -297,10 +314,6 @@ SOURCE=..\..\kernel\src\sys\win\interface_helpers.cpp
 # End Source File
 # Begin Source File
 
-SOURCE=..\..\shared\src\interface_linkage.cpp
-# End Source File
-# Begin Source File
-
 SOURCE=..\..\server\src\interlink.cpp
 # End Source File
 # Begin Source File
@@ -358,6 +371,7 @@ SOURCE=..\..\kernel\src\sys\win\ltdirectmusicloader.cpp
 # Begin Source File
 
 SOURCE=..\..\..\sdk\inc\lterror.cpp
+# ADD CPP /FI"bdefs.h"
 # End Source File
 # Begin Source File
 
@@ -390,14 +404,17 @@ SOURCE=..\..\server\src\ltmessage_server.cpp
 # Begin Source File
 
 SOURCE=..\..\..\sdk\inc\ltmodule.cpp
+# SUBTRACT CPP /YX /Yc /Yu
 # End Source File
 # Begin Source File
 
 SOURCE=..\..\..\sdk\inc\ltobjref.cpp
+# SUBTRACT CPP /YX /Yc /Yu
 # End Source File
 # Begin Source File
 
 SOURCE=..\..\..\sdk\inc\ltquatbase.cpp
+# ADD CPP /FI"bdefs.h"
 # End Source File
 # Begin Source File
 
@@ -602,10 +619,12 @@ SOURCE=..\..\kernel\src\sys\win\timemgr.cpp
 # Begin Source File
 
 SOURCE=..\..\model\src\transformmaker.cpp
+# ADD CPP /FI"bdefs.h"
 # End Source File
 # Begin Source File
 
 SOURCE=..\..\kernel\net\src\sys\win\udpdriver.cpp
+# SUBTRACT CPP /YX /Yc /Yu
 # End Source File
 # Begin Source File
 
@@ -639,6 +658,10 @@ SOURCE=..\..\client\src\sys\win\winconsole_impl.cpp
 # End Source File
 # Begin Source File
 
+SOURCE=..\..\world\src\world_tree.cpp
+# End Source File
+# Begin Source File
+
 SOURCE=..\..\world\src\world_blind_object_data.cpp
 # End Source File
 # Begin Source File
@@ -667,11 +690,8 @@ SOURCE=..\..\world\src\world_shared_bsp.cpp
 # End Source File
 # Begin Source File
 
-SOURCE=..\..\world\src\world_tree.cpp
-# End Source File
-# Begin Source File
-
 SOURCE=..\..\kernel\src\icommandlineargs.cpp
+# SUBTRACT CPP /YX /Yc /Yu
 # End Source File
 # Begin Source File
 
@@ -684,6 +704,7 @@ SOURCE=..\..\client\src\client_iltmodel.cpp
 # Begin Source File
 
 SOURCE=..\..\shared\src\modellt_impl.cpp
+# SUBTRACT CPP /YX /Yc /Yu
 # End Source File
 # Begin Source File
 
@@ -732,6 +753,11 @@ SOURCE=..\..\sound\src\soundmgr.cpp
 # Begin Source File
 
 SOURCE=..\..\client\src\client_iltvideomgr.cpp
+# End Source File
+# Begin Source File
+
+SOURCE=..\..\shared\src\interface_linkage.cpp
+# SUBTRACT CPP /YX /Yc /Yu
 # End Source File
 # Begin Source File
 
