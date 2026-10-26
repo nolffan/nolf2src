@@ -2034,3 +2034,65 @@ short initializers counted by shape only change names.
   Lithtech `??1CRezTypeHashTable` calls a `~CBaseHash` other than the one
   identical code calls; the `ObjectBank<..>::AllocVoid` instances in
   CShell, Object.lto and NOLF2Srv call another `Allocate` than ours.
+
+### enginenear
+
+The engine's near functions outside the `CRenderShader_Base` template
+family (that family is package rendershader's).
+
+**Matched.**
+- `server_interface.cpp` (server.dll, 28 functions at once): retail's
+  `CLTServerInterface` methods have no `CSEntry` wait. Jupiter's file
+  defines `#define CSENTRY CSEntry entry(CLTServerInterface *pInterface);`,
+  which declares a function: retail's source used the macro, ours the
+  object. The release build uses the macro; the modern build keeps the
+  wait (MODERN.md M-E67).
+- `game_serialize.cpp`: `sm_SaveObjectData` (2,459 bytes) names the buffer
+  size in a local before `resize`; `sm_SaveObjects` and `sm_RestoreObjects`
+  free the buffer with `s_cTempBuffer.swap(std::vector<uint8>())` (a
+  temporary, `this` the global: retail loads the global's fields first).
+- `d3ddrawprim.cpp` (as cjacksrc): the `LT_POLYGT4`/`FT4`/`G4`/`F4`
+  `DrawPrim`s check only the last draw's result; the batched `GT4` path
+  colours all six vertices from vertex 0 (RETAIL_BUGS.md); `SetCamera`
+  leaves the local viewport's size unset (RETAIL_BUGS.md); both fixed in
+  the modern build (M-E68). `SetTransformMode` tests `m_pCamera`, not
+  `pCamera`, in the world case.
+- `light_table.cpp` `LoadLightGroup`: STLport's no-argument `push_back()` /
+  `push_front()` (the 0x4395a0 "near" was list `insert(pos)`, not
+  `TVector3::operator+`).
+- `d3d_device.cpp`: `PreCalcSomeDeviceCaps` sets `SurfDesc.Size`;
+  `FreeDevice` does not clear `m_pD3DDevice` itself (`ResetDeviceVars`
+  does). `clientshell.cpp` `Term` leaves `m_hFileIDTable` (modern keeps
+  the clear, M-E67).
+
+**Score** (against a906dd0): Lithtech.exe identical 5,936 -> 5,951
+(+10,097 bytes), near 137 -> 122, unplaced 126 -> 125, unwritten 9;
+server.dll 2,527 -> 2,555 (+1,566 bytes), near 34 -> 6, unplaced 8 -> 7.
+Rebased onto 1d8f505 (tools 0593529): Lithtech.exe 6,261 -> 6,279
+(+10,135 bytes), unwritten 6 -> 5, unplaced 119 -> 117; server.dll 2,833
+-> 2,860 (+1,563 bytes), unplaced 8 -> 7. The release build's `make test`
+(main menu into C01S01) plays and draws normally with `SetCamera`'s
+viewport size left unset, as in retail.
+
+**Left** (not started: the package was stopped here).
+- Size-exact, register or reload order only: `CLTCommonServer::
+  SetObjectFlags` (three parameter reloads after calls in another order),
+  `CUIBitmapFont`'s constructor, `d3d_DrawPolyGrid`. `ICommandLineArgs
+  CommonImp`'s constructor and `CUIInterval_Impl::GetRange` are mispaired
+  (0x4ef3e0 is another class's constructor).
+- cjacksrc hunks not yet checked against NOLF2's bytes: `CD3D_Shell::
+  BuildDeviceList` (the Intel T&L list, -34), `CD3D_RenderBlock::
+  ExtendSkyBounds` (+36), `d3dmeshrendobj_skel.cpp` (signed bone index,
+  device `SetTransform`), `rendermodelinfolist`/`rendermodelpiecelist`/
+  `classmgr`/`world_blocker_data` `resize(0)` for `clear()` (cj's
+  `FreeListMemory` neighbour 0x4e6760 is still unwritten), `CD3DRender
+  Style::SetDefaults` (-27), `ltdirectmusic_impl` Term (+42) /
+  ChangeIntensity (+8).
+- `CD3D_Device::FreeAll` (+2) and `~CD3D_Device` (-14) were not re-checked
+  after the `FreeDevice` change; `OnConsoleVar` (+3) and `LoadPixelShader`
+  (+2) differ inside inlined `CPacket_Read`/vector code.
+- server.dll's remaining six: `LAlloc::~LAlloc`, `CLTServer::CLTServer`,
+  `ReadObject` are pairing artifacts against initializer-like retail rows;
+  `ModelPiece::Term` (size-exact), `CUDPDriver::Update`,
+  `i_IntersectSegment`.
+- The unwritten 0x50a0c0/0x558b20 initializer rows were not looked at.

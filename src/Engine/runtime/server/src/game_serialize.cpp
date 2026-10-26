@@ -338,7 +338,8 @@ static void sm_SaveObjectData(LTObject *pObj, ILTStream *pStream, uint32 dwParam
 	uint32 nObjectMsgLen = cSaveMessage.Size();
 
 	// Make sure our buffer is large enough.
-	s_cTempBuffer.resize((LTMAX(nSpecialEffectLen, nObjectMsgLen) + 7) / 8);
+	uint32 nBufferSize = (LTMAX(nSpecialEffectLen, nObjectMsgLen) + 7) / 8;
+	s_cTempBuffer.resize(nBufferSize);
 	uint8 *pTempBuffer = s_cTempBuffer.begin();
 
 	if ((nSpecialEffectLen + nObjectMsgLen) > k_nSuspiciousObjectSize)
@@ -1159,10 +1160,7 @@ void sm_SaveObjects(ILTStream *pStream, ObjectList *pList, uint32 dwParam, uint3
     delete [] pObjects;
 
 	// Free the temporary buffer.
-	{
-		std::vector<uint8> cEmpty;
-		s_cTempBuffer.swap(cEmpty);
-	}
+	s_cTempBuffer.swap(std::vector<uint8>());
 }
 
 LTRESULT sm_RestoreConsoleVars(ILTStream *pStream)
@@ -1288,10 +1286,7 @@ LTRESULT sm_RestoreObjects(ILTStream *pStream, uint32 dwParam, uint32 flags)
     dfree(pObjects);
 
 	// Delete our temporary buffer.
-	{
-		std::vector<uint8> cEmpty;
-		s_cTempBuffer.swap(cEmpty);
-	}
+	s_cTempBuffer.swap(std::vector<uint8>());
 
     if (dResult != LT_OK && dResult != LT_FINISHED)
 	{// Was there an error?

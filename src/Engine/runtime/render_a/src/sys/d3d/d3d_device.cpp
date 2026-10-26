@@ -150,7 +150,7 @@ void CD3D_Device::FreeDevice()
 		// Remember, this is actually the wrapper we're deleting here.  The above
 		// call to Release is for the actual D3D device.
 		delete m_pD3DDevice;
-		m_pD3DDevice = NULL;
+		// RETAIL: no NULL here; ResetDeviceVars clears it (0x4c1c48)
 	}
 
 	ResetDeviceVars();
@@ -386,7 +386,7 @@ void CD3D_Device::PreCalcSomeDeviceCaps()
 	D3D_CALL(m_pD3DDevice->GetDepthStencilSurface(&pDepthStencilBuffer));
 	if (pDepthStencilBuffer)
 	{
-		D3DSURFACE_DESC SurfDesc;	// SurfDesc.Size   = sizeof(SurfDesc);
+		D3DSURFACE_DESC SurfDesc;	SurfDesc.Size   = sizeof(SurfDesc);	// RETAIL: 0x4c236e
 		D3D_CALL(pDepthStencilBuffer->GetDesc(&SurfDesc));
 		m_ExtraDevCaps.m_DepthStencilBufferFormat = SurfDesc.Format; uint32 iZDepth,iStencilDepth;
 		d3d_GetDepthStencilBits(m_ExtraDevCaps.m_DepthStencilBufferFormat,iZDepth,iStencilDepth);

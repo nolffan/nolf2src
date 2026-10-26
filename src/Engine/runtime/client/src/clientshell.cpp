@@ -251,7 +251,10 @@ void CClientShell::Term()
             sb_Free(&g_pClientMgr->m_FileIDInfoBank, hs_GetElementUserData(hElement));
     }
     hs_DestroyHashTable(m_hFileIDTable);
+#ifdef NOLF2SRC_MODERN
+	// MODERN.md M-E67: retail leaves the destroyed table's handle (0x41136f)
 	m_hFileIDTable = NULL;
+#endif
 
 	// Clear the fileid's we took from the server for all of our client loaded models.
 	g_ModelMgr.ForEach( Client_ResetModelFileIds, NULL );

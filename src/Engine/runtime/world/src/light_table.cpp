@@ -234,17 +234,20 @@ void CLightTable::AddLightGroupSamples(LTVector aSamples[], const TVector3<int32
 bool CLightTable::LoadLightGroup(ILTStream *pStream, uint32 nID, const LTVector &vColor)
 {
 	// Add the lightgroup to the list
-	bool bBlack = (vColor.x < (1.0f / 255.0f)) || (vColor.y < (1.0f / 255.0f)) || (vColor.z < (1.0f / 255.0f));
-	SLightGroup lg;
-	if (bBlack)
+	// RETAIL: STLport's default-constructing push_back()/push_front()
+	// (insert(pos) into a temporary iterator, Lithtech.exe 0x439370)
+	SLightGroup *pLG;
+	if ((vColor.x < (1.0f / 255.0f)) || (vColor.y < (1.0f / 255.0f)) || (vColor.z < (1.0f / 255.0f)))
 	{
-		m_aLightGroups.push_back(lg);
+		m_aLightGroups.push_back();
+		pLG = &m_aLightGroups.back();
 	}
 	else
 	{
-		m_aLightGroups.push_front(lg);
+		m_aLightGroups.push_front();
+		pLG = &m_aLightGroups.front();
 	}
-	SLightGroup &cLG = bBlack ? m_aLightGroups.back() : m_aLightGroups.front();
+	SLightGroup &cLG = *pLG;
 
 	// Set up the stuff we got from our caller
 	cLG.m_nID = nID;

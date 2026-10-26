@@ -90,6 +90,8 @@ NOLF2 no longer has are listed at the end, so nobody looks again.
 * [The server keeps a client's first hello and trusts the client pointer](#the-server-keeps-a-clients-first-hello-and-trusts-the-client-pointer)
 * [`ReadHString` assumes the string is terminated](#readhstring-assumes-the-string-is-terminated)
 * [`CPacket_Read::ReadString` leaves a cut string unterminated](#cpacket_readreadstring-leaves-a-cut-string-unterminated)
+* [`CD3DDrawPrim::SetCamera` hands `SetViewport` an unset width and height](#cd3ddrawprimsetcamera-hands-setviewport-an-unset-width-and-height) (in part)
+* [Batched screen-space textured quads take every vertex's colour from the first](#batched-screen-space-textured-quads-take-every-vertexs-colour-from-the-first)
 
 Every other entry says under its heading why it is not fixed. Most are
 left as retail on purpose: the snow volumes, sprite systems and particle
@@ -98,8 +100,8 @@ cosmetic, harmless or never reached by the game -- the engine's version
 string, `CLTDirectMusicMgr::Stop`, the retail console's name completion,
 `_findclose` on an unopened handle, the server's error messages that name
 the wrong function, and the checks reported at the wrong debug level. The bomb defuse has not been seen in the game, and
-`CP_DAMAGE` needs more than a guard. The renderer's `SetCamera` viewport
-and the multiplayer entries not marked fixed are still open.
+`CP_DAMAGE` needs more than a guard. The rest of the renderer's `SetCamera`
+viewport and the multiplayer entries not marked fixed are still open.
 
 ---
 
@@ -450,17 +452,32 @@ rest of the outer message out of step.
 ### `CD3DDrawPrim::SetCamera` hands `SetViewport` an unset width and height
 `0x41d760` (lithtech.exe) · `src/Engine/runtime/render_b/src/sys/d3d/d3ddrawprim.cpp`
 
-Not fixed yet (the renderer; see below for what our source already does).
+> **FIXED in the modern build, in part** (`NOLF2SRC_MODERN`, MODERN.md
+> M-E68): the local viewport gets the camera's (or the screen's) width and
+> height. The other two points are retail's in both builds.
 
 Retail fills the local viewport's position and depth range but not its width
 and height, and writes the camera's size into the *saved* viewport instead;
 `SetViewport` then gets whatever was on the stack, and `PopRenderStates`
 later restores a viewport with the camera's size at the old position. The
 no-camera branch also compares the saved member `m_PrevViewport.X` where the
-local `PrevViewport.X` is meant. Our source already deviates from retail at
-the first point (it fills the local's width and height: the renderer would
-not run otherwise, `docs/engine/PLAN.md` package 6), so the release build
-does not reproduce that half; the other two are retail's in both builds.
+local `PrevViewport.X` is meant. The reconstruction filled the local's width
+and height until the release build was matched to retail's function
+(package enginenear, `docs/engine/PLAN.md`); the release build now leaves
+them unset, as retail does.
+
+### Batched screen-space textured quads take every vertex's colour from the first
+`CD3DDrawPrim::DrawPrim(LT_POLYGT4*)`, `0x41ed20` (lithtech.exe) ·
+`src/Engine/runtime/render_b/src/sys/d3d/d3ddrawprim.cpp`
+
+> **FIXED in the modern build** (`NOLF2SRC_MODERN`, MODERN.md M-E68): each
+> vertex gets its own colour.
+
+With a screen transform and more than two quads, the quads are copied into
+one triangle list, and all six vertices of each quad take the colour of
+its vertex 0 (`0x41ee8f`..): a quad given a gradient (`SetRGBA4`) is drawn
+in one flat colour when it is batched, and with its gradient when it is
+drawn alone. Contract J.A.C.K.'s engine has the same code.
 
 ### `CLTDirectMusicMgr::Stop` discards the queue it was asked to wait for
 `0x43d800` (lithtech.exe) · `src/Engine/runtime/kernel/src/sys/win/ltdirectmusic_impl.cpp`
