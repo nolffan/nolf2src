@@ -137,7 +137,9 @@ END
 
 // Icon with lowest ID value placed first to ensure application icon
 // remains consistent on all systems.
-IDR_MAINFRAME           ICON    DISCARDABLE     "idr_main.ico"
+// nolf2src: retail's icon (five images), which build/all.sh reads out of
+// the retail Lithtech.exe (tools/retailextract.py art); not committed
+IDR_MAINFRAME           ICON    DISCARDABLE     "res\\lithtech.ico"
 #endif    // English (U.S.) resources
 /////////////////////////////////////////////////////////////////////////////
 

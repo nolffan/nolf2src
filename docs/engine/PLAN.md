@@ -2096,3 +2096,23 @@ viewport size left unset, as in retail.
   `ModelPiece::Term` (size-exact), `CUDPDriver::Update`,
   `i_IntersectSegment`.
 - The unwritten 0x50a0c0/0x558b20 initializer rows were not looked at.
+
+### exersrc
+
+Lithtech.exe's resources (the `Lithtech.exe:rsrc` target). Nine of the 27
+differed, all from one cause: `lithtech.rc`'s `IDR_MAINFRAME` was the
+Jupiter tree's `idr_main.ico`, four images, where retail's group icon 128
+has five (32x32 16 colours, 16x16 256, 32x32 256, 16x16 16, 48x48 256, in
+that order). rc.exe numbers icon and cursor images from 1 in one sequence,
+so ours had icons 1-4 and MFC's help cursor (`AFX_IDC_CONTEXTHELP`, 30977,
+two images) as cursors 5-6; retail has icons 1-5 and cursors 6-7. The
+cursor itself is the toolchain's `afxres.rc` `res\help.cur`, byte for
+byte. build/all.sh now reads retail's icon out of the retail Lithtech.exe
+at build time (step 2c, `tools/retailextract.py art`, a new general
+command) into `src/Engine/runtime/winbuild/lithtech/res/lithtech.ico`
+(ignored, not committed), and `lithtech.rc` names it; `idr_main.ico` is
+gone. The modern build shares the script and the step.
+
+**Score** (against dcd50ad): Lithtech.exe:rsrc 18 -> 27 of 27 identical,
+9,772 -> 18,762 bytes (100%), near 7 -> 0, unwritten 2 -> 0. Code
+unchanged.

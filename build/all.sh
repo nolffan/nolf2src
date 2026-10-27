@@ -31,6 +31,13 @@
 #                         the LithTech Jupiter SDK, as rez/ fetches it
 #                         (build/jupiter.sh; `make` fetches it once), into
 #                         src/Game/Libs/ (tools/jupitersrc.py; not committed).
+#   2c. engine art        the icon lithtech.rc compiles into Lithtech.exe
+#                         (IDR_MAINFRAME, five images), read out of the
+#                         retail Lithtech.exe's resources into
+#                         src/Engine/runtime/winbuild/lithtech/res/
+#                         (tools/retailextract.py art; not committed). Its
+#                         other binary resources, the help cursor and four
+#                         bitmaps, are MFC's, from the toolchain's afxres.rc.
 #   3. compile            every project of Monolith's workspace the game
 #                         needs, by build/build.mk, all at once (one job per
 #                         CPU; NOLF2SRC_JOBS=<n> to change it) and only what
@@ -141,6 +148,10 @@ fi
 
 step "2b. Jupiter SDK source: WONAPI -> src/Game/Libs/"
 python3 tools/jupitersrc.py "$(jupiter_source)" src
+
+step "2c. engine art: the retail Lithtech.exe's icon in $RETAIL -> src/Engine/runtime/winbuild/lithtech/res/"
+python3 tools/retailextract.py art "$RETAIL" Lithtech.exe src/Engine/runtime/winbuild/lithtech/res \
+    lithtech.ico=icon:128
 
 step "3. compile: Monolith's workspace (build/compile.sh: build/build.mk, ${NOLF2SRC_JOBS:-$(nproc)} jobs)"
 bash build/compile.sh all

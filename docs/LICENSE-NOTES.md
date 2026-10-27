@@ -21,7 +21,7 @@ directory lists every file; `tools/retailextract.py audit` every binary):
 |---|---|---|
 | the game DLLs, the dedicated server | built here from Monolith's source | `src/` |
 | the game data: `.rez` archives, movies, configs | Monolith Productions / Fox Interactive / Sierra | the retail game (the retail game DLLs inside the archives are zeroed) |
-| the engine: `Lithtech.exe`, `server.dll` | built here from the LithTech Jupiter engine source, back-ported to 2002 (Monolith Productions / LithTech, Inc.) | `src/Engine/runtime/`, `src/Engine/libs/rezmgr/` |
+| the engine: `Lithtech.exe`, `server.dll` | built here from the LithTech Jupiter engine source, back-ported to 2002 (Monolith Productions / LithTech, Inc.); `Lithtech.exe`'s icon is the retail game's, read out of the retail `Lithtech.exe` at build time and never committed | `src/Engine/runtime/`, `src/Engine/libs/rezmgr/`; the icon from the retail game |
 | `snddrv.dll`, the sound driver; `ltmsg.dll`, the engine's messages | built here from reconstructions (Monolith Productions' code in substance; ltmsg's strings are the retail DLL's) | `src/Engine/snddrv/`, `src/Engine/ltmsg/` |
 | `ServerDir.dll`, the server directory | built here from Monolith's `CServerDir_Titan` (from the F.E.A.R. source release) and the LithTech Jupiter SDK's WONAPI, fetched at build time | `src/Game/Libs/ServerDir/`, `src/Game/Libs/WONAPI/` |
 | `NOLF2.exe`, the launcher | built here from Monolith's source | `src/Game/Launcher/` |
@@ -50,7 +50,7 @@ project's own files, none of the retail game's:
 
 | In it | Whose | Terms |
 |---|---|---|
-| `Lithtech.exe`, `server.dll` | built here from the LithTech Jupiter engine source (Monolith Productions / LithTech, Inc.) | as the engine source above: no licence is declared for it |
+| `Lithtech.exe`, `server.dll` | built here from the LithTech Jupiter engine source (Monolith Productions / LithTech, Inc.); `Lithtech.exe` carries the retail game's icon, as the retail `Lithtech.exe` does | as the engine source above: no licence is declared for it |
 | `custom/` (`cshell.dll`, `object.lto`, `clientfx.fxd`, `cres.dll`, `sres.dll`), `NOLF2.exe`, `NOLF2Srv.exe` | built here from Monolith's *No One Lives Forever 2* source release | Monolith's terms for that release (`src/Engine/sdk/Legal.txt`) |
 | `ServerDir.dll` | built here from Monolith's `CServerDir_Titan` and the LithTech Jupiter SDK's WONAPI (with GameSpy's query reporting) | as the SDK above for WONAPI: licensed to engine licensees, not released |
 | `snddrv.dll`, `ltmsg.dll` | built here from this project's reconstructions (Monolith's code in substance; `ltmsg.dll`'s strings are the retail DLL's) | as above |
