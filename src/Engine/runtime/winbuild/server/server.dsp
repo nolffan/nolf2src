@@ -26,9 +26,11 @@ CFG=server - Win32 Final
 # (retail's own objects have no EH frame: only rezmgr and stdlith do). Files marked
 # Exclude_From_Build do not compile yet (docs/engine/PLAN.md);
 # runtime/*/nolf2src_*_stubs.cpp stands in for what of them the link needs.
-# The link /include-s ltmem's heap object (ltmemheap.cpp: its globals'
-# construction and destruction, retail 0x10048cd0..0x10048def), which
-# retail links though nothing calls it.
+# The link /include-s ltmem's tracking object (ltmemtrack.cpp: its
+# globals' construction, retail 0x10048a40..0x10048b60), which pulls the
+# heap object in behind it (ltmemheap.cpp: its globals' construction and
+# destruction, retail 0x10048cd0..0x10048def); retail links both though
+# nothing calls them.
 # Begin Project
 # PROP AllowPerConfigDependencies 0
 # PROP Scc_ProjName ""
@@ -61,7 +63,7 @@ BSC32=bscmake.exe
 # ADD BSC32 /nologo
 LINK32=link.exe
 # ADD BASE LINK32 kernel32.lib user32.lib /nologo /subsystem:windows /dll /machine:I386
-# ADD LINK32 kernel32.lib user32.lib ole32.lib winmm.lib wsock32.lib /include:?g_GeneralHeap@@3VCGeneralHeapGroup@@A /nologo /subsystem:windows /dll /machine:I386 /out:"..\..\..\built\Final\server\server.dll"
+# ADD LINK32 kernel32.lib user32.lib ole32.lib winmm.lib wsock32.lib /include:?g_curAllocInfo@@3UCMemTrackAllocInfo@@A /nologo /subsystem:windows /dll /machine:I386 /out:"..\..\..\built\Final\server\server.dll"
 !ENDIF 
 
 # Begin Target

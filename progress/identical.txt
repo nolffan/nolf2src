@@ -7083,8 +7083,8 @@ ClientFx.fxd	sub_10011950
 ClientFx.fxd	sub_100119d0
 ClientFx.fxd	sub_100119e0
 ClientFx.fxd	sub_10011a20
-ClientFx.fxd	sub_10011a2d
 ClientFx.fxd	sub_10011a60
+ClientFx.fxd	sub_10011b50
 ClientFx.fxd	sub_10011b80
 ClientFx.fxd	sub_10011c20
 ClientFx.fxd	sub_10011ce0
@@ -11915,6 +11915,7 @@ Lithtech.exe	sub_509fc0
 Lithtech.exe	sub_50a000
 Lithtech.exe	sub_50a040
 Lithtech.exe	sub_50a080
+Lithtech.exe	sub_50a0d0
 Lithtech.exe	sub_50a0e0
 Lithtech.exe	sub_50a190
 Lithtech.exe	sub_50a1f0
@@ -13671,6 +13672,7 @@ NOLF2.exe	sub_4076d0
 NOLF2.exe	sub_407810
 NOLF2.exe	sub_407860
 NOLF2.exe	sub_4078b0
+NOLF2.exe	sub_407980
 NOLF2.exe	sub_4079a0
 NOLF2.exe	sub_4079f0
 NOLF2.exe	sub_407a20
@@ -14004,8 +14006,8 @@ NOLF2Srv.exe	sub_4012f0
 NOLF2Srv.exe	sub_401370
 NOLF2Srv.exe	sub_401380
 NOLF2Srv.exe	sub_4013c0
-NOLF2Srv.exe	sub_4013cd
 NOLF2Srv.exe	sub_401400
+NOLF2Srv.exe	sub_4014f0
 NOLF2Srv.exe	sub_401520
 NOLF2Srv.exe	sub_4015c0
 NOLF2Srv.exe	sub_401680
@@ -14655,8 +14657,8 @@ Object.lto	sub_100045b0
 Object.lto	sub_10004630
 Object.lto	sub_10004640
 Object.lto	sub_10004680
-Object.lto	sub_1000468d
 Object.lto	sub_100046c0
+Object.lto	sub_100047b0
 Object.lto	sub_100047e0
 Object.lto	sub_10004880
 Object.lto	sub_10004940
@@ -22497,6 +22499,8 @@ Object.lto	sub_1016c070
 Object.lto	sub_1016c0c0
 Object.lto	sub_1016c110
 Object.lto	sub_1016c160
+Object.lto	sub_1016c1d0
+Object.lto	sub_1016c200
 Object.lto	sub_1016c210
 Object.lto	sub_1016c3b0
 Object.lto	sub_1016c4c0
@@ -27527,6 +27531,7 @@ server.dll	sub_1001355b
 server.dll	sub_10013589
 server.dll	sub_10013594
 server.dll	sub_100135bf
+server.dll	sub_100135fc
 server.dll	sub_10013601
 server.dll	sub_10013634
 server.dll	sub_1001366b
@@ -28421,6 +28426,7 @@ server.dll	sub_1002b6a3
 server.dll	sub_1002b6bf
 server.dll	sub_1002b705
 server.dll	sub_1002b7a8
+server.dll	sub_1002b803
 server.dll	sub_1002b81d
 server.dll	sub_1002b827
 server.dll	sub_1002b853

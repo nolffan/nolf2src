@@ -24,7 +24,8 @@ CFG=ltmem - Win32 Final
 # Monolith's game DLLs link (TO2.dsw names it as a dependency; the source
 # release does not have it). Written for this project from what the sound
 # driver links of it (ltmem.cpp) and what the engine adds (ltmemstats.cpp,
-# the "mem" console command) and links of the heap (ltmemheap.cpp, the fear
+# the "mem" console command, and the tracking, ltmemtrack.cpp, the fear
+# tree's: server.dll links its globals) and links of the heap (ltmemheap.cpp, the fear
 # tree's, its globals only: nothing calls it). A static library project's flags (the C
 # runtime not imported: its calls go through import thunks, in the sound
 # driver and in Lithtech.exe alike), with /Ob2 as the driver's own.
@@ -70,6 +71,10 @@ SOURCE=.\ltmem.cpp
 # Begin Source File
 
 SOURCE=.\ltmemstats.cpp
+# End Source File
+# Begin Source File
+
+SOURCE=.\ltmemtrack.cpp
 # End Source File
 # Begin Source File
 

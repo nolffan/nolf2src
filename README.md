@@ -63,15 +63,15 @@ is the whole game.
 
 | Binary | | Byte-identical functions | Byte-identical code | | Unwritten | Unplaced |
 |---|---|--:|--:|---|--:|--:|
-| `Lithtech.exe` | the engine | 6,279 / 6,847 | 1,288,710 / 1,345,397 bytes | `███████████████████░` 95.7% | 5 | 117 |
-| `server.dll` | the engine's server | 2,860 / 3,472 | 303,164 / 310,894 bytes | `███████████████████░` 97.5% | 2 | 7 |
+| `Lithtech.exe` | the engine | 6,280 / 6,848 | 1,288,721 / 1,345,391 bytes | `███████████████████░` 95.7% | 4 | 115 |
+| `server.dll` | the engine's server | 2,862 / 3,475 | 303,173 / 310,901 bytes | `███████████████████░` 97.5% | 0 | 3 |
 | `ServerDir.dll` | the server directory (WON Titan) | 457 / 492 | 88,815 / 89,212 bytes | `███████████████████░` 99.5% | 0 | 0 |
 | `snddrv.dll` | the sound driver | 210 / 236 | 35,176 / 35,599 bytes | `███████████████████░` 98.8% | 0 | 0 |
-| `NOLF2.exe` | the launcher | 338 / 408 | 49,288 / 49,925 bytes | `███████████████████░` 98.7% | 1 | 7 |
-| `NOLF2Srv.exe` | the dedicated server | 543 / 595 | 86,191 / 87,292 bytes | `███████████████████░` 98.7% | 1 | 1 |
+| `NOLF2.exe` | the launcher | 339 / 409 | 49,293 / 49,896 bytes | `███████████████████░` 98.7% | 0 | 6 |
+| `NOLF2Srv.exe` | the dedicated server | 543 / 595 | 86,191 / 87,238 bytes | `███████████████████░` 98.7% | 0 | 0 |
 | `CShell.dll` | the game: client | 6,335 / 7,224 | 1,313,803 / 1,326,222 bytes | `███████████████████░` 99.0% | 0 | 2 |
-| `Object.lto` | the game: server objects | 11,770 / 13,262 | 1,886,260 / 1,909,666 bytes | `███████████████████░` 98.7% | 2 | 6 |
-| `ClientFx.fxd` | the game: client effects | 409 / 499 | 119,817 / 121,029 bytes | `███████████████████░` 98.9% | 1 | 1 |
+| `Object.lto` | the game: server objects | 11,772 / 13,263 | 1,886,279 / 1,909,606 bytes | `███████████████████░` 98.7% | 0 | 4 |
+| `ClientFx.fxd` | the game: client effects | 409 / 499 | 119,817 / 120,975 bytes | `███████████████████░` 99.0% | 0 | 0 |
 | `ltmsg.dll` | the engine's messages, not in the total | 5 / 5 resources | 2,054 / 2,054 bytes | `████████████████████` 100.0% | 0 | -- |
 | `CRes.dll` | the game's client resources, not in the total | 484 / 484 resources | 622,940 / 622,940 bytes | `████████████████████` 100.0% | 0 | -- |
 | `SRes.dll` | the game's server resources, not in the total | no resources | -- | -- | -- | -- |
@@ -79,7 +79,7 @@ is the whole game.
 | `server.dll:rsrc` | the engine's server's resources, not in the total | 2 / 2 resources | 760 / 760 bytes | `████████████████████` 100.0% | 0 | -- |
 | `NOLF2.exe:rsrc` | the launcher's resources, not in the total | 112 / 112 resources | 4,963,404 / 4,963,404 bytes | `████████████████████` 100.0% | 0 | -- |
 | `NOLF2Srv.exe:rsrc` | the dedicated server's resources, not in the total | 17 / 17 resources | 936,722 / 936,722 bytes | `████████████████████` 100.0% | 0 | -- |
-| **All** | | **29,201 / 33,035** | **5,171,224 / 5,275,236 bytes** | `███████████████████░` **98.0%** | **12** | **141** |
+| **All** | | **29,207 / 33,041** | **5,171,268 / 5,275,040 bytes** | `███████████████████░` **98.0%** | **4** | **130** |
 <!-- progress:end -->
 
 Every function in that table is recorded in `progress/identical.txt`, and
