@@ -10,6 +10,16 @@ covers each change in detail, under its item number (M-E1, M-G2 and so on).
 
 ## Unreleased
 
+- **V-sync in a window no longer halves the frame rate** (Wine, Linux and
+  Steam Deck). With V-sync on, a window or borderless full screen is now
+  capped at the display's refresh rate instead of waiting for each
+  refresh, so a demanding scene costs a few frames a second rather than
+  half of them; the desktop already keeps a window from tearing. Full
+  screen still waits for the refresh. (M-E70; issue #4)
+- **No stripes down the sides of the scope and the camera's zoom.** The
+  masks fell a little short of the screen's sides, in the original game
+  too; the black now reaches them, on wide screens and at 4:3. (M-G90;
+  issue #2)
 - **`FrameTimeLog` shows the projected shadows' time** as a part of its
   own, `shadows`, and the shadows on High no longer throw a buffer away for
   every piece of the world they fall on. (M-E69)

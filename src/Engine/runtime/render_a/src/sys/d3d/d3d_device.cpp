@@ -12,6 +12,9 @@
 #include "3d_ops.h"
 #include "d3d_texture.h"
 #include "d3dmeshrendobj_rigid.h"
+#ifdef NOLF2SRC_MODERN
+#include "modernframelog.h"
+#endif
 #include "d3dmeshrendobj_skel.h"
 #include "d3dmeshrendobj_vertanim.h"
 #include "debuggeometry.h"
@@ -292,11 +295,34 @@ void CD3D_Device::SetPresentationParams(D3DPRESENT_PARAMETERS& PresentationParam
 	// DEFAULT can wait for the monitor even with VSyncOnFlip off (including
 	// a borderless window). Ask explicitly for no wait there. Native D3D8
 	// requires DEFAULT in a window, so keep its parameters as before.
-	if (g_bRunWindowed && !g_CV_VSyncOnFlip.m_Val)
+	//
+	// M-E70: and with VSyncOnFlip on, a window (borderless too) still
+	// presents at once, and the frame limiter caps the game at the
+	// monitor's refresh rate instead. Waiting for the refresh with one back
+	// buffer (a window's) halves the frame rate as soon as a frame takes a
+	// little longer than a refresh; the desktop's compositor already keeps
+	// a window from tearing, so the wait buys nothing there.
+	g_nModernVSyncCapHz = 0;
+	if (g_bRunWindowed)
 	{
 		HMODULE hNTDLL = GetModuleHandle("ntdll.dll");
 		if (hNTDLL && GetProcAddress(hNTDLL, "wine_get_version"))
+		{
 			PresentationParam.FullScreen_PresentationInterval = D3DPRESENT_INTERVAL_IMMEDIATE;
+			if (g_CV_VSyncOnFlip.m_Val)
+			{
+				// The refresh rate of the display the window is on (0 or 1
+				// is the driver's "default": take 60)
+				int nRefresh = 0;
+				HDC hDC = GetDC(g_hWnd);
+				if (hDC)
+				{
+					nRefresh = ::GetDeviceCaps(hDC, VREFRESH);	// GDI's, not CD3D_Device's
+					ReleaseDC(g_hWnd, hDC);
+				}
+				g_nModernVSyncCapHz = (nRefresh > 1) ? (uint32)nRefresh : 60;
+			}
+		}
 	}
 
 	// M-E13: a multisampled back buffer is never lockable, and Direct3D 8

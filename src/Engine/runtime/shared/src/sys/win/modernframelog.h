@@ -27,6 +27,12 @@ enum
 	MFL_COUNT
 };
 
+// MODERN.md M-E70: V-sync in a window under Wine is a cap, not a wait: the
+// renderer presents at once and sets this to the monitor's refresh rate,
+// which the frame limiter (clientmgr.cpp) then holds the game to; 0 when
+// it does not apply.
+extern uint32	g_nModernVSyncCapHz;
+
 extern bool		g_bModernFrameLog;
 extern DWORD	g_dwModernFrameLogThread;
 extern __int64	g_aModernFrameTicks[MFL_COUNT];
