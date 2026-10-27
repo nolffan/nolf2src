@@ -8,6 +8,9 @@
 #include "d3dmeshrendobj_vertanim.h"
 #include "modelshadowshader.h"
 #include "rendererframestats.h"
+#ifdef NOLF2SRC_MODERN
+#include "modernframelog.h"
+#endif
 #include "..\shadows\d3dshadowtexture.h"
 #include "pixelshadermgr.h"
 #include <algorithm>
@@ -650,6 +653,7 @@ CRenderShadowList& CRenderShadowList::GetSingleton()
 //of shadows to be rendered
 void CRenderShadowList::QueueShadows(ModelInstance* pInstance, const CRelevantLightList& LightList)
 {
+
 	//determine the largest number of shadows that we can use
 	uint32 nMaxShadows = (uint32)g_CV_ModelShadow_Proj_MaxShadows.m_Val;
 
@@ -803,6 +807,12 @@ float CRenderShadowList::CalcScore(const ViewParams& Params, const SQueuedShadow
 //this will render all shadows in the queue to the world and flush it
 void CRenderShadowList::RenderQueuedShadows(const ViewParams& Params)
 {
+#ifdef NOLF2SRC_MODERN
+	// MODERN.md M-E69: FrameTimeLog's "shadows", the projected shadows'
+	// textures and their passes over the world
+	CModernFrameSection cModernFrameSection(MFL_SHADOWS);
+#endif
+
 	//see if we need to sort our textures so that we only draw the N most prominant ones
 	uint32 nShadowsToRender;
 

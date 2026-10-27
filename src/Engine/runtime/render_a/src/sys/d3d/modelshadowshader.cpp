@@ -183,7 +183,83 @@ bool CModelShadowShader::RenderSection(	D3DPRIMITIVETYPE nPrimType,		//primitive
 		return true;
 	}
 
-	//now actually render the polygons by building up our culled index buffer list, and 
+#ifdef NOLF2SRC_MODERN
+	// MODERN.md M-E69: retail locks the temporary index buffer with DISCARD
+	// for every section it is given, whether or not a triangle survives the
+	// cull, and never moves on from its start (m_nTempIBIndex stays 0, so
+	// every draw reads from index 0 and the buffer is thrown away each
+	// time). With Shadows on High every section of the world inside each
+	// shadow's projection comes through here, three shadows a frame. Here
+	// the buffer is locked only once a triangle survives, filled on from
+	// where the last section stopped (NOOVERWRITE), drawn from there, and
+	// discarded only when it is full.
+	{
+		uint16 *pOutIndices = NULL;
+		uint32 nBaseIndex = 0;
+		const uint16 *pEndIndex = &pIndices[nTotalIndexCount];
+		LTVector vPolyNormal;
+
+		for (; pIndices < pEndIndex; pIndices += 3)
+		{
+			const SRBVertex &v0 = pVertices[ pIndices[0] ];
+			const SRBVertex &v1 = pVertices[ pIndices[1] ];
+			const SRBVertex &v2 = pVertices[ pIndices[2] ];
+
+			vPolyNormal = (v2.m_vPos - v0.m_vPos).Cross(v1.m_vPos - v0.m_vPos);
+			float fMag = vPolyNormal.Mag();
+
+			if(fabs(vPolyNormal.Dot(m_vTransBSphereCenter - v0.m_vPos)) > m_fBSphereRad * fMag)
+				continue;
+
+			if (m_ProjectorPlane.Normal().Dot(vPolyNormal) > 0.01f)
+				continue;
+
+			// The buffer full: draw what this section has in it, start over
+			if (pOutIndices && (m_nTempIBIndex + nBaseIndex + 3 > k_nTempIBSize))
+			{
+				m_pTempIB->Unlock();
+				pOutIndices = NULL;
+				PD3DDEVICE->SetIndices(m_pTempIB, 0);
+				PD3DDEVICE->DrawIndexedPrimitive(nPrimType, nStartVert, nTotalVertCount, m_nTempIBIndex, nBaseIndex / 3);
+				IncFrameStat(eFS_ModelShadowTriangles, nBaseIndex / 3);
+				m_nTempIBIndex = k_nTempIBSize;
+				nBaseIndex = 0;
+			}
+
+			if (!pOutIndices)
+			{
+				if (m_nTempIBIndex + 3 > k_nTempIBSize)
+					m_nTempIBIndex = 0;
+
+				HRESULT hr = m_pTempIB->Lock(m_nTempIBIndex * sizeof(uint16), (k_nTempIBSize - m_nTempIBIndex) * sizeof(uint16),
+								(BYTE**)&pOutIndices, m_nTempIBIndex ? D3DLOCK_NOOVERWRITE : D3DLOCK_DISCARD);
+				if (FAILED(hr))
+				{
+					m_bErrorOccurred = true;
+					return false;
+				}
+			}
+
+			pOutIndices[0] = (uint16)(pIndices[0] + nVertOffset);
+			pOutIndices[1] = (uint16)(pIndices[1] + nVertOffset);
+			pOutIndices[2] = (uint16)(pIndices[2] + nVertOffset);
+			pOutIndices += 3;
+			nBaseIndex += 3;
+		}
+
+		if (pOutIndices)
+		{
+			m_pTempIB->Unlock();
+			PD3DDEVICE->SetIndices(m_pTempIB, 0);
+			PD3DDEVICE->DrawIndexedPrimitive(nPrimType, nStartVert, nTotalVertCount, m_nTempIBIndex, nBaseIndex / 3);
+			IncFrameStat(eFS_ModelShadowTriangles, nBaseIndex / 3);
+			m_nTempIBIndex += nBaseIndex;
+		}
+
+		return true;
+	}
+#else
+	//now actually render the polygons by building up our culled index buffer list, and
 	//rendering the polygons
 	uint16 *pOutIndices;
 
@@ -277,6 +353,7 @@ bool CModelShadowShader::RenderSection(	D3DPRIMITIVETYPE nPrimType,		//primitive
 	}
 
 	return true;
+#endif
 }
 
 //determines if this device supports perspective shadows

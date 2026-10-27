@@ -61,7 +61,7 @@ frame, how many were over the threshold, and what an average frame went on.
 `FrameTimeLog 0` stops it and closes the file; `ShowFramerate 1` shows the
 rate on screen meanwhile. A line reads
 
-    123.456    48.2 ms:  input 0.1  net 0.0  server 1.2  game 0.8  objects 0.1  render 9.6  present 35.9  sound 0.1  video 0.0  limit 0.0  other 0.4
+    123.456    48.2 ms:  input 0.1  net 0.0  server 1.2  game 0.8  objects 0.1  render 8.9  shadows 0.7  present 35.9  sound 0.1  video 0.0  limit 0.0  other 0.4
 
 the seconds since the log started, the frame's time, and its parts in
 milliseconds: `input` the keyboard, mouse and controller; `net` messages
@@ -69,7 +69,11 @@ between the game and its server (and the game's handling of them);
 `server` the game world's own update (the AIs, physics, triggers; single
 player and a host); `game` the client game's update (interface, player,
 effects); `objects` the engine's animation of the client's objects;
-`render` drawing the world and the interface's 3D; `present` showing the
+`render` drawing the world and the interface's 3D; `shadows` the part of
+that spent on the models' projected shadows (Options > Performance >
+Shadows; the time the game takes to hand them to the graphics card -- the
+card's own work on them shows up later in the frame, in `render` or
+`present`); `present` showing the
 frame (where a frame waits for the graphics card, and for V-sync);
 `sound`, `video` (movies); `limit` the frame limiter's wait (`MaxFPS`);
 `other` the rest (the window's messages between frames). A level loading

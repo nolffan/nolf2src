@@ -10,6 +10,9 @@ covers each change in detail, under its item number (M-E1, M-G2 and so on).
 
 ## Unreleased
 
+- **`FrameTimeLog` shows the projected shadows' time** as a part of its
+  own, `shadows`, and the shadows on High no longer throw a buffer away for
+  every piece of the world they fall on. (M-E69)
 - **Damage flashes fill widescreen views.** The health and armor hit
   flashes widen with the viewport while keeping their original height,
   fade and intensity. (M-G89)

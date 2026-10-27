@@ -798,8 +798,9 @@ static void cm_ModernConsoleEvent()
 // MODERN.md M-E58: FrameTimeLog <ms>. Every frame that took at least that
 // long, from the start of one CClientMgr::Update to the start of the next,
 // is written to frametime.log in the game's directory (and the console),
-// with what it was spent on: the sections (clientmgr.h) less the ones they
-// hold, "game" the client shell's own update (the game DLL's logic and
+// with what it was spent on: the sections (modernframelog.h) less the ones
+// they hold, "shadows" the projected model shadows inside the drawing
+// (M-E69), "game" the client shell's own update (the game DLL's logic and
 // interface, without the engine's drawing and present it asks for), and
 // "other" what no section has: the window messages between frames and the
 // rest of the update. Every ten seconds a summary line: the frames, the
@@ -824,6 +825,7 @@ namespace
         MFL_PART_GAME,
         MFL_PART_OBJECTS,
         MFL_PART_RENDER,
+        MFL_PART_SHADOWS,
         MFL_PART_PRESENT,
         MFL_PART_SOUND,
         MFL_PART_VIDEO,
@@ -834,7 +836,7 @@ namespace
 
     const char* const s_apModernFrameParts[MFL_PARTS] =
     {
-        "input", "net", "server", "game", "objects", "render", "present",
+        "input", "net", "server", "game", "objects", "render", "shadows", "present",
         "sound", "video", "limit", "other"
     };
 
@@ -932,7 +934,8 @@ static void cm_ModernFrameLog()
         afParts[MFL_PART_NET]     = afMS[MFL_NET];
         afParts[MFL_PART_SERVER]  = afMS[MFL_SERVER];
         afParts[MFL_PART_OBJECTS] = afMS[MFL_OBJECTS];
-        afParts[MFL_PART_RENDER]  = afMS[MFL_RENDER];
+        afParts[MFL_PART_RENDER]  = afMS[MFL_RENDER] - afMS[MFL_SHADOWS];
+        afParts[MFL_PART_SHADOWS] = afMS[MFL_SHADOWS];
         afParts[MFL_PART_PRESENT] = afMS[MFL_PRESENT];
         afParts[MFL_PART_SOUND]   = afMS[MFL_SOUND];
         afParts[MFL_PART_VIDEO]   = afMS[MFL_VIDEO];
