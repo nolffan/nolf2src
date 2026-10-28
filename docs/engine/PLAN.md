@@ -2241,3 +2241,38 @@ Both halves of that lead tried (Lithtech.exe, against 68d25fb):
   `??_E` (our link keeps its vtable while everything that creates one is
   dropped); `CLTClient::Math`, `r_IncObjectFrameCode`. Elsewhere 15, all
   1-13 bytes but Object.lto's `~CSoundButeMgr` (276).
+
+### round2
+
+- **`__forceinline` on the Lightmap_Texture sections' `operator==`**
+  (`CSection_Lightmap_Texture`, `_Detail`, `_EnvMap`, `_EnvBumpMap`; not
+  `_DualTexture`, whose copy retail has): retail has no out-of-line copy.
+  Lithtech.exe unplaced 27 -> 23, identical +10. The sort (0x4fced0) now
+  has retail's main part (its first `ret` at the same offset, the same
+  calls); only the short-range tail differs: retail calls
+  `__unguarded_linear_insert` (0x501010) and `__copy_backward` out of
+  line, ours inlines the first. Its inline budget runs out later than
+  retail's for a reason not found.
+- **Build 124.** Retail 1.3 is build 124 ("Build 124",
+  `GetSaveVersion` = 0x7c at CShell.dll 0x1003d1e0); the source release
+  says 123. Now 124 in both builds; the modern build keeps
+  `kSaveVersion__1_3` at 123 for saves of this project's earlier builds
+  (MODERN.md M-G91). CShell.dll and Object.lto +1 identical, -1 unplaced.
+- **Tried, reverted:**
+  - `iltsound` without the physics header (`/D __COORDINATE_FRAME_H__`):
+    `ltrotation.h` needs it (line 37). The group stays.
+  - `ltmemheap`'s group is not surplus: retail has it, after
+    d3d_optimizedsurface (0x51e990; its header comment). The PI surplus is
+    `udpdriver`'s (kept) and `iltsound`'s.
+  - The 10-byte `_$E` (D3DRender, Lib_UI) are `mov ecx,&holder / jmp
+    ~CAPIHolder` thunks of `define_holder`s. Removing the six unused
+    D3DRender holders (common_draw, d3d_draw x2, drawsky,
+    drawvolumeeffects, tagnodes) unplaced 23 -> 17 but unwritten 3 -> 8:
+    retail has five of them (new rows beside d3d_draw, tagnodes,
+    drawvolumeeffects and two more); drawsky's alone cost two identical
+    10-byte rows. The thunks are all one shape, so which holder is the
+    extra one cannot be read from the score.
+  - Object.lto's `~CSoundButeMgr` (276 bytes) is retail's 0x1016c9f0 but
+    two stack slots (`[esp+0x10]`/`[esp+0x14]`) swapped; the same source is
+    identical in CShell.dll, so it is how Object.lto's build compiles
+    SoundButeMgr.cpp (its defines or inline budget), not the source.
