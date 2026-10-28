@@ -2208,3 +2208,36 @@ Both halves of that lead tried (Lithtech.exe, against 68d25fb):
   left to try is the CInternalSection side (its `operator<` written with
   `==` rather than `!=`, or the texture-effect compare first), or
   CShaderSection being the section itself rather than a base.
+
+### remaining (the encrypted pages; what is left)
+
+- **The encrypted pages read for placement.** progress/targets.py gives
+  Lithtech.exe `readable` (out/mpdemo/Lithtech-readable.exe, made by
+  build/progress.sh from rez/'s demo chunks with tools/demoimports.py
+  extract + plain); tools/progress.py enumerates and compares from it,
+  the rows there stay `encrypted`. Lithtech.exe unplaced 113 -> 64 (tools
+  433cecf); then the shape count (short functions covered by count) also
+  takes the shipped supply from those pages: 64 -> 27 (tools c3a8d77).
+  The whole project: unwritten 3, unplaced 128 -> 42.
+- **`CInternalSection::operator<` with `!(a == b)`** for `a != b`: not one
+  byte different; reverted (VC6 flattens the `!=` already).
+- **0x4fced0 / 0x501010, read again.** Retail's sort there is over 8-byte
+  index entries (an index into the 68-byte sections and one more dword)
+  through a comparator object: in the guarded insertion it calls
+  CInternalSection's `operator<` (0x4ff050) and the comparator (0x4feeb0)
+  out of line, and in the unguarded part it inlines the comparator's
+  first-field test (`cmp edx,ebx` at 0x4fd031, the sections' m_pTexture).
+  The notes above took it for a sort of the sections themselves; the
+  comparator's shape (SSectionRBIndex and its functor in
+  d3d_renderworld.cpp) is where to look next. The four out-of-line
+  `??8CSection_Lightmap_Texture*` (37 bytes, unplaced) are the same
+  question: retail has no out-of-line copy.
+- **Left, Lithtech.exe (27 unplaced):** about 11 PI-group initializers,
+  the surplus of about two groups (readable retail 62 groups against our
+  64: `udpdriver`, kept for CUDPDriver::ReallyJoinSession, and `iltsound`
+  or `ltmemheap`); six 10-byte `_$E` initializers (D3DRender's
+  common_draw/d3d_draw/drawvolumeeffects, Lib_UI's cuiwidget_impl and
+  cuiwidgetmanager); the four `??8` above; CSegmentState's 64-byte
+  `??_E` (our link keeps its vtable while everything that creates one is
+  dropped); `CLTClient::Math`, `r_IncObjectFrameCode`. Elsewhere 15, all
+  1-13 bytes but Object.lto's `~CSoundButeMgr` (276).
