@@ -104,7 +104,7 @@ struct CSection_Lightmap_Texture
 {
 	bool operator<(const CSection_Lightmap_Texture &cOther) const { return m_pTexture < cOther.m_pTexture; }
 	bool operator!=(const CSection_Lightmap_Texture &cOther) const { return !(*this == cOther); }
-	bool operator==(const CSection_Lightmap_Texture &cOther) const {
+	__forceinline bool operator==(const CSection_Lightmap_Texture &cOther) const {
 		return
 			(m_pTexture == cOther.m_pTexture) &&
 			(m_bFullbright == cOther.m_bFullbright);
@@ -188,7 +188,7 @@ struct CSection_Lightmap_Texture_Detail
 {
 	bool operator<(const CSection_Lightmap_Texture_Detail &cOther) const { return m_pTexture < cOther.m_pTexture; }
 	bool operator!=(const CSection_Lightmap_Texture_Detail &cOther) const { return !(*this == cOther); }
-	bool operator==(const CSection_Lightmap_Texture_Detail &cOther) const {
+	__forceinline bool operator==(const CSection_Lightmap_Texture_Detail &cOther) const {
 		return
 			(m_pTexture == cOther.m_pTexture) &&
 			(m_bFullbright == cOther.m_bFullbright);
@@ -262,7 +262,7 @@ struct CSection_Lightmap_Texture_EnvMap
 {
 	bool operator<(const CSection_Lightmap_Texture_EnvMap &cOther) const { return m_pTexture < cOther.m_pTexture; }
 	bool operator!=(const CSection_Lightmap_Texture_EnvMap &cOther) const { return !(*this == cOther); }
-	bool operator==(const CSection_Lightmap_Texture_EnvMap &cOther) const {
+	__forceinline bool operator==(const CSection_Lightmap_Texture_EnvMap &cOther) const {
 		return
 			(m_pTexture == cOther.m_pTexture) &&
 			(m_bFullbright == cOther.m_bFullbright);
@@ -337,7 +337,7 @@ struct CSection_Lightmap_Texture_EnvBumpMap
 {
 	bool operator<(const CSection_Lightmap_Texture_EnvBumpMap &cOther) const { return m_pTexture < cOther.m_pTexture; }
 	bool operator!=(const CSection_Lightmap_Texture_EnvBumpMap &cOther) const { return !(*this == cOther); }
-	bool operator==(const CSection_Lightmap_Texture_EnvBumpMap &cOther) const {
+	__forceinline bool operator==(const CSection_Lightmap_Texture_EnvBumpMap &cOther) const {
 		return
 			(m_pTexture == cOther.m_pTexture) &&
 			(m_bFullbright == cOther.m_bFullbright);
