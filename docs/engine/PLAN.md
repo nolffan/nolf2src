@@ -2116,3 +2116,69 @@ gone. The modern build shares the script and the step.
 **Score** (against dcd50ad): Lithtech.exe:rsrc 18 -> 27 of 27 identical,
 9,772 -> 18,762 bytes (100%), near 7 -> 0, unwritten 2 -> 0. Code
 unchanged.
+
+### unwritten2
+
+The last twelve unwritten rows (Lithtech.exe 5, server.dll 2, Object.lto
+2, NOLF2.exe, NOLF2Srv.exe, ClientFx 1 each). 0x4e6760 and 0x558b20 of
+the earlier lists were already identical at 3de813c.
+
+**Fixed: rows that were two functions.**
+- *atexit exit thunks.* `mov $&obj,%ecx ; jmp ??1Class` (10 bytes), its
+  address pushed and handed to atexit, and the destructor it jumps to,
+  inlined everywhere else so nothing else references it: one row matching
+  neither. Lithtech.exe 0x50a0c0 (~CScreenGlowMgr at 0x50a0d0, `add
+  ecx,0x220 ; jmp ~CRenderStyleMap`; ours was always identical), server.dll
+  0x100135f2 (ltmodule's `_FILE_SHUTDOWN` destructor at 0x100135fc behind
+  a `jmp $+5`), NOLF2Srv.exe 0x4014e0, Object.lto 0x100047a0 and ClientFx
+  0x10011b40 (the same, check_delete_pointers inlined). tools enumfuncs
+  rule 4g; it also finds ~CPixelShaderMgr 0x509620, so that extent split
+  is gone. Rule 4c now takes the initializer a `$E` thunk calls (`call
+  ??__E ; jmp registrar`) as well: Object.lto 0x1016c1f0's row held
+  CDebrisMgrPlugin's constructor 0x1016c200. 9 to 27 new starts per
+  image, each checked.
+- NOLF2.exe 0x407950 held the launcher's dummy `Direct3DCreate8`
+  (0x407980, `xor eax,eax ; ret 4`, unreferenced) behind its int3 padding:
+  an extent split.
+- The three DLLs' old identical rows at 0x4013cd / 0x1000468d /
+  0x10011a2d were our shutdown destructor matching as a twin INSIDE
+  DatabaseItemCountDec (its inlined check_delete_pointers); dropped, the
+  destructor is identical at its own address.
+
+**Fixed: server.dll 0x10048b60** (`movl $0,0x1005eee8`). The last
+initializer of ltmemtrack.obj, after its nine header-constant
+initializers (0x10048a40..): g_curAllocInfo (0x1005eed0, 100 bytes,
+ending where the constants' data start, 0x1005ef34) with the fear tree's
+constructor clearing m_nFlags (+0x18). Retail's server.dll links ltmem,
+ltmemstats, ltmemtrack, ltmemheap in that order; nothing calls ltmemtrack
+or ltmemheap, /OPT:REF keeps only data and initializers. ltmem.lib now
+has the fear tree's `ltmemtrack.cpp`/`.h`; server.dll `/include`-s
+`g_curAllocInfo` (in place of `g_GeneralHeap`), and ltmemtrack's
+references pull ltmemheap in after it. Lithtech.exe still `/include`-s
+g_GeneralHeap; its retail image shows no such store after ltmemstats.
+
+**Score** (against 3de813c): unwritten 12 -> 4; identical Lithtech.exe
++1, server.dll +2, Object.lto +2, NOLF2.exe +1 (+9 functions, 3 twins
+re-paired); unplaced Lithtech.exe 117 -> 115, server.dll 7 -> 3,
+NOLF2.exe 7 -> 6, Object.lto 6 -> 4, NOLF2Srv 1 -> 0, ClientFx 1 -> 0.
+
+**Left (Lithtech.exe 4, all d3d_renderworld.obj inlining).**
+- 0x4cb620, 0x4cb7f0, 0x4cc680: three of the ten 409-byte
+  `~CRenderShader_*` (the s_bValidateRequired ones). Ours are 382 for all
+  ten: the last member destructor, `~_Vector_base<CInternalSection>`, is a
+  call, retail expands it (seven pair as near, three have nothing left to
+  pair). Probe: `m_aVBs.erase(begin(), end())` for `clear()` (same code,
+  one level less) frees budget, but VC6 spends it at the top, expanding
+  `copy` into `__copy` (392 bytes, still calling ~_Vector_base): the budget
+  is spent top-down here, so a saving must come after the VB loop.
+- 0x501010: `__unguarded_linear_insert` of the Lightmap_Texture family's
+  sort (68-byte sections; texture, fullbright, texture effect). Retail's
+  `__final_insertion_sort` there (0x4fced0, near) expands
+  `CSection_Lightmap_Texture::operator==` inside the unguarded insertion
+  loop and then calls `__unguarded_linear_insert` out of line in the
+  short-range `__insertion_sort`; ours calls `??8` in the loop and expands
+  the last insert (690 bytes). The Gouraud_Texture family (three-field
+  operator==, no section constructor) does what ours does in both, and is
+  identical (0x4f70c0) -- so the Lightmap_Texture difference is about
+  that operator== (or its section's constructor), perhaps whether it was
+  compiled before the sort; not resolved.
