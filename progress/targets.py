@@ -120,6 +120,11 @@ TARGETS = [
          # start of the tail, is inside the encrypted pages.
          app=[(0x00401000, 0x00565000)],
          encrypted=[(0x00565000, 0x0056a000)],
+         # those pages as the multiplayer demo's unprotected engine has them
+         # (built 20 days after 1.3, Rich header identical), at retail's
+         # addresses: tools/demoimports.py plain, made by build/progress.sh.
+         # Read for placement only: the rows there stay `encrypted`
+         readable="out/mpdemo/Lithtech-readable.exe",
          # D3DX, statically linked from the DirectX 8.1 SDK's d3dx8.lib
          # (Microsoft's, compiled with cl 13.00.9178: the 68 Rich-header
          # objects of tool 0x1d build 9178, progress/COMPILERS.md).

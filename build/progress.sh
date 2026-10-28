@@ -53,6 +53,17 @@ for f in out/reference/*-functions.csv; do
     fi
 done
 
+# Lithtech.exe's encrypted pages as the multiplayer demo has them, for
+# placing our functions there (progress/targets.py `readable`): the demo out
+# of rez/'s artifact chunks, its engine unpacked, retail's image with the
+# pages filled in (tools/demoimports.py; out/ only, never committed)
+if [ ! -f out/mpdemo/Lithtech-readable.exe ]; then
+    echo "== Lithtech.exe's encrypted pages from the multiplayer demo (for placement only)"
+    [ -f rez/demos/nolf2_mpdemo_en.exe ] || bash rez/assemble-artifacts.sh demos/nolf2_mpdemo_en.exe
+    python3 tools/demoimports.py extract
+    python3 tools/demoimports.py plain
+fi
+
 python3 tools/progress.py
 echo
 if [ "$mode" = check ]; then

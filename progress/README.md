@@ -102,7 +102,12 @@ is the whole game's code, the engine's included.
   compiled from headers here, like any inline function, and are counted.
 * **SecuROM.** `Lithtech.exe`'s code at 0x565000..0x56a000 (five pages) is
   encrypted on disc. Nothing there can be compared, so it is `encrypted`.
-  The protection is not removed or bypassed.
+  The protection is not removed or bypassed. For placing our functions
+  only, those pages are read from the multiplayer demo's unprotected
+  engine (built 20 days after 1.3, the same compiler), put at retail's
+  addresses by `tools/demoimports.py plain` into `out/mpdemo/`
+  (`build/progress.sh` makes it; never committed): a function of ours
+  found there is placed, so not unplaced, and the row stays `encrypted`.
 
 ## Coverage: unwritten and unplaced
 
