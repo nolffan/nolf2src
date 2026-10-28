@@ -50,14 +50,22 @@ static const char* s_szVersion		= "v1.3";
 static const char* s_szVersion		= "NOLF 2 Development Build 123 (DO NOT DISTRIBUTE)";
 #endif // _TO2DEMO
 
-static const char* s_szBuild		= "Build 123";
-static const uint32 s_nBuildNumber = 123;
+// The 1.3 release is build 124 (its CShell.dll and Object.lto say "Build
+// 124" and save version 124); the source release has 123
+static const char* s_szBuild		= "Build 124";
+static const uint32 s_nBuildNumber = 124;
 static const char* s_szNetVersion	= "1.0.0.3";
 static const char* s_szNetGameName	= "NOLF2";
 
 const CVersionMgr::TSaveVersion CVersionMgr::kSaveVersion__1_1 = 72;
 const CVersionMgr::TSaveVersion CVersionMgr::kSaveVersion__1_2 = 90;
+#ifdef NOLF2SRC_MODERN
+// MODERN.md M-G91: this project's builds before the 1.3 build number was
+// put right saved as 123; those saves still count as 1.3's
+const CVersionMgr::TSaveVersion CVersionMgr::kSaveVersion__1_3 = 123;
+#else
 const CVersionMgr::TSaveVersion CVersionMgr::kSaveVersion__1_3 = s_nBuildNumber;
+#endif
 const CVersionMgr::TSaveVersion CVersionMgr::kSaveVersion__CurrentBuild = s_nBuildNumber;
 
 CVersionMgr* g_pVersionMgr = NULL;

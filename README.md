@@ -69,8 +69,8 @@ is the whole game.
 | `snddrv.dll` | the sound driver | 210 / 236 | 35,176 / 35,599 bytes | `███████████████████░` 98.8% | 0 | 0 |
 | `NOLF2.exe` | the launcher | 339 / 409 | 49,293 / 49,896 bytes | `███████████████████░` 98.7% | 0 | 6 |
 | `NOLF2Srv.exe` | the dedicated server | 543 / 595 | 86,191 / 87,238 bytes | `███████████████████░` 98.7% | 0 | 0 |
-| `CShell.dll` | the game: client | 6,335 / 7,224 | 1,313,803 / 1,326,222 bytes | `███████████████████░` 99.0% | 0 | 2 |
-| `Object.lto` | the game: server objects | 11,772 / 13,263 | 1,886,279 / 1,909,606 bytes | `███████████████████░` 98.7% | 0 | 4 |
+| `CShell.dll` | the game: client | 6,336 / 7,224 | 1,313,809 / 1,326,222 bytes | `███████████████████░` 99.0% | 0 | 1 |
+| `Object.lto` | the game: server objects | 11,773 / 13,263 | 1,886,285 / 1,909,606 bytes | `███████████████████░` 98.7% | 0 | 3 |
 | `ClientFx.fxd` | the game: client effects | 409 / 499 | 119,817 / 120,975 bytes | `███████████████████░` 99.0% | 0 | 0 |
 | `ltmsg.dll` | the engine's messages, not in the total | 5 / 5 resources | 2,054 / 2,054 bytes | `████████████████████` 100.0% | 0 | -- |
 | `CRes.dll` | the game's client resources, not in the total | 484 / 484 resources | 622,940 / 622,940 bytes | `████████████████████` 100.0% | 0 | -- |
@@ -79,7 +79,7 @@ is the whole game.
 | `server.dll:rsrc` | the engine's server's resources, not in the total | 2 / 2 resources | 760 / 760 bytes | `████████████████████` 100.0% | 0 | -- |
 | `NOLF2.exe:rsrc` | the launcher's resources, not in the total | 112 / 112 resources | 4,963,404 / 4,963,404 bytes | `████████████████████` 100.0% | 0 | -- |
 | `NOLF2Srv.exe:rsrc` | the dedicated server's resources, not in the total | 17 / 17 resources | 936,722 / 936,722 bytes | `████████████████████` 100.0% | 0 | -- |
-| **All** | | **29,225 / 33,041** | **5,173,173 / 5,275,039 bytes** | `███████████████████░` **98.0%** | **3** | **38** |
+| **All** | | **29,227 / 33,041** | **5,173,185 / 5,275,039 bytes** | `███████████████████░` **98.0%** | **3** | **36** |
 <!-- progress:end -->
 
 Every function in that table is recorded in `progress/identical.txt`, and

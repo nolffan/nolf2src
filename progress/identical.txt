@@ -5229,6 +5229,7 @@ CShell.dll	sub_100fcad0
 CShell.dll	sub_100fcb10
 CShell.dll	sub_100fcb20
 CShell.dll	sub_100fcb40
+CShell.dll	sub_100fcb80
 CShell.dll	sub_100fcb90
 CShell.dll	sub_100fcbb0
 CShell.dll	sub_100fcbf0
@@ -14663,6 +14664,7 @@ Object.lto	sub_10004290
 Object.lto	sub_10004340
 Object.lto	sub_10004350
 Object.lto	sub_10004400
+Object.lto	sub_10004430
 Object.lto	sub_10004470
 Object.lto	sub_10004480
 Object.lto	sub_10004490
