@@ -102,12 +102,6 @@ struct SVertex_Lightmap_Texture
 
 struct CSection_Lightmap_Texture
 {
-	CSection_Lightmap_Texture()
-		: m_pTexture(NULL),
-		  m_bFullbright(false)
-	{
-	}
-
 	bool operator<(const CSection_Lightmap_Texture &cOther) const { return m_pTexture < cOther.m_pTexture; }
 	bool operator!=(const CSection_Lightmap_Texture &cOther) const { return !(*this == cOther); }
 	bool operator==(const CSection_Lightmap_Texture &cOther) const {
@@ -192,12 +186,6 @@ struct SVertex_Lightmap_Texture_Detail
 
 struct CSection_Lightmap_Texture_Detail
 {
-	CSection_Lightmap_Texture_Detail()
-		: m_pTexture(NULL),
-		  m_bFullbright(false)
-	{
-	}
-
 	bool operator<(const CSection_Lightmap_Texture_Detail &cOther) const { return m_pTexture < cOther.m_pTexture; }
 	bool operator!=(const CSection_Lightmap_Texture_Detail &cOther) const { return !(*this == cOther); }
 	bool operator==(const CSection_Lightmap_Texture_Detail &cOther) const {
@@ -272,12 +260,6 @@ struct SVertex_Lightmap_Texture_EnvMap
 
 struct CSection_Lightmap_Texture_EnvMap
 {
-	CSection_Lightmap_Texture_EnvMap()
-		: m_pTexture(NULL),
-		  m_bFullbright(false)
-	{
-	}
-
 	bool operator<(const CSection_Lightmap_Texture_EnvMap &cOther) const { return m_pTexture < cOther.m_pTexture; }
 	bool operator!=(const CSection_Lightmap_Texture_EnvMap &cOther) const { return !(*this == cOther); }
 	bool operator==(const CSection_Lightmap_Texture_EnvMap &cOther) const {
@@ -353,12 +335,6 @@ struct SVertex_Lightmap_Texture_EnvBumpMap
 
 struct CSection_Lightmap_Texture_EnvBumpMap
 {
-	CSection_Lightmap_Texture_EnvBumpMap()
-		: m_pTexture(NULL),
-		  m_bFullbright(false)
-	{
-	}
-
 	bool operator<(const CSection_Lightmap_Texture_EnvBumpMap &cOther) const { return m_pTexture < cOther.m_pTexture; }
 	bool operator!=(const CSection_Lightmap_Texture_EnvBumpMap &cOther) const { return !(*this == cOther); }
 	bool operator==(const CSection_Lightmap_Texture_EnvBumpMap &cOther) const {
@@ -441,13 +417,6 @@ struct SVertex_Lightmap_Texture_DualTexture
 
 struct CSection_Lightmap_Texture_DualTexture
 {
-	CSection_Lightmap_Texture_DualTexture()
-		: m_pTexture0(NULL),
-		  m_pTexture1(NULL),
-		  m_bAdditive(false)
-	{
-	}
-
 	bool operator<(const CSection_Lightmap_Texture_DualTexture &cOther) const { return m_pTexture0 < cOther.m_pTexture0; }
 	bool operator!=(const CSection_Lightmap_Texture_DualTexture &cOther) const { return !(*this == cOther); }
 	bool operator==(const CSection_Lightmap_Texture_DualTexture &cOther) const {

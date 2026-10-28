@@ -2182,3 +2182,29 @@ NOLF2.exe 7 -> 6, Object.lto 6 -> 4, NOLF2Srv 1 -> 0, ClientFx 1 -> 0.
   identical (0x4f70c0) -- so the Lightmap_Texture difference is about
   that operator== (or its section's constructor), perhaps whether it was
   compiled before the sort; not resolved.
+
+### sortlead
+
+Both halves of that lead tried (Lithtech.exe, against 68d25fb):
+- **The order of `CSection_Lightmap_Texture`'s operators** (`==` before
+  `!=`, so `!=` could inline it): no change at all, not one byte; `??8`
+  stays out of line and folded with the EnvMap and EnvBumpMap twins.
+  VC6 does not decide this by declaration order. Reverted.
+- **No user-declared constructor** on the Lightmap_Texture family's
+  sections (`CSection_Lightmap_Texture`, `_Detail`, `_EnvMap`,
+  `_EnvBumpMap`, `_DualTexture`; each `FillSection` sets every field, so
+  nothing reads them unset; `CSection_Lightmap`, which holds a texture
+  reference, keeps its constructor): kept. Identical 6,280 -> 6,285
+  (+1,781 bytes, 7 new: 0x4ddad0 436 bytes, 0x4df560, 0x4e0ff0, 0x4e2ce0,
+  0x4ef3e0 -- the "another class's constructor" pairing of enginenear --
+  0x4f4a20, 0x4068b0), unwritten 4 -> 3 (0x4cb620 and 0x4cb7f0 now pair as
+  near; 0x4cb9c0 and 0x4cc680 are the two left), unplaced 115 -> 113. Two
+  6-byte `mov eax,N / ret` rows counted by shape (0x448110, 0x4cb7c0) went
+  from identical to small, a re-pairing (ACCEPT_LOSSES). Retail's sections
+  were plain structs, as the Gouraud family's are.
+- 0x501010 itself is still unwritten and 0x4fced0 still near: with the
+  sections plain, ours still calls `??8` in the unguarded loop and
+  expands the last insert. Not the constructor, not the order; what is
+  left to try is the CInternalSection side (its `operator<` written with
+  `==` rather than `!=`, or the texture-effect compare first), or
+  CShaderSection being the section itself rather than a base.
