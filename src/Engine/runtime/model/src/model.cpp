@@ -473,7 +473,8 @@ ModelPiece::~ModelPiece()
 void ModelPiece::Term()
 {
     // Delete/release renderobjects.
-	if (m_pRenderObjects)
+	// RETAIL: no test of the array itself first (server.dll 0x10015415
+	// reads the count before the dists' test; as Contract J.A.C.K.'s)
 	{
 		for (uint32 i = 0; i < m_nLODs; ++i)
 		{

@@ -63,8 +63,8 @@ is the whole game.
 
 | Binary | | Byte-identical functions | Byte-identical code | | Unwritten | Unplaced |
 |---|---|--:|--:|---|--:|--:|
-| `Lithtech.exe` | the engine | 6,298 / 6,848 | 1,290,626 / 1,345,390 bytes | `███████████████████░` 95.9% | 3 | 23 |
-| `server.dll` | the engine's server | 2,862 / 3,475 | 303,173 / 310,901 bytes | `███████████████████░` 97.5% | 0 | 3 |
+| `Lithtech.exe` | the engine | 6,299 / 6,848 | 1,290,748 / 1,345,390 bytes | `███████████████████░` 95.9% | 3 | 23 |
+| `server.dll` | the engine's server | 2,863 / 3,475 | 303,251 / 310,901 bytes | `███████████████████░` 97.5% | 0 | 3 |
 | `ServerDir.dll` | the server directory (WON Titan) | 457 / 492 | 88,815 / 89,212 bytes | `███████████████████░` 99.5% | 0 | 0 |
 | `snddrv.dll` | the sound driver | 210 / 236 | 35,176 / 35,599 bytes | `███████████████████░` 98.8% | 0 | 0 |
 | `NOLF2.exe` | the launcher | 339 / 409 | 49,293 / 49,896 bytes | `███████████████████░` 98.7% | 0 | 6 |
@@ -79,7 +79,7 @@ is the whole game.
 | `server.dll:rsrc` | the engine's server's resources, not in the total | 2 / 2 resources | 760 / 760 bytes | `████████████████████` 100.0% | 0 | -- |
 | `NOLF2.exe:rsrc` | the launcher's resources, not in the total | 112 / 112 resources | 4,963,404 / 4,963,404 bytes | `████████████████████` 100.0% | 0 | -- |
 | `NOLF2Srv.exe:rsrc` | the dedicated server's resources, not in the total | 17 / 17 resources | 936,722 / 936,722 bytes | `████████████████████` 100.0% | 0 | -- |
-| **All** | | **29,227 / 33,041** | **5,173,185 / 5,275,039 bytes** | `███████████████████░` **98.0%** | **3** | **36** |
+| **All** | | **29,229 / 33,041** | **5,173,385 / 5,275,039 bytes** | `███████████████████░` **98.0%** | **3** | **36** |
 <!-- progress:end -->
 
 Every function in that table is recorded in `progress/identical.txt`, and

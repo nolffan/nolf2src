@@ -8928,6 +8928,7 @@ Lithtech.exe	sub_448d40
 Lithtech.exe	sub_448d70
 Lithtech.exe	sub_448dd0
 Lithtech.exe	sub_448e10
+Lithtech.exe	sub_448e30
 Lithtech.exe	sub_448eb0
 Lithtech.exe	sub_448f30
 Lithtech.exe	sub_448fa0
@@ -27687,6 +27688,7 @@ server.dll	sub_1001537f
 server.dll	sub_100153cc
 server.dll	sub_100153f9
 server.dll	sub_10015410
+server.dll	sub_10015415
 server.dll	sub_10015463
 server.dll	sub_1001547e
 server.dll	sub_100154ab
