@@ -242,7 +242,7 @@ revision variance -- a large part of NOLF1's residue, which mixed 8168 and
 8447 -- is not an explanation here. What remains is either a genuine free
 choice the allocator made or a source shape we have not found yet. Mark these
 `near`, comment them, move on — and see
-[09-codegen-patterns](09-codegen-patterns.md#known-near-classes) for the full
+[09-codegen-patterns](09_codegen_patterns.md#known-near-classes) for the full
 list with worked evidence:
 
 The first two of these were seen between NOLF1's revisions; with one
@@ -259,7 +259,7 @@ moved them):
   `esi`↔`edi`) swap when the allocator had a free choice. Everything else
   matches; the registers are just relabeled.
 
-The test: run the normalized diff from [02-the-loop](02-the-loop.md#reading-a-diff).
+The test: run the normalized diff from [02-the-loop](02_the_loop.md#reading-a-diff).
 If nothing but register names and stack slots differ, and the shape is one of the
 above, it's a genuine near. If a real instruction, constant, or branch differs,
 it is **not** — there's still a source fix to find.

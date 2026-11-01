@@ -2,7 +2,7 @@
 
 The procedure for taking a run of functions nobody has written yet, typically
 a contiguous block of a retail image belonging to one module, from raw bytes
-to source. [09](09-codegen-patterns.md) is the codegen catalogue; this is the
+to source. [09](09_codegen_patterns.md) is the codegen catalogue; this is the
 procedure. It is written so that it can be handed as-is to a contributor or an
 agent working one cluster. It was written in nolfsrc on NOLF1's engine; the
 addresses in its examples are NOLF1's `lithtech.exe` and `server.dll`, kept
@@ -242,7 +242,7 @@ The rules that pay most, in order:
    class has a destructor you have not written. The constant names the class,
    and it goes on the MOST-DERIVED one.
 
-[12](12-o2-shape.md) covers the `/O2`-specific rules in more depth.
+[12](12_o2_shape.md) covers the `/O2`-specific rules in more depth.
 
 ## Things that will waste your time if you do not know them
 

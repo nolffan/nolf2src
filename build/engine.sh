@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# The engine's reconstruction loop (guides/02-the-loop.md): build one engine
+# The engine's reconstruction loop (guides/02_the_loop.md): build one engine
 # project, or recompile ONE of its files, and match what was compiled
 # against the retail image, function by function (tools/exematch.py).
 #

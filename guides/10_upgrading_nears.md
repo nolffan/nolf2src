@@ -9,8 +9,8 @@ and it has to be executed (in our linked engine images, by `make test` /
 `tools/playtest.sh`) before anyone can believe it.
 
 This guide is about closing nears. It assumes you can already read VC6 codegen
-([03](03-reading-disassembly.md)) and know the fingerprint catalogue
-([09](09-codegen-patterns.md)); what follows is the method and the order.
+([03](03_reading_disassembly.md)) and know the fingerprint catalogue
+([09](09_codegen_patterns.md)); what follows is the method and the order.
 It was written in nolfsrc on NOLF1's engine; the examples' names and
 addresses are NOLF1's.
 
@@ -190,7 +190,7 @@ second eight bytes short of a two-hundred-byte function.
 
 `mov mem,%eax; add %reg,%eax` where ours has `mov %reg,%eax; add mem,%eax`
 means the shipped source named the member first. See
-[09](09-codegen-patterns.md) for the exact forms that work, and the one place
+[09](09_codegen_patterns.md) for the exact forms that work, and the one place
 the rule does not hold (a pointer base folded into an addressing mode; probe
 it before believing it).
 
@@ -288,7 +288,7 @@ around.
 
 ### Check the arm order, and which shared block survives
 
-Covered in [09](09-codegen-patterns.md), but it is the most common cause of a
+Covered in [09](09_codegen_patterns.md), but it is the most common cause of a
 size-neutral residual, so re-read it when a diff shows one jump condition
 inverted. The two rules that do the most work:
 
@@ -345,7 +345,7 @@ function, four things:
   four unexplained one-offs is not.
 
 Then update the class's entry in
-[09-codegen-patterns](09-codegen-patterns.md) so the instance count stays
+[09-codegen-patterns](09_codegen_patterns.md) so the instance count stays
 current.
 
 ## When a whole cluster is one fix

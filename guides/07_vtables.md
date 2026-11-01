@@ -40,11 +40,11 @@ checks or not.
    reliable way to split a run.
 
 4. **Reconstruct the newly named slots as usual**
-   ([03](03-reading-disassembly.md)): they are ordinary functions that now
+   ([03](03_reading_disassembly.md)): they are ordinary functions that now
    have a signature — the SDK gives parameter types, return type, and often
    a doc comment.
 
-Remember the era caveat from [05](05-exe-and-engine.md): `src/Engine/sdk/inc`
+Remember the era caveat from [05](05_exe_and_engine.md): `src/Engine/sdk/inc`
 is NOLF2's own SDK and the right era, but the Jupiter tree's headers are four
 years later, and vtable order is the thing that drifts. Check each slot's
 argument count against its `ret N` before trusting a long stretch of header

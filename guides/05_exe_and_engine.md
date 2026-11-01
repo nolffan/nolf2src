@@ -101,7 +101,7 @@ reports `MATCH <addr>` per function, or nothing for a miss.
      attributes each function to its source file. It decides which files
      exist and which functions each has, before a byte is read.
    - **The Jupiter tree** (`../fear/Dev/Source/runtime`, with its `sdk/` and
-     `libs/`; `docs/engine/fear-mapping.md`) is NOLF2's engine line, four
+     `libs/`; `docs/engine/fear_mapping.md`) is NOLF2's engine line, four
      years on: about 90% of `Lithtech.exe` and 95% of `server.dll`. It gives
      class declarations, file names and most of the code -- to be trimmed back
      to 2002 (no D3D9, DirectShow, wide strings, perf counters, ...; the Mac
@@ -114,7 +114,7 @@ reports `MATCH <addr>` per function, or nothing for a miss.
      object boundaries for free.
    - **Console-variable tables**: `engine_vars.cpp`'s (stride 20) and the
      renderer's `ConVar<>` initializers tie names to the storage the code
-     uses ([13](13-cluster-recon.md)).
+     uses ([13](13_cluster_recon.md)).
    - **The module map** in `docs/engine/anatomy.md` (section 3): the objects
      in link order, with anchors.
 
@@ -123,7 +123,7 @@ reports `MATCH <addr>` per function, or nothing for a miss.
    functions on the first compile (this project's `snddrv.dll`: its seeded
    code matched 68% at first, 98.7% after corrections). Everything with no
    source is read straight from `exedump` output using
-   [03-reading-disassembly](03-reading-disassembly.md).
+   [03-reading-disassembly](03_reading_disassembly.md).
 
 4. **Resources are separate.** Reconstruct an image's resources as an `.rc`
    and verify with `rsrcdiff` (payload by payload, layout-independent), as
@@ -137,7 +137,7 @@ its 1,694 call targets are 16-byte aligned, where `/O2` aligns every
 function), **`Lithtech.exe` `/O2`** with `/GX`; neither uses `/GR`.
 `progress/COMPILERS.md` gives the evidence. In NOLF1, `/O1` for `server.dll`
 was found only by byte-matching (nolfsrc's guide 06 shows how, and what the
-tells look like: [03](03-reading-disassembly.md#o1-minimize-size-idioms)).
+tells look like: [03](03_reading_disassembly.md#o1-minimize-size-idioms)).
 
 `build/engine.sh` builds each target through `build/build.mk`'s engine pass
 (the projects in `src/Engine/runtime/winbuild/Engine.dsw`, turned into make
@@ -164,7 +164,7 @@ symbol. **`server.dll`'s files are compiled into `Lithtech.exe` too**
 section 4), at `/O2`, so after changing one, check both. The two images'
 code for one function is not the same -- only 7% of the dll's instructions
 occur verbatim in the exe -- so a function proven in one image still has to
-be matched in the other; see [12](12-o2-shape.md).
+be matched in the other; see [12](12_o2_shape.md).
 
 ## The whole-image link
 

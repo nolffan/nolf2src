@@ -69,7 +69,7 @@ directory:
 
 | Input | Used? | How |
 |---|---|---|
-| Engine source of any kind | **No** | None exists for LT2. Every engine `.cpp` was written from disassembly (`LICENSE-NOTES.md`: "written for this project, reconstructed from the retail binaries"). |
+| Engine source of any kind | **No** | None exists for LT2. Every engine `.cpp` was written from disassembly (`LICENSE_NOTES.md`: "written for this project, reconstructed from the retail binaries"). |
 | LT2 SDK headers (`src/LT2/sdk/inc`, from NOLF Source v1.003) | Yes | Types, interface declarations, error codes. Guides 05 and 06 call these "NOLF2-era". That is wrong: they are LT2.x (`iltclient.h` has 1157 lines, against 3628 in NOLF2 and 1150 in AvP2). The lesson they drew still holds: **vtable order differs between header and binary, so verify each slot's `ret N`**. |
 | NOLF2 public source release | Yes, outside the engine | `src/lithshared/` (stdlith, CryptMgr, RegMgr, MFCStub, ButeMgr parser, lith) was adapted from it. The launcher's `dibmgr`, `RezFind` and `Utils` were back-ported from NOLF2's launcher, "trimmed to the shipped era" by removing later methods until the function set matched (guide 05, step 2: "a seeded file often matches 80%+ on the first compile"). |
 | RezMgr | Reconstructed | `src/lithshared/rezmgr/` was written from the bytes. It was identified as a prebuilt `.lib` because the same bytes appear in both `lithtech.exe` (/O2) and `server.dll` (/O1). |

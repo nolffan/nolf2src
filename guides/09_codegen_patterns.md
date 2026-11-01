@@ -6,7 +6,7 @@ worth not repeating. It is the lookup table you reach for when a function is
 instruction-equivalent but a few bytes off, and the reference you read before
 writing a new one so you get the shape right first time.
 
-[03-reading-disassembly](03-reading-disassembly.md) teaches you to read VC6
+[03-reading-disassembly](03_reading_disassembly.md) teaches you to read VC6
 codegen at all. This file is the accumulated case law: the patterns that are
 *not* obvious. The first half is ordered by what you see in the disassembly
 (control flow, loops, the frame, arithmetic, floating point, classes, calls);
@@ -511,7 +511,7 @@ invisible until a function reaches a sibling method through `this` — and then
 every slot is wrong at once. Derive the layout from the binary (`ret N` arg
 counts plus error-tag strings, `tools/vtabmap.py`) and cross-check against the
 header; where an SDK header is from a later era than the binary, the binary
-wins. See [07-vtables](07-vtables.md).
+wins. See [07-vtables](07_vtables.md).
 
 **Every `ILTMath` / `ILTCommon` / `ILTModel` slot returns `LTRESULT`, not
 `void`.** The two bytes of `xor eax,eax` are the tell.
@@ -726,7 +726,7 @@ Three cautions, all learned the hard way:
   shipped address it names can belong to a different function — or to one we
   never wrote. Verify the pairing from the shipped disassembly before changing
   any source; see
-  [10-upgrading-nears](10-upgrading-nears.md).
+  [10-upgrading-nears](10_upgrading_nears.md).
 
 ---
 
@@ -2145,13 +2145,13 @@ The recurring shapes, all catalogued and none source-reachable:
   * which register holds `this` (`%ebx` against `%ebp` is the common pair);
   * scale-1 SIB base/index order (`X(%ecx,%eax,1)` against `X(%eax,%ecx,1)`),
     already a recorded negative here and in
-    [10-upgrading-nears](10-upgrading-nears.md).
+    [10-upgrading-nears](10_upgrading_nears.md).
 
 One shape in that sample WAS source-reachable and is worth knowing: at
 lmsg_AfterRead (0x10014cf8) the shipped build loads the two members in the
 opposite order to ours before subtracting them, computing the same value with
 the registers swapped. That is operand-evaluation order, and hoisting one
-operand into a local is the lever ([12-o2-shape](12-o2-shape.md)).
+operand into a local is the lever ([12-o2-shape](12_o2_shape.md)).
 
 The practical conclusion: the near bucket is close to exhausted by source-level
 work -- though see the last section for the levers that did close some.

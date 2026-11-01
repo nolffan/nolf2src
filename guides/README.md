@@ -39,16 +39,16 @@ You are done with a function when the tools report it **identical** (machine
 code equal, relocation targets masked). A **near** match --
 instruction-equivalent but a few bytes off -- is acceptable only when the
 remaining difference belongs to one of the
-[known near classes](09-codegen-patterns.md#known-near-classes); document it
+[known near classes](09_codegen_patterns.md#known-near-classes); document it
 in a comment beside the function and move on. Coming back to close one later
 is its own job, with its own method -- see
-[10-upgrading-nears](10-upgrading-nears.md).
+[10-upgrading-nears](10_upgrading_nears.md).
 
 There is a **third standard**, for one specific kind of work: a function of
 several kilobytes, where byte identity is out of reach but the decode is the
 valuable part. Those are reconstructed to be *structurally* right and proved
 with the call-sequence check rather than the byte oracle -- see
-[11-large-functions](11-large-functions.md). It relaxes codegen exactness and
+[11-large-functions](11_large_functions.md). It relaxes codegen exactness and
 nothing else: guessing is still forbidden, and an undecoded region is still
 declared rather than filled in.
 
@@ -57,41 +57,41 @@ Companion documents outside this directory:
 engine, the mapping onto the Jupiter tree, and what nolfsrc's process
 was), [`tools/README.md`](../tools/README.md) (what each tool does),
 [`progress/COMPILERS.md`](../progress/COMPILERS.md) (which compiler and flags
-built each retail binary) and [`docs/SETUP-NOTES.md`](../docs/SETUP-NOTES.md) (the
+built each retail binary) and [`docs/SETUP_NOTES.md`](../docs/SETUP_NOTES.md) (the
 build container and toolchains).
 
 ## The guides
 
-1. **[02-the-loop](02-the-loop.md)** -- the verification tools (dumpfn,
+1. **[02-the-loop](02_the_loop.md)** -- the verification tools (dumpfn,
    exedump, exematch, fndiff, bindiff, rsrcdiff) and how to drive the
    compile-diff cycle.
-2. **[03-reading-disassembly](03-reading-disassembly.md)** -- the reference:
+2. **[03-reading-disassembly](03_reading_disassembly.md)** -- the reference:
    how VC6 codegen idioms map back to C++ source constructs. The heart of the
    work.
-3. **[05-exe-and-engine](05-exe-and-engine.md)** -- binaries with no
+3. **[05-exe-and-engine](05_exe_and_engine.md)** -- binaries with no
    symbols: `Lithtech.exe` (no relocations, SecuROM) and `server.dll`, and
    the evidence that names their functions (the Mac engine's symbols, the
    1.3 multiplayer demo, the Jupiter tree).
-4. **[07-vtables](07-vtables.md)** -- naming *anonymous* functions: find the
+4. **[07-vtables](07_vtables.md)** -- naming *anonymous* functions: find the
    class's vtable in `.rdata` (`tools/vtabmap.py`), anchor it against the SDK
    header's declaration order, and read the unknown slots' names and
    signatures straight out of the header.
-5. **[09-codegen-patterns](09-codegen-patterns.md)** -- the case law: every
+5. **[09-codegen-patterns](09_codegen_patterns.md)** -- the case law: every
    proven asm-to-source fingerprint, organised by what you see in the
    disassembly, plus the near classes not worth chasing. Read it before
    writing a function and again when one is stuck a few bytes off.
-6. **[10-upgrading-nears](10-upgrading-nears.md)** -- taking a function that
+6. **[10-upgrading-nears](10_upgrading_nears.md)** -- taking a function that
    is *nearly* right and closing the gap.
-7. **[11-large-functions](11-large-functions.md)** -- the third standard:
+7. **[11-large-functions](11_large_functions.md)** -- the third standard:
    reconstructing a function of several kilobytes to be *structurally* right
    and proving it with the call-sequence check (`tools/callseq.py`). Learned
    on NOLF1's Intel-compiled renderer; read its last section for what holds
    on an MSVC target, which is everything in NOLF2 (the renderer's biggest
    functions are where it will be used).
-8. **[12-o2-shape](12-o2-shape.md)** -- functions already byte-identical in
+8. **[12-o2-shape](12_o2_shape.md)** -- functions already byte-identical in
    `server.dll` (`/O1`) but not in `Lithtech.exe` (`/O2`): the source is
    proven, only its `/O2` shape is wrong (`tools/o2gap.py`).
-9. **[13-cluster-recon](13-cluster-recon.md)** -- the procedure for
+9. **[13-cluster-recon](13_cluster_recon.md)** -- the procedure for
    reconstructing a whole untouched cluster of functions from scratch.
 
 ### Not brought over from nolfsrc
@@ -102,7 +102,7 @@ Missing numbers:
 - **01-environment**: NOLF1's toolchain table (four cl revisions and Intel
   C/C++ 4.0) and its build scripts. NOLF2 has one compiler for all of
   Monolith's code (below); the container and toolchains are in
-  `docs/SETUP-NOTES.md`, the compile and link command lines in `build/build.mk`,
+  `docs/SETUP_NOTES.md`, the compile and link command lines in `build/build.mk`,
   and the one-file loop in `build/engine.sh` (with `run_cl` and the rest in
   `build/env.sh` for compiling by hand).
 - **04-worked-example** (a NOLF1 lithshared library function, matched
@@ -145,7 +145,7 @@ Start small, and prefer a target that is the **first of a family**: the first
 function in a cluster is expensive (you are modelling macros, object layouts
 and flags), and the rest of the cluster then costs almost nothing.
 `server.dll` first, as in nolfsrc: it is smaller, it has relocations, and its
-source is also `Lithtech.exe`'s (`docs/engine/nolfsrc-process.md`, 4.3).
+source is also `Lithtech.exe`'s (`docs/engine/nolfsrc_process.md`, 4.3).
 
 The flags decide everything before you start. All of Monolith's code in NOLF2
 was compiled by **one** compiler, VC6 SP5 (`cl` build **8966**,

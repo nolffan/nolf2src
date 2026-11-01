@@ -26,7 +26,7 @@ parts of it by hand, and how the game is packaged.
     `rez/games.sha256`, and the USA release's two discs, which the public
     archive's install scripts are made against too (below). It also
     fetches the LithTech Jupiter SDK's CD image and installs its source into `rez/sdk/lithtech-jupiter-51/`, for
-    `ServerDir.dll` (`LICENSE-NOTES.md`). `make` does both the first time
+    `ServerDir.dll` (`LICENSE_NOTES.md`). `make` does both the first time
     (`make retail`, `make sdk`); see `rez/README.md`.
   * `ext/ffmpeg`, FFmpeg, which the modern build's Bink player is built on
     (`build/ext.sh`). The release build does not need it.
@@ -140,7 +140,7 @@ stack, `custom/` last), is in the game directory and the private archive,
 for `tools/playtest.sh`. The launcher never reads it: it writes its own
 `launchcmds.txt` on every Play. So the public archive has none.
 
-`LICENSE-NOTES.md` says what each holds and under whose terms.
+`LICENSE_NOTES.md` says what each holds and under whose terms.
 
 Nothing is installed or run from the discs or the update. NOLF2's setup
 stores its files compressed in InstallShield 6 cabinets that span both
@@ -194,7 +194,7 @@ all four builds pass, the job "release" makes a GitHub release of the tag
 archives attached, named for the tag: `nolf2src-<tag>.tar.gz` and
 `nolf2src-debug-<tag>.tar.gz`, each repacked to unpack to a directory of
 that name. The legacy build is not attached. A new release's text is
-`.github/release-notes.md` (`{{TAG}}` and `{{REPO}}` filled in), followed
+`.github/release_notes.md` (`{{TAG}}` and `{{REPO}}` filled in), followed
 by GitHub's generated list of changes; a release of the tag made by hand
 beforehand keeps its own text, and gets the archives added. Its steps are the make targets
 above, so a run can be reproduced locally:

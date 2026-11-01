@@ -11,11 +11,11 @@ Background, in this directory:
 - `anatomy.md`: the retail binaries; SecuROM; the 1.3 multiplayer demo's
   unprotected engine as a stand-in for the encrypted pages; the module map and
   link order.
-- `fear-mapping.md`: the `fear/Dev/Source/runtime` tree is LithTech Jupiter
+- `fear_mapping.md`: the `fear/Dev/Source/runtime` tree is LithTech Jupiter
   (NOLF2's engine line, a 2006 VS2003/D3D9 build), not Jupiter EX. It covers
   about 90% of `Lithtech.exe` and 95% of `server.dll`; `render_a` is NOLF2's
   renderer, ported to D3D9.
-- `nolfsrc-process.md`: how nolfsrc rebuilt NOLF1's engine; what carries over
+- `nolfsrc_process.md`: how nolfsrc rebuilt NOLF1's engine; what carries over
   (the method, tools and guides, not the code); the recommended skeleton.
 
 ## Ground rules (every package)
@@ -94,7 +94,7 @@ Done. What there is now:
   hard links).
 - `progress/engine/`: `mac-functions.csv` / `mac-server-functions.csv`
   (every Mac engine and server function, demangled, with its Jupiter file
-  and the evidence) and `mac-modules.md` (per module and file; the Jupiter
+  and the evidence) and `mac_modules.md` (per module and file; the Jupiter
   files the Mac build lacks, the Mac classes Jupiter lacks). Use them to
   decide which Jupiter files exist in 2002 and which functions to drop.
   Regenerate with `tools/macinventory.py --jupiter ../fear/Dev/Source`; it
@@ -120,7 +120,7 @@ Done. What there is now:
   snddrv.
 
 Not done: `server test` is untested (no server project yet); the second
-`app` range question (`nolfsrc-process.md` 3.3, item 7) waits for our own
+`app` range question (`nolfsrc_process.md` 3.3, item 7) waits for our own
 `.map`; no `*-screen-exclude.csv` or `-decoded-map.csv` exist for the
 engine yet; exedump.py on the retail exe still shows `call [0x607ec0]`
 (read the `plain` copy instead).
@@ -210,7 +210,7 @@ Jupiter's later members: ILTClient's renderer-stats and shader methods,
 engine, not added to the SDK: the game DLLs are built against NOLF2's.
 
 **Left for the module packages, besides the worklists.** What retail has and
-Jupiter does not (`fear-mapping.md`): NOLF2's `pixelshadermgr.cpp` and the
+Jupiter does not (`fear_mapping.md`): NOLF2's `pixelshadermgr.cpp` and the
 D3D8 vertex-shader path (6); the NOLF1-era saveio/savrest code in
 server.dll's game_serialize (3); `ltlibraryloader.cpp` (2004) is kept,
 compiled, as Jupiter's code calls it, but is not 2002's. Nothing of the
@@ -1072,7 +1072,7 @@ fresh build). Two causes, both fixed:
 ### 10. release
 
 Done: nolfsrc's release pattern, for NOLF2 (`docs/BUILDING.md`, "Archives";
-`docs/LICENSE-NOTES.md`, "The archives").
+`docs/LICENSE_NOTES.md`, "The archives").
 
 - `build/package.sh` writes `out/<name>-private.tar.gz` (the whole game
   directory, 0.9 GB) and `-public.tar.gz` (4.6 MB for the legacy release
@@ -1372,7 +1372,7 @@ compared with them (`git range-diff`).
 | 39d8636 the Intel graphics fix only with d3d7.ren | the fix greyed out with nolfsrc's other renderers | not applicable: NOLF2 has no Intel fix (no `EnableLightScale`/`EnableScreenTinting` option; M-G33 not ported) and one renderer |
 | bc52297 32-bit textures by default | `32BitTextures` 1 for new and old configs | not applicable: NOLF2's renderer also defaults to 0, but the shipped `autoexec.cfg` sets `"32bittextures" "1"` |
 | 82d0759 crouch toggle and four more fixes from ChthonVII's fork | (credited there to ChthonVII and Daniel Gibson) | none needed: the crouch toggle is retail NOLF2's own control ("Crouch toggle", `COMMAND_ID_DUCKLOCK`); each weapon keeps its ammo in retail (`KeepCurrentAmmo` 1, `CClientWeaponMgr::ChangeWeapon`); a popup closes on any new key or either mouse button in retail (`CInterfaceMgr`); NOLF2 has no sunglasses (`OVM_SS` is never made; the scope and camera are M-G34); Shift+Esc for the console waits for M-E5 (noted there) |
-| 4f5b3fa documentation moves to docs/ | | ported: `BUILDING.md`, `LICENSE-NOTES.md`, `MODERN.md`, `RETAIL_BUGS.md` and `SETUP-NOTES.md` in `docs/`, every reference outside `src/` updated (the source's comments name items as "MODERN.md M-...", as nolfsrc's do); `build/package.sh` puts no document in the archives |
+| 4f5b3fa documentation moves to docs/ | | ported: `BUILDING.md`, `LICENSE_NOTES.md`, `MODERN.md`, `RETAIL_BUGS.md` and `SETUP_NOTES.md` in `docs/`, every reference outside `src/` updated (the source's comments name items as "MODERN.md M-...", as nolfsrc's do); `build/package.sh` puts no document in the archives |
 | 113b4f4 install guide, console and variables, changelog, credits | | ported, written for NOLF2: `docs/INSTALL.md`, `docs/CONSOLE.md`, `docs/VARIABLES.md`, `CHANGELOG.md`, README's documentation table and credits |
 
 Found while writing `docs/CONSOLE.md` and `docs/VARIABLES.md`, not fixed:
