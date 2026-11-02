@@ -1240,7 +1240,7 @@ bool ModelInstance::UpdateCachedTransformsWithPath()
 	// evaluate the hierarchy with paths.
 	if (!tMaker.SetupTransformsWithPath()) 
 	{
-		dsi_ConsolePrint("ModelInstance::UpdateCachedTransforms failed for %s. Possible missing weightset(s)", GetModelDB()->GetFilename());
+		dsi_ConsolePrint("ModelInstance::UpdateCachedTransforms failed for %s.", GetModelDB()->GetFilename()); // RETAIL: retail's text ("Possible missing weightset(s)" came later)
 		return false; 
 	}
 	
