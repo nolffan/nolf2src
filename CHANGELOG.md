@@ -10,6 +10,10 @@ covers each change in detail, under its item number (M-E1, M-G2 and so on).
 
 ## Unreleased
 
+- **Menus can be clicked on Windows with display scaling above 100%.**
+  The game now tells Windows it handles DPI itself; before, with scaling
+  at 150% for example, the cursor moved but clicks missed in a borderless
+  window at the desktop's resolution. (M-E71)
 - **V-sync in a window no longer halves the frame rate** (Wine, Linux and
   Steam Deck). With V-sync on, a window or borderless full screen is now
   capped at the display's refresh rate instead of waiting for each

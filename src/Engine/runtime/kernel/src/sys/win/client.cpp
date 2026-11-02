@@ -1121,6 +1121,23 @@ bool SetupArgs(const char* pszCommandLine)
     return true;
 }
 
+#ifdef NOLF2SRC_MODERN
+// Native Windows: the game sizes its window and reads the mouse in real
+// pixels, so it tells Windows it handles the screen's DPI itself. Without
+// that, with display scaling above 100%, Windows scales the window and its
+// mouse coordinates: in a borderless window at the desktop's resolution the
+// cursor moved but a click landed elsewhere. SetProcessDPIAware (Vista) is
+// looked up at run time: VC6's SDK predates it, and Wine has it too.
+static void cl_ModernSetDPIAware()
+{
+    typedef BOOL (WINAPI *SetProcessDPIAwareFn)(void);
+    HMODULE hUser = GetModuleHandleA("user32.dll");
+    SetProcessDPIAwareFn pfn = hUser
+        ? (SetProcessDPIAwareFn)GetProcAddress(hUser, "SetProcessDPIAware") : NULL;
+    if (pfn)
+        pfn();
+}
+#endif
 #ifdef NOLF2SRC_DEBUG
 // the debug build's crash handler: a backtrace in nolf2src.log
 #include "nolf2src_crash.h"
@@ -1128,6 +1145,9 @@ bool SetupArgs(const char* pszCommandLine)
 
 extern "C" int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpszCmdParam, int nCmdShow) 
 {
+#ifdef NOLF2SRC_MODERN
+	cl_ModernSetDPIAware();
+#endif
 #ifdef NOLF2SRC_DEBUG
 	// the debug build's crash handler: a backtrace in nolf2src.log
 	NOLF2SRC_INSTALL_CRASH_HANDLER();
