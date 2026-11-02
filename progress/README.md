@@ -179,8 +179,25 @@ built elsewhere (`build/variant.sh`), and the scoring never reads them.
 
 * a function listed in `identical.txt` is no longer identical,
 * a target's identical byte count went down,
-* its unwritten or unplaced count went up, or
-* `README.md`'s table is not the one `summary.json` renders.
+* its unwritten or unplaced count went up,
+* `README.md`'s table is not the one `summary.json` renders,
+* the data check (`tools/datacheck.py`: the text in our images' data --
+  strings, import and export names -- against the retail images') finds a
+  difference `data-known.txt` does not list with its reason, or
+* `tools/fpconst.py` finds a float or double that one of our placed
+  functions loads (through an address the byte match masks) differing
+  from the one retail loads there: a masked match is identical only up to
+  the constants it reads.
+
+Before anything is scored, the retail images cached in `out/reference/`
+are checked against `progress/reference.sha256` (and extracted again from
+the installed game if they differ): what is scored is always the retail
+release, not whatever the cache holds.
+
+The data check came to this project late: `data-known.txt` started as
+every difference there was then, under `UNREVIEWED` reasons. Those entries
+are a worklist, not explanations: each is either fixed (and
+`make progress-update` drops it) or moved under a reason of its own.
 
 Newly identical functions pass, with a reminder to record them:
 `make progress-update` rewrites `identical.txt`, `summary.json` and the
@@ -189,7 +206,11 @@ run that lost a recorded function unless `ACCEPT_LOSSES=1` is given (when a
 change rightly gives one up -- say, a function was matched by coincidence).
 
 `make progress COMPLETE=1` also fails unless every function of every target
-is identical: the finish line.
+is identical, and nothing is unwritten or unplaced (`COVERED=1` alone): the
+finish line for the code. It is not whole-image identity, which
+`tools/buildcmp.py` against the retail image is. A target whose whole
+image already is retail's (but for the link's time stamps) scores every
+function identical, however little of it the masked match could prove.
 
 The scoring compiles nothing; it reads what the last `make` left in the
 tree. Run `make` after changing the source, then `make progress`. It needs
@@ -204,6 +225,9 @@ minutes.
 | `targets.py` | the binaries scored: for each, its retail image, our build, its own code (`app`), and what is left out (`middleware`, `encrypted`), with the evidence |
 | `identical.txt` | every function verified identical (`target<TAB>function`): the baseline the test holds the build to. Written by `make progress-update` |
 | `summary.json` | per-target counts and bytes of the recorded run; the README table is rendered from it |
+| `reference.sha256` | the retail images `out/reference/` must hold to be scored |
+| `corrections.txt` | the functions taken out of `identical.txt` when the scoring was corrected (2026-11-02), each with why: matches inside another identical function (the same bytes counted twice), and matches outside the image's own code |
+| `data-known.txt` | the text differences from the retail images that are known, each under its reason (`tools/datacheck.py`) |
 | `COMPILERS.md` | which compiler and flags built each retail binary, and the evidence |
 | `<stem>-screen-exclude.csv` | (`Lithtech-screen-exclude.csv`: stray pointers that split a function's extent) per image, enumerated addresses examined by hand. A reason that starts `NOT A FUNCTION` or `NOT GAME CODE` removes the row from the count; any other reason marks the address `attempted` in an image whose addresses `src/` cites |
 | `extent-splits.csv` | function starts the enumeration misses, with the evidence (`snddrv.dll`'s small destructors, which only exception funclets reach) |

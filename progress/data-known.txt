@@ -1,0 +1,1083 @@
+## The text differences from the retail images that are known: tools/datacheck.py.
+## <image><TAB><retail|ours><TAB><string>; `# ...` is the reason for the entries after it.
+
+# Monolith's build path: WONAPI's QueueSocket.cpp was compiled as C:\proj\to2\source_retail\Game\Libs\WONAPI\..., and an anonymous namespace's RTTI name is made from the path (and a time stamp); ours is built from the repository
+ServerDir.dll	ours	.?AVQueueOpFastCompletion@?%.\\WONSocket\\QueueSocket.cpp1557412994@@
+ServerDir.dll	retail	.?AVQueueOpFastCompletion@?%C:\\proj\\to2\\source_retail\\Game\\Libs\\WONAPI\\WONSocket\\QueueSocket.cpp152339212@@
+
+# Monolith's build path: Attachments.cpp's __FILE__ is C:\proj\to2\source_retail\Game\ObjectDLL\ObjectShared\Attachments.cpp in retail, .\Attachments.cpp in ours
+Object.lto	ours	.\\Attachments.cpp
+Object.lto	retail	C:\\proj\\to2\\source_retail\\Game\\ObjectDLL\\ObjectShared\\Attachments.cpp
+
+# UNREVIEWED, recorded when the data check came to this project (2026-11-02). Retail Lithtech.exe is wrapped by SecuROM: its import table is the wrapper's (DLL names in lower case, with the wrapper's own imports added), so nearly every import differs by name, and the wrapper's runtime adds the strings only retail has. What of this is our engine's own text is still to be sorted out of it.
+Lithtech.exe	ours	Brush Section: (%p) Start: (%d) Verts: (%d) sIdx: (%d) Tris: (%d)
+Lithtech.exe	ours	Default
+Lithtech.exe	ours	ILTDrawPrim
+Lithtech.exe	ours	ILTMath
+Lithtech.exe	ours	ILTMath.Default
+Lithtech.exe	ours	Internal
+Lithtech.exe	ours	__search_marker_holder__
+Lithtech.exe	ours	__search_marker_holder__
+Lithtech.exe	ours	cis_GetSurfaceAlpha
+Lithtech.exe	ours	cis_SetSurfaceAlpha
+Lithtech.exe	ours	import ADVAPI32.dll RegCloseKey
+Lithtech.exe	ours	import ADVAPI32.dll RegOpenKeyA
+Lithtech.exe	ours	import ADVAPI32.dll RegQueryValueExA
+Lithtech.exe	ours	import DINPUT8.dll DirectInput8Create
+Lithtech.exe	ours	import GDI32.dll AddFontResourceA
+Lithtech.exe	ours	import GDI32.dll CreateCompatibleDC
+Lithtech.exe	ours	import GDI32.dll CreateDIBSection
+Lithtech.exe	ours	import GDI32.dll CreateFontA
+Lithtech.exe	ours	import GDI32.dll CreateFontIndirectA
+Lithtech.exe	ours	import GDI32.dll DeleteDC
+Lithtech.exe	ours	import GDI32.dll DeleteObject
+Lithtech.exe	ours	import GDI32.dll GdiFlush
+Lithtech.exe	ours	import GDI32.dll GetGlyphOutlineA
+Lithtech.exe	ours	import GDI32.dll GetStockObject
+Lithtech.exe	ours	import GDI32.dll GetTextCharacterExtra
+Lithtech.exe	ours	import GDI32.dll GetTextExtentPoint32A
+Lithtech.exe	ours	import GDI32.dll GetTextFaceA
+Lithtech.exe	ours	import GDI32.dll GetTextMetricsA
+Lithtech.exe	ours	import GDI32.dll Rectangle
+Lithtech.exe	ours	import GDI32.dll RemoveFontResourceA
+Lithtech.exe	ours	import GDI32.dll SelectObject
+Lithtech.exe	ours	import GDI32.dll SetBkColor
+Lithtech.exe	ours	import GDI32.dll SetBkMode
+Lithtech.exe	ours	import GDI32.dll SetMapMode
+Lithtech.exe	ours	import GDI32.dll SetTextCharacterExtra
+Lithtech.exe	ours	import GDI32.dll SetTextColor
+Lithtech.exe	ours	import GDI32.dll TextOutA
+Lithtech.exe	ours	import KERNEL32.dll CloseHandle
+Lithtech.exe	ours	import KERNEL32.dll CreateEventA
+Lithtech.exe	ours	import KERNEL32.dll CreateThread
+Lithtech.exe	ours	import KERNEL32.dll DebugBreak
+Lithtech.exe	ours	import KERNEL32.dll DeleteCriticalSection
+Lithtech.exe	ours	import KERNEL32.dll DeleteFileA
+Lithtech.exe	ours	import KERNEL32.dll EnterCriticalSection
+Lithtech.exe	ours	import KERNEL32.dll FindClose
+Lithtech.exe	ours	import KERNEL32.dll FindFirstFileA
+Lithtech.exe	ours	import KERNEL32.dll FindResourceA
+Lithtech.exe	ours	import KERNEL32.dll FormatMessageA
+Lithtech.exe	ours	import KERNEL32.dll FreeLibrary
+Lithtech.exe	ours	import KERNEL32.dll GetCurrentDirectoryA
+Lithtech.exe	ours	import KERNEL32.dll GetCurrentProcess
+Lithtech.exe	ours	import KERNEL32.dll GetLastError
+Lithtech.exe	ours	import KERNEL32.dll GetModuleFileNameA
+Lithtech.exe	ours	import KERNEL32.dll GetModuleHandleA
+Lithtech.exe	ours	import KERNEL32.dll GetProcAddress
+Lithtech.exe	ours	import KERNEL32.dll GetProcessHeap
+Lithtech.exe	ours	import KERNEL32.dll GetStartupInfoA
+Lithtech.exe	ours	import KERNEL32.dll GetTempFileNameA
+Lithtech.exe	ours	import KERNEL32.dll GetTempPathA
+Lithtech.exe	ours	import KERNEL32.dll GetTickCount
+Lithtech.exe	ours	import KERNEL32.dll GetVersionExA
+Lithtech.exe	ours	import KERNEL32.dll HeapCompact
+Lithtech.exe	ours	import KERNEL32.dll InitializeCriticalSection
+Lithtech.exe	ours	import KERNEL32.dll InterlockedDecrement
+Lithtech.exe	ours	import KERNEL32.dll InterlockedExchange
+Lithtech.exe	ours	import KERNEL32.dll InterlockedIncrement
+Lithtech.exe	ours	import KERNEL32.dll IsBadReadPtr
+Lithtech.exe	ours	import KERNEL32.dll IsProcessorFeaturePresent
+Lithtech.exe	ours	import KERNEL32.dll LeaveCriticalSection
+Lithtech.exe	ours	import KERNEL32.dll LoadLibraryA
+Lithtech.exe	ours	import KERNEL32.dll LoadResource
+Lithtech.exe	ours	import KERNEL32.dll LocalFree
+Lithtech.exe	ours	import KERNEL32.dll LockResource
+Lithtech.exe	ours	import KERNEL32.dll MulDiv
+Lithtech.exe	ours	import KERNEL32.dll MultiByteToWideChar
+Lithtech.exe	ours	import KERNEL32.dll OutputDebugStringA
+Lithtech.exe	ours	import KERNEL32.dll QueryPerformanceCounter
+Lithtech.exe	ours	import KERNEL32.dll QueryPerformanceFrequency
+Lithtech.exe	ours	import KERNEL32.dll ResetEvent
+Lithtech.exe	ours	import KERNEL32.dll ResumeThread
+Lithtech.exe	ours	import KERNEL32.dll SetCurrentDirectoryA
+Lithtech.exe	ours	import KERNEL32.dll SetEvent
+Lithtech.exe	ours	import KERNEL32.dll SetPriorityClass
+Lithtech.exe	ours	import KERNEL32.dll SizeofResource
+Lithtech.exe	ours	import KERNEL32.dll Sleep
+Lithtech.exe	ours	import KERNEL32.dll SuspendThread
+Lithtech.exe	ours	import KERNEL32.dll WaitForMultipleObjects
+Lithtech.exe	ours	import KERNEL32.dll WaitForSingleObject
+Lithtech.exe	ours	import MSVCP60.dll ??1?$basic_string@DU?$char_traits@D@std@@V?$allocator@D@2@@std@@QAE@XZ
+Lithtech.exe	ours	import MSVCP60.dll ?_C@?1??_Nullstr@?$basic_string@DU?$char_traits@D@std@@V?$allocator@D@2@@std@@CAPBDXZ@4DB
+Lithtech.exe	ours	import MSVCP60.dll ?_Copy@?$basic_string@DU?$char_traits@D@std@@V?$allocator@D@2@@std@@AAEXI@Z
+Lithtech.exe	ours	import MSVCP60.dll ?_Grow@?$basic_string@DU?$char_traits@D@std@@V?$allocator@D@2@@std@@AAE_NI_N@Z
+Lithtech.exe	ours	import MSVCP60.dll ?_Tidy@?$basic_string@DU?$char_traits@D@std@@V?$allocator@D@2@@std@@AAEX_N@Z
+Lithtech.exe	ours	import MSVCP60.dll ?_Xlen@std@@YAXXZ
+Lithtech.exe	ours	import MSVCP60.dll ?assign@?$basic_string@DU?$char_traits@D@std@@V?$allocator@D@2@@std@@QAEAAV12@PBDI@Z
+Lithtech.exe	ours	import MSVCRT.dll ??0exception@@QAE@ABV0@@Z
+Lithtech.exe	ours	import MSVCRT.dll ??0exception@@QAE@XZ
+Lithtech.exe	ours	import MSVCRT.dll ??1exception@@UAE@XZ
+Lithtech.exe	ours	import MSVCRT.dll ??1type_info@@UAE@XZ
+Lithtech.exe	ours	import MSVCRT.dll ?_set_new_handler@@YAP6AHI@ZP6AHI@Z@Z
+Lithtech.exe	ours	import MSVCRT.dll ?terminate@@YAXXZ
+Lithtech.exe	ours	import MSVCRT.dll _CIacos
+Lithtech.exe	ours	import MSVCRT.dll _CIfmod
+Lithtech.exe	ours	import MSVCRT.dll _CIpow
+Lithtech.exe	ours	import MSVCRT.dll _CIsqrt
+Lithtech.exe	ours	import MSVCRT.dll _CxxThrowException
+Lithtech.exe	ours	import MSVCRT.dll _XcptFilter
+Lithtech.exe	ours	import MSVCRT.dll __CxxFrameHandler
+Lithtech.exe	ours	import MSVCRT.dll __dllonexit
+Lithtech.exe	ours	import MSVCRT.dll __getmainargs
+Lithtech.exe	ours	import MSVCRT.dll __p__commode
+Lithtech.exe	ours	import MSVCRT.dll __p__fmode
+Lithtech.exe	ours	import MSVCRT.dll __set_app_type
+Lithtech.exe	ours	import MSVCRT.dll __setusermatherr
+Lithtech.exe	ours	import MSVCRT.dll _acmdln
+Lithtech.exe	ours	import MSVCRT.dll _adjust_fdiv
+Lithtech.exe	ours	import MSVCRT.dll _controlfp
+Lithtech.exe	ours	import MSVCRT.dll _except_handler3
+Lithtech.exe	ours	import MSVCRT.dll _exit
+Lithtech.exe	ours	import MSVCRT.dll _findclose
+Lithtech.exe	ours	import MSVCRT.dll _findfirst
+Lithtech.exe	ours	import MSVCRT.dll _findnext
+Lithtech.exe	ours	import MSVCRT.dll _finite
+Lithtech.exe	ours	import MSVCRT.dll _ftol
+Lithtech.exe	ours	import MSVCRT.dll _initterm
+Lithtech.exe	ours	import MSVCRT.dll _isnan
+Lithtech.exe	ours	import MSVCRT.dll _mbscmp
+Lithtech.exe	ours	import MSVCRT.dll _mbsicmp
+Lithtech.exe	ours	import MSVCRT.dll _mbsinc
+Lithtech.exe	ours	import MSVCRT.dll _onexit
+Lithtech.exe	ours	import MSVCRT.dll _purecall
+Lithtech.exe	ours	import MSVCRT.dll _setjmp3
+Lithtech.exe	ours	import MSVCRT.dll _splitpath
+Lithtech.exe	ours	import MSVCRT.dll _stat
+Lithtech.exe	ours	import MSVCRT.dll _stricmp
+Lithtech.exe	ours	import MSVCRT.dll _strnicmp
+Lithtech.exe	ours	import MSVCRT.dll _strupr
+Lithtech.exe	ours	import MSVCRT.dll _vsnprintf
+Lithtech.exe	ours	import MSVCRT.dll abort
+Lithtech.exe	ours	import MSVCRT.dll atof
+Lithtech.exe	ours	import MSVCRT.dll atoi
+Lithtech.exe	ours	import MSVCRT.dll atol
+Lithtech.exe	ours	import MSVCRT.dll clock
+Lithtech.exe	ours	import MSVCRT.dll exit
+Lithtech.exe	ours	import MSVCRT.dll fclose
+Lithtech.exe	ours	import MSVCRT.dll feof
+Lithtech.exe	ours	import MSVCRT.dll fflush
+Lithtech.exe	ours	import MSVCRT.dll fgetc
+Lithtech.exe	ours	import MSVCRT.dll fgets
+Lithtech.exe	ours	import MSVCRT.dll floor
+Lithtech.exe	ours	import MSVCRT.dll fopen
+Lithtech.exe	ours	import MSVCRT.dll fprintf
+Lithtech.exe	ours	import MSVCRT.dll fputc
+Lithtech.exe	ours	import MSVCRT.dll fputs
+Lithtech.exe	ours	import MSVCRT.dll fread
+Lithtech.exe	ours	import MSVCRT.dll free
+Lithtech.exe	ours	import MSVCRT.dll fseek
+Lithtech.exe	ours	import MSVCRT.dll ftell
+Lithtech.exe	ours	import MSVCRT.dll fwrite
+Lithtech.exe	ours	import MSVCRT.dll isalnum
+Lithtech.exe	ours	import MSVCRT.dll isdigit
+Lithtech.exe	ours	import MSVCRT.dll isspace
+Lithtech.exe	ours	import MSVCRT.dll longjmp
+Lithtech.exe	ours	import MSVCRT.dll malloc
+Lithtech.exe	ours	import MSVCRT.dll memmove
+Lithtech.exe	ours	import MSVCRT.dll qsort
+Lithtech.exe	ours	import MSVCRT.dll rand
+Lithtech.exe	ours	import MSVCRT.dll sprintf
+Lithtech.exe	ours	import MSVCRT.dll srand
+Lithtech.exe	ours	import MSVCRT.dll sscanf
+Lithtech.exe	ours	import MSVCRT.dll strchr
+Lithtech.exe	ours	import MSVCRT.dll strncat
+Lithtech.exe	ours	import MSVCRT.dll strncpy
+Lithtech.exe	ours	import MSVCRT.dll strrchr
+Lithtech.exe	ours	import MSVCRT.dll strstr
+Lithtech.exe	ours	import MSVCRT.dll time
+Lithtech.exe	ours	import MSVCRT.dll tolower
+Lithtech.exe	ours	import MSVCRT.dll toupper
+Lithtech.exe	ours	import MSVCRT.dll wcscat
+Lithtech.exe	ours	import MSVCRT.dll wcscmp
+Lithtech.exe	ours	import MSVCRT.dll wcscpy
+Lithtech.exe	ours	import MSVCRT.dll wcslen
+Lithtech.exe	ours	import MSVCRT.dll wcsncpy
+Lithtech.exe	ours	import MSVCRT.dll wcstombs
+Lithtech.exe	ours	import USER32.dll AdjustWindowRect
+Lithtech.exe	ours	import USER32.dll BeginPaint
+Lithtech.exe	ours	import USER32.dll ClipCursor
+Lithtech.exe	ours	import USER32.dll CreateWindowExA
+Lithtech.exe	ours	import USER32.dll DefWindowProcA
+Lithtech.exe	ours	import USER32.dll DestroyWindow
+Lithtech.exe	ours	import USER32.dll DispatchMessageA
+Lithtech.exe	ours	import USER32.dll EndPaint
+Lithtech.exe	ours	import USER32.dll GetAsyncKeyState
+Lithtech.exe	ours	import USER32.dll GetDesktopWindow
+Lithtech.exe	ours	import USER32.dll GetKeyboardState
+Lithtech.exe	ours	import USER32.dll GetWindowRect
+Lithtech.exe	ours	import USER32.dll IsIconic
+Lithtech.exe	ours	import USER32.dll LoadCursorA
+Lithtech.exe	ours	import USER32.dll LoadIconA
+Lithtech.exe	ours	import USER32.dll LoadImageA
+Lithtech.exe	ours	import USER32.dll LoadStringA
+Lithtech.exe	ours	import USER32.dll MessageBoxA
+Lithtech.exe	ours	import USER32.dll PeekMessageA
+Lithtech.exe	ours	import USER32.dll PostQuitMessage
+Lithtech.exe	ours	import USER32.dll RegisterClassA
+Lithtech.exe	ours	import USER32.dll SetCursor
+Lithtech.exe	ours	import USER32.dll SetCursorPos
+Lithtech.exe	ours	import USER32.dll SetFocus
+Lithtech.exe	ours	import USER32.dll SetWindowPos
+Lithtech.exe	ours	import USER32.dll ShowCursor
+Lithtech.exe	ours	import USER32.dll ShowWindow
+Lithtech.exe	ours	import USER32.dll ToAscii
+Lithtech.exe	ours	import USER32.dll TranslateMessage
+Lithtech.exe	ours	import WINMM.dll timeBeginPeriod
+Lithtech.exe	ours	import WINMM.dll timeEndPeriod
+Lithtech.exe	ours	import WINMM.dll timeGetTime
+Lithtech.exe	ours	import WSOCK32.dll #10
+Lithtech.exe	ours	import WSOCK32.dll #111
+Lithtech.exe	ours	import WSOCK32.dll #112
+Lithtech.exe	ours	import WSOCK32.dll #115
+Lithtech.exe	ours	import WSOCK32.dll #116
+Lithtech.exe	ours	import WSOCK32.dll #12
+Lithtech.exe	ours	import WSOCK32.dll #14
+Lithtech.exe	ours	import WSOCK32.dll #15
+Lithtech.exe	ours	import WSOCK32.dll #17
+Lithtech.exe	ours	import WSOCK32.dll #18
+Lithtech.exe	ours	import WSOCK32.dll #2
+Lithtech.exe	ours	import WSOCK32.dll #20
+Lithtech.exe	ours	import WSOCK32.dll #21
+Lithtech.exe	ours	import WSOCK32.dll #23
+Lithtech.exe	ours	import WSOCK32.dll #3
+Lithtech.exe	ours	import WSOCK32.dll #52
+Lithtech.exe	ours	import WSOCK32.dll #57
+Lithtech.exe	ours	import WSOCK32.dll #6
+Lithtech.exe	ours	import WSOCK32.dll #8
+Lithtech.exe	ours	import WSOCK32.dll #9
+Lithtech.exe	retail	\r\nabnormal program termination\r\n
+Lithtech.exe	retail	%c:\\Offset.dat
+Lithtech.exe	retail	%s\tEIP=%08X EFlags=%08X\n
+Lithtech.exe	retail	%s\\IOSUBSYS\\%s
+Lithtech.exe	retail	%s\\drivers\\%s
+Lithtech.exe	retail	(null)
+Lithtech.exe	retail	.\nACCESS VIOLATION\n.\n%s\n.\n%s\n.\n%s
+Lithtech.exe	retail	.petite
+Lithtech.exe	retail	.petite
+Lithtech.exe	retail	.petite
+Lithtech.exe	retail	.petite
+Lithtech.exe	retail	.petite
+Lithtech.exe	retail	.reloc
+Lithtech.exe	retail	.rsrc
+Lithtech.exe	retail	.text
+Lithtech.exe	retail	.text
+Lithtech.exe	retail	.text
+Lithtech.exe	retail	.text
+Lithtech.exe	retail	.text
+Lithtech.exe	retail	/yVsV/y
+Lithtech.exe	retail	0exception@@QAE@ABV0@@Z
+Lithtech.exe	retail	0exception@@QAE@XZ
+Lithtech.exe	retail	1#QNAN
+Lithtech.exe	retail	1#SNAN
+Lithtech.exe	retail	1?$basic_string@DU?$char_traits@D@std@@V?$allocator@D@2@@std@@QAE@XZ
+Lithtech.exe	retail	1exception@@UAE@XZ
+Lithtech.exe	retail	1yVsy/V
+Lithtech.exe	retail	6-bit DLL
+Lithtech.exe	retail	7001CE60CBFE3A9E7C5009FFEFBCDAB3CE107E240DBED48AF74C
+Lithtech.exe	retail	8sadf878dfsa78sdf9sdf8jsadfmo
+Lithtech.exe	retail	<program name unknown>
+Lithtech.exe	retail	??1type_info@@UAE@XZ
+Lithtech.exe	retail	?_Grow@?$basic_string@DU?$char_traits@D@std@@V?$allocator@D@2@@std@@AAE_NI_N@Z
+Lithtech.exe	retail	?_Tidy@?$basic_string@DU?$char_traits@D@std@@V?$allocator@D@2@@std@@AAEX_N@Z
+Lithtech.exe	retail	?_Xlen@std@@YAXXZ
+Lithtech.exe	retail	?_set_new_handler@@YAP6AHI@ZP6AHI@Z@Z
+Lithtech.exe	retail	?assign@?$basic_string@DU?$char_traits@D@std@@V?$allocator@D@2@@std@@QAEAAV12@PBDI@Z
+Lithtech.exe	retail	?terminate@@YAXXZ
+Lithtech.exe	retail	ACONanih$
+Lithtech.exe	retail	ADVAPI32.dll
+Lithtech.exe	retail	AUT32.dll
+Lithtech.exe	retail	AdjustWindowRect
+Lithtech.exe	retail	BadCodePtr
+Lithtech.exe	retail	BadReadPtr
+Lithtech.exe	retail	BeginPaint
+Lithtech.exe	retail	C@?1??_Nullstr@?$basic_string@DU?$char_traits@D@std@@V?$allocator@D@2@@std@@CAPBDXZ@4DB
+Lithtech.exe	retail	CMDLINEEXTLibWWW
+Lithtech.exe	retail	CloseHandle
+Lithtech.exe	retail	CmdLineExt.DLL
+Lithtech.exe	retail	CmdLineExt02.dll
+Lithtech.exe	retail	CoCreateInstance
+Lithtech.exe	retail	CoInitialize
+Lithtech.exe	retail	CoTaskMemFree
+Lithtech.exe	retail	CompareStringA
+Lithtech.exe	retail	Compressed by Petite (c)1999 Ian Luck.
+Lithtech.exe	retail	Compressed by Petite (c)1999 Ian Luck.
+Lithtech.exe	retail	Compressed by Petite (c)1999 Ian Luck.
+Lithtech.exe	retail	Compressed by Petite (c)1999 Ian Luck.
+Lithtech.exe	retail	Compressed by Petite (c)1999 Ian Luck.
+Lithtech.exe	retail	Copy@?$basic_string@DU?$char_traits@D@std@@V?$allocator@D@2@@std@@AAEXI@Z
+Lithtech.exe	retail	CopyImage
+Lithtech.exe	retail	CreateCompatibleDC
+Lithtech.exe	retail	CreateDirectoryA
+Lithtech.exe	retail	CreateEventA
+Lithtech.exe	retail	CreateFileA
+Lithtech.exe	retail	CreateFileMappingA
+Lithtech.exe	retail	CreateFontA
+Lithtech.exe	retail	CreateFontIndirectA
+Lithtech.exe	retail	CreateThread
+Lithtech.exe	retail	CreateToolhelp32Snapshot
+Lithtech.exe	retail	CxxFrameHandler
+Lithtech.exe	retail	D3DFMT_W11V11U10
+Lithtech.exe	retail	DINPUT8.dll
+Lithtech.exe	retail	DOMAIN error\r\n
+Lithtech.exe	retail	DeleteDC
+Lithtech.exe	retail	DeleteFileA
+Lithtech.exe	retail	DeleteObject
+Lithtech.exe	retail	DeviceIoControl
+Lithtech.exe	retail	Direct3DCreate8
+Lithtech.exe	retail	DirectInput8Create
+Lithtech.exe	retail	DllCanUnloadNow
+Lithtech.exe	retail	DllGetClassObject
+Lithtech.exe	retail	DllRegisterServer
+Lithtech.exe	retail	DllUnregisterServer
+Lithtech.exe	retail	ERSION.dll
+Lithtech.exe	retail	EV_APPL_STARTED
+Lithtech.exe	retail	EndPaint
+Lithtech.exe	retail	EqualSid
+Lithtech.exe	retail	FAILED
+Lithtech.exe	retail	FindClose
+Lithtech.exe	retail	FindClose
+Lithtech.exe	retail	FindFirstFileA
+Lithtech.exe	retail	FindFirstFileA
+Lithtech.exe	retail	FlushFileBuffers
+Lithtech.exe	retail	FormatMessageA
+Lithtech.exe	retail	FreeEnvironmentStringsW
+Lithtech.exe	retail	GDI32.dll
+Lithtech.exe	retail	GDI32.dll
+Lithtech.exe	retail	GGDM32
+Lithtech.exe	retail	GGDM32
+Lithtech.exe	retail	GIF89aA
+Lithtech.exe	retail	GIF89ae
+Lithtech.exe	retail	GNOCD32
+Lithtech.exe	retail	GdiFlush
+Lithtech.exe	retail	GetActiveWindow
+Lithtech.exe	retail	GetCommandLineA
+Lithtech.exe	retail	GetCurrentDirectoryA
+Lithtech.exe	retail	GetDesktopWindow
+Lithtech.exe	retail	GetFileVersionInfoA
+Lithtech.exe	retail	GetGlyphOutlineA
+Lithtech.exe	retail	GetLastActivePopup
+Lithtech.exe	retail	GetLastError
+Lithtech.exe	retail	GetLastError
+Lithtech.exe	retail	GetLastSIntfNetError
+Lithtech.exe	retail	GetModuleFileNameA
+Lithtech.exe	retail	GetModuleHandleA
+Lithtech.exe	retail	GetModuleHandleA
+Lithtech.exe	retail	GetOEMCP
+Lithtech.exe	retail	GetProcAddress
+Lithtech.exe	retail	GetProcAddress
+Lithtech.exe	retail	GetProcAddress
+Lithtech.exe	retail	GetProcAddress
+Lithtech.exe	retail	GetProcAddress
+Lithtech.exe	retail	GetProcAddress
+Lithtech.exe	retail	GetProcessHeap
+Lithtech.exe	retail	GetStringTypeA
+Lithtech.exe	retail	GetTempPathA
+Lithtech.exe	retail	GetTextFaceA
+Lithtech.exe	retail	GetTextMetricsA
+Lithtech.exe	retail	GetTickCount
+Lithtech.exe	retail	GetTimeZoneInformation
+Lithtech.exe	retail	GetVersionExA
+Lithtech.exe	retail	GetVersionExA
+Lithtech.exe	retail	GetWindowRect
+Lithtech.exe	retail	HELL32.dll
+Lithtech.exe	retail	HKCR\r\n{\r\n\tCmdLineExt.CmdLineContextMenu.1 = s 'CmdLineContextMenu Class'\r\n\t{\r\n\t\tCLSID = s '{9869EFB4-18E9-11D3-A837-00104B9E30B5}'\r\n\t}\r\n\tCmdLineExt.CmdLineContextMenu = s 'CmdLineContextMenu Class'\r\n\t{\r\n\t\tCLSID = s '{9869EFB4-18E9-11D3-A837-00104B9E30B5}'\r\n\t\tCurVer = s 'CmdLineExt.CmdLineContextMenu.1'\r\n\t}\r\n\tNoRemove CLSID\r\n\t{\r\n\t\tForceRemove {9869EFB4-18E9-11D3-A837-00104B9E30B5} = s 'CmdLineContextMenu Class'\r\n\t\t{\r\n\t\t\tProgID = s 'CmdLineExt.CmdLineContextMenu.1'\r\n\t\t\tVersionIndependentProgID = s 'CmdLineExt.CmdLineContextMenu'\r\n\t\t\tInprocServer32 = s '%MODULE%'\r\n\t\t\t{\r\n\t\t\t\tval ThreadingModel = s 'Apartment'\r\n\t\t\t}\r\n\t\t\t'TypeLib' = s '{9869EFA6-18E9-11D3-A837-00104B9E30B5}'\r\n\t\t}\r\n\t}\r\n}\r\n
+Lithtech.exe	retail	HardWareKey
+Lithtech.exe	retail	HeapAlloc
+Lithtech.exe	retail	HeapDestroy
+Lithtech.exe	retail	HeapFree
+Lithtech.exe	retail	I32.dll
+Lithtech.exe	retail	ILTClient::GetSurfaceAlpha
+Lithtech.exe	retail	Iacos
+Lithtech.exe	retail	InterlockedDecrement
+Lithtech.exe	retail	InterlockedExchange
+Lithtech.exe	retail	InterlockedIncrement
+Lithtech.exe	retail	IntfNT.dll
+Lithtech.exe	retail	IsBadReadPtr
+Lithtech.exe	retail	IsBadWritePtr
+Lithtech.exe	retail	IsIconic
+Lithtech.exe	retail	IsProcessorFeaturePresent
+Lithtech.exe	retail	Isqrt
+Lithtech.exe	retail	JanFebMarAprMayJunJulAugSepOctNovDec
+Lithtech.exe	retail	KERNEL32
+Lithtech.exe	retail	KERNEL32.DLL
+Lithtech.exe	retail	KERNEL32.dll
+Lithtech.exe	retail	KERNEL32.dll
+Lithtech.exe	retail	KERNEL32.dll
+Lithtech.exe	retail	KERNEL32.dll
+Lithtech.exe	retail	KERNEL32.dll
+Lithtech.exe	retail	Len: %d\n
+Lithtech.exe	retail	LoadCursorFromFileA
+Lithtech.exe	retail	LoadIconA
+Lithtech.exe	retail	LoadImageA
+Lithtech.exe	retail	LoadImageA
+Lithtech.exe	retail	LoadLibraryA
+Lithtech.exe	retail	LoadLibraryA
+Lithtech.exe	retail	LoadLibraryA
+Lithtech.exe	retail	LoadLibraryA
+Lithtech.exe	retail	LoadLibraryA
+Lithtech.exe	retail	LoadLibraryA
+Lithtech.exe	retail	LocalFree
+Lithtech.exe	retail	LockResource
+Lithtech.exe	retail	MLLanguages.dat
+Lithtech.exe	retail	MSEL32
+Lithtech.exe	retail	Main Window
+Lithtech.exe	retail	MainMenu
+Lithtech.exe	retail	MainWClass
+Lithtech.exe	retail	MainWClass
+Lithtech.exe	retail	MainWClass
+Lithtech.exe	retail	MainWClass
+Lithtech.exe	retail	MapStringA
+Lithtech.exe	retail	MapStringW
+Lithtech.exe	retail	MapViewOfFile
+Lithtech.exe	retail	MessageBoxA
+Lithtech.exe	retail	MessageBoxA
+Lithtech.exe	retail	MessageBoxA
+Lithtech.exe	retail	MessageBoxA
+Lithtech.exe	retail	MessageBoxA
+Lithtech.exe	retail	MessageBoxA
+Lithtech.exe	retail	MessageBoxA
+Lithtech.exe	retail	MessageBoxA
+Lithtech.exe	retail	MessageBoxW
+Lithtech.exe	retail	Microsoft Visual C++ Runtime Library
+Lithtech.exe	retail	MulDiv
+Lithtech.exe	retail	Multi language block\n
+Lithtech.exe	retail	MultiByteToWideChar
+Lithtech.exe	retail	MultiLanguage
+Lithtech.exe	retail	NOCD32
+Lithtech.exe	retail	NOCD32
+Lithtech.exe	retail	NtDll.dll
+Lithtech.exe	retail	NtQueryInformationFile
+Lithtech.exe	retail	NtQuerySystemInformation
+Lithtech.exe	retail	NvJWN2KWNJJWN
+Lithtech.exe	retail	OCK32.dll
+Lithtech.exe	retail	OpenProcess
+Lithtech.exe	retail	PathFindFileNameA
+Lithtech.exe	retail	PostQuitMessage
+Lithtech.exe	retail	ProcessorFeaturePresent
+Lithtech.exe	retail	QueryPerformanceCounter
+Lithtech.exe	retail	QueryPerformanceFrequency
+Lithtech.exe	retail	R32.dll
+Lithtech.exe	retail	R6002\r\n- floating point not loaded\r\n
+Lithtech.exe	retail	R6008\r\n- not enough space for arguments\r\n
+Lithtech.exe	retail	R6009\r\n- not enough space for environment\r\n
+Lithtech.exe	retail	R6016\r\n- not enough space for thread data\r\n
+Lithtech.exe	retail	R6017\r\n- unexpected multithread lock error\r\n
+Lithtech.exe	retail	R6018\r\n- unexpected heap error\r\n
+Lithtech.exe	retail	R6019\r\n- unable to open console device\r\n
+Lithtech.exe	retail	R6024\r\n- not enough space for _onexit/atexit table\r\n
+Lithtech.exe	retail	R6025\r\n- pure virtual function call\r\n
+Lithtech.exe	retail	R6026\r\n- not enough space for stdio initialization\r\n
+Lithtech.exe	retail	R6027\r\n- not enough space for lowio initialization\r\n
+Lithtech.exe	retail	R6028\r\n- unable to initialize heap\r\n
+Lithtech.exe	retail	R9^Xfp_
+Lithtech.exe	retail	RNEL32.dll
+Lithtech.exe	retail	RNEL32.dll
+Lithtech.exe	retail	RSION.dll
+Lithtech.exe	retail	RSION.dll
+Lithtech.exe	retail	RaiseException
+Lithtech.exe	retail	ReadFile
+Lithtech.exe	retail	ReadProcessMemory Error: %d
+Lithtech.exe	retail	RegCloseKey
+Lithtech.exe	retail	RegEnumKeyExA
+Lithtech.exe	retail	RegOpenKeyA
+Lithtech.exe	retail	RegOpenKeyExA
+Lithtech.exe	retail	RegQueryValueExA
+Lithtech.exe	retail	RegSetValueExA
+Lithtech.exe	retail	RegisterClassA
+Lithtech.exe	retail	Registers\n
+Lithtech.exe	retail	ReleaseMutex
+Lithtech.exe	retail	ResumeThread
+Lithtech.exe	retail	Runtime Error!\n\nProgram: 
+Lithtech.exe	retail	SCAvailable
+Lithtech.exe	retail	SCGetStatus
+Lithtech.exe	retail	SCSIADAPTER
+Lithtech.exe	retail	SCSecureConnect
+Lithtech.exe	retail	SCSendID
+Lithtech.exe	retail	SER32.dll
+Lithtech.exe	retail	SER32.dll
+Lithtech.exe	retail	SING error\r\n
+Lithtech.exe	retail	SIntf16.dll
+Lithtech.exe	retail	SIntf32.dll
+Lithtech.exe	retail	SIntf32.dll
+Lithtech.exe	retail	SIntfIcn.ani
+Lithtech.exe	retail	SIntfNT.dll
+Lithtech.exe	retail	SIntfNet.dll
+Lithtech.exe	retail	SVCRT.dll
+Lithtech.exe	retail	SeDebugPrivilege
+Lithtech.exe	retail	Sector Read Failed (2): %d\niErr: %d\n
+Lithtech.exe	retail	Sector Read Failed: %d\n
+Lithtech.exe	retail	SecuExp.exe
+Lithtech.exe	retail	SetBkColor
+Lithtech.exe	retail	SetBkColor
+Lithtech.exe	retail	SetCursor
+Lithtech.exe	retail	SetEndOfFile
+Lithtech.exe	retail	SetEnvironmentVariableA
+Lithtech.exe	retail	SetHandleCount
+Lithtech.exe	retail	SetLastError
+Lithtech.exe	retail	SetStdHandle
+Lithtech.exe	retail	SetStretchBltMode
+Lithtech.exe	retail	SetUnhandledExceptionFilter
+Lithtech.exe	retail	SetWindowPos
+Lithtech.exe	retail	ShellExecuteA
+Lithtech.exe	retail	Shlwapi.DLL
+Lithtech.exe	retail	ShowWindow
+Lithtech.exe	retail	SizeofResource
+Lithtech.exe	retail	Sleep
+Lithtech.exe	retail	Sleep
+Lithtech.exe	retail	Stack
+Lithtech.exe	retail	StretchBlt
+Lithtech.exe	retail	StretchDIBits
+Lithtech.exe	retail	SunMonTueWedThuFriSat
+Lithtech.exe	retail	SuspendThread
+Lithtech.exe	retail	TLOSS error\r\n
+Lithtech.exe	retail	TerminateProcess
+Lithtech.exe	retail	This program must be run under Microsoft Windows.\r\n$
+Lithtech.exe	retail	ToAscii
+Lithtech.exe	retail	USER32.dll
+Lithtech.exe	retail	USER32.dll
+Lithtech.exe	retail	Uninitialize
+Lithtech.exe	retail	User32.dll
+Lithtech.exe	retail	VAPI32.dll
+Lithtech.exe	retail	VAPI32.dll
+Lithtech.exe	retail	VAPI32.dll
+Lithtech.exe	retail	VAPI32.dll
+Lithtech.exe	retail	VCP60.dll
+Lithtech.exe	retail	VCRT.dll
+Lithtech.exe	retail	VerQueryValueA
+Lithtech.exe	retail	VirtualFree
+Lithtech.exe	retail	WINMM.dll
+Lithtech.exe	retail	WN(NVJ
+Lithtech.exe	retail	WaitForSingleObject
+Lithtech.exe	retail	WideCharToMultiByte
+Lithtech.exe	retail	WriteFile
+Lithtech.exe	retail	_CIfmod
+Lithtech.exe	retail	_CxxThrowException
+Lithtech.exe	retail	_XcptFilter
+Lithtech.exe	retail	__GLOBAL_HEAP_SELECTED
+Lithtech.exe	retail	__MSVCRT_HEAP_SELECT
+Lithtech.exe	retail	__dllonexit
+Lithtech.exe	retail	__getmainargs
+Lithtech.exe	retail	__p__commode
+Lithtech.exe	retail	__p__fmode
+Lithtech.exe	retail	__setusermatherr
+Lithtech.exe	retail	_adjust_fdiv
+Lithtech.exe	retail	_cabs
+Lithtech.exe	retail	_controlfp
+Lithtech.exe	retail	_except_handler3
+Lithtech.exe	retail	_exit
+Lithtech.exe	retail	_findfirst
+Lithtech.exe	retail	_finite
+Lithtech.exe	retail	_hypot
+Lithtech.exe	retail	_initterm
+Lithtech.exe	retail	_mbscmp
+Lithtech.exe	retail	_purecall
+Lithtech.exe	retail	_strnicmp
+Lithtech.exe	retail	_strupr
+Lithtech.exe	retail	adCursorA
+Lithtech.exe	retail	adLibraryA
+Lithtech.exe	retail	adResource
+Lithtech.exe	retail	adStringA
+Lithtech.exe	retail	anslateMessage
+Lithtech.exe	retail	apCompact
+Lithtech.exe	retail	apCreate
+Lithtech.exe	retail	apReAlloc
+Lithtech.exe	retail	atan2
+Lithtech.exe	retail	aveCriticalSection
+Lithtech.exe	retail	bsicmp
+Lithtech.exe	retail	bsinc
+Lithtech.exe	retail	bugBreak
+Lithtech.exe	retail	cmdln
+Lithtech.exe	retail	ctVisible
+Lithtech.exe	retail	ctangle
+Lithtech.exe	retail	d3d8.dll
+Lithtech.exe	retail	dFontResourceA
+Lithtech.exe	retail	e32.dll
+Lithtech.exe	retail	eSIntfNet
+Lithtech.exe	retail	eateBitmap
+Lithtech.exe	retail	eateCompatibleBitmap
+Lithtech.exe	retail	eateCompatibleDC
+Lithtech.exe	retail	eateDIBSection
+Lithtech.exe	retail	eateMutexA
+Lithtech.exe	retail	eateSemaphoreA
+Lithtech.exe	retail	eateThread
+Lithtech.exe	retail	eateWindowExA
+Lithtech.exe	retail	eeEnvironmentStringsA
+Lithtech.exe	retail	eeLibrary
+Lithtech.exe	retail	eeLibrary
+Lithtech.exe	retail	ekMessageA
+Lithtech.exe	retail	enProcessToken
+Lithtech.exe	retail	etjmp3
+Lithtech.exe	retail	fWindowProcA
+Lithtech.exe	retail	false
+Lithtech.exe	retail	fclose
+Lithtech.exe	retail	fgets
+Lithtech.exe	retail	floor
+Lithtech.exe	retail	fopen
+Lithtech.exe	retail	fprintf
+Lithtech.exe	retail	fread
+Lithtech.exe	retail	frexp
+Lithtech.exe	retail	fseek
+Lithtech.exe	retail	ftell
+Lithtech.exe	retail	gCloseKey
+Lithtech.exe	retail	gCloseKey
+Lithtech.exe	retail	gCloseKey
+Lithtech.exe	retail	gOpenKeyA
+Lithtech.exe	retail	gQueryValueExA
+Lithtech.exe	retail	handledExceptionFilter
+Lithtech.exe	retail	import advapi32.dll AdjustTokenPrivileges
+Lithtech.exe	retail	import advapi32.dll LookupPrivilegeValueA
+Lithtech.exe	retail	import advapi32.dll OpenProcessToken
+Lithtech.exe	retail	import advapi32.dll RegCloseKey
+Lithtech.exe	retail	import advapi32.dll RegEnumKeyExA
+Lithtech.exe	retail	import advapi32.dll RegOpenKeyA
+Lithtech.exe	retail	import advapi32.dll RegOpenKeyExA
+Lithtech.exe	retail	import advapi32.dll RegQueryValueExA
+Lithtech.exe	retail	import advapi32.dll RegSetValueExA
+Lithtech.exe	retail	import dinput8.dll DirectInput8Create
+Lithtech.exe	retail	import gdi32.dll AddFontResourceA
+Lithtech.exe	retail	import gdi32.dll BitBlt
+Lithtech.exe	retail	import gdi32.dll CreateBitmap
+Lithtech.exe	retail	import gdi32.dll CreateCompatibleBitmap
+Lithtech.exe	retail	import gdi32.dll CreateCompatibleDC
+Lithtech.exe	retail	import gdi32.dll CreateDIBSection
+Lithtech.exe	retail	import gdi32.dll CreateFontA
+Lithtech.exe	retail	import gdi32.dll CreateFontIndirectA
+Lithtech.exe	retail	import gdi32.dll DeleteDC
+Lithtech.exe	retail	import gdi32.dll DeleteObject
+Lithtech.exe	retail	import gdi32.dll GdiFlush
+Lithtech.exe	retail	import gdi32.dll GetGlyphOutlineA
+Lithtech.exe	retail	import gdi32.dll GetStockObject
+Lithtech.exe	retail	import gdi32.dll GetTextCharacterExtra
+Lithtech.exe	retail	import gdi32.dll GetTextExtentPoint32A
+Lithtech.exe	retail	import gdi32.dll GetTextFaceA
+Lithtech.exe	retail	import gdi32.dll GetTextMetricsA
+Lithtech.exe	retail	import gdi32.dll RectVisible
+Lithtech.exe	retail	import gdi32.dll Rectangle
+Lithtech.exe	retail	import gdi32.dll RemoveFontResourceA
+Lithtech.exe	retail	import gdi32.dll SelectObject
+Lithtech.exe	retail	import gdi32.dll SetBkColor
+Lithtech.exe	retail	import gdi32.dll SetBkMode
+Lithtech.exe	retail	import gdi32.dll SetMapMode
+Lithtech.exe	retail	import gdi32.dll SetStretchBltMode
+Lithtech.exe	retail	import gdi32.dll SetTextCharacterExtra
+Lithtech.exe	retail	import gdi32.dll SetTextColor
+Lithtech.exe	retail	import gdi32.dll StretchBlt
+Lithtech.exe	retail	import gdi32.dll StretchDIBits
+Lithtech.exe	retail	import gdi32.dll TextOutA
+Lithtech.exe	retail	import kernel32.dll CloseHandle
+Lithtech.exe	retail	import kernel32.dll CompareStringA
+Lithtech.exe	retail	import kernel32.dll CompareStringW
+Lithtech.exe	retail	import kernel32.dll CreateDirectoryA
+Lithtech.exe	retail	import kernel32.dll CreateEventA
+Lithtech.exe	retail	import kernel32.dll CreateFileA
+Lithtech.exe	retail	import kernel32.dll CreateFileMappingA
+Lithtech.exe	retail	import kernel32.dll CreateMutexA
+Lithtech.exe	retail	import kernel32.dll CreateSemaphoreA
+Lithtech.exe	retail	import kernel32.dll CreateThread
+Lithtech.exe	retail	import kernel32.dll DebugBreak
+Lithtech.exe	retail	import kernel32.dll DeleteCriticalSection
+Lithtech.exe	retail	import kernel32.dll DeleteFileA
+Lithtech.exe	retail	import kernel32.dll DeviceIoControl
+Lithtech.exe	retail	import kernel32.dll DuplicateHandle
+Lithtech.exe	retail	import kernel32.dll EnterCriticalSection
+Lithtech.exe	retail	import kernel32.dll ExitProcess
+Lithtech.exe	retail	import kernel32.dll FindClose
+Lithtech.exe	retail	import kernel32.dll FindFirstFileA
+Lithtech.exe	retail	import kernel32.dll FindResourceA
+Lithtech.exe	retail	import kernel32.dll FlushFileBuffers
+Lithtech.exe	retail	import kernel32.dll FormatMessageA
+Lithtech.exe	retail	import kernel32.dll FreeEnvironmentStringsA
+Lithtech.exe	retail	import kernel32.dll FreeEnvironmentStringsW
+Lithtech.exe	retail	import kernel32.dll FreeLibrary
+Lithtech.exe	retail	import kernel32.dll GetACP
+Lithtech.exe	retail	import kernel32.dll GetCPInfo
+Lithtech.exe	retail	import kernel32.dll GetCommandLineA
+Lithtech.exe	retail	import kernel32.dll GetCurrentDirectoryA
+Lithtech.exe	retail	import kernel32.dll GetCurrentProcess
+Lithtech.exe	retail	import kernel32.dll GetCurrentThread
+Lithtech.exe	retail	import kernel32.dll GetEnvironmentStrings
+Lithtech.exe	retail	import kernel32.dll GetEnvironmentStringsW
+Lithtech.exe	retail	import kernel32.dll GetEnvironmentVariableA
+Lithtech.exe	retail	import kernel32.dll GetFileType
+Lithtech.exe	retail	import kernel32.dll GetLastError
+Lithtech.exe	retail	import kernel32.dll GetLocalTime
+Lithtech.exe	retail	import kernel32.dll GetModuleFileNameA
+Lithtech.exe	retail	import kernel32.dll GetModuleHandleA
+Lithtech.exe	retail	import kernel32.dll GetOEMCP
+Lithtech.exe	retail	import kernel32.dll GetPriorityClass
+Lithtech.exe	retail	import kernel32.dll GetProcAddress
+Lithtech.exe	retail	import kernel32.dll GetProcessHeap
+Lithtech.exe	retail	import kernel32.dll GetStartupInfoA
+Lithtech.exe	retail	import kernel32.dll GetStdHandle
+Lithtech.exe	retail	import kernel32.dll GetStringTypeA
+Lithtech.exe	retail	import kernel32.dll GetStringTypeW
+Lithtech.exe	retail	import kernel32.dll GetSystemDirectoryA
+Lithtech.exe	retail	import kernel32.dll GetSystemTime
+Lithtech.exe	retail	import kernel32.dll GetTempFileNameA
+Lithtech.exe	retail	import kernel32.dll GetTempPathA
+Lithtech.exe	retail	import kernel32.dll GetThreadPriority
+Lithtech.exe	retail	import kernel32.dll GetTickCount
+Lithtech.exe	retail	import kernel32.dll GetTimeZoneInformation
+Lithtech.exe	retail	import kernel32.dll GetUserDefaultLangID
+Lithtech.exe	retail	import kernel32.dll GetVersion
+Lithtech.exe	retail	import kernel32.dll GetVersionExA
+Lithtech.exe	retail	import kernel32.dll HeapAlloc
+Lithtech.exe	retail	import kernel32.dll HeapCompact
+Lithtech.exe	retail	import kernel32.dll HeapCreate
+Lithtech.exe	retail	import kernel32.dll HeapDestroy
+Lithtech.exe	retail	import kernel32.dll HeapFree
+Lithtech.exe	retail	import kernel32.dll HeapReAlloc
+Lithtech.exe	retail	import kernel32.dll InitializeCriticalSection
+Lithtech.exe	retail	import kernel32.dll InterlockedDecrement
+Lithtech.exe	retail	import kernel32.dll InterlockedExchange
+Lithtech.exe	retail	import kernel32.dll InterlockedIncrement
+Lithtech.exe	retail	import kernel32.dll IsBadCodePtr
+Lithtech.exe	retail	import kernel32.dll IsBadReadPtr
+Lithtech.exe	retail	import kernel32.dll IsBadWritePtr
+Lithtech.exe	retail	import kernel32.dll IsProcessorFeaturePresent
+Lithtech.exe	retail	import kernel32.dll LCMapStringA
+Lithtech.exe	retail	import kernel32.dll LCMapStringW
+Lithtech.exe	retail	import kernel32.dll LeaveCriticalSection
+Lithtech.exe	retail	import kernel32.dll LoadLibraryA
+Lithtech.exe	retail	import kernel32.dll LoadResource
+Lithtech.exe	retail	import kernel32.dll LocalFree
+Lithtech.exe	retail	import kernel32.dll LockResource
+Lithtech.exe	retail	import kernel32.dll MapViewOfFile
+Lithtech.exe	retail	import kernel32.dll MulDiv
+Lithtech.exe	retail	import kernel32.dll MultiByteToWideChar
+Lithtech.exe	retail	import kernel32.dll OpenProcess
+Lithtech.exe	retail	import kernel32.dll OutputDebugStringA
+Lithtech.exe	retail	import kernel32.dll QueryPerformanceCounter
+Lithtech.exe	retail	import kernel32.dll QueryPerformanceFrequency
+Lithtech.exe	retail	import kernel32.dll RaiseException
+Lithtech.exe	retail	import kernel32.dll ReadFile
+Lithtech.exe	retail	import kernel32.dll ReleaseMutex
+Lithtech.exe	retail	import kernel32.dll ReleaseSemaphore
+Lithtech.exe	retail	import kernel32.dll ResetEvent
+Lithtech.exe	retail	import kernel32.dll ResumeThread
+Lithtech.exe	retail	import kernel32.dll RtlUnwind
+Lithtech.exe	retail	import kernel32.dll SetCurrentDirectoryA
+Lithtech.exe	retail	import kernel32.dll SetEndOfFile
+Lithtech.exe	retail	import kernel32.dll SetEnvironmentVariableA
+Lithtech.exe	retail	import kernel32.dll SetEvent
+Lithtech.exe	retail	import kernel32.dll SetFilePointer
+Lithtech.exe	retail	import kernel32.dll SetHandleCount
+Lithtech.exe	retail	import kernel32.dll SetLastError
+Lithtech.exe	retail	import kernel32.dll SetPriorityClass
+Lithtech.exe	retail	import kernel32.dll SetStdHandle
+Lithtech.exe	retail	import kernel32.dll SetUnhandledExceptionFilter
+Lithtech.exe	retail	import kernel32.dll SizeofResource
+Lithtech.exe	retail	import kernel32.dll Sleep
+Lithtech.exe	retail	import kernel32.dll SuspendThread
+Lithtech.exe	retail	import kernel32.dll TerminateProcess
+Lithtech.exe	retail	import kernel32.dll UnhandledExceptionFilter
+Lithtech.exe	retail	import kernel32.dll UnmapViewOfFile
+Lithtech.exe	retail	import kernel32.dll VirtualAlloc
+Lithtech.exe	retail	import kernel32.dll VirtualFree
+Lithtech.exe	retail	import kernel32.dll WaitForMultipleObjects
+Lithtech.exe	retail	import kernel32.dll WaitForSingleObject
+Lithtech.exe	retail	import kernel32.dll WideCharToMultiByte
+Lithtech.exe	retail	import kernel32.dll WriteFile
+Lithtech.exe	retail	import msvcp60.dll ??1?$basic_string@DU?$char_traits@D@std@@V?$allocator@D@2@@std@@QAE@XZ
+Lithtech.exe	retail	import msvcp60.dll ?_C@?1??_Nullstr@?$basic_string@DU?$char_traits@D@std@@V?$allocator@D@2@@std@@CAPBDXZ@4DB
+Lithtech.exe	retail	import msvcp60.dll ?_Copy@?$basic_string@DU?$char_traits@D@std@@V?$allocator@D@2@@std@@AAEXI@Z
+Lithtech.exe	retail	import msvcp60.dll ?_Grow@?$basic_string@DU?$char_traits@D@std@@V?$allocator@D@2@@std@@AAE_NI_N@Z
+Lithtech.exe	retail	import msvcp60.dll ?_Tidy@?$basic_string@DU?$char_traits@D@std@@V?$allocator@D@2@@std@@AAEX_N@Z
+Lithtech.exe	retail	import msvcp60.dll ?_Xlen@std@@YAXXZ
+Lithtech.exe	retail	import msvcp60.dll ?assign@?$basic_string@DU?$char_traits@D@std@@V?$allocator@D@2@@std@@QAEAAV12@PBDI@Z
+Lithtech.exe	retail	import msvcrt.dll ??0exception@@QAE@ABV0@@Z
+Lithtech.exe	retail	import msvcrt.dll ??0exception@@QAE@XZ
+Lithtech.exe	retail	import msvcrt.dll ??1exception@@UAE@XZ
+Lithtech.exe	retail	import msvcrt.dll ??1type_info@@UAE@XZ
+Lithtech.exe	retail	import msvcrt.dll ?_set_new_handler@@YAP6AHI@ZP6AHI@Z@Z
+Lithtech.exe	retail	import msvcrt.dll ?terminate@@YAXXZ
+Lithtech.exe	retail	import msvcrt.dll _CIacos
+Lithtech.exe	retail	import msvcrt.dll _CIfmod
+Lithtech.exe	retail	import msvcrt.dll _CIpow
+Lithtech.exe	retail	import msvcrt.dll _CIsqrt
+Lithtech.exe	retail	import msvcrt.dll _CxxThrowException
+Lithtech.exe	retail	import msvcrt.dll _XcptFilter
+Lithtech.exe	retail	import msvcrt.dll __CxxFrameHandler
+Lithtech.exe	retail	import msvcrt.dll __dllonexit
+Lithtech.exe	retail	import msvcrt.dll __getmainargs
+Lithtech.exe	retail	import msvcrt.dll __p__commode
+Lithtech.exe	retail	import msvcrt.dll __p__fmode
+Lithtech.exe	retail	import msvcrt.dll __set_app_type
+Lithtech.exe	retail	import msvcrt.dll __setusermatherr
+Lithtech.exe	retail	import msvcrt.dll _acmdln
+Lithtech.exe	retail	import msvcrt.dll _adjust_fdiv
+Lithtech.exe	retail	import msvcrt.dll _controlfp
+Lithtech.exe	retail	import msvcrt.dll _except_handler3
+Lithtech.exe	retail	import msvcrt.dll _exit
+Lithtech.exe	retail	import msvcrt.dll _findclose
+Lithtech.exe	retail	import msvcrt.dll _findfirst
+Lithtech.exe	retail	import msvcrt.dll _findnext
+Lithtech.exe	retail	import msvcrt.dll _finite
+Lithtech.exe	retail	import msvcrt.dll _ftol
+Lithtech.exe	retail	import msvcrt.dll _initterm
+Lithtech.exe	retail	import msvcrt.dll _isnan
+Lithtech.exe	retail	import msvcrt.dll _mbscmp
+Lithtech.exe	retail	import msvcrt.dll _mbsicmp
+Lithtech.exe	retail	import msvcrt.dll _mbsinc
+Lithtech.exe	retail	import msvcrt.dll _onexit
+Lithtech.exe	retail	import msvcrt.dll _purecall
+Lithtech.exe	retail	import msvcrt.dll _setjmp3
+Lithtech.exe	retail	import msvcrt.dll _splitpath
+Lithtech.exe	retail	import msvcrt.dll _stat
+Lithtech.exe	retail	import msvcrt.dll _stricmp
+Lithtech.exe	retail	import msvcrt.dll _strnicmp
+Lithtech.exe	retail	import msvcrt.dll _strupr
+Lithtech.exe	retail	import msvcrt.dll _vsnprintf
+Lithtech.exe	retail	import msvcrt.dll abort
+Lithtech.exe	retail	import msvcrt.dll atof
+Lithtech.exe	retail	import msvcrt.dll atoi
+Lithtech.exe	retail	import msvcrt.dll atol
+Lithtech.exe	retail	import msvcrt.dll clock
+Lithtech.exe	retail	import msvcrt.dll exit
+Lithtech.exe	retail	import msvcrt.dll fclose
+Lithtech.exe	retail	import msvcrt.dll feof
+Lithtech.exe	retail	import msvcrt.dll fflush
+Lithtech.exe	retail	import msvcrt.dll fgetc
+Lithtech.exe	retail	import msvcrt.dll fgets
+Lithtech.exe	retail	import msvcrt.dll floor
+Lithtech.exe	retail	import msvcrt.dll fopen
+Lithtech.exe	retail	import msvcrt.dll fprintf
+Lithtech.exe	retail	import msvcrt.dll fputc
+Lithtech.exe	retail	import msvcrt.dll fputs
+Lithtech.exe	retail	import msvcrt.dll fread
+Lithtech.exe	retail	import msvcrt.dll free
+Lithtech.exe	retail	import msvcrt.dll fseek
+Lithtech.exe	retail	import msvcrt.dll ftell
+Lithtech.exe	retail	import msvcrt.dll fwrite
+Lithtech.exe	retail	import msvcrt.dll isalnum
+Lithtech.exe	retail	import msvcrt.dll isdigit
+Lithtech.exe	retail	import msvcrt.dll isspace
+Lithtech.exe	retail	import msvcrt.dll longjmp
+Lithtech.exe	retail	import msvcrt.dll malloc
+Lithtech.exe	retail	import msvcrt.dll memmove
+Lithtech.exe	retail	import msvcrt.dll qsort
+Lithtech.exe	retail	import msvcrt.dll rand
+Lithtech.exe	retail	import msvcrt.dll sprintf
+Lithtech.exe	retail	import msvcrt.dll srand
+Lithtech.exe	retail	import msvcrt.dll sscanf
+Lithtech.exe	retail	import msvcrt.dll strchr
+Lithtech.exe	retail	import msvcrt.dll strncat
+Lithtech.exe	retail	import msvcrt.dll strncpy
+Lithtech.exe	retail	import msvcrt.dll strrchr
+Lithtech.exe	retail	import msvcrt.dll strstr
+Lithtech.exe	retail	import msvcrt.dll time
+Lithtech.exe	retail	import msvcrt.dll tolower
+Lithtech.exe	retail	import msvcrt.dll toupper
+Lithtech.exe	retail	import msvcrt.dll wcscat
+Lithtech.exe	retail	import msvcrt.dll wcscmp
+Lithtech.exe	retail	import msvcrt.dll wcscpy
+Lithtech.exe	retail	import msvcrt.dll wcslen
+Lithtech.exe	retail	import msvcrt.dll wcsncpy
+Lithtech.exe	retail	import msvcrt.dll wcstombs
+Lithtech.exe	retail	import user32.dll AdjustWindowRect
+Lithtech.exe	retail	import user32.dll BeginPaint
+Lithtech.exe	retail	import user32.dll ClipCursor
+Lithtech.exe	retail	import user32.dll CopyImage
+Lithtech.exe	retail	import user32.dll CreateWindowExA
+Lithtech.exe	retail	import user32.dll DefWindowProcA
+Lithtech.exe	retail	import user32.dll DestroyWindow
+Lithtech.exe	retail	import user32.dll DispatchMessageA
+Lithtech.exe	retail	import user32.dll EndPaint
+Lithtech.exe	retail	import user32.dll GetAsyncKeyState
+Lithtech.exe	retail	import user32.dll GetDesktopWindow
+Lithtech.exe	retail	import user32.dll GetKeyboardState
+Lithtech.exe	retail	import user32.dll GetWindowRect
+Lithtech.exe	retail	import user32.dll InvalidateRect
+Lithtech.exe	retail	import user32.dll IsIconic
+Lithtech.exe	retail	import user32.dll LoadCursorA
+Lithtech.exe	retail	import user32.dll LoadCursorFromFileA
+Lithtech.exe	retail	import user32.dll LoadIconA
+Lithtech.exe	retail	import user32.dll LoadImageA
+Lithtech.exe	retail	import user32.dll LoadStringA
+Lithtech.exe	retail	import user32.dll MessageBoxA
+Lithtech.exe	retail	import user32.dll PeekMessageA
+Lithtech.exe	retail	import user32.dll PostQuitMessage
+Lithtech.exe	retail	import user32.dll RegisterClassA
+Lithtech.exe	retail	import user32.dll SetCursor
+Lithtech.exe	retail	import user32.dll SetCursorPos
+Lithtech.exe	retail	import user32.dll SetFocus
+Lithtech.exe	retail	import user32.dll SetSystemCursor
+Lithtech.exe	retail	import user32.dll SetWindowPos
+Lithtech.exe	retail	import user32.dll ShowCursor
+Lithtech.exe	retail	import user32.dll ShowWindow
+Lithtech.exe	retail	import user32.dll ToAscii
+Lithtech.exe	retail	import user32.dll TranslateMessage
+Lithtech.exe	retail	import user32.dll UnregisterClassA
+Lithtech.exe	retail	import version.dll GetFileVersionInfoA
+Lithtech.exe	retail	import version.dll GetFileVersionInfoSizeA
+Lithtech.exe	retail	import version.dll VerQueryValueA
+Lithtech.exe	retail	import winmm.dll timeBeginPeriod
+Lithtech.exe	retail	import winmm.dll timeEndPeriod
+Lithtech.exe	retail	import winmm.dll timeGetTime
+Lithtech.exe	retail	import wsock32.dll #10
+Lithtech.exe	retail	import wsock32.dll #111
+Lithtech.exe	retail	import wsock32.dll #112
+Lithtech.exe	retail	import wsock32.dll #115
+Lithtech.exe	retail	import wsock32.dll #116
+Lithtech.exe	retail	import wsock32.dll #12
+Lithtech.exe	retail	import wsock32.dll #14
+Lithtech.exe	retail	import wsock32.dll #15
+Lithtech.exe	retail	import wsock32.dll #17
+Lithtech.exe	retail	import wsock32.dll #18
+Lithtech.exe	retail	import wsock32.dll #2
+Lithtech.exe	retail	import wsock32.dll #20
+Lithtech.exe	retail	import wsock32.dll #21
+Lithtech.exe	retail	import wsock32.dll #23
+Lithtech.exe	retail	import wsock32.dll #3
+Lithtech.exe	retail	import wsock32.dll #52
+Lithtech.exe	retail	import wsock32.dll #57
+Lithtech.exe	retail	import wsock32.dll #6
+Lithtech.exe	retail	import wsock32.dll #8
+Lithtech.exe	retail	import wsock32.dll #9
+Lithtech.exe	retail	indclose
+Lithtech.exe	retail	indnext
+Lithtech.exe	retail	ipCursor
+Lithtech.exe	retail	is program cannot be run in DOS mode.\r\r\n$
+Lithtech.exe	retail	is program cannot be run in DOS mode.\r\r\n$
+Lithtech.exe	retail	is program cannot be run in DOS mode.\r\r\n$
+Lithtech.exe	retail	is program cannot be run in DOS mode.\r\r\n$
+Lithtech.exe	retail	is program cannot be run in DOS mode.\r\r\n$
+Lithtech.exe	retail	isalnum
+Lithtech.exe	retail	isdigit
+Lithtech.exe	retail	isspace
+Lithtech.exe	retail	itForMultipleObjects
+Lithtech.exe	retail	itForSingleObject
+Lithtech.exe	retail	itProcess
+Lithtech.exe	retail	itProcess
+Lithtech.exe	retail	itProcess
+Lithtech.exe	retail	itProcess
+Lithtech.exe	retail	itProcess
+Lithtech.exe	retail	itProcess
+Lithtech.exe	retail	itializeCriticalSection
+Lithtech.exe	retail	justTokenPrivileges
+Lithtech.exe	retail	k2d.gif
+Lithtech.exe	retail	lRegisterServer
+Lithtech.exe	retail	lUnwind
+Lithtech.exe	retail	ldexp
+Lithtech.exe	retail	le32.dll
+Lithtech.exe	retail	leaseSemaphore
+Lithtech.exe	retail	lectObject
+Lithtech.exe	retail	lectObject
+Lithtech.exe	retail	leteCriticalSection
+Lithtech.exe	retail	leteDC
+Lithtech.exe	retail	leteDC
+Lithtech.exe	retail	leteObject
+Lithtech.exe	retail	lite(R) Copr. 1990-1996 PKWARE Inc. All Rights Reserved
+Lithtech.exe	retail	longjmp
+Lithtech.exe	retail	lower
+Lithtech.exe	retail	ltiByteToWideChar
+Lithtech.exe	retail	mapViewOfFile
+Lithtech.exe	retail	meEndPeriod
+Lithtech.exe	retail	meGetTime
+Lithtech.exe	retail	mmove
+Lithtech.exe	retail	moveFontResourceA
+Lithtech.exe	retail	mpareStringW
+Lithtech.exe	retail	ndResourceA
+Lithtech.exe	retail	nexit
+Lithtech.exe	retail	ntdll.dll
+Lithtech.exe	retail	ntfNet.dll
+Lithtech.exe	retail	obalAlloc
+Lithtech.exe	retail	obalAlloc
+Lithtech.exe	retail	obalAlloc
+Lithtech.exe	retail	obalAlloc
+Lithtech.exe	retail	obalAlloc
+Lithtech.exe	retail	okupPrivilegeValueA
+Lithtech.exe	retail	oseHandle
+Lithtech.exe	retail	owCursor
+Lithtech.exe	retail	plicateHandle
+Lithtech.exe	retail	plitpath
+Lithtech.exe	retail	printfA
+Lithtech.exe	retail	printfA
+Lithtech.exe	retail	printfA
+Lithtech.exe	retail	printfA
+Lithtech.exe	retail	printfA
+Lithtech.exe	retail	pyright (c) 1993 Tal Nevo.
+Lithtech.exe	retail	qsort
+Lithtech.exe	retail	r32.dll
+Lithtech.exe	retail	r32.dll
+Lithtech.exe	retail	rQueryValueA
+Lithtech.exe	retail	rQueryValueA
+Lithtech.exe	retail	registerClassA
+Lithtech.exe	retail	rrchr
+Lithtech.exe	retail	rtualAlloc
+Lithtech.exe	retail	runtime error 
+Lithtech.exe	retail	rupt Data!
+Lithtech.exe	retail	rupt Data!
+Lithtech.exe	retail	rupt Data!
+Lithtech.exe	retail	rupt Data!
+Lithtech.exe	retail	rupt Data!
+Lithtech.exe	retail	sec.gif
+Lithtech.exe	retail	setEvent
+Lithtech.exe	retail	set_app_type
+Lithtech.exe	retail	snprintf
+Lithtech.exe	retail	sony.gif
+Lithtech.exe	retail	sonymusic.gif
+Lithtech.exe	retail	spatchMessageA
+Lithtech.exe	retail	sprintf
+Lithtech.exe	retail	stombs
+Lithtech.exe	retail	strncat
+Lithtech.exe	retail	strncpy
+Lithtech.exe	retail	stroyWindow
+Lithtech.exe	retail	strstr
+Lithtech.exe	retail	tAsyncKeyState
+Lithtech.exe	retail	tBkMode
+Lithtech.exe	retail	tCPInfo
+Lithtech.exe	retail	tCurrentDirectoryA
+Lithtech.exe	retail	tCurrentProcess
+Lithtech.exe	retail	tCurrentProcess
+Lithtech.exe	retail	tCurrentThread
+Lithtech.exe	retail	tCursorPos
+Lithtech.exe	retail	tEnvironmentStrings
+Lithtech.exe	retail	tEnvironmentStringsW
+Lithtech.exe	retail	tEnvironmentVariableA
+Lithtech.exe	retail	tEvent
+Lithtech.exe	retail	tFilePointer
+Lithtech.exe	retail	tFileType
+Lithtech.exe	retail	tFileVersionInfoSizeA
+Lithtech.exe	retail	tFocus
+Lithtech.exe	retail	tKeyboardState
+Lithtech.exe	retail	tLocalTime
+Lithtech.exe	retail	tMapMode
+Lithtech.exe	retail	tModuleFileNameA
+Lithtech.exe	retail	tPriorityClass
+Lithtech.exe	retail	tPriorityClass
+Lithtech.exe	retail	tPriorityClass
+Lithtech.exe	retail	tProcAddress
+Lithtech.exe	retail	tStartupInfoA
+Lithtech.exe	retail	tStartupInfoA
+Lithtech.exe	retail	tStdHandle
+Lithtech.exe	retail	tStockObject
+Lithtech.exe	retail	tStringTypeW
+Lithtech.exe	retail	tSystemCursor
+Lithtech.exe	retail	tSystemDirectoryA
+Lithtech.exe	retail	tSystemTime
+Lithtech.exe	retail	tTempFileNameA
+Lithtech.exe	retail	tTempPathA
+Lithtech.exe	retail	tTextCharacterExtra
+Lithtech.exe	retail	tTextCharacterExtra
+Lithtech.exe	retail	tTextColor
+Lithtech.exe	retail	tTextExtentPoint32A
+Lithtech.exe	retail	tThreadPriority
+Lithtech.exe	retail	tTickCount
+Lithtech.exe	retail	tUserDefaultLangID
+Lithtech.exe	retail	tVersion
+Lithtech.exe	retail	terCriticalSection
+Lithtech.exe	retail	thk_ThunkData32
+Lithtech.exe	retail	timeBeginPeriod
+Lithtech.exe	retail	tputDebugStringA
+Lithtech.exe	retail	tputDebugStringA
+Lithtech.exe	retail	tricmp
+Lithtech.exe	retail	u1a(AZ
+Lithtech.exe	retail	upper
+Lithtech.exe	retail	user32.dll
+Lithtech.exe	retail	validateRect
+Lithtech.exe	retail	wcscmp
+Lithtech.exe	retail	wcslen
+Lithtech.exe	retail	wcsncpy
+Lithtech.exe	retail	xtOutA
