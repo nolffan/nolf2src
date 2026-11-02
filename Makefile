@@ -126,11 +126,17 @@ test: check-tools image
 	@[ -f $(TEST_GAME)/Lithtech.exe ] || { echo "error: no $(TEST_GAME)/ -- build it first (make, or make debug/modern/modern-debug)" >&2; exit 1; }
 	$(DOCKER_RUN) env PLAYTEST_NAME=$(TEST_NAME) PLAYTEST_SCRIPT=tools/playtest-newgame.txt bash tools/playtest.sh $(TEST_GAME) - 5
 
+# what tools/evidence.py cannot ask git for in the container (the build
+# image has no git)
+EVIDENCE_ENV = EVIDENCE_REVISION=$(shell git rev-parse HEAD 2>/dev/null) \
+	EVIDENCE_MODIFIED=$(shell git status --porcelain --untracked-files=no 2>/dev/null | wc -l) \
+	EVIDENCE_SUBMODULES="$(shell git submodule status 2>/dev/null | sed 's/^ *//' | tr '\n' ';')"
+
 progress: retail
-	$(DOCKER_RUN) env COMPLETE=$(COMPLETE) COVERED=$(COVERED) bash build/progress.sh check
+	$(DOCKER_RUN) env COMPLETE=$(COMPLETE) COVERED=$(COVERED) $(EVIDENCE_ENV) bash build/progress.sh check
 
 progress-update: retail
-	$(DOCKER_RUN) env ACCEPT_LOSSES=$(ACCEPT_LOSSES) bash build/progress.sh update
+	$(DOCKER_RUN) env ACCEPT_LOSSES=$(ACCEPT_LOSSES) $(EVIDENCE_ENV) bash build/progress.sh update
 
 shell: image
 	docker run --rm -it --init --name $(CONTAINER)-shell \
