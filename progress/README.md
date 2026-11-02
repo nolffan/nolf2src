@@ -183,11 +183,24 @@ built elsewhere (`build/variant.sh`), and the scoring never reads them.
 * `README.md`'s table is not the one `summary.json` renders,
 * the data check (`tools/datacheck.py`: the text in our images' data --
   strings, import and export names -- against the retail images') finds a
-  difference `data-known.txt` does not list with its reason, or
+  difference `data-known.txt` does not list with its reason,
 * `tools/fpconst.py` finds a float or double that one of our placed
   functions loads (through an address the byte match masks) differing
   from the one retail loads there: a masked match is identical only up to
-  the constants it reads.
+  the constants it reads, or
+* `tools/vtabcheck.py --targets` finds a contradiction
+  `progress/vtab-known.txt` does not list: a vtable slot of ours, or a call
+  or global one of our functions reaches, that is another one than retail's
+  -- judged only where the evidence is unambiguous (the function's body fits
+  exactly one retail address; same code under another name agrees), and
+  everything else counted as unverified, not passed.
+
+Each run also writes `out/progress/evidence.json` (`tools/evidence.py`):
+the source and submodule revisions, every retail image's hash, the
+configuration and exclusion files, our images, maps and link commands, and
+the toolchain trees the build used with their digests checked against
+`toolchains/fetch.sh`'s pins (a mismatch fails the run).
+`make progress-update` keeps a copy as `progress/evidence.json`.
 
 Before anything is scored, the retail images cached in `out/reference/`
 are checked against `progress/reference.sha256` (and extracted again from
@@ -226,6 +239,8 @@ minutes.
 | `identical.txt` | every function verified identical (`target<TAB>function`): the baseline the test holds the build to. Written by `make progress-update` |
 | `summary.json` | per-target counts and bytes of the recorded run; the README table is rendered from it |
 | `reference.sha256` | the retail images `out/reference/` must hold to be scored |
+| `vtab-known.txt` | the vtable and wiring differences `tools/vtabcheck.py` finds that are known, each with its reason |
+| `evidence.json` | what the recorded run rested on (`tools/evidence.py`) |
 | `corrections.txt` | the functions taken out of `identical.txt` when the scoring was corrected (2026-11-02), each with why: matches inside another identical function (the same bytes counted twice), and matches outside the image's own code |
 | `data-known.txt` | the text differences from the retail images that are known, each under its reason (`tools/datacheck.py`) |
 | `COMPILERS.md` | which compiler and flags built each retail binary, and the evidence |
