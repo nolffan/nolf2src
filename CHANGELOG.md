@@ -10,6 +10,10 @@ covers each change in detail, under its item number (M-E1, M-G2 and so on).
 
 ## Unreleased
 
+- **`gimmemod`, `gimmegear` and `budonkadonk` work.** In the original
+  game `gimmemod` gave gear, `gimmegear` did nothing (a single mod took
+  the nonsense code `ewkkckmb`), and the third-person cheat worked only in
+  multiplayer. (M-G92)
 - **Menus can be clicked on Windows with display scaling above 100%.**
   The game now tells Windows it handles DPI itself; before, with scaling
   at 150% for example, the cursor moved but clicks missed in a borderless

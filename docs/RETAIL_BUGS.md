@@ -154,6 +154,37 @@ written. The caller's red is whatever it held: an uninitialised local in
 `CSpriteSystem` (`spritesystemfx.cpp`), so an effect with a step in its
 colour gets a garbage red channel at that key.
 
+### `gimmemod` gives gear, and only `ewkkckmb` gives a mod
+`CCheatMgr::s_CheatInfo` (CShell.dll) ·
+`src/Game/ClientShellDLL/ClientShellShared/CheatMgr.cpp`
+
+> **FIXED in the modern build** (`NOLF2SRC_MODERN`, MODERN.md M-G92):
+> `gimmemod <mod>` gives the mod and `gimmegear <gear>` the gear. The
+> release build keeps the retail table.
+
+The cheat codes are stored encoded (`((c ^ 38) + i) ^ 7` per character,
+`CCheatMgr::Check`). In the retail table the "give a mod" slot holds
+`DUHWNUVL`, which is the development build's `mpgimmemod` with its `mp`
+cut off and not encoded again for the shifted positions: it decodes to
+`ewkkckmb`. The "give gear" slot holds `FWJI@WHN`, which decodes to
+`gimmemod`. So `gimmemod <name>` runs GimmeGear, `gimmegear` is no cheat
+at all, and the only way to a single weapon mod is to type
+`ewkkckmb <name>`. All three encoded strings are in retail's CShell.dll.
+
+### The chase-view cheat works only in multiplayer
+`CCheatMgr::Process` (CShell.dll) ·
+`src/Game/ClientShellDLL/ClientShellShared/CheatMgr.cpp`
+
+> **FIXED in the modern build** (`NOLF2SRC_MODERN`, MODERN.md M-G92):
+> `budonkadonk` toggles the third-person view in single player too. The
+> release build keeps the retail switch.
+
+`budonkadonk` is in the retail cheat list ("toggle chase view"), and the
+final build's multiplayer branch handles it ("Well, okay, let them toggle
+between 1st and 3rd person ;)"), but the single-player switch has its case
+inside `#ifndef _FINAL`. In a retail single-player game the code is taken
+and nothing happens (no cheat sound either); online it works.
+
 ### Unique player names are not unique
 `CPlayerObj::GenerateUniqueName` (Object.lto) · `src/Game/ObjectDLL/ObjectShared/PlayerObj.cpp`
 

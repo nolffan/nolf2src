@@ -59,8 +59,17 @@ CCheatMgr::CheatInfo CCheatMgr::s_CheatInfo[] = {
     { "CSVJA",			LTFALSE },	// build			- build info
     { "RC@P@P\\Y\\_YXHP",	LTFALSE },	// secretsquirrel	- build guid
 	{ "FWJI@A^H",		LTFALSE },	// gimmegun <gun>	- give specific weapon
-	{ "DUHWNUVL",		LTFALSE },	// gimmemod <mod>	- give specific mod
-	{ "FWJI@WHN",		LTFALSE },	// gimmegear <gear> - give specific gear
+#ifdef NOLF2SRC_MODERN
+	// MODERN.md M-G92: retail's two strings here are one slot out:
+	// "DUHWNUVL" is the development "mpgimmemod" with its "mp" cut off,
+	// so it decodes to "ewkkckmb" (the only way to a single mod), and
+	// "FWJI@WHN" ("gimmemod") sits in gimmegear's slot
+	{ "FWJI@WHN",		LTFALSE },	// gimmemod <mod>	- give specific mod
+	{ "FWJI@ANI[",		LTFALSE },	// gimmegear <gear> - give specific gear
+#else
+	{ "DUHWNUVL",		LTFALSE },	// ewkkckmb <mod>	- give specific mod (RETAIL_BUGS.md)
+	{ "FWJI@WHN",		LTFALSE },	// gimmemod <gear>	- give specific gear (RETAIL_BUGS.md)
+#endif
 	{ "FWJI@KVUV",		LTFALSE },	// gimmeammo <ammo> - give specific ammo
     { "NBSQ^O",			LTFALSE },  // obtuse			- enables the console in release builds (not supported currently)
     { "RIVJIf",			LTFALSE },  // skillz			- give skill points
@@ -319,6 +328,16 @@ bool CCheatMgr::Process( CheatCode nCheatCode, CParsedMsg &cMsg )
 		case CHEAT_GIMMEAMMO:
 			GimmeAmmo( cMsg );
 		break;
+
+#ifdef NOLF2SRC_MODERN
+#ifdef _FINAL
+		// MODERN.md M-G92: retail handles budonkadonk only in multiplayer
+		// (above); its single-player case is a development build's only
+		case CHEAT_CHASETOGGLE:	   // toggle 3rd person view
+			ChaseToggle();
+		break;
+#endif
+#endif
 
 		case CHEAT_ENDGAME:
 			ToggleEndgameFlag();
