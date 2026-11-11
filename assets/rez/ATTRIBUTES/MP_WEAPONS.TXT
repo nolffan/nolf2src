@@ -1,0 +1,1824 @@
+
+/************************************************************************
+**
+**		     TO2 Multiplayer Weapons Attributes file
+** (c) 1998-2002 Monolith Productions, Inc.  All Rights Reserved
+** 
+** This file contains the following weapon related definitions:
+**
+**  Ammo,
+**  Weapon,
+**  Mod,
+**  Gear,
+**  WeaponAnis
+**
+** NOTES:  
+**
+** 1) This file is used to override specific properties for existing 
+**    weapon realated definitions for use in a TO2 Multiplayer game.
+**    You can NOT declare new weapon definitions here.  All weapon realated
+**    definitions listed here must also be declared in weapons.txt.
+**
+** 2) Each definition in weapons.txt MUST also have a definition here. For items
+**    that remain unchanged from single player, only have the numeric tag and name
+**    should remain. 
+**
+** 3) The 'Name' property of the definitions in this file reference the definition
+**    with the same Name and type from weapons.txt.  All definitions in this file 
+**    MUST include a 'Name' property refering to a definition in weapons.txt.
+**
+** 4) Only the listed properties of a definition are overriden.  If a property 
+**    is not listed in this file the value assigned in weapons.txt will be used 
+**    by default.  If a definition is not listed in this file, all properties 
+**    of that definition from weapons.txt will be used.
+**
+**	
+*/
+
+/************************************************************************
+**
+** AMMO
+**
+** Ammo definitions are used by Weapon definitions to determine 
+** the types of ammo a particular weapon can use (see the WEAPON 
+** definition for more info)
+**
+**      Here is a list of all valid DamageTypes (Defined
+**		in Shared\DamageTypes.h):
+**
+**			-1 - Invalid damage type
+**			0  - Unspecified
+**			1  - Bleeding
+**			2  - Bullet
+**			3  - Burn
+**			4  - Choke
+**			5  - Crush
+**			6  - Electrocute
+**			7  - Explosion 
+**			8  - Freeze
+**			9  - Poison
+**			10 - Endless fall
+**			11 - Sleeping
+**			12 - Stunned
+**			13 - Melee
+**			14 - Camera disabler
+**			15 - Glue
+**			16 - Bear Trap
+**			17 - Laughing
+**			18 - ASSS (Anti-super Soldier Serum)
+**
+**			19 - Code breaker gadget
+**			20 - Poodle gadget
+**			21 - Lock pick gadget
+**			22 - Welder gadget
+**			23 - Lighter gadget
+**			24 - Camera gadget
+**			25 - Mine detector gadget
+**			26 - Infra-Red gadget
+**			27 - Decay powder
+**			28 - Time Bomb
+**			29 - Ink Regeant
+**			30 - Eavesdrop Bug
+**
+**
+** All ammo definitions should contain the following properties:
+**
+**	Name (String)
+**
+**		User friendly name of an AMMO definition in weapons.txt.	
+**
+**	NameId (Integer)
+**
+**		Id that maps to the Localizable Ammo name (stored in CRes.dll)	
+**
+**	DescId (Integer)
+**
+**		Id that maps to the Localizable Ammo description (stored in CRes.dll)	
+**
+**	Type (Integer)	
+**
+**		Specifies the type of ammo.  Valid values are:
+**
+**		0 - Vector
+**		1 - Projectile
+**		3 - Gadget
+**
+**	Icon (String)
+**
+**		Name of the interface icon associated with the ammo type.
+**
+**	MaxAmount (Integer)
+**
+**		Specifies the maximum amount of ammo that can be "carried" of this
+**		type.
+**
+**	SelectionAmount (Integer)
+**	
+**		Specifies the amount of ammo that is allocated when a weapon using it
+**		is selected in the interface.
+**
+**	SpawnedAmount (Integer)
+**	
+**		Specifies the amount of ammo that will be spawned when spawning
+**		ammo powerups.
+**
+**	InstDamage (Integer)	
+**
+**		Specifies the amount of Instantaneous damage done by this type of 
+**		ammo.
+**
+**	InstDamageType (Integer)
+**
+**		Specifies the type of Instantaneous damage done by this type of ammo.
+**		(See valid DamageTypes above).
+**
+**	AreaDamage (Integer)	
+**
+**		Specifies the Max amount of Area damage done by this type of 
+**		ammo (i.e., damage done if you are in the center of the damage).
+**
+**	AreaDamageType (Integer)
+**
+**		Specifies the type of Area damage done by this type of ammo.
+**		(See valid DamageTypes above).
+**
+**	AreaDamageRadius (Integer)
+**
+**		Specifies the radius of effect in game units for the Area
+**		damage.
+**
+**	ProgDamage (Float)	
+**
+**		Specifies the amount of Progressive damage done by this type of 
+**		ammo.  This is the amount of damage that is done per second.
+**
+**	ProgDamageType (Integer)
+**
+**		Specifies the type of Progressive damage done by this type of ammo.
+**		(See valid DamageTypes above).
+**
+**	ProgDamageDuration (Float)
+**
+**		Specifies the time the Progressive damage is applied to the victim.
+**
+**	ProgDamageRadius (Float)
+**
+**		Specifies the radius of effect for the Progressive damage (only used
+**		if ProgDamageLifetime is greater than 0.0).
+**
+**	ProgDamageLifetime (Float)
+**
+**		Specifies the time the progressive damage radius of effect lasts
+**		(for things like poison gas)
+**
+**	FireRecoilMult (Float)
+**
+**		This multiplier modifies the FireRecoilPitch value in a weapon
+**		firing this type of ammo (see FireRecoilPitch in Weapon record below) 
+**
+**	ImpactFXName (String) (OPTIONAL)
+**
+**		Specifies the impact special fx.  The value of this 
+**		property MUST correspond to the name of an ImpactFX specified in
+**		the FX.txt file.
+**
+**	UWImpactFXName (String) (OPTIONAL)
+**
+**		Specifies the under water impact special fx.  The value of this 
+**		property MUST correspond to the name of an ImpactFX specified in
+**		the FX.txt file.
+**
+**	ProjectileFXName (String) (OPTIONAL)
+**
+**		Specifies the a projectile special fx.  The value of this 
+**		property MUST correspond to the name of a ProjectileFX specified in
+**		the FX.txt file.
+**
+**	FireFXName (String) (OPTIONAL)
+**
+**		Specifies a fire special fx.  The value of this property MUST 
+**		correspond to the name of a FireFX specified in the FX.txt file.
+**
+**	TracerFXName (String) (OPTIONAL)
+**
+**		Specifies a tracer special fx.  The value of this property MUST 
+**		correspond to the name of a TracerFX specified in the FX.txt file.
+**
+**	WeaponAniOverride (String) (OPTIONAL)
+**
+**		Specifies the name of the WeaponAnis record (see below) that contains
+**		override weapon animation names for this ammo type.  If specified, these
+**		animations are used on ANY weapon using this ammo type when this
+**		ammo type is the currently selected ammo.
+**
+**	CanBeDeflected (Integer) (OPTIONAL)
+**
+**		Ammo can be deflected by weapon.  To deflect, the weapon must
+**		have a model string key "begindeflect" followed by a key "enddeflect".
+**
+**	DeflectSurfaceType (String) (OPTIONAL)
+**
+**		When ammo is deflected, the impact fx used will be based on this surface
+**		type.  Surface types found in surface.txt.
+**
+**	CanAdjustInstDamage (Integer) (OPTIONAL)
+**
+**		If set to 1 the InstDamage amount may be adjusted programatically, if set to 0
+**		the value specified by InstDamage will always be used.
+**
+**	CanServerRestrict (Integer) (OPTIONAL)
+**
+**		If set to 0 to not allow server options to restrict this item from the level.  Default: 1.
+**
+*/
+
+/*
+** Ammo0 - Tazer charge
+*/
+
+[Ammo0]
+
+Name				= "Tazer"
+CanServerRestrict	= 0
+
+/*
+** Ammo1 - KatanaSlash
+*/
+
+[Ammo1]
+
+Name				= "Katana Slash"
+CanServerRestrict	= 0
+
+/*
+** Ammo2 - TulwarSlash
+*/
+
+[Ammo2]
+
+Name				= "Tulwar Slash"
+CanServerRestrict	= 0
+
+/*
+** Ammo3 - ShurikenAmmo
+*/
+
+[Ammo3]
+
+Name				= "Reg Shuriken"
+CanServerRestrict	= 0
+
+/*
+** Ammo4 - Blow
+*/
+
+[Ammo4]
+
+Name				= "Blow"
+CanServerRestrict	= 0
+
+/*
+** Ammo5 - TimedGrenade
+*/
+
+[Ammo5]
+
+Name				= "Timed Grenade"
+AreaDamage			= 120
+AreaDamageRadius    		= 300
+CanServerRestrict	= 0
+
+/*
+** Ammo6 - StunGrenade
+*/
+
+[Ammo6]
+
+Name				= "Stun Grenade"
+CanServerRestrict	= 0
+
+/*
+** Ammo7 - SleepGrenade
+*/
+
+[Ammo7]
+
+Name				= "Sleep Grenade"
+CanServerRestrict	= 0
+
+/*
+** Ammo8 - AcidGrenade
+*/
+
+[Ammo8]
+
+Name				= "Acid Grenade"
+CanServerRestrict	= 0
+
+/*
+** Ammo9 - .32 full metal jacket
+*/
+
+[Ammo9]
+
+Name				= ".32 fmj"
+
+/*
+** Ammo10 - .32 cyanide-tipped
+*/
+
+[Ammo10]
+
+Name				= ".32 cyanide"
+ProgDamageLifetime  = 2.000000
+
+/*
+** Ammo11 - Tranquilizer (Utility launcher)
+*/
+
+[Ammo11]
+
+Name				= "Tranquilizer"
+ProgDamageDuration  = 2.500000
+
+/*
+** Ammo12 - Camera Disabler (Utility launcher)
+*/
+
+[Ammo12]
+
+Name				= "Cam Disabler"
+CanServerRestrict	= 0
+
+/*
+** Ammo13 - Glue bomb (Utility launcher)
+*/
+
+[Ammo13]
+
+Name				= "Glue Bomb"
+
+/*
+** Ammo14 - Electrical (Utility launcher)
+*/
+
+[Ammo14]
+
+Name				= "Electrical"
+ProgDamage          = 75.000000
+
+/*
+** Ammo15 - Anti-Super Soldier Serum (Utility launcher)
+*/
+
+[Ammo15]
+
+Name				= "Serum"
+CanServerRestrict	= 0
+
+/*
+** Ammo16 - Laughing Gas Grenade
+*/
+
+[Ammo16]
+
+Name				= "Laughing Gas"
+CanServerRestrict	= 0
+
+/*
+** Ammo17 - 12-gauge shot
+*/
+
+[Ammo17]
+
+Name				= "12-ga shot"
+InstDamage          = 30
+
+/*
+** Ammo18 - 12-gauge explosive
+*/
+
+[Ammo18]
+
+Name				= "12-ga explosive"
+AreaDamageRadius    = 50
+
+/*
+** Ammo19 - 9mm full metal jacket
+*/
+
+[Ammo19]
+
+Name				= "9mm fmj"
+InstDamage          = 20
+
+/*
+** Ammo20 - .45 full metal jacket
+*/
+
+[Ammo20]
+
+Name				= ".45 fmj"
+InstDamage          = 25
+
+/*
+** Ammo21 - 7.62x39 full metal jacket
+*/
+
+[Ammo21]
+
+Name				= "7.62x39 fmj"
+
+/*
+** Ammo22 - 7.62x39 phosphorous
+*/
+
+[Ammo22]
+
+Name				= "7.62x39 phos"
+
+/*
+** Ammo23 - .308 full metal jacket
+*/
+
+[Ammo23]
+
+Name				= ".308 fmj"
+InstDamage          		= 120
+
+/*
+** Ammo24 - Bolt
+*/
+
+[Ammo24]
+
+Name				= "Bolt"
+ProjectileFXName    		= "MPBolt"
+
+/*
+** Ammo25 - Poison crossbow bolt
+*/
+
+[Ammo25]
+
+Name				= "Poison Bolt"
+
+/*
+** Ammo26 - Fire crossbow bolt
+*/
+
+[Ammo26]
+
+Name				= "Fire Bolt"
+ProjectileFXName    		= "MPBoltFire"
+
+/*
+** Ammo27 - Explosive crossbow bolt
+*/
+
+[Ammo27]
+
+Name				= "Explosive Bolt"
+AreaDamage			= 100
+
+/*
+** Ammo28 - Micromissile
+*/
+
+[Ammo28]
+
+Name				= "Micromissile"
+MaxAmount           = 3
+SelectionAmount		= 3
+SpawnedAmount       = 3
+InstDamage          		= 50
+AreaDamage			= 150
+AreaDamageRadius    		= 250
+
+/*
+** Ammo29 - Camera Ammo
+*/
+
+[Ammo29]
+
+Name				= "Camera"
+CanServerRestrict	= 0
+
+/*
+** Ammo30 - Time bomb
+*/
+
+[Ammo30]
+
+Name				= "Time Bomb"
+CanServerRestrict	= 0
+
+/*
+** Ammo31 - Code Breaker ammo
+*/
+
+[Ammo31]
+
+Name				= "Code Breaker Gadget"
+CanServerRestrict	= 0
+
+/*
+** Ammo32 -  Welder ammo
+*/
+
+[Ammo32]
+
+Name				= "Welder"
+CanServerRestrict	= 0
+
+/*
+** Ammo33 - Lockpick
+*/
+
+[Ammo33]
+
+Name				= "Lockpick"
+CanServerRestrict	= 0
+
+/*
+** Ammo34 - Eavesdropping bug
+*/
+
+[Ammo34]
+
+Name				= "Bug"
+CanServerRestrict	= 0
+
+/*
+** Ammo35 - Body remover perfume
+*/
+
+[Ammo35]
+
+Name				= "Body Remover"
+CanServerRestrict	= 0
+
+/*
+** Ammo36 - Invisible ink reagent - unused
+*/
+
+[Ammo36]
+
+Name				= "Ink Reagent - unused"
+CanServerRestrict	= 0
+
+/*
+** Ammo37 - Coin
+*/
+
+[Ammo37]
+
+Name				= "Coin"
+CanServerRestrict	= 0
+
+/*
+** Ammo38 - Angry Kitty
+*/
+
+[Ammo38]
+
+Name				= "Angry Kitty"
+CanServerRestrict	= 0
+
+/*
+** Ammo39 - Bear Trap
+*/
+
+[Ammo39]
+
+Name				= "Bear Trap"
+CanServerRestrict	= 0
+
+/*
+** Ammo40 - SSCannon
+*/
+
+[Ammo40]
+
+Name				= "SSCannon"
+CanServerRestrict	= 0
+
+/*
+** Ammo41 - SSLaser ammo
+*/
+
+[Ammo41]
+
+Name				= "SSLaserAmmo"
+CanServerRestrict	= 0
+
+/*
+** Ammo42 - Robot laser ammo
+*/
+
+[Ammo42]
+
+Name				= "RobotLaserAmmo"
+CanServerRestrict	= 0
+
+/*
+** Ammo43 - Throwing knife
+*/
+
+[Ammo43]
+
+Name				= "Knife"
+CanServerRestrict	= 0
+
+/*
+** Ammo44 - Holster
+*/
+
+[Ammo44]
+
+Name				= "Holster"
+CanServerRestrict	= 0
+
+/*
+** Ammo45 - Banana
+*/
+
+[Ammo45]
+
+Name				= "Banana"
+CanServerRestrict	= 0
+
+/*
+** Ammo46 - Wheelchair rocket
+*/
+
+[Ammo46]
+
+Name				= "Rocket"
+CanServerRestrict	= 0
+
+/*
+** Ammo47 - Tracking Device (Utility launcher)
+*/
+
+[Ammo47]
+
+Name				= "Tracking Device"
+Priority			= 0
+
+/*
+** Ammo48 - Welder burn damage - Used internally DO NOT use this with any weapon!!!
+*/
+
+[Ammo48]
+
+Name				= "WelderBurn"
+CanServerRestrict	= 0
+
+/*
+** Ammo49 - Man-Bite
+*/
+
+[Ammo49]
+
+Name				= "ManBite"
+CanServerRestrict	= 0
+
+/*
+** Ammo50 - Keychain
+*/
+
+[Ammo50]
+
+Name				= "Keychain"
+CanServerRestrict	= 0
+
+/*
+** Ammo51 - Head_gun butt
+*/
+
+[Ammo51]
+
+Name				= "Head_gun butt"
+CanServerRestrict	= 0
+
+/************************************************************************
+**
+** WEAPON
+**
+** Weapon definitions specify the properties making up a
+** weapon.
+**
+** All weapon definitions should contain the following
+** properties:
+**
+**	Name (String)
+**
+**		User friendly name of a WEAPON definition in weapons.txt.
+**
+**	NameId (Integer)
+**
+**		Id that maps to the weapon Localizable name (stored in CRes.dll)	
+**
+**	DescriptionId (Integer)
+**
+**		Id that maps to the weapon description (stored in CRes.dll)	
+**
+**	ClientWeaponType (Integer)
+**
+**		Weapon type:
+**			0 - none (NEVER use this number)
+**			1 - vector (bullet type weapons)
+**			2 - projectile ( slow shooting weapons, like crossbows)
+**			3 - disc (TRON type- the disc)
+**
+**	Gadget (Integer)
+**
+**		Specifies whether or not the weapon should be considered a gadget. 
+**		(1 = true, 0 = false)
+**
+**  AniType (Integer)
+**
+**		Classify the weapon into a style of animation when holding the weapon
+**
+**		Values :
+**
+**		0	- rifle
+**		1	- pistol
+**		2   - melee
+**
+**	Icon (String)
+**
+**		Name of the interface icon associated with the weapon.
+**
+**	Photo (String)
+**
+**		Name of the interface photo associated with the weapon.
+**
+**	Pos (Vector)
+**
+**		The player-view weapon model pos (offset from player model in
+**		x, y, and z)
+**
+**	MuzzlePos (Vector)
+**
+**		The player-view weapon model muzzle pos (offset from the player
+**		model in x, y, and z).  This is used to determine where to place 
+**		muzzle fx.
+**
+**	MinPerturb (Integer)
+**
+**		The minimum amount of perturb on each vector or projectile fired by 
+**		the weapon.  A value in range from MinPerturb to MaxPerturb
+**		is added to the Up and Right components of the firing direction
+**		vector based on the current accuracy of the player/ai firing the
+**		weapon.
+**
+**	MaxPerturb (Integer)
+**
+**		The maximum amount of perturb on each vector or projectile fired by 
+**		the weapon.  A value in range from MinPerturb to MaxPerturb
+**		is added to the Up and Right components of the firing direction
+**		vector based on the current accuracy of the player/ai firing the
+**		weapon.
+**
+**	Range (Integer)
+**
+**		The range of the weapon.
+**
+**	Recoil (Vector)
+**
+**		The amount of weapon recoil.
+**
+**	VectorsPerRound (Integer)
+**
+**		The number of vectors (rays cast) per round.
+**
+**	PVModel (String)
+**
+**		Name of the player-view weapon model.
+**
+**	PVSkin0-N (String)
+**
+**		Name of the player-view weapon skin(s) (NOTE: You can specify "Hands" if
+**		you want to use the player-view hands texture associated with the
+**		current player model style).
+**      There can be any number of skins: PVSkin0, PVSkin1, ..., PVSkinN
+**
+**  PVRenderStyle0-N (String)
+**
+**		Name of the render style file ltb(s).
+**      There can be any number of render styles: PVRenderStyle0, PVRenderStyle1, ..., PVRenderStyleN
+**
+**	PVMuzzleFXName (String) (OPTIONAL)
+**
+**		Specifies the optional player-view muzzle fx for this weapon.
+**		The value of this property MUST correspond to a name specified 
+**		in the MuzzleFX definitions in the Attributes\fx.txt file.
+**
+**	PVAttachFXName (String) (OPTIONAL)
+**
+**		Specifies the optional player-view fx attachment for this weapon.
+**		The value of this property MUST correspond to an effect created 
+**		with FXEd.
+**
+**	HHModel (String)
+**
+**		Name of the hand-held (and powerup) weapon model.
+**
+**	HHSkin0-N (String)
+**
+**		Name of the hand-held (and powerup) weapon skin(s).
+**      There can be any number of skins: HHSkin0, HHSkin1, ..., HHSkinN
+**
+**  HHRenderStyle0-N (String)
+**
+**		Name of the render style file ltb(s).
+**      There can be any number of render styles: HHRenderStyle0, HHRenderStyle1, ..., HHRenderStyleN
+**
+**	HHModelScale (Vector)
+**
+**		The scale of the hand-held (and powerup) weapon model.
+**
+**	HHBreachOffset (Float)
+**
+**		The offset of the breach from the tip of the hand-held weapon model
+**		(NOTE this value should always be non-positive).
+**
+**	HHMuzzleFXName (String) (OPTIONAL)
+**
+**		Specifies the optional hand-held muzzle fx for this weapon.
+**		The value of this property MUST correspond to a name specified 
+**		in the MuzzleFX definitions in the Attributes\fx.txt file.
+**
+**	InterfaceModelScale (Float)
+**
+**		The scaling factor used for the model in the interface. 
+**		(same model as hand-held)
+**
+**	InterfaceOffset (Vector)
+**
+**		The offset used when placing the model in the interface.
+**		(This position is relative to the position specified for the screen.)
+**
+**	InterfaceSkin0-N (String)
+**
+**		Name of the hand-held (and powerup) weapon skin(s).
+**      There can be any number of skins: InterfaceSkin0, InterfaceSkin1, ..., InterfaceSkinN
+**
+**  InterfaceRenderStyle0-N (String)
+**
+**		Name of the render style file ltb(s).
+**      There can be any number of render styles: InterfaceRenderStyle0, InterfaceRenderStyle1, ..., InterfaceRenderStyleN
+**
+**	FireSnd(String)
+**
+**		Name of the sound that is played when the weapon is fired.
+**
+**	AltFireSnd(String)
+**
+**		Name of the sound that is played when the weapon is alt-fired.
+**
+**	SilencedFireSnd(String)
+**
+**		Name of the sound that is played when the weapon is fired with
+**		a silencer.
+**
+**	DryFireSnd(String)
+**
+**		Name of the sound that is played when the weapon is dry fired.
+**
+**	ReloadSnd1 (String)
+**
+**		Name of the sound that is played when the weapon is reloaded.
+**		(mapped to SOUND_KEY 1)
+**
+**	ReloadSnd2 (String)
+**
+**		Optionally the name of a sound that is played when the weapon 
+**		is reloaded (mapped to SOUND_KEY 2).
+**
+**	ReloadSnd3 (String)
+**
+**		Optionally the name of a sound that is played when the weapon 
+**		is reloaded (mapped to SOUND_KEY 3).
+**
+**	SelectSnd (String)
+**
+**		Name of the sound that is played when the weapon is selected.
+**		(mapped to SOUND_KEY 4)
+**
+**	DeselectSnd (String)
+**
+**		Name of the sound that is played when the weapon is deselected.
+**		(mapped to SOUND_KEY 5)
+**
+**	FireSndRadius (Integer)
+**
+**		The radius of volume fallof that fire sounds are played at
+**
+**	AIFireSndRadius (Integer)
+**
+**		The radius of volume that fire sounds make, w.r.t to AI's senses
+**
+**	WeaponSndRadius (Integer)
+**
+**		The radius of volume falloff that all other sounds, non-fire sounds, are played at
+**
+**	EnvironmentMap (Integer)
+**
+**		Specifies whether or not the weapon uses environment mapping. 
+**
+**	InfiniteAmmo (Integer)
+**
+**		Specifies whether or not the weapon has unlimited ammo. 
+**		(1 = true, 0 = false)
+**
+**	ShotsPerClip (Integer)
+**
+**		The number of rounds the weapon can fire before it must be reloaded.
+**
+**  FireRecoilPitch (Float)
+**
+**		Specifies the amount the weapon should pitch (in degrees) when
+**		fired.
+**
+**	FireRecoilDecay (Float)
+**	
+**		Specifies the time (in seconds) it should take for the weapon's
+**		pitch to get back to normal after recoiling from firing.
+**
+**	AmmoName# (String)
+**
+**		Specifies the type of ammo available for this weapon.  The value
+**		of this property MUST correspond to the name specified in the
+**		AMMO definitions above.  If the weapon uses multiple ammo types, 
+**		you may specify multiple AmmoName properties.  For example:
+**
+**			AmmoName0	= "9mm fmj"
+**			AmmoName1	= "9mm dum dum"
+**		
+**		Note:  The first (or only) ammo type specified is considered the
+**			   "default" ammo type.  Every weapon MUST have at least one
+**			   ammo type specified.
+**
+**	ModName# (String) (OPTIONAL)
+**
+**		Specifies the optional mods available for this weapon.  The value
+**		of this property MUST correspond to the name specified in the
+**		MOD definitions below.  If the weapon uses multiple mods, 
+**		you may specify multiple ModName properties.  For example:
+**
+**			ModName0	= "9mm fmj"
+**			ModName1	= "9mm dum dum"
+**		
+**	PVFXName# (String) (OPTIONAL)
+**
+**		Specifies the optional player-view fx available for this weapon.
+**		The value of this property MUST correspond to a name specified 
+**		in the PVFX definitions in the Attributes\fx.txt file.  If the weapon 
+**		uses multiple pv fx, you may specify multiple PVFXName properties.
+**		For example:
+**
+**			PVFXName0	= "LighterFlameFX"
+**			PVFXName1	= "LighterLightFX"
+**		
+**	AIMinBurstInterval	(Float in seconds)
+**	AIMaxBurstInterval	(Float in seconds)
+**
+**		Specifies the range of time an AI will wait in between firing a burst
+**		from a weapon. IE, the AI will shoot somewhere between Min/AIMaxBurstShots,
+**		then wait Min/AIMaxBurstInterval seconds, then shoot again.
+**
+**	AIMinBurstShots		(Integer)
+**	AIMaxBurstShots		(Integer)
+**
+**		Specifies the range of shots an AI will fire when it is firing a burst
+**		from a weapon. IE, the AI will shoot somewhere between Min/AIMaxBurstShots,
+**		then wait Min/AIMaxBurstInterval seconds, then shoot again.
+**
+**	LooksDangerous (Integer)
+**
+**		Specifies whether or not the weapon/gadget looks dangerous to AIs.
+**		(1 = true, 0 = false)
+**
+**	FireDelay (Integer)
+**
+**		Specifies the minimum delay in milliseconds between fire keys
+**
+**	HideWhenEmpty (Integer)
+**
+**		Specifies whether or not the weapon/gadget should be hidden when out of ammo
+**		(also implies that the deselect animation shouldn't be played when auto-switching
+**		from this weapon when it runs out of ammo)
+**		(1 = true, 0 = false)
+**
+**	HeavyWeapon (Integer)
+**
+**		Specifies whether or not the weapon/gadget is heavy and therefore slows your movement
+**		(1 = true, 0 = false)
+**
+**	Class (Integer)
+**
+**		Specifies the Class to which the weapon belongs. Classes are used for weapon cycling.
+**		
+**			1	= Hand-to-hand weapons
+**			2	= Silent ranged weapons (shuriken, crossbow)
+**			3	= Pistols and back-up weapons
+**			4	= Rifles, machine guns, and heavy weapons
+**			5	= Gadgets
+**
+**  HolsterAttachment (String) (OPTIONAL)
+**  
+**      Specifies node and model to attch when weapon is holstered.
+**
+**		For example:
+**
+**			HolsterAttachment = "BACK AK47_holster"
+**
+**  HiddenPiece0-N (String) (OPTIONAL)
+**
+**		Names of Gadget model pieces to hide/show when the gadget is fired.  There can
+**		be any number of pieces to hide/show.  NOTE: this only works for Gadget type
+**		weapons (Gadget above)
+**
+**	FireAnimRateScale (Float) (OPTIONAL)
+**
+**		Speeds up or slows down the rate of the Fire animation.  By default the scale is 1.0 
+**		which will play the animation at normal speed, 2.0 will double the speed, and 0.5 will
+**		half the speed.
+**
+**	ReloadAnimRateScale (Float) (OPTIONAL)
+**
+**		Speeds up or slows down the rate of the Reload animation.  By default the scale is 1.0 
+**		which will play the animation at normal speed, 2.0 will double the speed, and 0.5 will
+**		half the speed.
+**
+**	CanServerRestrict (Integer) (OPTIONAL)
+**
+**		If set to 0 to not allow server options to restrict this item from the level.  Default: 1.
+**
+*/
+
+/*
+** Tazer
+*/
+
+[Weapon0]
+
+Name				= "Tazer"
+
+/*
+** Katana
+*/
+
+[Weapon1]
+
+Name				= "Katana"
+FireSndRadius       		= 512
+WeaponSndRadius     		= 512
+
+/*
+** Tulwar
+*/
+
+[Weapon2]
+
+Name				= "Tulwar"
+FireSndRadius       		= 512
+WeaponSndRadius     		= 512
+
+/*
+** Shuriken
+*/
+
+[Weapon3]
+
+Name				= "Shuriken"
+FireSndRadius       		= 512
+WeaponSndRadius     		= 512
+
+/*
+** Grenade
+*/
+
+[Weapon4]
+
+Name				= "Grenade"
+FireSndRadius       		= 512
+WeaponSndRadius     		= 512
+
+/*
+** Angry Kitty
+*/
+
+[Weapon5]
+
+Name				= "Angry Kitty"
+FireSndRadius       		= 512
+WeaponSndRadius     		= 512
+
+/*
+** Beretta
+*/
+
+[Weapon6]
+
+Name				= "Beretta"
+MaxPerturb			= 40
+WeaponSndRadius     		= 512
+
+/*
+** Launcher
+*/
+
+[Weapon7]
+
+Name				= "Utility Launcher"
+MinPerturb			= 0
+FireSndRadius       		= 512
+WeaponSndRadius     		= 512
+
+/*
+** Shotgun
+*/
+
+[Weapon8]
+
+Name				= "Shotgun"
+WeaponSndRadius     		= 512
+FireAnimRateScale		= 0.65
+
+/*
+** Sterling
+*/
+
+[Weapon9]
+
+Name				= "Sterling"
+MinPerturb			= 20
+MaxPerturb			= 40
+WeaponSndRadius     		= 512
+
+/*
+** TommyGun
+*/
+
+[Weapon10]
+
+Name				= "Tommygun"
+WeaponSndRadius     		= 512
+
+/*
+** AK-47
+*/
+
+[Weapon11]
+
+Name				= "AK-47"
+MinPerturb			= 20
+WeaponSndRadius     		= 512
+
+/*
+** Sniper Rifle
+*/
+
+[Weapon12]
+
+Name				= "Sniper Rifle"
+MinPerturb			= 0
+WeaponSndRadius     		= 512
+
+/*
+** Crossbow
+*/
+
+[Weapon13]
+
+Name				= "Crossbow"
+MinPerturb			= 0
+FireSndRadius       		= 512
+WeaponSndRadius     		= 512
+AmmoName0			= "Fire Bolt"
+AmmoName1			= "Poison Bolt"
+AmmoName2			= "Explosive Bolt"
+ReloadAnimRateScale	= 2.0
+
+/*
+** Purse micromissile launcher
+*/
+
+[Weapon14]
+
+Name				= "Purse"
+MinPerturb          		= 15
+WeaponSndRadius     		= 1024
+
+/*
+** Camera
+*/
+
+[Weapon15]
+
+Name				= "Camera"
+CanServerRestrict	= 0
+
+/*
+** Timebomb
+*/
+
+[Weapon16]
+
+Name				= "Timebomb"
+
+/*
+** Compact Codebreaker
+*/
+
+[Weapon17]
+
+Name				= "Compact Codebreaker"
+CanServerRestrict	= 0
+
+/*
+** Welder
+*/
+
+[Weapon18]
+
+Name				= "Welder"
+CanServerRestrict	= 0
+
+/*
+** Lockpick
+*/
+
+[Weapon19]
+
+Name				= "Lockpick"
+CanServerRestrict	= 0
+
+/*
+** Eavesdropping bug
+*/
+
+[Weapon20]
+
+Name				= "Eavesdropping Bug"
+CanServerRestrict	= 0
+
+/*
+** Perfume
+*/
+
+[Weapon21]
+
+Name				= "Perfume"
+CanServerRestrict	= 0
+
+/*
+** Coin
+*/
+
+[Weapon22]
+
+Name				= "Coin"
+CanServerRestrict	= 0
+
+/*
+** Beartrap
+*/
+
+[Weapon23]
+
+Name				= "BearTrap"
+FireAnimRateScale	= 1.5
+
+/*
+** Keychain
+*/
+
+[Weapon24]
+
+Name				= "Keychain"
+CanServerRestrict	= 0
+
+/*
+** BillyClub
+*/
+
+[Weapon25]
+
+Name				= "BillyClub"
+CanServerRestrict	= 0
+
+/*
+** SSCannon
+*/
+
+[Weapon26]
+
+Name				= "SSCannon"
+CanServerRestrict	= 0
+
+/*
+** SSLaser
+*/
+
+[Weapon27]
+
+Name				= "SSLaser"
+CanServerRestrict	= 0
+
+/*
+** Robot laser weapon
+*/
+
+[Weapon28]
+
+Name				= "RobotLaser"
+CanServerRestrict	= 0
+
+/*
+** Throwing knives
+*/
+
+[Weapon29]
+
+Name				= "ThrowingKnife"
+CanServerRestrict	= 0
+
+/*
+** Weapon Holstered
+*/
+
+[Weapon30]
+
+Name				= "Holster"
+CanServerRestrict	= 0
+
+/*
+** Banana
+*/
+
+[Weapon31]
+
+Name				= "Banana"
+
+/*
+** Stun Grenade
+*/
+
+[Weapon32]
+
+Name				= "StunGrenade"
+
+/*
+** Sleep Grenade
+*/
+
+[Weapon33]
+
+Name				= "SleepGrenade"
+
+/*
+** Acid Grenade
+*/
+
+[Weapon34]
+
+Name				= "AcidGrenade"
+
+/*
+** Laughing Gas Grenade
+*/
+
+[Weapon35]
+
+Name				= "LaughingGrenade"
+
+/*
+** Volkov's wheelchair rocket launcher
+*/
+
+[Weapon36]
+
+Name				= "VolkovRocket"
+CanServerRestrict	= 0
+
+/*
+** HeadButt
+*/
+
+[Weapon37]
+
+Name				= "HeadButt"
+CanServerRestrict	= 0
+
+/*
+** RifleButt
+*/
+
+[Weapon38]
+
+Name				= "RifleButt"
+CanServerRestrict	= 0
+
+/*
+** ManCrate
+*/
+
+[Weapon39]
+
+Name				= "ManCrate"
+CanServerRestrict	= 0
+
+/*
+** Sterling silenced
+*/
+
+[Weapon40]
+
+Name				= "SilencedSterling"
+MinPerturb			= 20
+MaxPerturb			= 40
+
+/*
+** TommyGun Infinite
+*/
+
+[Weapon41]
+
+Name				= "TommygunInfinite"
+CanServerRestrict	= 0
+
+
+/************************************************************************
+**
+** MOD
+**
+** Mod definitions specify the properties making up a
+** weapon modification.
+**
+** All modification definitions should contain the following
+** properties:
+**
+**	Name (String)
+**
+**		User friendly name of a MOD definition in weapons.txt.
+**
+**	Socket (String)
+**
+**		Name of the model socket to attach the mod model to.
+**
+**	NameId (Integer)
+**
+**		Id that maps to the gear name (stored in CRes.dll)	
+**
+**	DescriptionId (Integer)
+**
+**		Id that maps to the weapon description (stored in CRes.dll)	
+**
+**	Icon (String)
+**
+**		Name of the interface icon associated with the ammo type.
+**
+**	Type (Integer)	
+**
+**		Specifies the type of mod.  Valid values are:
+**
+**		0 - Silencer
+**		1 - Scope
+**
+**	AttachModel (String)
+**
+**		Name of the model attachment associated with the mod.
+**
+**	AttachSkin0-N (String)
+**
+**		Name of the skin(s) associated with the mod attachment model.
+**      There can be any number of skins: AttachSkin0, AttachSkin1, ..., AttachSkinN
+**
+**  AttachRenderStyle0-N (String)
+**
+**		Name of the render style file ltb(s).
+**      There can be any number of render styles: AttachRenderStyle0, AttachRenderStyle1, ..., AttachRenderStyleN
+**
+**	AttachScale (Vector)
+**
+**		Scale of the mod attachment model.
+**
+**	ZoomLevel (Integer)
+**
+**		Level the weapon can zoom to (Valid levels are 1, 2, and 3.
+**		0 = can't zoom). Ignored for non-scope mods.
+**
+**	NightVision (Integer)
+**
+**		Does the mod provide night vision (1 = true, 0 = false).
+**		Ignored for non-scope mods.
+**
+**	Integrated (Integer)
+**
+**		Is the mod built into the weapon (1 = true, 0 = false).
+**
+**	Priority (Integer)
+**
+**		This is used for weapons that have more than one mod of the same
+**		type (e.g., two scopes).  This field indicates which should be used
+**		if the weapon has both mods (the highest priority is used).  NOTE:
+**		this is a number between 0 and 255, that should default to 0.
+**
+**	ZoomInSound (String)
+**
+**		Name of the sound that is played when the weapon is zoomed in.
+**
+**	ZoomOutSound (String)
+**
+**		Name of the sound that is played when the weapon is zoomed out.
+**
+**	InterfaceModel (String)
+**
+**		Name of the model associated with the mod shown in the interface.
+**
+**	InterfaceSkin0-N (String)
+**
+**		Name of the skin(s) associated with the mod attachment model shown in the interface.
+**      There can be any number of skins: InterfaceSkin0, InterfaceSkin1, ..., InterfaceSkinN
+**
+**  InterfaceRenderStyle0-N (String)
+**
+**		Name of the render style file ltb(s).
+**      There can be any number of render styles: InterfaceRenderStyle0, InterfaceRenderStyle1, ..., InterfaceRenderStyleN
+**
+**	InterfaceModelScale (Float)
+**
+**		The scaling factor used for the model in the interface. 
+**		(same model as attach model)
+**
+**	InterfaceOffset (Vector)
+**
+**		The offset used when placing the model in the interface.
+**		(This position is relative to the position specified for the screen.)
+**
+**	PickUpSound (String)
+**
+**		Name of the sound that is played when the mod is picked up
+**
+**	RespawnSound (String)
+**
+**		Name of the sound that is played when the mod respawns 
+**		(multiplayer)
+**
+**	PowerupModel (String)
+**
+**		Name of the powerup model associated with the mod.
+**
+**	PowerupSkin0-N (String)
+**
+**		Name of the powerup skin(s) associated with the mod.
+**      There can be any number of skins: PowerupSkin0, PowerupSkin1, ..., PowerupSkinN
+**
+**  PowerupRenderStyle0-N (String)
+**
+**		Name of the render style file ltb(s).
+**      There can be any number of render styles: PowerupRenderStyle0, PowerupRenderStyle1, ..., PowerupRenderStyleN
+**
+**	PowerupModelScale (Float)
+**
+**		The scaling factor used with the powerup model. 
+**		(same model as attach model)
+**
+**	TintColor (Vector)
+**
+**		Color to tint the screen when gear is picked up (r, g, b)
+**
+**	TintTime (Float)
+**
+**		Duration in seconds of screen tint when gear is picked up
+**
+*/
+
+/*
+** beretta Silencer
+*/
+
+[Mod0]
+Name				= "Beretta Silencer"
+
+/*
+** Camera scope
+*/
+
+[Mod1]
+Name				= "Camera Scope"
+
+/*
+** Sniper Silencer
+*/
+
+[Mod2]
+Name				= "Sniper Silencer"
+
+/*
+** Sterling Silencer
+*/
+
+[Mod3]
+Name				= "Sterling Silencer"
+
+/*
+** Sniper Rifle Scope
+*/
+
+[Mod4]
+Name				= "Sniper Scope"
+ZoomLevel 			= 1
+
+/*
+** Utility Launcher Scope
+*/
+
+[Mod5]
+Name				= "Launcher Scope"
+Integrated			= 1
+
+/*
+** Crossbow scope
+*/
+
+[Mod6]
+Name				= "Crossbow Scope"
+Integrated			= 1
+
+/************************************************************************
+**
+** GEAR
+**
+** Gear definitions specify the properties making up miscellaneous
+** equipment..
+**
+** All gear definitions should contain the following
+** properties:
+**
+**	Name (String)
+**
+**		User friendly name of a GEAR definition in weapons.txt.	
+**
+**	NameId (Integer)
+**
+**		Id that maps to the gear name (stored in CRes.dll)	
+**
+**	DescriptionId (Integer)
+**
+**		Id that maps to the gear description (stored in CRes.dll)	
+**
+**	Model (String)
+**
+**		Name of the model associated with the gear type.
+**
+**	Skin0-N (String)
+**
+**		Name of the skin file dtx(s) associated with the gear type model.
+**      There can be any number of skins: Skin0, Skin1, ..., SkinN
+**
+**  RenderStyle0-N (String)
+**
+**		Name of the render style file ltb(s).
+**      There can be any number of render styles: RenderStyle0, RenderStyle1, ..., RenderStyleN
+**
+**	Icon (String)
+**
+**		Name of the interface icon associated with the gear.
+**
+**	ProtectionType (Integer)
+**
+**		Specifies the type of damage this type of gear protects against.
+**		(See valid DamageTypes above).
+**
+**	Protection (Float)
+**
+**		Specifies the percent of damage this type of gear prevents.
+**			0.0 = no protection, 1.0 = full protection
+**
+**	Armor (Float)
+**
+**		Specifies the amount of armor this type of gear provides.
+**
+**	Stealth (Float)
+**
+**		Specifies the how much the gear reduces the volume of walking sounds
+**			0.0 = no reduction, 1.0 = completely eliminated
+**
+**  Selectable (Integer)
+**		
+**		Specifies if this type of gear is ever available during mission 
+**		outfitting. 1 = may be available, 0 = never available
+**
+**  Exclusive (Integer)
+**		
+**		Specifies if only one unit of this gear may be picked up. 
+**		 1 = only one may be picked up, 0 = multiples may be picked up
+**
+**	TintColor (Vector)
+**
+**		Color to tint the screen when gear is picked up (r, g, b)
+**
+**	TintTime (Float)
+**
+**		Duration in seconds of screen tint when gear is picked up
+**
+**	PickUpSound (String)
+**
+**		Name of the sound that is played when the mod is picked up
+**
+**	RespawnSound (String)
+**
+**		Name of the sound that is played when the mod respawns 
+**		(multiplayer)
+**
+**	InterfaceSkin0-N (String)
+**
+**		Name of the skin file dtx(s) associated with the gear type interface model.
+**      There can be any number of skins: InterfaceSkin0, InterfaceSkin1, ..., InterfaceSkinN
+**
+**  InterfaceRenderStyle0-N (String)
+**
+**		Name of the render style file ltb(s).
+**      There can be any number of render styles: InterfaceRenderStyle0, InterfaceRenderStyle1, ..., InterfaceRenderStyleN
+**
+**
+**	CanServerRestrict (Integer) (OPTIONAL)
+**
+**		If set to 0 to not allow server options to restrict this item from the level.  Default: 1.
+**
+*/
+
+/*
+** Body Armor
+*/
+
+[Gear0]
+Name			= "Body Armor"
+
+[Gear1]
+Name			= "Body Armor Small"
+
+[Gear2]
+Name			= "First Aid"
+
+[Gear3]
+Name			= "First Aid Small"
+
+[Gear4]
+Name			= "Body Armor Found"
+
+[Gear5]
+Name			= "First Aid Found"
+
+
+/************************************************************************
+**
+** WEAPONANIS
+**
+** WeaponAnis definitions specify the names of weapon animations associated
+** with a particular ammo type (see AMMO above).
+**
+** All WeaponAnis definitions should contain the following properties:
+**
+**	Name (String)
+**
+**		User friendly name of a WEAPONANIS definition in weapons.txt.		
+**
+**	Select (String)
+**
+**		Name of the select ani override (NOTE: Leave blank to use ani
+**		specified in weapon).
+**
+**	Deselect (String)
+**
+**		Name of the deselect ani override (NOTE: Leave blank to use ani
+**		specified in weapon).
+**
+**	Reload (String)
+**
+**		Name of the reload ani override (NOTE: Leave blank to use ani
+**		specified in weapon).
+**
+**	Idle0-2 (String)
+**
+**		Name of the idle ani(s) override(s).  Up to 3 idle overrides may
+**		be specified (i.e., Idle0, Idle1, and Idle2). (NOTE: Leave blank to 
+**		use anis specified in weapon).
+**
+**	Fire0-2 (String)
+**
+**		Name of the fire ani(s) override(s).  Up to 3 fire overrides may
+**		be specified (i.e., Fire0, Fire1, and Fire2). (NOTE: Leave blank to 
+**		use anis specified in weapon).
+**
+*/
+
+/*
+** WeaponAnis0
+*/

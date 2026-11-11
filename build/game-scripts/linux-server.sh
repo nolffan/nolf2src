@@ -82,7 +82,7 @@ if ! grep -q '^EXT .*	binkw32\.dll$' MANIFEST.txt 2>/dev/null; then
             "$WINE" reg add "$@" /reg:64 /f >/dev/null 2>&1 || true; }
     reg "$KEY" /v InstallDir         /t REG_SZ    /d "$DIR"
     reg "$KEY" /v UpdateNum          /t REG_DWORD /d 2
-    reg "$KEY" /v UpdateCommandLine1 /t REG_SZ    /d '-rez Update_v1x3.rez -rez custom'
+    reg "$KEY" /v UpdateCommandLine1 /t REG_SZ    /d '-rez nolf2src.rez -rez custom'
 fi
 
 if [ -n "$HEADLESS" ]; then

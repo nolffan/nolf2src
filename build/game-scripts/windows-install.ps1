@@ -256,7 +256,7 @@ if (-not (Test-Complete)) {
         }
     }
     Write-Host '  (a disc as an .iso, or redump''s .bin/.cue or .zip of it)'
-    Fail 'drop both disc images and nolf2-update_1x3.exe on windows-install.bat, or put them in this folder'
+    Fail 'drop both disc images on windows-install.bat, or put them in this folder'
 }
 
 # Raw deflate data, inflated: $pre (a stored block holding a dictionary,
@@ -478,9 +478,9 @@ if (-not (Test-Path -LiteralPath $save)) { New-Item -ItemType Directory -Path $s
 # line from the rest:
 #   * InstallDir: this folder (the launcher changes to it).
 #   * UpdateNum, UpdateCommandLine1: the archives it adds after its own: the
-#     1.3 update's, as its installer wrote -- and, after it, custom\ again,
-#     the game DLLs built from source, so that the update's (zeroed) retail
-#     DLLs cannot override them (nolf2cmds.txt has the same order).
+#     1.3 update's data, nolf2src.rez (where its installer put its archive)
+#     -- and, after it, custom\ again, the game DLLs built from source
+#     (nolf2cmds.txt has the same order).
 #   * Disable Movies: on, with RAD's binkw32.dll (as linux-run.sh has it).
 # Where: NOLF2.exe is a 32-bit program, so it reads HKLM\SOFTWARE through
 # the 32-bit view (SOFTWARE\WOW6432Node on 64-bit Windows). Writing HKLM
@@ -505,7 +505,7 @@ if (-not $modern) {
             $k.SetValue('InstallDir', $here, [Microsoft.Win32.RegistryValueKind]::String)
             $k.SetValue('NetRegionCode', 'EN', [Microsoft.Win32.RegistryValueKind]::String)
             $k.SetValue('UpdateNum', 2, [Microsoft.Win32.RegistryValueKind]::DWord)
-            $k.SetValue('UpdateCommandLine1', '-rez Update_v1x3.rez -rez custom', [Microsoft.Win32.RegistryValueKind]::String)
+            $k.SetValue('UpdateCommandLine1', '-rez nolf2src.rez -rez custom', [Microsoft.Win32.RegistryValueKind]::String)
             $k.SetValue('Disable Movies', 1, [Microsoft.Win32.RegistryValueKind]::DWord)
         } finally {
             $k.Close()

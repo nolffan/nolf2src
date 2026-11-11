@@ -1629,8 +1629,9 @@ bool CServerDlg::AddResources( )
 	regMgr.Init();
 #ifdef NOLF2SRC_MODERN
 	// MODERN.md M-G50: without the installer's registry key (a copied or
-	// unpacked game) the server still starts: the 1.3 update's archive is
-	// taken from the game directory when it is there, and customrez.txt
+	// unpacked game) the server still starts: the 1.3 update's data
+	// (nolf2src.rez, assets/README.md) is taken from the game directory
+	// when it is there, and customrez.txt
 	// (below) can name any other.
 	// M-G71: the user's key (the modern launcher's and game's)
 	bool bModernRegistry = regMgr.OpenKey( HKEY_CURRENT_USER, "SOFTWARE", "Monolith Productions", (char*)REGPRODUCTNAME,
@@ -1643,9 +1644,9 @@ bool CServerDlg::AddResources( )
 	}
 	// (a key without the update's values: the modern launcher's own, M-L7)
 	if(( !bModernRegistry || !regMgr.GetField( "UpdateNum", &nModernUpdateNum )) &&
-		GetFileAttributes( "Update_v1x3.rez" ) != 0xFFFFFFFF )
+		GetFileAttributes( "nolf2src.rez" ) != 0xFFFFFFFF )
 	{
-		lstRez.AddTail( "Update_v1x3.rez" );
+		lstRez.AddTail( "nolf2src.rez" );
 	}
 #else
 	if( !regMgr.OpenKey( HKEY_LOCAL_MACHINE, "SOFTWARE", "Monolith Productions", (char*)REGPRODUCTNAME,

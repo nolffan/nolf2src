@@ -1024,11 +1024,12 @@ BOOL CLauncherDlg::LaunchGame(DWORD dwAction)
 		}
 	}
 #ifdef NOLF2SRC_MODERN
-	else if(GetFileAttributes("Update_v1x3.rez") != 0xFFFFFFFF)
+	else if(GetFileAttributes("nolf2src.rez") != 0xFFFFFFFF)
 	{
 		// MODERN.md M-L6: no update in the registry (no registry at all):
-		// the 1.3 update's archive, as its installer's UpdateCommandLine1
-		sNewCmdLine += " -rez Update_v1x3.rez";
+		// the 1.3 update's data, where its installer's UpdateCommandLine1
+		// put its archive (nolf2src.rez: assets/README.md)
+		sNewCmdLine += " -rez nolf2src.rez";
 	}
 
 	// MODERN.md M-L6: custom/ -- the game DLLs built from source -- after

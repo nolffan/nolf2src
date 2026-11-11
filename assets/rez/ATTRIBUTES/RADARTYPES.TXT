@@ -1,0 +1,224 @@
+/************************************************************************
+**
+** R A D E R  T Y P E S
+**
+** All RadarTypes definitions should contain the following properties:
+**
+**  Name (String)
+**
+**	The user friendly name of the RadarType (what shows up in DEdit).
+**
+**  Icon (String)
+**
+**	The name of the texture file used to display the item in the radar. 
+**
+**  DrawOrder (Int)
+**
+**	The relative order in which this item should be drawn. Higher numbered items are drawn on top of
+**		lower numbered ones. These numnbers are completely arbitrary.
+**
+*/
+
+/*
+** RadarType0 - Player Alive
+*/
+
+[RadarType0]
+
+Name	= "PlayerAlive"	// Used internally  DON"T change the name!
+Icon	= "interface\hud\radar_player_alive.dtx"
+DrawOrder = 20
+
+
+/*
+** RadarType1 - Player Dead
+*/
+
+[RadarType1]
+
+Name	= "PlayerDead" // Used internally  DON"T change the name!
+Icon	= "interface\hud\radar_player_dead.dtx"
+DrawOrder = 20
+
+
+/*
+** RadarType2 - Objective
+*/
+
+[RadarType2]
+
+Name	= "Objective"
+Icon	= "interface\hud\radar_objective.dtx"
+DrawOrder = 15
+
+
+/*
+** RadarType3 - RallyPoint
+*/
+
+[RadarType3]
+
+Name	= "RallyPoint"
+Icon	= "interface\hud\radar_point.dtx"
+DrawOrder = 15
+
+/*
+** RadarType4 - ExtractionPoint
+*/
+
+[RadarType4]
+
+Name	= "ExtractionPoint"
+Icon	= "interface\hud\radar_point.dtx"
+DrawOrder = 15
+
+/*
+** RadarType5 - Destination
+*/
+
+[RadarType5]
+
+Name	= "Destination"
+Icon	= "interface\hud\radar_point.dtx"
+DrawOrder = 15
+
+/*
+** RadarType6 - AITracking 
+*/
+
+[RadarType6]
+
+Name	= "AITracking"	// Used internally  DON"T change the name!
+Icon	= "interface\hud\radar_tagged.dtx"
+DrawOrder = 10
+
+/*
+** RadarType7 - Snowmobile 
+*/
+
+[RadarType7]
+
+Name	= "Snowmobile"	// Used internally  DON"T change the name!
+Icon	= "interface\hud\icon_smobile.dtx"
+DrawOrder = 5
+
+/*
+** RadarType8 - Player Talk
+*/
+
+[RadarType8]
+
+Name	= "PlayerTalk" // Used internally  DON"T change the name!
+Icon	= "interface\hud\radar_player_talk.dtx"
+DrawOrder = 25
+
+
+/*
+** RadarType9 - DoomsDay piece, transmitter, neutral
+*/
+
+[RadarType9]
+
+Name	= "DD_Trans_N" // Used internally  DON"T change the name!
+Icon	= "interface\hud\doom_trans_n.dtx"
+DrawOrder = 18
+
+
+/*
+** RadarType10 - DoomsDay piece, transmitter, red
+*/
+
+[RadarType10]
+
+Name	= "DD_Trans_R" // Used internally  DON"T change the name!
+Icon	= "interface\hud\doom_trans_r.dtx"
+DrawOrder = 23
+
+
+/*
+** RadarType11 - DoomsDay piece, transmitter, blue
+*/
+
+[RadarType11]
+
+Name	= "DD_Trans_B" // Used internally  DON"T change the name!
+Icon	= "interface\hud\doom_trans_b.dtx"
+DrawOrder = 23
+
+
+/*
+** RadarType12 - DoomsDay piece, batteries, neutral
+*/
+
+[RadarType12]
+
+Name	= "DD_Bat_N" // Used internally  DON"T change the name!
+Icon	= "interface\hud\doom_bat_n.dtx"
+DrawOrder = 18
+
+
+/*
+** RadarType13 - DoomsDay piece, batteries, red
+*/
+
+[RadarType13]
+
+Name	= "DD_Bat_R" // Used internally  DON"T change the name!
+Icon	= "interface\hud\doom_bat_r.dtx"
+DrawOrder = 23
+
+
+/*
+** RadarType14 - DoomsDay piece, batteries, blue
+*/
+
+[RadarType14]
+
+Name	= "DD_Bat_B" // Used internally  DON"T change the name!
+Icon	= "interface\hud\doom_bat_b.dtx"
+DrawOrder = 23
+
+
+/*
+** RadarType15 - DoomsDay piece, core, neutral
+*/
+
+[RadarType15]
+
+Name	= "DD_Core_N" // Used internally  DON"T change the name!
+Icon	= "interface\hud\doom_core_n.dtx"
+DrawOrder = 18
+
+
+/*
+** RadarType16 - DoomsDay piece, core, red
+*/
+
+[RadarType16]
+
+Name	= "DD_Core_R" // Used internally  DON"T change the name!
+Icon	= "interface\hud\doom_core_r.dtx"
+DrawOrder = 23
+
+/*
+** RadarType17 - DoomsDay piece, core, blue
+*/
+
+[RadarType17]
+
+Name	= "DD_Core_B" // Used internally  DON"T change the name!
+Icon	= "interface\hud\doom_core_b.dtx"
+DrawOrder = 23
+
+/*
+** RadarType18 - PlayerTracking 
+*/
+
+[RadarType18]
+
+Name	= "PlayerTracking"	// Used internally  DON"T change the name!
+Icon	= "interface\hud\radar_tagged.dtx"
+DrawOrder = 20
+
+
+

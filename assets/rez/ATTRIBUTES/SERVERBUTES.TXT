@@ -1,0 +1,413 @@
+/************************************************************************
+**
+**		No One Lives Forever Server Attributes file
+**
+** This file contains attributes for the following:
+**
+**  Player,
+**  SecurityCamera
+**
+**
+** NOTES:  
+**
+**  1) All time is specified in seconds (unless otherwise noted)
+**  2) The Float type is the same as Real (i.e., 1.0 or 1.5)
+**  3) The valid range of all RGB color properties is between
+**     0 and 255 (e.g., (0, 255, 0) would be green).
+*/
+
+/************************************************************************
+**
+** P L A Y E R  Attributes
+**
+**	DefaultModel (String)
+**
+**		The name of the default player model	
+**
+**	DefaultSkin (String)
+**
+**		The name of the default player skin.
+**
+**	DefaultSkin2 (String)
+**
+**		The name of the default player's head skin.
+**
+**	DefaultWeapon (String)
+**
+**		The name of the player's default weapon.  NOTE: the player
+**		will ALWAYS have access to this weapon.
+**
+**	WalkSpeed (Integer)
+**
+**		The maximum velocity the player walks at
+**
+**	RunSpeed (Integer)
+**
+**		The maximum velocity the player runs at
+**
+**	JumpSpeed (Integer)
+**
+**		The velocity given to the player when he jumps		
+**
+**	SuperJumpSpeed (Float)
+**
+**		The velocity given to the player when he performs a super-jump
+**		(some items may give the player a velocity somewhere between
+**		the JumpSpeed and SuperJumpSpeed)
+**
+**	LadderSpeed (Integer)
+**
+**		The maximum velocity when the player is climbing a ladder		
+**
+**	SwimSpeed (Integer)
+**
+**		The maximum velocity when the player is swimming		
+**
+**	ZipCordSpeed (Integer)
+**
+**		The velocity given to the player when he is zipcording		
+**
+**	SnowmobileModel (String)
+**
+**		The name of the snowmobile model seen in multiplayer	
+**
+**	SnowmobileSkin (String)
+**
+**		The name of the snowmobile skin.
+**
+**	SnowmobileSkin2 (String) (OPTIONAL)
+**
+**		The name of an optional second snowmobile skin.
+**
+**	SnowmobileSkin3 (String) (OPTIONAL)
+**
+**		The name of an optional third snowmobile skin.
+**
+**	SnowmobileRS (String) (OPTIONAL)
+**
+**		The name of an optional snowmobile render style.
+**
+**	SnowmobileRS2 (String) (OPTIONAL)
+**
+**		The name of an optional second snowmobile render style.
+**
+**	SnowmobileRS3 (String) (OPTIONAL)
+**
+**		The name of an optional third snowmobile render style.
+**
+**	SnowmobileTranslucent (0|1)
+**
+**		Determines whether or not the snowmobile should be translucent.
+**
+**	WalkFootstepVolume (Float)
+**
+**		The volume of the walking footstep sounds
+**
+**	RunFootstepVolume (Float)
+**
+**		The volume of the running footstep sounds
+**
+**	CrouchFootstepVolume (Float)
+**
+**		The volume of the crouch footstep sounds
+**
+**	SnowmobileVolume (Float)
+**
+**		The volume of the Snowmobile when the player is riding it
+**
+**	CoopReviveHealthPercent (Float)
+**
+**		The percentage of max health a player will have when they get revived.
+**
+**	CoopReviveArmorPercent (Float)
+**
+**		The percentage of max armor a player will have when they get revived.
+**
+**	AIDamageAdjustEasy (Float)
+**
+**		The percentage of damage (0 - 1.0) the AI inflicts on the player in EASY mode
+**
+**	AIDamageAdjustNormal (Float)
+**
+**		The percentage of damage (0 - 1.0) the AI inflicts on the player in NORMAL mode
+**
+**	AIDamageAdjustHard (Float)
+**
+**		The percentage of damage (0 - 1.0) the AI inflicts on the player in HARD mode
+**
+**	AIDamageAdjustVeryHard (Float)
+**
+**		The percentage of damage (0 - 1.0) the AI inflicts on the player in VERY HARD mode
+**
+**	AIDamageIncreasePerPlayer (Float)
+**
+**		After the above difficulty damage adjustment occurs, the AIDamageIncreasePerPlayer
+**		value is added to the difficult damage adjustment for every player in the game.  
+**
+**		For example, if the AI were to inflict an unadjusted 100 points of damage on a 
+**		player in a cooperative game with 4 players with the difficulty set to easy, the
+**		adjusted damage would be:  100 * (AIDamageAdjustEasy + AIDamageIncreasePerPlayer*3).
+**		So if AIDamageAdjustEasy = 0.15 and AIDamageIncreasePerPlayer = 0.2, the adjusted
+**		damage would be: 100 * (0.15 + 0.2*3) = 100 * 0.75 = 75 points of damage.
+**
+**		Note: This only applies to cooperative multiplayer games with more than one
+**		player (the reason why 'number of players - 1' is used in the calculation)
+**
+**	PlayerDamageDecreasePerPlayer (Float)
+**
+**		This value is the used to adjust the amount of damage done to AI when there is
+**		more than one player in the game (cooperative games only).  The calculation is
+**		very similar to the above AIDamageIncreasePerPlayer calculation, without the use
+**		of the difficulty level.  
+**
+**		For example, if the Player were to inflict an unadjusted 100 points of damage on
+**		an AI with 4 players in the game, the adjusted damage would be: 
+**		100 * (1 - PlayerDamageDecreasePerPlayer*3).  So if PlayerDamageDecreasePerPlayer = 0.2,
+**		the adjusted damage would be: 100 * (1 - 0.2*3) = 100 * 0.4 = 40 points of damage.
+**
+**		Note: This only applies to cooperative multiplayer games with more than one
+**		player (the reason why 'number of players - 1' is used in the calculation)
+**
+**	SearchBodyTime (Float)
+**
+**		This is default time (in seconds) needed to search a body.
+**
+**	SearchPropTime (Float)
+**
+**		This is default time (in seconds) needed to search a prop.
+**
+**	AirLossDamage (Float)
+**
+**		This is how much choke damage the player takes per second due
+**		to air loss when under water.
+**
+**	FullAirLostTime (Float)
+**
+**		This is how long in seconds it takes for the player to completely lose all air
+**		when under water (if at 100% air)
+**
+**	FullAirRegenTime (Float)
+**
+**		This is how long in seconds it takes for the player to completely regain all air
+**		when they come out from under water (if they were at 0% air)
+**
+**	ReviveBodyHealth (Float)
+**
+**		The amount of hitpoints to give our revivable body.
+**
+*/
+
+[Player]
+
+DefaultModel					= "Chars\Models\Player_Action.ltb"
+DefaultSkin						= "Chars\Skins\Player_Action.dtx"
+DefaultSkin2					= "Chars\Skins\Player_Action_head.dtx"
+DefaultWeapon					= "Holster"
+WalkSpeed						= 90
+RunSpeed						= 180
+JumpSpeed						= 550
+SuperJumpSpeed					= 550
+LadderSpeed						= 120
+SwimSpeed						= 150
+ZipCordSpeed					= 400
+SnowmobileModel					= "Props\Models\Snowmobile.ltb"
+SnowmobileSkin					= "Props\Skins\Snowmobile.dtx"
+SnowmobileSkin2					= "guns\skins_pv\windshield.dtx"
+SnowmobileSkin3					= "TexFX\RenderStyles\clouds2.dtx"
+SnowmobileRS					= "rs\envmap.ltb"
+SnowmobileRS2					= "rs\furshell.ltb"
+SnowmobileRS3					= ""
+SnowmobileTranslucent				= 1
+WalkFootstepVolume				= 0.0
+RunFootstepVolume				= 1.0
+CrouchFootstepVolume			= 0.0
+SnowmobileVolume				= 7.0
+CoopReviveHealthPercent			= 0.25
+CoopReviveArmorPercent			= 0.0
+DoomReviveHealthPercent			= 0.5
+DoomReviveArmorPercent			= 0.0
+ReviveBodyHealth				= 100.0
+AIDamageAdjustEasy				= 0.08
+AIDamageAdjustNormal			= 0.25
+AIDamageAdjustHard				= 0.5
+AIDamageAdjustVeryHard			= 1.0
+AIDamageIncreasePerPlayer		= 0.2
+PlayerDamageDecreasePerPlayer	= 0.2
+SearchBodyTime					= 3.0
+SearchPropTime					= 3.0
+AirLossDamage					= 5.0
+FullAirLostTime					= 25.0
+FullAirRegenTime				= 2.5
+
+
+/************************************************************************
+**
+** S E C U R I T Y  C A M E R A  Attributes
+**
+**	GreenLight (String)
+**
+**		The name of the green light sprite	
+**
+**	YellowLight (String)
+**
+**		The name of the yellow light sprite	
+**
+**	RedLight (String)
+**
+**		The name of the red light sprite
+**
+**	BlueLight (String)
+**
+**		The name of the blue light sprite
+**
+**	LightScale (Float)
+**
+**		The scale of the light sprite.
+**
+**	LightTimer (Float)
+**
+**		How long between each red light flash (when focusing the
+**		camera).
+**
+**	EashFocusTime (Float)
+**
+**		The time the camera takes to focus when playing on the
+**		easy difficulty level.
+**
+**	NormalFocusTime (Float)
+**
+**		The time the camera takes to focus when playing on the
+**		normal difficulty level.
+**
+**	HardFocusTime (Float)
+**
+**		The time the camera takes to focus when playing on the
+**		hard difficulty level.
+**
+**	VeryHardFocusTime (Float)
+**
+**		The time the camera takes to focus when playing on the
+**		hardest difficulty level.
+**
+**	CamDisablerFilename (String)
+**
+**		The name of the model attached to the camera when disabled.
+**
+**	CamDisablerSkin (String)
+**
+**		The name of the skin for the Camera Disabler model.
+**
+**	CamDisablerSound (String)
+**
+**		The name of the sound played when the camera disabler is placed on the camera.
+**
+**	SoundRadius (Float)
+**
+**		The radius of the sound played.
+**
+*/
+
+[SecurityCamera]
+
+GreenLight			= "FX\Test\Flares\CamGreen.spr"
+YellowLight			= "FX\Test\Flares\CamYellow.spr"
+RedLight			= "FX\Test\Flares\CamRed.spr"
+BlueLight			= "FX\Test\Flares\CamBlue.spr"
+LightScale			= 0.075
+LightTimer			= 0.25
+EasyFocusTime		= 3.0
+NormalFocusTime		= 2.0
+HardFocusTime		= 1.5
+VeryHardFocusTime	= 1.0
+CamDisablerFilename = "Guns\projectiles\models\Disabler.ltb"
+CamDisablerSkin		= "Guns\projectiles\skins\Disabler.dtx"
+CamDisablerSound	= "props\snd\securitycamera\Disabled.wav"
+SoundRadius			= 900.00
+
+
+/************************************************************************
+**
+** W O N  Attributes
+**
+**	List of WON servers to use
+**
+*/
+[WON]
+ServerAddr0 = "wontest.west.won.net"
+ServerPort0 = (DWORD)15101
+ServerAddr1 = "wontest.east.won.net"
+ServerPort1 = (DWORD)15101
+ServerAddr2 = "wontest.central.won.net"
+ServerPort2 = (DWORD)15101
+
+/************************************************************************
+**
+** Body Attributes
+**
+*/
+
+[Body]
+StairsFallSpeed = 600.0
+StairsFallStopSpeed = 200.0
+
+/************************************************************************
+**
+** AmmoBox Attributes
+**
+*/
+
+[AmmoBox]
+PowerupFX				= ""
+RespawnWaitVisible		= 1
+RespawnWaitFX			= ""
+RespawnWaitSkin0		= "FX\PowerupPU.dtx"
+RespawnWaitRenderStyle0	= "RS\PowerupPU.ltb"
+RespawnWaitTranslucent	= 1
+
+
+/************************************************************************
+**
+** Miscellaneous Attributes
+**
+**	SummaryDelay (FLOAT)
+**		- number of seconds to pause on the summary screen following the
+**			completion of a cooperative assault map
+**
+*/
+[Misc]
+SummaryDelay = 10.0f
+
+/************************************************************************
+**
+** DoomsDayDevice Attributes
+**
+**	DamageDelay (FLOAT)
+**		- Time between starting the effect and damaging the victims.
+**
+**	DamageInterval (FLOAT)
+**		- Time between checking for all victims to die. 
+**
+**	EndTime (FLOAT)
+**		- Time to wait after all victims have died before ending round.
+**
+**	FXName (STRING)
+**		- FX to play for DoomsDay Device effect.
+**
+**	DamageType (STRING)
+**		- Damage type to use when damaging victim teams.
+**
+**	DamageAmount (FLOAT)
+**		- Amount of damage to give to victim.
+**
+**	RespawnTime (FLOAT)
+*		- Time, in seconds, it takes to respawn a dropped DoomsDayPiece.
+**
+*/
+[DoomsDayDevice]
+DamageDelay = 9				
+DamageInterval = 1.0
+EndTime = 5.0
+FXName = "DoomsdayFX1"
+DamageType = "DoomsdayBurn"
+DamageAmount = 2.0
+RespawnTime = 60.0

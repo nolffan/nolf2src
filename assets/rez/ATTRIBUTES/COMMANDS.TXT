@@ -1,0 +1,277 @@
+/************************************************************************
+**
+** C O M M A N D S
+**
+**	NOTES:
+**		If you wish to use a variable in a command in DEdit you MUST
+**		declare the variable as either a global or level specific in
+**		this file first.
+**
+**		There is a max number of 255 variables per level.
+**				
+** GLOBALS
+**
+** 	This provides a place to declare global commands.  These commands are 
+** 	executed ONCE on a new game when the player enters the first level
+** 	of the first mission.  Currently only variable declarations are valid
+** 	global commands.  Global variables will be accessible in any level 
+**	and their value will get saved across all levels.
+**
+**	Cmd0-N (String)
+**
+**		The command you wish to process.
+**
+**		Valid global commands:
+**
+**			INT - declares an Integer variable and sets its value.
+**
+** LEVELS
+**
+**	This provides a place to declare level specific commands.  These commands are
+**	executed every time you enter the level.  Every command is valid as a level
+**	specific command.
+**
+**	Cmd0-N (String)
+**
+**		The command you wish to process on level load.
+**
+*************************************************************************/
+
+[globals]
+
+cmd0 = "int explosives 0"
+cmd1 = "int lg9Var 1"  //laundry shoot bottom lightgroup c04s04
+cmd2 = "int lg04Var 0"  //laundry shoot top lightgroup c04s05
+cmd3 = "int ls_rdVar 1" //laundry shoot hatch c04s04
+cmd4 = "int cameraVar01 0" //c04s04 SecrtyCam20x23x2500
+cmd5 = "int cameraVar02 0" //not used
+cmd6 = "int cameraVar03 0" //not used
+cmd7 = "int cameraVar04 0" //c04s03 SecrtyCam20x23x2504
+cmd8 = "int cameraVar05 0" //c04s03 SecrtyCam20x23x2503
+cmd9 = "int cameraVar06 0" //c04s03 SecrtyCam20x23x2501
+cmd10 = "int cameraVar07 0" // not used
+cmd11 = "int cameraVar08 0" // not used
+cmd12 = "int explosives2 0" //Explosives for (old)c02S02/3/4
+cmd13 = "int HavetubeVAr 0" //vacuum tube in c04s04 for c04s05
+cmd14 = "int SugarTank 0" //sugar in generator for (old)c02s06
+cmd15 = "int obj_5032VAR 0" //var for objective that could be added in c03s01, c03s02 or c03s03
+cmd16 = "int BombSiberia 0" //PostBomb variable for CP_c02s01/2/3 campaign
+cmd17 = "int JpnCateSpotted 0" //for dialogue in c02s01
+cmd18 = "int E01 0" //variable for Event1 in C03s04
+cmd19 = "int E02 0" //variable for Event2 in C03s04
+cmd20 = "int E03 0" //variable for Event3 in C03s04
+cmd21 = "int firstbomb 0" //Optional bomb plants in C05S02-C05S03
+cmd22 = "int secondbomb 0" //Optional bomb plants in C05S02-C05S03
+cmd23 = "int thirdbomb 0" //Optional bomb plants in C05S02-C05S03
+cmd24 = "int towerblown 0" //Tower Exploded in C03S03
+cmd25 = "int gotcate 0"
+cmd26 = "int havesugarVar 0"
+cmd27 = "int c04s02safecombo 0"
+cmd28 = "int c4_PCasualties 0"
+cmd29 = "int rp_Bridge 0" //radar point for c03s04
+cmd30 = "int rp_Tower 0"  //radar point for c03s04
+cmd31 = "int rp_PowerStation 0"  //radar point for c03s04
+cmd32 = "int gate01 0" //for c05s01 gates
+cmd33 = "int gate02 0"
+cmd34 = "int searchlightVar1 0" //For c04s03 and c05s02
+cmd35 = "int searchlightvar2 0" //For c04s03 and c05s02
+cmd36 = "int jpalarm 0"  //for a transmission to give a hint to the player to run and hide the first time an alarm has been sounded
+cmd37 = "int chap4_tb1 0" //timebomb in motorpool c04s01
+cmd38 = "int chap4_tb2 0" //timebomb in present c04s01
+cmd39 = "int chap4_tb3 0" //timebomb in c04s03
+
+//
+// SinglePlayer Levels...
+//
+
+[c01s01]
+cmd0 = "WHEN (jpalarm == 1) THEN ((msg player (transmission 7065)) (set jpalarm 2))"
+
+[c01s02]
+cmd0 = "int mailboxes 0"
+cmd1 = "when (mailboxes == 10) then (msg signal trigger)"
+cmd2 = "WHEN (jpalarm == 1) THEN ((msg player (transmission 7065)) (set jpalarm 2))"
+
+[c03s01]
+cmd0 = "WHEN (obj_5032VAR == 4) THEN (msg obj-5032 trigger)"
+cmd1 = "int haveSMkeys 0"
+cmd2 = "int haveSMgas 0"
+cmd3 = "int room1Var 0"
+cmd4 = "int room2Var 0"
+cmd5 = "int room3Var 1"
+cmd6 = "int room4var 1"
+cmd7 = "msg AirPlane_720x256x102401.group (hidden 1)"
+cmd8 = "WHEN ((havesmkeys == 1) and (havesmgas == 1)) THEN (msg snow1 unlock)"
+
+[c03s02]
+cmd0 = "WHEN (obj_5032VAR == 4) THEN (msg obj-5032 trigger)"
+cmd1 = "int returnai 0"
+
+[c03s03]
+cmd0 = "WHEN (obj_5032VAR == 4) THEN (msg obj-5032 trigger)"
+cmd1 = "msg PissOutside0100.pissnode disable"
+
+[c03s04]
+cmd0 = "IF (obj_5032VAR == 4) THEN (msg goto_cabin trigger)"
+cmd1 = "IF (towerblown == 1) THEN (msg C03S03TowerCollapse trigger)" //Player Destroyed C03S03 tower
+cmd2 = "IF (rp_bridge == 1) THEN (msg Radar-Bridge off)"  //turn off radar point for c03s01 bridge
+cmd3 = "IF (rp_tower == 2) THEN (msg Radar-Tower off)"  //turn off radar point for c03s03 tower
+cmd4 = "IF (rp_PowerStation == 1) THEN (msg Radar-PowerStation off)"  //turn off radar point for c03s02 power station
+
+[c04s01]
+cmd0 = "msg PissOutside0100.pissnode disable"
+cmd1 = "msg PissOutside100.pissnode disable"
+cmd2 = "msg Explosive02 (hidden 1)"
+
+[c04s02]
+cmd0 = "IF (havesugarVar == 1) THEN (msg SIB_gen200.lidwm unlock)"
+cmd1 = "IF (c04s02safecombo == 1) THEN (msg GtSafe_72x44x4200.safedoor unlock)"
+
+[c04s03]
+cmd0 = "IF (sugartank == 1) THEN (msg gateco on)"
+cmd1 = "msg PissOutside0100.pissnode disable"
+cmd2 = "msg PissOutside100.pissnode disable"
+
+[c04s04]
+cmd0 = "IF (lg04Var == 1) THEN (msg LightCeilingHat_BasketOff_t20x48x2009.co_on on)"
+cmd1 = "IF (lg04Var == 0) THEN (msg LightCeilingHat_BasketOff_t20x48x2009.co_off on)"
+cmd2 = "IF (ls_rdVar == 1) THEN (msg LaundryChute01_130x372x11000.ls_dr on)"
+cmd3 = "IF (ls_rdVar == 0) THEN (msg LaundryChute01_130x372x11000.ls_dr off)"
+cmd4 = "IF (lg9Var == 1) THEN ((msg LightCeilingHatBasket_ON_48x88x4822.co_on on) (msg LightCeilingHatBasket_ON_48x88x4823.co_on off))"
+cmd5 = "IF (lg9Var == 0) THEN ((msg LightCeilingHatBasket_ON_48x88x4822.co_off on) (msg LightCeilingHatBasket_ON_48x88x4823.co_off off))"
+
+[c04s05]
+cmd0 = "IF (lg04Var == 1) THEN (msg LightCeilingHat_BasketOff_t20x48x2009.co_on on)"
+cmd1 = "IF (lg04Var == 0) THEN (msg LightCeilingHat_BasketOff_t20x48x2009.co_off on)"
+cmd2 = "IF (ls_rdVar == 1) THEN (msg LaundryChute01_130x372x11000.ls_dr on)"
+cmd3 = "IF (ls_rdVar == 0) THEN (msg LaundryChute01_130x372x11000.ls_dr off)"
+cmd4 = "IF (lg9Var == 1) THEN ((msg LightCeilingHat_Basket_20x48x2081.co_on on) (msg LightCeilingHat_Basket_20x48x2082.co_on on))"
+cmd5 = "IF (lg9Var == 0) THEN ((msg LightCeilingHat_Basket_20x48x2081.co_off on) (msg LightCeilingHat_Basket_20x48x2082.co_off on))"
+cmd6 = "int HaveM9TapeNum 0"
+cmd7 = "int HaveECPassword 0"
+cmd8 = "WHEN (HaveTubeVar == 1) THEN (msg ComputerDesk01c_63x78x13200.install_tube unlock)"
+cmd9 = "int TubeInstalled 0"
+cmd10 = "int M9_Var 2"
+cmd11 = "WHEN (haveecpassword == 1) THEN (msg elevatorcomputer_switch unlock)"
+
+[c05s01]
+cmd0 = "IF (lg04Var == 1) THEN (msg temp temp)"
+cmd1 = "IF (lg04Var == 0) THEN (msg temp temp)"
+cmd2 = "IF (ls_rdVar == 1) THEN (msg ls_rd on)"
+cmd3 = "IF (ls_rdVar == 0) THEN (msg ls_rd off)"
+cmd4 = "IF (lg9Var == 1) THEN (msg lg9 on)"
+cmd5 = "IF (lg9Var == 0) THEN (msg lg9 off)"
+cmd6 = "IF (gate01 == 1) THEN ((msg (cr01 cr02) canactivate))" //for card reader gates
+cmd7 = "IF (gate02 == 1) THEN ((msg (cr03 cr04) canactivate))"
+cmd8 = "delay .5 (msg obj-01-setup trigger)" //add objective
+cmd9 = "IF (cameraVar01 == 1) THEN ((msg relay.SecrtyCam20x23x2500 lock) (msg SecrtyCam20x23x2500.Scam destroy))"
+
+[c05s02]
+cmd0 = "IF (thirdbomb == 1) THEN (msg BombWasSet unlock)"
+cmd1 = "IF (cameraVar04 == 1) THEN ((msg relay.SecrtyCam20x23x2505 lock) (msg SecrtyCam20x23x2505.Scam destroy))"
+cmd2 = "IF (cameraVar05 == 1) THEN ((msg relay.SecrtyCam20x23x2504 lock) (msg SecrtyCam20x23x2504.Scam destroy))"
+cmd3 = "IF (cameraVar06 == 1) THEN ((msg relay.SecrtyCam20x23x2501 lock) (msg SecrtyCam20x23x2501.Scam destroy))"
+cmd4 = "IF (SearchlightVar1 == 1) THEN (msg sl1 destroy)"
+cmd5 = "IF (SearchlightVar2 == 1) THEN (msg sl2 destroy)"
+cmd6 = "IF (chap4_tb3 == 1) THEN (msg timebomb1 remove)"
+cmd7 = "IF (thirdbomb == 0) THEN (delay .5 (msg obj5038_add trigger))"
+cmd8 = "IF (thirdbomb == 1) THEN (delay .5 (msg obj5038_complete trigger))"
+
+[c05s03]
+cmd0 = "IF (secondbomb == 1) THEN (msg BombWasSet2 unlock)"
+cmd1 = "IF (firstbomb == 1) THEN (msg BombWasSet3 unlock)"
+cmd2 = "msg Truck_164x492x15201.engine-on trigger"
+cmd3 = "IF (chap4_tb1 == 1) THEN (msg timebomb1 remove)"
+cmd4 = "IF (chap4_tb2 == 1) THEN (msg timebomb2 remove)"
+cmd5 = "IF (chap4_tb2 == 0) THEN (msg Explosive02 (hidden 1))"
+cmd6 = "IF (chap4_tb2 == 1) THEN (msg Explosive02 (hidden 0))"
+cmd7 = "IF (firstbomb == 0) THEN (delay .5 (msg obj5036_add trigger))"
+cmd8 = "IF (firstbomb == 1) THEN (delay .5 (msg obj5036_comp trigger))"
+cmd9 = "IF (secondbomb == 1) THEN (msg Radar-Explosive02 remove)"
+cmd10 = "IF (chap4_tb2 == 1) THEN (msg Radar-Explosive02 on)"
+cmd11 = "IF ((chap4_tb2 == 1) AND (secondbomb == 0)) THEN (delay .5 (msg obj5037_add trigger))"
+
+[c05s04]
+cmd0 = "IF (E03 == 20) THEN (delay 3 (msg Event03bTrigger trigger))" //Player Did Not Kill BridgeFix Guy and completed Target 2
+cmd1 = "msg Truck_164x492x15204.engine-on trigger"
+cmd2 = "msg Truck_164x492x15203.engine-on trigger"
+
+[c07s01]
+cmd0 = "int password 0"
+cmd1 = "int haverupees 0"
+cmd2 = "int bugplanted 0"
+
+[c07s03]
+cmd0 = "msg OBJ_5086 trigger"
+cmd1 = "msg HiddenPosterTrigger trigger"
+
+[c08s02]
+cmd0 = "msg Phone_Booth00.doorA unlock"
+cmd1 = "msg Phone_Booth00.doorB unlock" 
+
+[c08s03]
+cmd0 = "msg crush_vol off"
+cmd1 = "msg CageWM (solid 0)"
+
+[c08s04]
+cmd0 = "delay 1 (msg maingate1 on)"
+cmd1 = "delay 1 (msg maingate2 on)"
+
+[c10s01]
+cmd0 = "int bucketemptyVar 1"
+cmd1 = "int havebucketVar 0"
+
+[c11s01]
+cmd0 = "delay 1 (msg G-UnSecurity_Doors OFF)"
+cmd1 = "msg (G-Researchers Researcher04 Researcher07) (alignment GoodCharacter)"
+cmd2 = "int mimedeath 0"
+cmd3 = "WHEN (mimedeath == 18) THEN (msg obj5142completed trigger)"
+
+[c12s04]
+cmd0 = "msg DoorVA_80x136x6400.D UNLOCK"
+cmd1 = "msg DoorVAb_80x136x6400.D UNLOCK"
+cmd2 = "msg VoiceLock0100.switch unlock"
+cmd3 = "msg VoiceLock0101.switch unlock"
+cmd4 = "msg VoiceLock0102.switch unlock"
+cmd5 = "msg VoiceLock0103.switch unlock"
+
+[c13s03]
+cmd0 = "msg UtilityCabinet_49x144x8800.cabdoor2 Lock"
+cmd1 = "msg Door05c_64x136x12800.D1 lock"
+cmd2 = "msg Door05c_64x136x12800.D2 lock"
+
+[c14s02]
+cmd0 = "msg AIVolume117 disable"
+
+[c14s03]
+cmd0 = "msg AlarmPost02_64x180x4602.usenode disable"
+
+///
+///  Co-Op
+///
+
+[CP_c01s01]
+cmd0 = "IF (gotcate == 1) THEN (msg gotcatetrigger2 trigger)"
+
+[CP_c01s02]
+cmd0 = "IF (gotcate == 1) THEN (msg gotcatetrigger trigger)"
+
+[CP_c02s01]
+cmd0 = "IF (BombSiberia == 1) THEN ((msg cleanup1 on) (msg cleanup2 on))"
+cmd1 = "int sm_counter 0"
+cmd2 = "delay 60 (msg sm_trigger_group unlock)"
+
+[CP_c02s02]
+cmd0 = "IF (BombSiberia == 1) THEN ((msg cleanup1 on) (msg cleanup2 on))"
+
+[CP_c02s03]
+cmd0 = "WHEN (BombSiberia == 1) THEN (msg escape1 on)"
+cmd1 = "delay 1 (msg G-removeNormalPallets Trigger)"
+cmd2 = "delay 1 (msg LaundryChute01_130x372x11000.ls_dr off)"
+cmd3 = "delay 1 (msg G-removeNormalPallets trigger)"
+
+[CP_c04s01]
+cmd0 = "msg obj5516add trigger"
+cmd1 = "msg (drop3at drop1at drop2at drop4at) (hidden 1)"
+cmd2 = "int Heli1_if 0"
+cmd3 = "int heli2_if 0"

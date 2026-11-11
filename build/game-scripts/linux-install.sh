@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # linux-install.sh -- install the game data from your NOLF2 discs.
 #
-#   ./linux-install.sh <disc image> <disc image> <update>
+#   ./linux-install.sh <disc image> <disc image>
 #   ./linux-install.sh                 (finds them in this directory or the
 #                                       one above it)
 #
@@ -12,8 +12,9 @@
 #   .bin   redump's raw image (2352-byte sectors), or its .cue
 #   .zip   redump's download as archive.org serves it (the .cue and .bin)
 #
-# and <update> is Sierra's English 1.3 update, nolf2-update_1x3.exe, as it
-# was published. First the script checks that this directory is the release
+# (The data of Sierra's free English 1.3 update comes with the release:
+# nolf2src.rez and the shipped settings, assets/README.md.) First the
+# script checks that this directory is the release
 # unpacked, and nothing else: every file SHA256SUMS lists is here and
 # unchanged, and no file is here that the release does not have, nor one the
 # game writes as it runs (check_dir; it refuses a release copied over
@@ -24,14 +25,13 @@
 # DLLs inside them zeroed: the game DLLs here are built from source), the
 # movies, the shipped settings, and Bink and the Microsoft runtime where
 # this build uses them -- and checks every file it writes. Nothing is
-# installed or run from the discs or the update, and nothing else is
-# changed. It can be run again: a file already in place is checked and
-# kept, and saves, profiles, settings, logs and screenshots are left alone.
-# Then play with ./linux-run.sh.
+# installed or run from the discs, and nothing else is changed. It can be
+# run again: a file already in place is checked and kept, and saves,
+# profiles, settings, logs and screenshots are left alone. Then play with
+# ./linux-run.sh.
 #
 # NOLF2's setup stores its files compressed, in InstallShield cabinets that
-# span both discs, and the update packs its own into a Microsoft cabinet:
-# python3 (its zlib) unpacks them, with bash, sha256sum, stat and sed
+# span both discs: python3 (its zlib) unpacks them, with bash, sha256sum, stat and sed
 # (GNU coreutils; a Steam Deck has them all). The list of files, at the end
 # of this script, says for each one which bytes of which image it is made
 # of (tools/mkinstall.py).

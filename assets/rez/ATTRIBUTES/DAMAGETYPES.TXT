@@ -1,0 +1,290 @@
+/************************************************************************
+**
+** DamageTypes
+**
+**	These records define the attributes of the various damage types in the game
+**
+**	JarCamera (integer)
+**		
+**		Does this damage type cause the camera to be "jarred"
+**		(0 = false, 1 = true)
+**
+**	Gadget (integer)
+**		
+**		Is this type a gadget damage type?
+**		(0 = false, 1 = true)
+**
+**	Accuracy (integer)
+**		
+**		Does this damage type count towards player accuracy?
+**		(0 = false, 1 = true)
+**
+**	SlowMovement (float)
+**		
+**		How long (in seconds) does this type of damage slow the player?
+**		This is unrelated to the ForceWalk value
+**		(0.0 for no slow down)
+**
+**	ScoreTag (integer)
+**		
+**		Does this damage type award a tag in multiplayer
+**		(0 = false, 1 = true)
+**
+**	Grief (integer)
+**		
+**		Should a player be protected from multiple instances of this type in multiplayer
+**		(0 = false, 1 = true)
+**
+**	HurtAnim (integer)
+**		
+**		Does this damage type cause the player to play a hurt animation if standing still.
+**		(0 = false (default), 1 = true)
+**
+**	PlayerDamageSound0-N
+**		
+**		Sound file to use for player damage sounds.  Default:  pain01.wav - pain05.wav.
+**
+**
+*/
+
+[Unspecified]
+JarCamera		= 0
+Gadget			= 0
+Accuracy		= 0
+SlowMovement	= 0.0
+
+[Bleeding]
+JarCamera		= 0
+Gadget			= 0
+Accuracy		= 1
+SlowMovement	= 0.0
+
+[Bullet]
+JarCamera		= 1
+Gadget			= 0
+Accuracy		= 1
+SlowMovement	= 0.25
+
+[Burn]
+JarCamera		= 0
+Gadget			= 0
+Accuracy		= 1
+SlowMovement	= 0.0
+HurtAnim		= 1
+PlayerDamageSound0 = "burn.wav"
+
+[Choke]
+JarCamera		= 1
+Gadget			= 0
+Accuracy		= 0
+SlowMovement	= 0.0
+HurtAnim		= 1
+PlayerDamageSound0 = "choke01.wav"
+PlayerDamageSound1 = "choke02.wav"
+
+[Crush]
+JarCamera		= 0
+Gadget			= 0
+Accuracy		= 0
+SlowMovement	= 0.0
+
+[Electrocute]
+JarCamera		= 0
+Gadget			= 0
+Accuracy		= 1
+SlowMovement	= 1.0
+HurtAnim		= 1
+PlayerDamageSound0 = "electrocute.wav"
+
+[Explode]
+JarCamera		= 0
+Gadget			= 0
+Accuracy		= 0
+SlowMovement	= 2.0
+
+[Freeze]
+JarCamera		= 0
+Gadget			= 0
+Accuracy		= 0
+SlowMovement	= 3.0
+
+[Poison]
+JarCamera		= 0
+Gadget			= 0
+Accuracy		= 1
+SlowMovement	= 1.0
+HurtAnim		= 1
+PlayerDamageSound0 = "poison.wav"
+
+[EndlessFall]
+JarCamera		= 0
+Gadget			= 0
+Accuracy		= 0
+ForceWalk		= 0
+SlowMovement	= 0.0
+
+[Sleeping]
+JarCamera		= 0
+Gadget			= 0
+Accuracy		= 0
+ForceWalk		= 0
+SlowMovement	= 0.0
+ScoreTag		= 1
+Grief			= 1
+PlayerDamageSound0 = "sleeping.wav"
+
+[Stun]
+JarCamera		= 0
+Gadget			= 0
+Accuracy		= 0
+ForceWalk		= 0
+SlowMovement	= 2.0
+ScoreTag		= 1
+Grief			= 1
+PlayerDamageSound0 = "stunned01.wav"
+PlayerDamageSound1 = "stunned02.wav"
+
+[Melee]
+JarCamera		= 0
+Gadget			= 0
+Accuracy		= 0
+ForceWalk		= 0
+SlowMovement	= 0.25
+
+[CameraDisabler]
+JarCamera		= 0
+Gadget			= 0
+Accuracy		= 0
+ForceWalk		= 0
+SlowMovement	= 0.0
+
+[Glue]
+JarCamera		= 0
+Gadget			= 0
+Accuracy		= 0
+ForceWalk		= 0
+SlowMovement	= 0.0
+ScoreTag		= 1
+Grief			= 1
+PlayerDamageSound0 = "glue01.wav"
+PlayerDamageSound1 = "glue02.wav"
+
+[BearTrap]
+JarCamera		= 0
+Gadget			= 0
+Accuracy		= 0
+ForceWalk		= 0
+SlowMovement	= 0.0
+ScoreTag		= 1
+Grief			= 1
+PlayerDamageSound0 = "beartrap.wav"
+
+[Laughing]
+JarCamera		= 0
+Gadget			= 0
+Accuracy		= 0
+ForceWalk		= 0
+SlowMovement	= 0.0
+ScoreTag		= 1
+Grief			= 1
+PlayerDamageSound0 = "laughing01.wav"
+PlayerDamageSound1 = "laughing02.wav"
+
+[AntiSuperSoldierSerum]
+JarCamera		= 0
+Gadget			= 0
+Accuracy		= 1
+ForceWalk		= 0
+SlowMovement	= 0.0
+HurtAnim		= 1
+
+[CodeDecipherer]
+JarCamera		= 0
+Gadget			= 1
+Accuracy		= 0
+ForceWalk		= 0
+SlowMovement	= 0.0
+
+[Poodle]
+JarCamera		= 0
+Gadget			= 1
+Accuracy		= 0
+ForceWalk		= 0
+SlowMovement	= 0.0
+
+[LockPick]
+JarCamera		= 0
+Gadget			= 1
+Accuracy		= 0
+ForceWalk		= 0
+SlowMovement	= 0.0
+
+[Welder]
+JarCamera		= 0
+Gadget			= 1
+Accuracy		= 0
+ForceWalk		= 0
+SlowMovement	= 0.0
+
+[Lighter]
+JarCamera		= 0
+Gadget			= 1
+Accuracy		= 0
+ForceWalk		= 0
+SlowMovement	= 0.0
+
+[Camera]
+JarCamera		= 0
+Gadget			= 1
+Accuracy		= 0
+ForceWalk		= 0
+SlowMovement	= 0.0
+
+[MineDetector]
+JarCamera		= 0
+Gadget			= 1
+Accuracy		= 0
+ForceWalk		= 0
+SlowMovement	= 0.0
+
+[InfraRed]
+JarCamera		= 0
+Gadget			= 1
+Accuracy		= 0
+ForceWalk		= 0
+SlowMovement	= 0.0
+
+[DecayPowder]
+JarCamera		= 0
+Gadget			= 1
+Accuracy		= 0
+ForceWalk		= 0
+SlowMovement	= 0.0
+
+[TimeBomb]
+JarCamera		= 0
+Gadget			= 1
+Accuracy		= 0
+ForceWalk		= 0
+SlowMovement	= 0.0
+
+[Slippery]
+JarCamera		= 0
+Gadget			= 0
+Accuracy		= 0
+ForceWalk		= 0
+SlowMovement	= 0.0
+ScoreTag		= 1
+Grief			= 1
+PlayerDamageSound0 = "banana01.wav"
+PlayerDamageSound1 = "banana02.wav"
+PlayerDamageSound2 = "banana03.wav"
+PlayerDamageSound3 = "banana04.wav"
+
+[DoomsdayBurn]
+JarCamera		= 0
+Gadget			= 0
+Accuracy		= 1
+SlowMovement	= 0.1
+HurtAnim		= 1
+PlayerDamageSound0 = "burn.wav"

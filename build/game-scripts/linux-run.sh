@@ -99,7 +99,7 @@ if [ -z "$MODERN" ]; then
     reg "$KEY" /v InstallDir         /t REG_SZ    /d "$DIR"
     reg "$KEY" /v NetRegionCode      /t REG_SZ    /d EN
     reg "$KEY" /v UpdateNum          /t REG_DWORD /d 2
-    reg "$KEY" /v UpdateCommandLine1 /t REG_SZ    /d '-rez Update_v1x3.rez -rez custom'
+    reg "$KEY" /v UpdateCommandLine1 /t REG_SZ    /d '-rez nolf2src.rez -rez custom'
     reg "$KEY" /v 'Disable Movies'   /t REG_DWORD /d 1
 fi
 

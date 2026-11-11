@@ -29,6 +29,7 @@ RUN dpkg --add-architecture i386 \
         libgl1:i386 libglu1-mesa:i386 libgl1-mesa-dri:i386 \
         procps \
         curl ca-certificates gcc make libc6-dev zlib1g-dev \
+        g++ cmake ninja-build \
         xz-utils patch \
  && rm -rf /var/lib/apt/lists/*
 

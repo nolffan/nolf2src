@@ -11,3 +11,7 @@
 [submodule "tools"]
 	path = tools
 	url = git@github.com:nolffan/tools.git
+[submodule "lithtools"]
+	path = lithtools
+	url = git@github.com:nolffan/lithtools.git
+	shallow = true

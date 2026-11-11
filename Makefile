@@ -40,7 +40,7 @@ DOCKER_RUN = docker run --rm --init --name $(CONTAINER) \
 TOOLCHAIN_FILES = toolchains/msvc-6.00-8966/BIN/cl.exe toolchains/msvc-6.00-9782/Common/MSDev98/Bin/RC.EXE \
 	toolchains/dxsdk-8.1/include/d3d8.h
 
-.PHONY: all game debug modern modern-debug image retail sdk check-tools check-rez check-ext check-toolchain test progress progress-update shell clean distclean help
+.PHONY: all game debug modern modern-debug image retail sdk check-tools check-rez check-lithtools check-ext check-toolchain test progress progress-update shell clean distclean help
 
 all: game
 
@@ -72,15 +72,15 @@ help:
 	@echo "           IMAGE_BUILD=0 (use the docker image as it is, as CI does)"
 	@echo "           COMPLETE=1, COVERED=1, ACCEPT_LOSSES=1 (progress/README.md)"
 
-game: check-toolchain retail sdk
+game: check-toolchain check-lithtools retail sdk
 	$(DOCKER_RUN) bash build/all.sh
 
-debug: check-toolchain retail sdk
+debug: check-toolchain check-lithtools retail sdk
 	$(DOCKER_RUN) bash build/variant.sh $@
 
 # the modern build also builds its Bink player on FFmpeg from ext/
 # (build/ext.sh)
-modern modern-debug: check-toolchain check-ext retail sdk
+modern modern-debug: check-toolchain check-lithtools check-ext retail sdk
 	$(DOCKER_RUN) bash build/variant.sh $@
 
 # IMAGE_BUILD=0: use $(IMAGE) as it is (CI builds it with a layer cache
@@ -113,6 +113,9 @@ check-tools:
 
 check-rez: check-tools
 	@[ -f rez/install-games.sh ] || { echo "error: rez/ is empty -- the disc images and their installer are the rez/ submodule: run git submodule update --init (see rez/README.md)" >&2; exit 1; }
+
+check-lithtools:
+	@[ -f lithtools/tools/lithrez/CMakeLists.txt ] || { echo "error: lithtools/ is empty -- lithrez, which packs assets/ into nolf2src.rez, is the lithtools submodule's: run git submodule update --init lithtools" >&2; exit 1; }
 
 check-ext:
 	@[ -f ext/ffmpeg/LICENSE.md ] || { echo "error: ext/ffmpeg is empty -- the modern build's Bink player is built on the ext/ffmpeg submodule: run git submodule update --init ext/ffmpeg" >&2; exit 1; }

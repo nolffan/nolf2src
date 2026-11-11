@@ -5,7 +5,7 @@
 | `nolf2src-{{ARCHIVE}}.tar.gz` | **This is what you want**; the retail game (1.3) with bug fixes and new features. |
 | `nolf2src-debug-{{ARCHIVE}}.tar.gz` | The same build with debug information. For bug reporting. |
 
-**No game data is included.** A platform specific installer is included that copies the game's data from your own images of the two discs of the European or the USA release, and from Sierra's English 1.3 update, `nolf2-update_1x3.exe` (read, not run).
+**No game data is included beyond Sierra's free 1.3 update**, whose data comes with the release, so you don't need it. A platform specific installer is included that copies the game's data from your own images of the two discs of the European or the USA release.
 
 Supported images:
 
@@ -20,7 +20,7 @@ The full guide is [here](https://github.com/{{REPO}}/blob/{{TAG}}/docs/INSTALL.m
 
 ### Windows
 
-Unpack the archive, drop both disc images and `nolf2-update_1x3.exe` onto `windows-install.bat`, then start `NOLF2.exe`.
+Unpack the archive, drop both disc images onto `windows-install.bat`, then start `NOLF2.exe`.
 
 ### Linux
 
@@ -29,7 +29,7 @@ There's no native Linux build yet, but the game runs under Wine or Proton.
 ```sh
 tar xzf nolf2src-{{ARCHIVE}}.tar.gz
 cd nolf2src-{{ARCHIVE}}
-./linux-install.sh /path/to/disc1.zip /path/to/disc2.zip /path/to/nolf2-update_1x3.exe
+./linux-install.sh /path/to/disc1.zip /path/to/disc2.zip
 ./linux-run.sh
 ```
 

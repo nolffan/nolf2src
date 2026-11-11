@@ -83,6 +83,9 @@ tar -C "$REPO" -cf - --exclude='__pycache__' --exclude='.git' build tools | tar 
 # the compilers, and the retail game where build/retail.sh looks for it
 [ -L "$TREE/toolchains" ] || ln -s ../../toolchains "$TREE/toolchains"
 [ -L "$TREE/rez" ] || ln -s ../../rez "$TREE/rez"
+# the 1.3 update's data, and lithrez's source, which packs it (step 1b)
+[ -L "$TREE/assets" ] || ln -s ../../assets "$TREE/assets"
+[ -L "$TREE/lithtools" ] || ln -s ../../lithtools "$TREE/lithtools"
 # the modern build's open-source middleware (build/ext.sh), built once into
 # out/ext/ for every variant
 [ -L "$TREE/ext" ] || ln -s ../../ext "$TREE/ext"

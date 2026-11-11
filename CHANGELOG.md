@@ -10,6 +10,12 @@ covers each change in detail, under its item number (M-E1, M-G2 and so on).
 
 ## Unreleased
 
+- **Installing needs only your two discs.** The data of Sierra's free
+  English 1.3 update now comes with each release, as `nolf2src.rez`, so
+  `nolf2-update_1x3.exe` is no longer needed. The archive is about 70 MB
+  instead of a few. Unpack each release into a new, empty directory, as
+  before: a directory set up by an older release still has
+  `Update_v1x3.rez`, which the installer rejects as not this release's.
 - **`gimmemod`, `gimmegear` and `budonkadonk` work.** In the original
   game `gimmemod` gave gear, `gimmegear` did nothing (a single mod took
   the nonsense code `ewkkckmb`), and the third-person cheat worked only in

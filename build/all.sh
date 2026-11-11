@@ -117,6 +117,24 @@ esac
 
 step "1. resources: game data from $RETAIL -> $OUT"
 python3 tools/retailextract.py resources "$RETAIL" "$OUT"
+
+step "1b. assets: the 1.3 update's data (assets/) -> $OUT/nolf2src.rez and the shipped settings"
+# The 1.3 update's data ships with the release (assets/README.md): what its
+# Update_v1x3.rez carries besides the game DLLs, packed into nolf2src.rez by
+# lithtools' lithrez (build/lithrez.sh) with a fixed time, so the archive is
+# the same bytes on every build; and the settings and default profile it
+# installs. build/retail.py keeps the retail Update_v1x3.rez out.
+bash build/lithrez.sh
+rm -f "$OUT/Update_v1x3.rez"                 # the retail archive, before assets/
+out/lithrez/lithrez c "$OUT/nolf2src.rez.part" assets/rez --time 1044489600 >/dev/null
+mv "$OUT/nolf2src.rez.part" "$OUT/nolf2src.rez"
+cp assets/game/autoexec.cfg "$OUT/autoexec.cfg.retail"
+cp assets/game/Profiles/Default.prf "$OUT/Default.prf.retail"
+printf 'asset assets/rez (lithrez)\tnolf2src.rez\n' >> "$OUT/MANIFEST.txt"
+printf 'asset assets/game/autoexec.cfg\tautoexec.cfg.retail\n' >> "$OUT/MANIFEST.txt"
+printf 'asset assets/game/Profiles/Default.prf\tDefault.prf.retail\n' >> "$OUT/MANIFEST.txt"
+echo "   nolf2src.rez  <-  assets/rez/ ($(find assets/rez -type f | wc -l) files)"
+
 # autoexec.cfg and the default profile start as the shipped ones (the game
 # rewrites them); a rebuild keeps the player's.
 [ -f "$OUT/autoexec.cfg" ] || cp "$OUT/autoexec.cfg.retail" "$OUT/autoexec.cfg"
@@ -167,13 +185,15 @@ for ((i = 0; i < ${#BUILT[@]}; i += 2)); do
 done
 # one row per file: the manifest is rewritten by the next step's tool
 python3 - "$OUT/MANIFEST.txt" <<'PY'
-import sys
+import os, sys
 p = sys.argv[1]
 rows = {}
 for line in open(p).read().splitlines():
     if "\t" in line and not line.startswith("#"):
         origin, path = line.split("\t", 1)
-        rows[path] = origin
+        # a file an older build put here and this one removed
+        if os.path.exists(os.path.join(os.path.dirname(p), path)):
+            rows[path] = origin
 with open(p, "w") as f:
     f.write("# origin<TAB>path, one row per file build/all.sh put here\n")
     for path in sorted(rows, key=str.lower):

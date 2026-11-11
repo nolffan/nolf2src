@@ -93,12 +93,13 @@ binary, and the evidence, is `progress/COMPILERS.md`.
 
 ## Building
 
-Needs docker and three submodules (`git submodule update --init`):
+Needs docker and four submodules (`git submodule update --init`):
 `tools/` (the build's scripts, tests and byte-matching tools, shared with
 the NOLF and Contract J.A.C.K. reconstructions), `toolchains/` (the
-compilers) and `rez/` (which fetches the European discs from archive.org
-and installs the game with its 1.3 update, and the USA discs, for the
-public archive's install scripts).
+compilers), `lithtools/` (whose `lithrez` packs the 1.3 update's data,
+`assets/`, into `nolf2src.rez`) and `rez/` (which fetches the European
+discs from archive.org and installs the game with its 1.3 update, and the
+USA discs, for the public archive's install scripts).
 
 ```sh
 make            # out/nolf2-legacy-release/ and its -private / -public .tar.gz
@@ -138,11 +139,11 @@ packaged the same way: `out/nolf2-legacy-debug-private.tar.gz`,
 The `-private` archives hold the retail game's data (1.8 GB of it), so they
 are for your own machines and for others developing on the build. To give
 the game to anyone else, give them the `-public` archive instead
-(`out/nolf2-modern-release-public.tar.gz`, a few MB): the same directory
-without anything from the retail game, and two scripts that install it
-from their own disc images of *No One Lives Forever 2* (the European or
-the USA release) and Sierra's English 1.3 update, `nolf2-update_1x3.exe`
--- without installing the game. An image can be a plain `.iso` (an own
+(`out/nolf2-modern-release-public.tar.gz`, about 70 MB): the same
+directory without anything from the retail discs -- the data of Sierra's
+free English 1.3 update is in it (`assets/README.md`) -- and two scripts
+that install the rest from their own disc images of *No One Lives Forever
+2* (the European or the USA release), without installing the game. An image can be a plain `.iso` (an own
 rip), redump's `.bin` (or its `.cue`), or redump's `.zip` as archive.org
 serves it; a `.bin` or `.zip` is converted to a temporary `.iso` first
 (about 0.6 GB a disc). On Linux they need `python3`, whose zlib unpacks
@@ -151,10 +152,10 @@ the setup's compressed cabinets; on Windows, the PowerShell every Windows
 so the result is the `-private` archive's directory, byte for byte:
 
 ```sh
-nolf2-modern-release/linux-install.sh disc1.zip disc2.zip nolf2-update_1x3.exe   # Linux, Steam Deck
+nolf2-modern-release/linux-install.sh disc1.zip disc2.zip   # Linux, Steam Deck
 ```
 
-On Windows, drop both images and the update onto `windows-install.bat` (or
+On Windows, drop both images onto `windows-install.bat` (or
 put them in the game folder and double-click it), then start `NOLF2.exe`.
 Either script finds them in the game directory or the one above it by
 itself, and can be run again: a file already in place is checked and kept.

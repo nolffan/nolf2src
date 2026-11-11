@@ -149,7 +149,8 @@ jobs:
 
       # tools/ (the build's scripts), toolchains/ (the compilers, the
       # DirectX 8.1 SDK), rez/ (the discs'
-      # installer and the 1.3 update) and ext/ffmpeg (the modern build's
+      # installer and the 1.3 update), lithtools/ (lithrez, which packs
+      # assets/ into nolf2src.rez) and ext/ffmpeg (the modern build's
       # Bink player).
       - name: Submodules
         run: |

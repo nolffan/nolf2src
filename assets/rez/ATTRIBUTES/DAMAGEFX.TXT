@@ -1,0 +1,721 @@
+/************************************************************************
+**
+**	D A M A G E  F X
+**
+**	The DamageFX definitions define all of the attributes associated with
+** a particular DamageFX.  Defining a DamageFX in this way allows us to
+** easily make global changes to all the DamageFX.
+**
+**
+** All DamageFX definitions should contain the following properties:
+**
+**	Name (String)
+**
+**		The user friendly name of the DamageFX.
+**
+**	DamageType	(Integer)
+**
+**		Specifies which Damage Type this DamageFX is associated with.  The
+**		values correspond to the tags in DamageTypes.txt (e.g. "Burn").
+**
+**	HudIcon (String)
+**
+**		Name and path of the Icon (.dtx) file to display in the HUD while this
+**		Damage FX is affecting the player.
+**
+**	StartSound (String)
+**
+**		Name and path of the Sound (.wav) file that will play once when the 
+**		Damage FX first starts.
+**
+**	LoopSound	(String)
+**
+**		Name and path of the Sound (.wav) file that will play continusly while
+**		the Damage FX is affecting the player.
+**
+**	FadeTime	(Float)
+**
+**		The time, in seconds, it takes for the Damage FX to fade away after stoping
+**
+**	TintColor	(Vector)
+**
+**		The Red, Green and Blue value for the maximum tint color.
+**
+**	TintRampUpTime (Float)
+**
+**		The time, in seconds, it takes for the tint color to go from no color 
+**		to the TintColor.
+**
+**	TintOnTime	(Float)
+**
+**		How much time, in seconds, the tint color stays at the TintColor
+**
+**	TintRampDownTime	(Float)
+**
+**		The time, in seconds, it takes for the tint color to go from TintColor
+**		to no color.
+**
+**	TintOffTime	(Float)
+**
+**		How much time, in seconde, the tint color is at no color
+**
+**	RotationSpeed	(Float)
+**
+**		The rate at which the camera rolls
+**
+**	RotationMax	(Float)
+**
+**		The maximum angle the camera can roll to
+**
+**	MinFXPercent	(Float)
+**
+**		Some parts of the fx are based on movement percent, like the camera roll.
+**		This property sets the minimum percent that the fx will be at.  So if this
+**		is 0.0 there will be no roll while the player is not moving.  If this is 
+**		1.0 the roll will be at maximum no matter what the player is doing.	
+**
+**	FOVMax	(Float)
+**
+**		The maximum percentage that the Damage FX can affect the FOV.
+**
+**	FOVXSpeed (Float)
+**
+**		The rate at which the horizontal FOV changes while the Damage FX is affecting the player.
+**		
+**	FOVYSpeed (Float)
+**
+**		The rate at which the vertical FOV changes while the Damage FX is affecting the player.
+**
+**	LightScaleSpeed	(Float)
+**
+**		The rate at which the Light Scale will change to the Light Scale color.
+**
+**	LightScaleColor	(Vector)
+**
+**		The color of the Light that will fade to if there is a value for LightScaleSpeed
+**		NOTE:  <0.0, 0.0, 0.0> = no Light = Black.
+**			   <255.0, 255.0, 255.0> = full Light = no change
+**
+**	AllowMovement	(Boolean)
+**
+**		Set to 1 (true) if we can move while the Damage FX is affecting the player.
+**		Set to 0 (false) if we want to disallow movement for this Damage FX.
+**
+**	AllowInput	(Boolean)
+**
+**		Set to 1 (true) if we want the Keyboard and Mouse to send inputs. 
+**		Set to 0 (false) if we want the Keyboard and Mouse to ignore inputs.
+**
+**	NumJumpsToEscape (Integer)
+**
+**		If greater than zero, the player can get out of the damage by tapping the jump
+**		key this many times.  Used primarily for damage that sticks you in place (Glue, BearTrap) 				
+**
+**	FXName	(String)
+**
+**		The name of a FxED created FX.
+**
+**	Sprinkles0-8 (String)
+**
+**		Names of SprinkleFX to play while this DamageFX is active.
+**
+**	3rdPersonFXName (String)
+**
+**		The name of a FxED created FX to play on 3rd person character models
+**		when they are taking progressive damage of this type.
+**
+**	3rdPersonInstantFXName (String)
+**
+**		The name of a FxED created FX to play on 3rd person character models
+**		when they are taking instant damage of this type.
+**
+**	3rdPersonDeathFXName (String)
+**
+**		The name of a FxED created FX to play on the dead body model when 
+**		the character dies from taking this damage type.
+**
+**	BodyFXName (String)
+**
+**		The name of a FxED created FX to play on the dead body model when
+**		the BODY takes damage of this type.
+**
+**	TakingHealthFXName (String)
+**
+**		The name of a FxED created FX to play in the players view when they are taking 
+**		damage of this type and it is affeting health.
+**
+**	TakingArmorFXName (String)
+**
+**		The name of a FxED created FX to play in the players view when they are taking
+**		damage of this type and it is affecting armor.		
+*/
+
+[DamageFX0]
+
+Name			= "Unknown"
+DamageType		= "Unspecified"
+HudIcon			= ""
+StartSound		= ""
+LoopSound		= ""
+FadeTime		= 1.0
+TintColor		= <0.0, 0.0, 0.0>
+TintRampUpTime		= 0.0
+TintOnTime		= 0.0
+TintRampDownTime	= 0.0
+TintOffTime		= 0.0
+RotationSpeed		= 0.0
+RotationMax		= 0.0
+MinFXPercent		= 0.0
+FOVMax			= 0.0
+FOVXSpeed		= 0.0
+FOVYSpeed		= 0.0
+LightScaleSpeed		= 0.0
+LightScaleColor		= <0.0, 0.0, 0.0>
+AllowMovement		= 0
+AllowInput		= 1
+NumJumpsToEscape	= 0
+FXName			= ""
+
+/*
+** DamageFX1 - Bleeding
+*/
+
+[DamageFX1]
+
+Name			= "Bleeding"
+DamageType		= "Bleeding"
+HudIcon			= "Interface\Hud\icon_bleed.dtx"
+StartSound		= ""
+LoopSound		= "Interface\Snd\bleedloop.wav"
+FadeTime		= 1.0
+TintColor		= <128.0, 32.0, 32.0>
+TintRampUpTime		= 0.25
+TintOnTime		= 0.1
+TintRampDownTime	= 0.05
+TintOffTime		= 0.1
+RotationSpeed		= 0.0
+RotationMax		= 0.0
+MinFXPercent		= 0.1
+FOVMax			= 0.0
+FOVXSpeed		= 0.0
+FOVYSpeed		= 0.0
+LightScaleSpeed		= 0.0
+LightScaleColor		= <0.0, 0.0, 0.0>
+AllowMovement		= 1
+AllowInput		= 1
+NumJumpsToEscape	= 0
+FXName			= ""
+
+
+/*
+** DamageFX2 - Poisoned
+*/
+
+[DamageFX2]
+
+Name			= "Poisoned"
+DamageType		= "Poison"
+HudIcon			= "Interface\Hud\icon_poison.dtx"
+StartSound		= ""
+LoopSound		= "Interface\Snd\poisonloop1.wav"
+FadeTime		= 1.0
+TintColor		= <128.0, 32, 128.0>
+TintRampUpTime		= 0.5
+TintOnTime		= 0.5
+TintRampDownTime	= 0.1
+TintOffTime		= 0.0
+RotationSpeed		= 0.15
+RotationMax		= 0.1
+MinFXPercent		= 0.3
+FOVMax			= 0.33
+FOVXSpeed		= 0.1
+FOVYSpeed		= 0.04
+LightScaleSpeed		= 0.3
+LightScaleColor		= <24.0, 148.0, 24.0>
+AllowMovement		= 1
+AllowInput		= 1
+NumJumpsToEscape	= 0
+FXName			= ""
+3rdPersonFXName		= "Poisoned_3rd"
+Sprinkles0		= "Pigeons"
+Sprinkles1		= "Roaches"
+
+
+/*
+** DamageFX3 - Stunned
+*/
+
+[DamageFX3]
+
+Name			= "Stunned"
+DamageType		= "Stun"
+HudIcon			= "Interface\Hud\icon_stun.dtx"
+StartSound		= ""
+LoopSound		= "Interface\Snd\stunloop1.wav"
+FadeTime		= 1.0
+TintColor		= <175.0, 175.0, 175.0>
+TintRampUpTime		= 0.7
+TintOnTime		= 10000.0
+TintRampDownTime	= 0.0
+TintOffTime		= 0.0
+RotationSpeed		= 0.0
+RotationMax		= 0.0
+MinFXPercent		= 1.0
+FOVMax			= 0.0
+FOVXSpeed		= 0.0
+FOVYSpeed		= 0.0
+LightScaleSpeed		= 0.0
+LightScaleColor		= <255.0, 255.0, 255.0>
+AllowMovement		= 1
+AllowInput		= 1
+NumJumpsToEscape	= 0
+FXName			= "Test_StunnedFX"
+3rdPersonFXName		= "Stunned_3rd"
+
+/*
+** DamageFX4 - Sleeping
+*/
+
+[DamageFX4]
+
+Name			= "Sleeping"
+DamageType		= "Sleeping"
+HudIcon			= "Interface\Hud\icon_sleep.dtx"
+StartSound		= ""
+LoopSound		= "Interface\Snd\sleeploop1.wav"
+FadeTime		= 1.0
+TintColor		= <0.0, 0.0, 0.0>
+TintRampUpTime		= 0.0
+TintOnTime		= 0.0
+TintRampDownTime	= 0.0
+TintOffTime		= 0.0
+RotationSpeed		= 0.0
+RotationMax		= 0.0
+MinFXPercent		= 1.0
+FOVMax			= 0.33
+FOVXSpeed		= 0.1
+FOVYSpeed		= 0.1
+LightScaleSpeed		= 0.33
+LightScaleColor		= <0.0, 0.0, 0.0>
+AllowMovement		= 0
+AllowInput		= 0
+NumJumpsToEscape	= 0
+3rdPersonFXName		= "Sleeping_3rd"
+AttachCameraToAnimation = 1
+ShowLocalClientModel	= 1
+AnimationControlsFX	= 1
+
+/*
+** DamageFX5 - Choke
+*/
+
+[DamageFX5]
+
+Name			= "Choking"
+DamageType		= "Choke"
+HudIcon			= "Interface\Hud\icon_choke.dtx"
+StartSound		= ""
+LoopSound		= ""
+FadeTime		= 1.0
+TintColor		= <64.0, 64.0, 64.0>
+TintRampUpTime		= 0.3
+TintOnTime		= 0.0
+TintRampDownTime	= 0.5
+TintOffTime		= 0.7
+RotationSpeed		= 0.0
+RotationMax		= 0.0
+MinFXPercent		= 1.0
+FOVMax			= 0.0
+FOVXSpeed		= 0.0
+FOVYSpeed		= 0.0
+LightScaleSpeed		= 0.0
+LightScaleColor		= <255.0, 255.0, 255.0>
+AllowMovement		= 1
+AllowInput		= 1
+NumJumpsToEscape	= 0
+
+/*
+** DamageFX6 - Burn
+*/
+
+[DamageFX6]
+
+Name			= "Burning"
+DamageType		= "Burn"
+HudIcon			= "Interface\Hud\icon_burn.dtx"
+StartSound		= ""
+LoopSound		= "Interface\Snd\burningloop.wav"
+FadeTime		= 1.0
+TintColor		= <128.0, 32.0, 0.0>
+TintRampUpTime		= 0.3
+TintOnTime		= 1
+TintRampDownTime	= 1
+TintOffTime		= 0.0
+RotationSpeed		= 0.0
+RotationMax		= 0.0
+MinFXPercent		= 1.0
+FOVMax			= 0.0
+FOVXSpeed		= 0.0
+FOVYSpeed		= 0.0
+LightScaleSpeed		= 0.3
+LightScaleColor		= <212.0, 212.0, 212.0>
+AllowMovement		= 1
+AllowInput		= 1
+NumJumpsToEscape	= 0
+FXName			= "Screen_Burning"
+3rdPersonFXName		= "Burning_3rd"
+BodyFXName			= "Burning_3rd"
+
+/*
+** DamageFX7 - Electrocute
+*/
+
+[DamageFX7]
+
+Name			= "Electrocute"
+DamageType		= "Electrocute"
+HudIcon			= "Interface\Hud\icon_electrocute.dtx"
+StartSound		= ""
+LoopSound		= "Interface\snd\electrocute_loop.wav"
+FadeTime		= 1.0
+TintColor		= <0.0, 32.0, 160.0>
+TintRampUpTime		= 0.1
+TintOnTime		= 0.3
+TintRampDownTime	= 0.1
+TintOffTime		= 0.3
+RotationSpeed		= 0.0
+RotationMax		= 0.0
+MinFXPercent		= 1.0
+FOVMax			= 0.0
+FOVXSpeed		= 0.0
+FOVYSpeed		= 0.0
+LightScaleSpeed		= 0.0
+LightScaleColor		= <255.0, 255.0, 255.0>
+AllowMovement		= 1
+AllowInput		= 1
+NumJumpsToEscape	= 0
+FXName			= "Screen_Electrocuted"
+3rdPersonInstantFXName	= "Electrocute_3rd_Inst"
+BodyFXName = "Electrocute_3rd_Inst"
+
+/*
+** DamageFX8 - Glue
+*/
+
+[DamageFX8]
+
+Name			= "Glue"
+DamageType		= "Glue"
+HudIcon			= "Interface\Hud\icon_glue.dtx"
+StartSound		= ""
+LoopSound		= "Interface\Snd\gluebomb.wav"
+FadeTime		= 1.0
+TintColor		= <0.0, 0.0, 0.0>
+TintRampUpTime		= 0.0
+TintOnTime		= 0.0
+TintRampDownTime	= 0.0
+TintOffTime		= 0.0
+RotationSpeed		= 0.0
+RotationMax		= 0.0
+MinFXPercent		= 1.0
+FOVMax			= 0.3
+FOVXSpeed		= 0.0
+FOVYSpeed		= 0.1
+LightScaleSpeed		= 0.2
+LightScaleColor		= <196.0, 196.0, 196.0>
+AllowMovement		= 0
+AllowInput		= 1
+NumJumpsToEscape	= 10
+3rdPersonFXName		= "Glued_3rd"
+
+
+/*
+** DamageFX9 - Bear Trap
+*/
+
+[DamageFX9]
+
+Name			= "BearTrap"
+DamageType		= "BearTrap"
+HudIcon			= "Interface\Hud\icon_beartrap.dtx"
+StartSound		= ""
+LoopSound		= ""
+FadeTime		= 1.0
+TintColor		= <0.0, 0.0, 0.0>
+TintRampUpTime		= 0.0
+TintOnTime		= 0.0
+TintRampDownTime	= 0.0
+TintOffTime		= 0.0
+RotationSpeed		= 0.0
+RotationMax		= 0.0
+MinFXPercent		= 1.0
+FOVMax			= 0.0
+FOVXSpeed		= 0.0
+FOVYSpeed		= 0.0
+LightScaleSpeed		= 0.0
+LightScaleColor		= <255.0, 255.0, 255.0>
+AllowMovement		= 0
+AllowInput		= 1
+NumJumpsToEscape	= 15
+
+/*
+** DamageFX10 - Laugh
+*/
+
+[DamageFX10]
+
+Name			= "Laughing"
+DamageType		= "Laughing"
+HudIcon			= "Interface\Hud\icon_laugh.dtx"
+StartSound		= ""
+LoopSound		= ""
+FadeTime		= 1.0
+TintColor		= <255.0, 255.0, 0.0>
+TintRampUpTime		= 0.1
+TintOnTime		= 0.3
+TintRampDownTime	= 0.1
+TintOffTime		= 0.0
+RotationSpeed		= 0.3
+RotationMax		= 0.5
+MinFXPercent		= 0.4
+FOVMax			= 0.05
+FOVXSpeed		= 0.5
+FOVYSpeed		= 0.4
+LightScaleSpeed		= 0.0
+LightScaleColor		= <255.0, 255.0, 255.0>
+AllowMovement		= 1
+AllowInput		= 1
+NumJumpsToEscape	= 0
+3rdPersonFXName		= "Laughing_3rd"
+FXName			= "Screen_Laughing"
+
+/*
+** DamageFX11 - Anti-Super Soldier Serum
+*/
+
+[DamageFX11]
+
+Name			= "Asssed"
+DamageType		= "Asss"
+HudIcon			= "Interface\Hud\icon_asss.dtx"
+StartSound		= ""
+LoopSound		= "Interface\Snd\poisonloop1.wav"
+FadeTime		= 1.0
+TintColor		= <96.0, 150.0, 24.0>
+TintRampUpTime		= 0.6
+TintOnTime		= 0.0
+TintRampDownTime	= 0.6
+TintOffTime		= 0.0
+RotationSpeed		= 0.1
+RotationMax		= 0.15
+MinFXPercent		= 0.1
+FOVMax			= 0.1
+FOVXSpeed		= 0.3
+FOVYSpeed		= 0.2
+LightScaleSpeed		= 0.0
+LightScaleColor		= <255.0, 255.0, 255.0>
+AllowMovement		= 1
+AllowInput		= 1
+NumJumpsToEscape	= 0
+Sprinkles0		= "Rats"
+
+/*
+** DamageFX12 - Freezing
+*/
+
+[DamageFX12]
+
+Name			= "Freezing"
+DamageType		= "Freeze"
+HudIcon			= "Interface\Hud\icon_freeze.dtx"
+StartSound		= ""
+LoopSound		= ""
+FadeTime		= 1.0
+TintColor		= <0.0, 0.0, 0.0>
+TintRampUpTime		= 0.0
+TintOnTime		= 0.0
+TintRampDownTime	= 0.0
+TintOffTime		= 0.0
+RotationSpeed		= 1.0
+RotationMax		= 0.01
+MinFXPercent		= 1.0
+FOVMax			= 0.0
+FOVXSpeed		= 0.0
+FOVYSpeed		= 0.0
+LightScaleSpeed		= 0.1
+LightScaleColor		= <0.0, 0.0, 128>
+AllowMovement		= 1
+AllowInput		= 1
+NumJumpsToEscape	= 0
+FXName			= ""
+
+/*
+** DamageFX13 - Sword
+*/
+
+[DamageFX13]
+
+Name			= "Sword"
+DamageType		= "Sword"
+HudIcon			= ""
+StartSound		= ""
+LoopSound		= ""
+FadeTime		= 0.0
+TintColor		= <0.0, 0.0, 0.0>
+TintRampUpTime		= 0.0
+TintOnTime		= 0.0
+TinitRampDownTime	= 0.0
+TinitOffTime		= 0.0
+RotationSpeed		= 0.0
+RotationMax		= 0.0
+MinFXPercent		= 0.0
+FOVMax			= 0.0
+FOVXSpeed		= 0.0
+FOVYSpeed		= 0.0
+LightScaleSpeed		= 0.0
+LightScaleColor		= <0.0, 0.0, 0.0>
+Allowmovement		= 1
+AllowInput		= 1
+NumJumpsToEscape	= 0
+FXName			= ""
+3rdPersonFXName		= ""
+3rdPersonInstantFXName	= ""
+3rdPersonDeathFXName	= "BloodySword"
+TakingHealthFXName = "TakingHealth"
+TakingArmorFXName = ""
+
+/*
+** DamageFX14 - Slippery
+*/
+
+[DamageFX14]
+
+Name			= "Slippery"
+DamageType		= "Slippery"
+HudIcon			= "Interface\Hud\icon_banana.dtx"
+StartSound		= ""
+LoopSound		= ""
+FadeTime		= 0.0
+TintColor		= <0.0, 0.0, 0.0>
+TintRampUpTime		= 0.0
+TintOnTime		= 0.0
+TinitRampDownTime	= 0.0
+TinitOffTime		= 0.0
+RotationSpeed		= 0.0
+RotationMax		= 0.0
+MinFXPercent		= 1.0
+FOVMax			= 0.0
+FOVXSpeed		= 0.0
+FOVYSpeed		= 0.0
+LightScaleSpeed		= 0.0
+LightScaleColor		= <0.0, 0.0, 0.0>
+Allowmovement		= 0
+AllowInput		= 0
+NumJumpsToEscape	= 0
+FXName			= ""
+3rdPersonFXName		= ""
+3rdPersonInstantFXName	= ""
+3rdPersonDeathFXName	= ""
+AttachCameraToAnimation	= 1
+ShowLocalClientModel	= 1
+AnimationControlsFX	= 1
+
+/*
+** DamageFX15 - Bullet
+*/
+
+[DamageFX15]
+
+Name			= "Bullet"
+DamageType		= "Bullet"
+HudIcon			= ""
+StartSound		= ""
+LoopSound		= ""
+FadeTime		= 0.0
+TintColor		= <0.0, 0.0, 0.0>
+TintRampUpTime		= 0.0
+TintOnTime		= 0.0
+TinitRampDownTime	= 0.0
+TinitOffTime		= 0.0
+RotationSpeed		= 0.0
+RotationMax		= 0.0
+MinFXPercent		= 0.0
+FOVMax			= 0.0
+FOVXSpeed		= 0.0
+FOVYSpeed		= 0.0
+LightScaleSpeed		= 0.0
+LightScaleColor		= <0.0, 0.0, 0.0>
+Allowmovement		= 1
+AllowInput		= 1
+NumJumpsToEscape	= 0
+FXName			= ""
+3rdPersonFXName		= ""
+3rdPersonInstantFXName	= ""
+3rdPersonDeathFXName	= ""
+TakingHealthFXName = "TakingHealth"
+TakingArmorFXName = ""
+
+
+/*
+** DamageFX16 - Decay powder (On bodies only)
+*/
+
+[DamageFX16]
+
+Name				= "Decay"
+DamageType			= "DecayPowder"
+HudIcon				= ""
+StartSound			= ""
+LoopSound			= ""
+FadeTime			= 0.0
+TintColor			= <0.0, 0.0, 0.0>
+TintRampUpTime		= 0.0
+TintOnTime			= 0.0
+TintRampDownTime	= 0.0
+TintOffTime			= 0.0
+RotationSpeed		= 0.0
+RotationMax			= 0.0
+MinFXPercent		= 0.0
+FOVMax				= 0.0
+FOVXSpeed			= 0.0
+FOVYSpeed			= 0.0
+LightScaleSpeed		= 0.0
+LightScaleColor		= <0.0, 0.0, 0.0>
+AllowMovement		= 1
+AllowInput			= 1
+NumJumpsToEscape	= 0
+FXName				= ""
+3rdPersonFXName		= ""
+BodyFXName			= "Decay_3rd"
+
+/*
+** DamageFX17 - DoomsdayBurn
+*/
+
+[DamageFX17]
+
+Name			= "DoomsdayBurn"
+DamageType		= "DoomsdayBurn"
+HudIcon			= "Interface\Hud\icon_electrocute.dtx"
+StartSound		= ""
+LoopSound		= "Interface\snd\electrocute_loop.wav"
+FadeTime		= 1.0
+TintColor		= <0.0, 32.0, 160.0>
+TintRampUpTime		= 0.1
+TintOnTime		= 0.3
+TintRampDownTime	= 0.1
+TintOffTime		= 0.3
+RotationSpeed		= 0.0
+RotationMax		= 0.0
+MinFXPercent		= 1.0
+FOVMax			= 0.0
+FOVXSpeed		= 0.0
+FOVYSpeed		= 0.0
+LightScaleSpeed		= 0.0
+LightScaleColor		= <255.0, 255.0, 255.0>
+AllowMovement		= 1
+AllowInput		= 1
+NumJumpsToEscape	= 0
+FXName			= "Screen_DoomsdayBurning"
+3rdPersonFXName	= "DoomsdayBurn_3rd"
+BodyFXName = "DoomsdayBurn_3rd"

@@ -1,0 +1,2421 @@
+/************************************************************************
+**
+** S O U N D  B U T E S
+**
+** The SoundButes definitions define all of the attributes associated with
+** a particular Sound Bute.  Defining a SoundBute in this way allows us to
+** easily make global changes to all the Sounds.
+**
+**
+** All SoundBute definitions should contain the following properties:
+**
+**	Parent (String) - OPTIONAL
+**
+**		If a SoundBute wants to inherit some properties from another SoundBute
+**		it should list the name of a valid SoundBute as it's parent.
+**
+**	Path0 - N (String)
+**
+**		The name of the sound to be played.  If more than one a random one will
+**		be selected.	
+**
+**
+**	Weight0 - N (Integer)
+**
+**		The random chance 'weight' of the sound. These numbers will get added
+**      	together and then randomly chosen between.   For instance, if you had
+**      	two sound to choose from and the first had a weight '1' and the second
+**      	had a weight '2'... then the first sound would get played 33% of the time
+**      	and the second one would get played 66% of the time.
+**
+**      	This value will default to '1' if the parameter doesn't exist.
+**
+**
+**	PlaySoundLocal (1 or 0)
+**
+**		Should the sound be played locally or 3D?
+**
+**
+**	InnerRadius (Float)
+**
+**		The inner dimension of the sound radius in game units.  Note that lip-synced
+**		sounds ignore this and set the inner radius to be 25% of outer radius.
+**
+**
+**	OuterRadius (Float)
+**
+**		The outer dimension of the sound radius in game units.
+**
+**
+**	Pitch (Float)
+**
+**		The pitch adjustment to the sound. 1.0 would play the sound as recorded.
+**
+**	
+**	Volume (Int)
+**
+**		The volume of the sound, 100 = Max.
+**
+**
+**	LoopSound (1 or 0)
+**
+**		Should the sound be played looping.
+**
+**
+**	AllowReverb (1 or 0)
+**
+**		Should the sound be allowed to reverberate.
+**
+**
+**	PlayOnce (1 or 0)
+**
+**		Should the sound be played only once, (reduces memory overhead).
+**
+**
+**	PlayChance (Float)
+**
+**		The percent chance that a sound will be played at all, 1.0 = 100%.
+**
+**
+**	Priority (0, 1, 2)
+**
+**		The sound priority, 0 = Low, 1 = Medium, 2 = High.
+**
+**  	LipSync (1 or 0)
+**		
+**		If set to 1, the sound will try to be lip-synced by the character playing it.
+**      	If the character cannot lip sync, the sound will not be played!
+**
+**
+**  	MinDelay (seconds)
+**  	MaxDelay (seconds)
+**		
+**		Characters will wait between MinDelay and MaxDelay seconds before trying to play from this sound-set again 
+**	    	If PlayChance is less than 1, they will not play the sound but they will still wait this long
+**      	before trying again. The wait time includes the time spent playing the sound! So if the sound 
+**		is 3 seconds long and the wait time is 3.5 seconds, there will only by 0.5 seconds between each sound.
+**
+*/
+
+
+
+/************************************************************************
+**	Base Parents
+*/
+
+[BaseLocalSound]
+
+PlaysoundLocal      = 1			// DON'T CHANGE: If this is true, the sound is client only, else it is 3D
+InnerRadius         = 0.0
+OuterRadius         = 0.0
+Pitch               = 1.0
+Volume              = 100
+PlayClientLocal     = 0			// Sound is played with PLAYSOUND_LOCAL for player specified
+LoopSound           = 0			// Loop the sound
+AllowReverb         = 1			// Allow reverb
+PlayOnce            = 0			// This sound will only be played once (reduces memory overhead)
+Priority            = 0
+PlayChance          = 1.0
+
+
+[Base3DSound]
+
+PlaysoundLocal      = 0			// DON'T CHANGE: If this is true, the sound is client only, else it is 3D
+InnerRadius         = 300.0
+OuterRadius         = 1200.0
+Pitch               = 1.0
+Volume              = 100
+PlayClientLocal     = 0			// Sound is played with PLAYSOUND_LOCAL for player specified
+LoopSound           = 0			// Loop the sound
+AllowReverb         = 1			// Allow reverb
+PlayOnce            = 0			// This sound will only be played once (reduces memory overhead)
+Priority            = 0
+PlayChance          = 1.0
+
+[BaseSFXObjSound]
+
+PlaysoundLocal      = 0			// DON'T CHANGE: If this is true, the sound is client only, else it is 3D
+InnerRadius         = 50.0
+OuterRadius         = 600.0
+Pitch               = 1.0
+Volume              = 100
+PlayClientLocal     = 0			// Sound is played with PLAYSOUND_LOCAL for player specified
+LoopSound           = 0			// Loop the sound
+AllowReverb         = 1			// Allow reverb
+PlayOnce            = 0			// This sound will only be played once (reduces memory overhead)
+Priority            = 0
+PlayChance          = 1.0
+
+
+/************************************************************************
+**	Sound - Null Sound needed for DEdit
+*/
+
+[None]
+
+
+
+/************************************************************************
+**	Sound - House Creaks FX
+*/
+
+[HouseCreaksFX]
+Parent			= "BaseSFXObjSound"
+Path0	        	= "Snd\amb\creak_1.wav"
+Path1	        	= "Snd\amb\creak_2.wav"
+Path2			= "Snd\amb\creak_3.wav"
+Path3			= "Snd\amb\creak_4.wav"
+/************************************************************************
+**	Sound - Bottle FallOver FX
+*/
+
+[BottleFallOverFX]
+Parent			= "BaseSFXObjSound"
+Path0	        	= "Snd\event\bottlefall_1.wav"
+Path1	        	= "Snd\event\bottlefall_2.wav"
+Path2			= "Snd\event\bottlefall_3.wav"
+Path3			= "Snd\event\bottlefall_4.wav"
+/************************************************************************
+**	Sound - Shutter Banging	
+*/
+
+[shutterbang_1_4]
+Parent			= "BaseSFXObjSound"
+Path0	        	= "Snd\doors\shutterbang_1.WAV"
+Path1	        	= "Snd\doors\shutterbang_2.WAV"
+Path2			= "Snd\doors\shutterbang_3.WAV"
+Path3			= "Snd\doors\shutterbang_4.WAV"
+/************************************************************************
+**	Sound - Underwater Random stuff
+*/
+
+[UwaterRands]
+Parent			= "BaseSFXObjSound"
+Path0	        	= "Snd\amb\1_uwater_01.WAV"
+Path1	        	= "Snd\amb\1_uwater_02.WAV"
+Path2			= "Snd\amb\1_uwater_03.WAV"
+Path3			= "Snd\amb\1_uwater_04.WAV"
+Path4			= "Snd\amb\1_uwater_05.WAV"
+/************************************************************************
+**	Sound - House Creaks FX2
+*/
+
+[HouseCreaksFX2]
+Parent			= "BaseSFXObjSound"
+Path0	        	= "Snd\amb\creak2_1.wav"
+Path1	        	= "Snd\amb\creak2_2.wav"
+Path2			= "Snd\amb\creak2_3.wav"
+Path3			= "Snd\amb\creak2_4.wav"
+
+/************************************************************************
+**	Sound - Isako Train 1
+*/
+
+[train1]
+Parent			= "Base3dSound"
+PlayOnce            = 1
+InnerRadius		= 1000
+OuterRadius		= 4800
+Path0			= "snd\event\cine\train1.wav"
+
+/************************************************************************
+**	Sound - Isako Train 2
+*/
+
+[train2]
+Parent			= "Base3dSound"
+PlayOnce            = 1
+InnerRadius		= 1000
+OuterRadius		= 4800
+Path0			= "snd\event\cine\train2.wav"
+
+/************************************************************************
+**	Sound - Isako Train 3
+*/
+
+[train3]
+Parent			= "Base3dSound"
+PlayOnce            = 1
+InnerRadius		= 1000
+OuterRadius		= 4800
+Path0			= "snd\event\cine\train3.wav"
+
+/************************************************************************
+**	Sound - Isako Train 4
+*/
+
+[train4]
+Parent			= "Base3dSound"
+PlayOnce            = 1
+InnerRadius		= 1000
+OuterRadius		= 4800
+Path0			= "snd\event\cine\train4.wav"
+
+/************************************************************************
+**	Sound - Isako swipe
+*/
+
+[swipe]
+Parent			= "Base3dSound"
+InnerRadius		= 1000
+OuterRadius		= 4800
+Path0			= "snd\event\cine\swipe_01.wav"
+Path1			= "snd\event\cine\swipe_02.wav"
+
+/************************************************************************
+**	Sound - Isako practice1b
+*/
+
+[practice1b]
+Parent			= "Base3dSound"
+PlayOnce            = 1
+InnerRadius		= 1000
+OuterRadius		= 4800
+Path0			= "snd\event\cine\practice1b.wav"
+
+/************************************************************************
+**	Sound - Isako practice1
+*/
+
+[practice1]
+Parent			= "Base3dSound"
+PlayOnce            = 1
+InnerRadius		= 1000
+OuterRadius		= 4800
+Path0			= "snd\event\cine\practice1.wav"
+
+/************************************************************************
+**	Sound - Isako practice2
+*/
+
+[practice2]
+Parent			= "Base3dSound"
+PlayOnce            = 1
+InnerRadius		= 1000
+OuterRadius		= 4800
+Path0			= "snd\event\cine\practice2.wav"
+
+/************************************************************************
+**	Sound - Isako practice3
+*/
+
+[practice3]
+Parent			= "Base3dSound"
+PlayOnce            = 1
+InnerRadius		= 1000
+OuterRadius		= 4800
+Path0			= "snd\event\cine\practice3.WAV"
+
+/************************************************************************
+**	Sound - Isako jump fly
+*/
+
+[isako_fly]
+Parent			= "Base3dSound"
+InnerRadius		= 1000
+OuterRadius		= 4800
+Path0			= "snd\event\cine\isako_fly.wav"
+
+/************************************************************************
+**	Sound - Isako jump fly
+*/
+
+[isako_fly2]
+Parent			= "Base3dSound"
+InnerRadius		= 1000
+OuterRadius		= 4800
+Path0			= "snd\event\cine\isako_fly2.wav"
+
+/************************************************************************
+**	Sound - Isako stab cate1
+*/
+
+[isakostab1]
+Parent			= "Base3dSound"
+PlayOnce            = 1
+InnerRadius		= 1000
+OuterRadius		= 2800
+Path0			= "snd\event\cine\isako_stab_cate1.wav"
+
+/************************************************************************
+**	Sound - Isako stab cate2
+*/
+
+[isakostab2]
+Parent			= "Base3dSound"
+PlayOnce            = 1
+InnerRadius		= 1000
+OuterRadius		= 2800
+Path0			= "snd\event\cine\isako_stab_cate2.wav"
+
+/************************************************************************
+**	Sound - drawsword
+*/
+
+[drawsword]
+Parent			= "Base3dSound"
+InnerRadius		= 1000
+OuterRadius		= 2800
+Path0			= "snd\event\cine\drawsword.wav"
+
+/************************************************************************
+**	Sound - Bush Rustles FX
+*/
+
+[ShrubRustlesFX]
+Parent			= "BaseSFXObjSound"
+Path0	        	= "Snd\amb\ShrubBrushes_1.wav"
+Path1	        	= "Snd\amb\ShrubBrushes_2.wav"
+Path2			= "Snd\amb\ShrubBrushes_3.wav"
+Path3			= "Snd\amb\ShrubBrushes_4.wav"
+Path4			= "Snd\amb\ShrubBrushes_5.wav"
+
+/************************************************************************
+**	Sound - Japan Birds Random FX
+*/
+
+[JpnBird1offsFX]
+Parent			= "BaseSFXObjSound"
+Path0	        	= "Snd\amb\JpnFlycatcher_1off.wav"
+Path1	        	= "Snd\amb\JpnQuail_1off.wav"
+Path2			= "Snd\amb\JpnThrush_1off.wav"
+Path3			= "Snd\amb\JpnWoodpecker1_1off.wav"
+Path4			= "Snd\amb\JpnWoodpecker2_1off.wav"
+
+/************************************************************************
+**	Sound - Siberia Wolf Howls Random FX
+*/
+
+[WolfHowls1offsFX]
+Parent			= "BaseSFXObjSound"
+Volume			= 50
+Path0	        	= "Snd\amb\1_WolfHowls_1.wav"
+Path1	        	= "Snd\amb\1_WolfHowls_2.wav"
+Path2			= "Snd\amb\1_WolfHowls_3.wav"
+Path3			= "Snd\amb\1_WolfHowls_4.wav"
+Path4			= "Snd\amb\1_WolfHowls_5.wav"
+
+/************************************************************************
+**	Sound - typewriter single hits
+*/
+
+[typewriter]
+Parent			= "Base3DSound"
+InnerRadius		= 100
+OuterRadius		= 800
+Path0			= "Snd\event\type_01.wav"
+Path1			= "Snd\event\type_02.wav"
+Path2			= "Snd\event\type_03.wav"
+
+/************************************************************************
+**	Sound - Coin Bounce
+*/
+
+[CoinBounce]
+Parent			= "Base3DSound"
+InnerRadius		= 100
+OuterRadius		= 1200
+Path0			= "guns\snd\coin\bounce_01.wav"
+Path1			= "guns\snd\coin\bounce_02.wav"
+Path2			= "guns\snd\coin\bounce_03.wav"
+
+/************************************************************************
+**	Sound - Banana Bounce
+*/
+
+[BananaBounce]
+Parent			= "Base3DSound"
+InnerRadius		= 100
+OuterRadius		= 1200
+Path0			= "guns\snd\banana\bounce_01.wav"
+Path1			= "guns\snd\banana\bounce_02.wav"
+Path2			= "guns\snd\banana\bounce_03.wav"
+
+/************************************************************************
+**	Sound - Coin hit liquid
+*/
+
+[CoinBounceLiquid]
+Parent			= "Base3DSound"
+InnerRadius		= 100
+OuterRadius		= 1200
+Path0			= "guns\snd\coin\liquid.wav"
+
+
+/************************************************************************
+**	Sound - Banana hit liquid
+*/
+
+[BananaBounceLiquid]
+Parent			= "Base3DSound"
+InnerRadius		= 100
+OuterRadius		= 1200
+Path0			= "guns\snd\banana\liquid.wav"
+
+/************************************************************************
+**	Sound - hammering
+*/
+
+[hammer]
+Parent			= "Base3DSound"
+InnerRadius		= 50
+OuterRadius		= 800
+Path0			= "Snd\event\1_hammer_01.WAV"
+Path1			= "Snd\event\1_hammer_02.WAV"
+Path2			= "Snd\event\1_hammer_03.WAV"
+
+/************************************************************************
+**	Sound - buttons
+*/
+
+[button]
+Parent			= "Base3DSound"
+InnerRadius		= 50
+OuterRadius		= 800
+Path0			= "Snd\event\1_button_01.WAV"
+Path1			= "Snd\event\1_button_02.WAV"
+Path2			= "Snd\event\1_button_03.WAV"
+
+/************************************************************************
+**	Sound - Vending Machine Coin in 
+*/
+
+[vending_coinin]
+Parent			= "Base3DSound"
+InnerRadius		= 100
+OuterRadius		= 800
+Path0			= "snd\event\vending_coinin.wav"
+
+/************************************************************************
+**	Sound - Vending Machine button 
+*/
+
+[vending_button]
+Parent			= "Base3DSound"
+InnerRadius		= 100
+OuterRadius		= 800
+Path0			= "snd\event\vending_button.wav"
+
+/************************************************************************
+**	Sound - Vending Machine small hits 
+*/
+
+[vending_smhit]
+Parent			= "Base3DSound"
+InnerRadius		= 100
+OuterRadius		= 800
+Path0			= "snd\event\vending_hit_01.wav"
+Path1			= "snd\event\vending_hit_02.wav"
+
+/************************************************************************
+**	Sound - Vending Machine med hit 
+*/
+
+[vending_medhit]
+Parent			= "Base3DSound"
+InnerRadius		= 100
+OuterRadius		= 800
+Path0			= "snd\event\vending_hit_05.wav"
+
+/************************************************************************
+**	Sound - Vending Machine big hit 
+*/
+
+[vending_bighit]
+Parent			= "Base3DSound"
+InnerRadius		= 100
+OuterRadius		= 800
+Path0			= "snd\event\vending_hit_06.wav"
+
+/************************************************************************
+**	Sound - Vending Machine slot
+*/
+
+[vending_slot]
+Parent			= "Base3DSound"
+InnerRadius		= 100
+OuterRadius		= 800
+Path0			= "snd\event\vending_slot.WAV"
+
+/************************************************************************
+**	Sound - wrench
+*/
+
+[wrench]
+Parent			= "Base3DSound"
+InnerRadius		= 50
+OuterRadius		= 800
+Path0			= "Snd\event\1_wrench_01.WAV"
+Path1			= "Snd\event\1_wrench_02.WAV"
+Path2			= "Snd\event\1_wrench_03.WAV"
+
+/************************************************************************
+**	Sound - Ninja JumpUpStart
+*/
+
+[JumpUpStart]
+Parent			= "Base3DSound"
+InnerRadius		= 100
+OuterRadius		= 800
+Path0			= "Chars\snd\Ninja\JumpUpStart.wav"
+
+/************************************************************************
+**	Sound - Ninja JumpUpLand
+*/
+
+[JumpUpLand]
+Parent			= "Base3DSound"
+InnerRadius		= 100
+OuterRadius		= 800
+Path0			= "Chars\snd\Ninja\JumpUpLand.wav"
+
+/************************************************************************
+**	Sound - Ninja JumpDnStart
+*/
+
+[JumpDnStart]
+Parent			= "Base3DSound"
+InnerRadius		= 100
+OuterRadius		= 800
+Path0			= "Chars\snd\Ninja\JumpDnStart.wav"
+
+/************************************************************************
+**	Sound - Ninja JumpDnLand
+*/
+
+[JumpDnLand]
+Parent			= "Base3DSound"
+InnerRadius		= 100
+OuterRadius		= 800
+Path0			= "Chars\snd\Ninja\JumpDnLand.wav"
+
+/************************************************************************
+**	Sound - banana falling sound
+*/
+
+[bananafall]
+Parent			= "Base3DSound"
+InnerRadius		= 100
+OuterRadius		= 800
+Path0			= "guns\snd\banana\bananafall.wav"
+
+/************************************************************************
+**	Sound - banana idle sound
+*/
+
+[bananaidle]
+Parent			= "BaseLocalSound"
+Path0			= "guns\snd\banana\idle.wav"
+
+/************************************************************************
+**	Sound - Move Chair 1
+*/
+
+[movechair1]
+Parent			= "Base3DSound"
+InnerRadius		= 100
+OuterRadius		= 800
+Path0			= "snd\event\movechair1.wav"
+
+/************************************************************************
+**	Sound - Move Chair 2
+*/
+
+[movechair2]
+Parent			= "Base3DSound"
+InnerRadius		= 100
+OuterRadius		= 800
+Path0			= "snd\event\movechair2.wav"
+
+/************************************************************************
+**	Sound - Flask Cap
+*/
+
+[flaskcap]
+Parent			= "Base3DSound"
+InnerRadius		= 50
+OuterRadius		= 800
+Path0			= "snd\event\flaskcap_01.wav"
+Path1			= "snd\event\flaskcap_02.wav"
+
+/************************************************************************
+**	Sound - Katana fire
+*/
+
+[KatanaFire]
+Parent			= "Base3DSound"
+Path0	       	        = "guns\snd\Katana\fire1.wav"
+Path1			= "guns\snd\Katana\fire2.wav"
+Path2			= "guns\snd\Katana\fire.wav"
+
+/************************************************************************
+**	Sound - Tulwar fire
+*/
+
+[TulwarFire]
+Parent			= "Base3DSound"
+Path0	       		= "guns\snd\Tulwar\fire.wav"
+Path1	       		= "guns\snd\Tulwar\fire2.wav"
+Path2	       		= "guns\snd\Tulwar\fire3.wav"
+
+/************************************************************************
+**	Sound - mobil hitting
+*/
+
+[mobil_hit]
+Parent			= "Base3DSound"
+InnerRadius		= 2500
+OuterRadius		= 7500
+Path0			= "snd\event\mobil_hit_01.wav"
+Path1			= "snd\event\mobil_hit_02.wav"
+Path2			= "snd\event\mobil_hit_03.wav"
+
+/************************************************************************
+**	Sound - mobil rolling
+*/
+
+[mobil_roll]
+Parent			= "Base3DSound"
+InnerRadius		= 2500
+OuterRadius		= 7500
+Path0			= "snd\event\mobil_roll_01.WAV"
+Path1			= "snd\event\mobil_roll_02.WAV"
+Path2			= "snd\event\mobil_roll_03.WAV"
+Path3			= "snd\event\mobil_roll_04.WAV"
+
+/************************************************************************
+**	Sound - mobil tipping
+*/
+
+[mobil_tip]
+Parent			= "Base3DSound"
+InnerRadius		= 2500
+OuterRadius		= 7500
+Path0			= "snd\event\mobil_tip_01.wav"
+Path1			= "snd\event\mobil_tip_02.wav"
+Path2			= "snd\event\mobil_tip_03.wav"
+Path3			= "snd\event\mobil_tip_04.wav"
+
+/************************************************************************
+**	Sound - chair hitting stuff
+*/
+
+[chair_hit]
+Parent			= "Base3DSound"
+InnerRadius		= 2500
+OuterRadius		= 7500
+Path0			= "snd\event\chair_hit_01.wav"
+Path1			= "snd\event\chair_hit_02.wav"
+Path2			= "snd\event\chair_hit_03.wav"
+
+/************************************************************************
+**	Sound - fence boards hitting car
+*/
+
+[boards_incoming]
+Parent			= "Base3DSound"
+InnerRadius		= 2500
+OuterRadius		= 7500
+Path0			= "snd\event\incoming_01.wav"
+Path1			= "snd\event\incoming_02.wav"
+Path2			= "snd\event\incoming_03.wav"
+
+/************************************************************************
+**	Sound - fence boards hitting car
+*/
+
+[boards_hitcar]
+Parent			= "Base3DSound"
+InnerRadius		= 2500
+OuterRadius		= 7500
+Path0			= "snd\event\boards_hitcar_01.wav"
+Path1			= "snd\event\boards_hitcar_02.wav"
+Path2			= "snd\event\boards_hitcar_03.wav"
+
+/************************************************************************
+**	Sound - Cate fly sound
+*/
+
+[cate_fly]
+Parent			= "BaseLocalSound"
+Path0			= "snd\event\fly_01.wav"
+Path1			= "snd\event\fly_02.wav"
+Path2			= "snd\event\fly_03.wav"
+
+/************************************************************************
+**	Sound - Cate flying sound
+*/
+
+[cate_flying]
+Parent			= "BaseLocalSound"
+Path0			= "snd\event\flying.wav"
+LoopSound           = 1
+
+/************************************************************************
+**	Sound - Trailer fly away start sound
+*/
+
+[trailer_start]
+Parent			= "BaseLocalSound"
+PlayOnce            = 1
+Path0			= "snd\event\trailer_start.wav"
+
+/************************************************************************
+**	Sound - Trailer sign sound
+*/
+
+[trailer_sign]
+Parent			= "BaseLocalSound"
+Path0			= "snd\event\mobil_tip_03.WAV"
+Pitch			= 1.5
+
+/************************************************************************
+**	Sound - Trailer carport sound
+*/
+
+[trailer_carport]
+Parent			= "BaseLocalSound"
+Path0			= "snd\event\trailer_carport.wav"
+
+/************************************************************************
+**	Sound - Trailer trailer sound
+*/
+
+[trailer_trailer]
+Parent			= "BaseLocalSound"
+Path0			= "snd\event\trailer_trailer.wav"
+
+/************************************************************************
+**	Sound - Leather Movement
+*/
+
+[Leather_movehard]
+Parent			= "Base3DSound"
+InnerRadius		= 100
+OuterRadius		= 800
+Path0			= "Chars\snd\Female\LeatherMove\movehard_1.wav"
+Path1			= "Chars\snd\Female\LeatherMove\movehard_2.wav"
+Path2			= "Chars\snd\Female\LeatherMove\movehard_3.wav"
+Path3			= "Chars\snd\Female\LeatherMove\movehard_4.wav"
+
+/************************************************************************
+**	Sound - Leather Movement
+*/
+
+[Leather_movesoft]
+Parent			= "Base3DSound"
+InnerRadius		= 100
+OuterRadius		= 800
+Path0			= "Chars\snd\Female\LeatherMove\movesoft_1.wav"
+Path1			= "Chars\snd\Female\LeatherMove\movesoft_2.wav"
+Path2			= "Chars\snd\Female\LeatherMove\movesoft_3.wav"
+Path3			= "Chars\snd\Female\LeatherMove\movesoft_4.wav"
+
+/************************************************************************
+**	Sound - Summer Movement
+*/
+
+[Summer_movehard]
+Parent			= "Base3DSound"
+InnerRadius		= 100
+OuterRadius		= 800
+Path0			= "Chars\snd\Female\SummerMove\movehard_1.wav"
+Path1			= "Chars\snd\Female\SummerMove\movehard_2.wav"
+Path2			= "Chars\snd\Female\SummerMove\movehard_3.wav"
+Path3			= "Chars\snd\Female\SummerMove\movehard_4.wav"
+
+/************************************************************************
+**	Sound - Summer Movement
+*/
+
+[Summer_movesoft]
+Parent			= "Base3DSound"
+InnerRadius		= 100
+OuterRadius		= 800
+Path0			= "Chars\snd\Female\SummerMove\movesoft_1.wav"
+Path1			= "Chars\snd\Female\SummerMove\movesoft_2.wav"
+Path2			= "Chars\snd\Female\SummerMove\movesoft_3.wav"
+Path3			= "Chars\snd\Female\SummerMove\movesoft_4.wav"
+
+/************************************************************************
+**	Sound - Winter Movement
+*/
+
+[Winter_movehard]
+Parent			= "Base3DSound"
+InnerRadius		= 100
+OuterRadius		= 800
+Path0			= "Chars\snd\Female\WinterMove\movehard_1.wav"
+Path1			= "Chars\snd\Female\WinterMove\movehard_2.wav"
+Path2			= "Chars\snd\Female\WinterMove\movehard_3.wav"
+Path3			= "Chars\snd\Female\WinterMove\movehard_4.wav"
+
+/************************************************************************
+**	Sound - Winter Movement
+*/
+
+[Winter_movesoft]
+Parent			= "Base3DSound"
+InnerRadius		= 100
+OuterRadius		= 800
+Path0			= "Chars\snd\Female\WinterMove\movesoft_1.wav"
+Path1			= "Chars\snd\Female\WinterMove\movesoft_2.wav"
+Path2			= "Chars\snd\Female\WinterMove\movesoft_3.wav"
+Path3			= "Chars\snd\Female\WinterMove\movesoft_4.wav"
+
+/************************************************************************
+**	Sound - BreakWall
+*/
+
+[breakwall]
+Parent			= "Base3DSound"
+Path0			= "snd\event\breakwall_01.WAV"
+
+/************************************************************************
+**	Sound - AwningCrash
+*/
+
+[awningcrash]
+Parent			= "Base3DSound"
+Path0			= "snd\event\awningcrash_01.WAV"
+
+/************************************************************************
+**	Sound - Robot Laser
+*/
+
+[robotlaser]
+Parent			= "Base3DSound"
+Path0			= "Guns\Snd\robotlaser\fire_01.WAV"
+Path1			= "Guns\Snd\robotlaser\fire_02.WAV"
+Path2			= "Guns\Snd\robotlaser\fire_03.WAV"
+
+/************************************************************************
+**	Sound - Super Soldier Laser
+*/
+
+[sslaser]
+Parent			= "Base3DSound"
+Path0			= "Guns\Snd\sslaser\fire_01.WAV"
+Path1			= "Guns\Snd\sslaser\fire_02.WAV"
+Path2			= "Guns\Snd\sslaser\fire_03.WAV"
+
+/************************************************************************
+**	Sound - Super Soldier Laser
+*/
+
+[laserimpact]
+Parent			= "Base3DSound"
+Path0			= "Guns\Snd\robotlaser\impact_01.WAV"
+Path1			= "Guns\Snd\robotlaser\impact_02.WAV"
+Path2			= "Guns\Snd\robotlaser\impact_03.WAV"
+
+/************************************************************************
+**	Sound - glass pounding
+*/
+
+[glspound]
+Parent			= "Base3DSound"
+Path0			= "snd\event\glsPound.wav"
+
+/************************************************************************
+**	Sound - draw tommy gun
+*/
+
+[seltommy]
+Parent			= "Base3DSound"
+InnerRadius		= 650
+OuterRadius		= 4800
+Path0			= "guns\snd\tommygun\reload3.wav"
+
+/************************************************************************
+**	Sound - De Robe
+*/
+
+[derobe]
+Parent			= "Base3DSound"
+PlayOnce            = 1
+InnerRadius		= 500
+OuterRadius		= 2500
+Path0			= "snd\event\de_robe.wav"
+
+/************************************************************************
+**	Sound - mime king aftermath
+*/
+
+[mimekingsnd]
+Parent			= "Base3DSound"
+PlayOnce            = 1
+InnerRadius		= 500
+OuterRadius		= 2500
+Path0			= "snd\event\unimove.wav"
+
+
+/************************************************************************
+**	Sound - Ammo box pickup (could be any type of ammo)
+*/
+
+[AmmoBoxPickup]
+Parent			= "Base3DSound"
+InnerRadius		= 500
+OuterRadius		= 2500
+Path0			= "snd\powerups\pu_ammo.wav"
+
+
+/************************************************************************
+**	Sound - Ammo box respawn (could be any type of ammo)
+*/
+
+[AmmoBoxRespawn]
+Parent			= "Base3DSound"
+InnerRadius		= 500
+OuterRadius		= 2500
+Path0			= "snd\powerups\respawn.wav"
+
+
+/************************************************************************
+**	Sound - Weapon item pickup (could be any type of weapon)
+*/
+
+[WeaponItemPickup]
+Parent			= "Base3DSound"
+InnerRadius		= 500
+OuterRadius		= 2500
+Path0			= "snd\powerups\pu_weapon.wav"
+
+
+/************************************************************************
+**	Sound - Weapon item respawn (could be any type of weapon)
+*/
+
+[WeaponItemRespawn]
+Parent			= "Base3DSound"
+InnerRadius		= 500
+OuterRadius		= 2500
+Path0			= "snd\powerups\respawn.wav"
+
+
+/************************************************************************
+**	Sound - Mod item pickup (could be any type of mod)
+*/
+
+[ModItemPickupSound]
+Parent			= "Base3DSound"
+InnerRadius		= 500
+OuterRadius		= 2500
+Path0			= "snd\powerups\pu_mod.wav"
+
+
+/************************************************************************
+**	Sound - Mod item respawn (could be any type of mod)
+*/
+
+[ModItemRespawnSound]
+Parent			= "Base3DSound"
+InnerRadius		= 500
+OuterRadius		= 2500
+Path0			= "snd\powerups\spawn.wav"
+
+
+/************************************************************************
+**	Sound - Body Armor pickup
+*/
+
+[BodyArmorPickupSound]
+Parent			= "Base3DSound"
+InnerRadius		= 500
+OuterRadius		= 2500
+Path0			= "snd\powerups\pu_armor.wav"
+
+
+/************************************************************************
+**	Sound - Body Armor respawn
+*/
+
+[BodyArmorRespawnSound]
+Parent			= "Base3DSound"
+InnerRadius		= 500
+OuterRadius		= 2500
+Path0			= "snd\powerups\spawn.wav"
+
+/************************************************************************
+**	Sound - Disconnect Speaker Phone
+*/
+
+[SP_Disconnect]
+Parent			= "Base3DSound"
+InnerRadius		= 1000
+OuterRadius		= 5000
+Path0			= "snd\amb\SP_Disconnect.wav"
+
+/************************************************************************
+**	Sound - Default Key Item pickup sound
+*/
+
+[DefaultKeyItemSound]
+Parent			= "Base3DSound"
+InnerRadius		= 500
+OuterRadius		= 2500
+Path0			= "snd\powerups\pu_keyitem.wav"
+
+
+/************************************************************************
+**	Sound - Couldn't pick up the powerup (used by mods, armor, weapons,
+**			and ammo)
+*/
+
+[NoPickupSound]
+Parent			= "BaseLocalSound"
+Path0			= "snd\powerups\pu_no.wav"
+
+/************************************************************************
+**	Sound - Open Basement Cellar
+*/
+
+[Open_Cellar]
+Parent			= "Base3DSound"
+InnerRadius		= 10000
+OuterRadius		= 20000
+Path0			= "snd\doors\HeavyDoor_opn2.wav"
+
+/************************************************************************
+**	Sound - Cave One Offs 1
+*/
+
+[Cave1offs_01]
+Parent			= "BaseSFXObjSound"
+Path0	        	= "Snd\amb\1_caveamb_2.WAV"
+Path1	        	= "Snd\amb\1_caveamb_3.WAV"
+Path2			= "Snd\amb\1_caveamb_5.WAV"
+Path3			= "Snd\amb\1_caveamb_7.WAV"
+Path4			= "Snd\amb\1_caveamb_8.WAV"
+
+/************************************************************************
+**	Sound - Cave One Offs 2
+*/
+
+[Cave1offs_02]
+Parent			= "BaseSFXObjSound"
+Path0	        	= "Snd\amb\1_caveamb_1.WAV"
+Path1	        	= "Snd\amb\1_caveamb_4.WAV"
+Path2			= "Snd\amb\1_caveamb_6.WAV"
+
+/************************************************************************
+**	Sound - FemaleBodyFall_Ground
+*/
+
+[FemBodyFall_Grnd]
+Parent			= "Base3DSound"
+InnerRadius		= 100
+OuterRadius		= 2000
+Path0			= "Chars\snd\FemaleBodyFall_Ground.wav"
+
+/************************************************************************
+**	Sound - MaleBodyFall_Ground
+*/
+
+[MaleBodyFall_Grnd]
+Parent			= "Base3DSound"
+InnerRadius		= 100
+OuterRadius		= 2000
+Path0			= "Chars\snd\MaleBodyFall_Ground.wav"
+
+/************************************************************************
+**	Sound - sipping
+*/
+
+[sipping]
+Parent			= "Base3DSound"
+PlayOnce            = 1
+InnerRadius		= 50
+OuterRadius		= 2000
+Path0			= "snd\event\sip.wav"
+
+/************************************************************************
+**	Sound - Dropping body
+*/
+
+[dropbody]
+Parent			= "Base3DSound"
+InnerRadius		= 100
+OuterRadius		= 2000
+Path0			= "Chars\snd\dropbody.wav"
+
+/************************************************************************
+**	Sound - Soft Move
+*/
+
+[movesoft]
+Parent			= "Base3DSound"
+InnerRadius		= 100
+OuterRadius		= 1800
+Path0			= "Chars\snd\Female\SummerMove\movesoft_1.wav"
+
+/************************************************************************
+**	Sound - Wood Board Bounce
+*/
+
+[WoodBoardBounce]
+Parent			= "Base3DSound"
+InnerRadius		= 100
+OuterRadius		= 1800
+Path0			= "snd\amb\woodhit1_ground.wav"
+Path1			= "snd\amb\woodhit2_ground.wav"
+Path2			= "snd\amb\woodhit3_ground.wav"
+
+/************************************************************************
+**	Sound - sitonbed
+*/
+
+[sitonbed]
+Parent			= "Base3DSound"
+InnerRadius		= 100
+OuterRadius		= 1800
+Path0			= "snd\event\sitonbed.wav"
+
+/************************************************************************
+**	Sound - sitbackonbed
+*/
+
+[sitbackonbed]
+Parent			= "Base3DSound"
+InnerRadius		= 100
+OuterRadius		= 1800
+Path0			= "snd\event\sitbackonbed.wav"
+
+/************************************************************************
+**	Sound - Vase FallOver FX
+*/
+
+[VaseFallOverFX]
+Parent			= "BaseSFXObjSound"
+Path0	        	= "Snd\event\vasefall_1.wav"
+Path1	        	= "Snd\event\vasefall_2.wav"
+Path2			= "Snd\event\vasefall_3.wav"
+Path3			= "Snd\event\vasefall_4.wav"
+
+/************************************************************************
+**	Sound - Vase Wobble FX
+*/
+
+[VaseWobbleFX]
+Parent			= "BaseSFXObjSound"
+Path0	        	= "Snd\event\vasewobble_1.wav"
+Path1	        	= "Snd\event\vasewobble_2.wav"
+
+/************************************************************************
+**	Sound - Monkey Idle Sound FX
+*/
+
+[MonkeyIdleSFX]
+Parent			= "Base3DSound"
+InnerRadius		= 100
+OuterRadius		= 500
+Path0			= "chars\snd\monkeyloop.wav"
+
+/************************************************************************
+**	Sound - Monkey Death Scream Sound FX
+*/
+
+[MonkeyDeathScreamSFX]
+Parent			= "Base3DSound"
+InnerRadius		= 100
+OuterRadius		= 500
+Path0			= "chars\snd\monkeyscream_death1.wav"
+Path1			= "chars\snd\monkeyscream_death2.wav"
+Path2			= "chars\snd\monkeyscream_death3.wav"
+
+/************************************************************************
+**	Sound - Armstrong LiftGate Oneoffs
+*/
+
+[Armstrong_1]
+Parent			= "Base3DSound"
+InnerRadius		= 100
+OuterRadius		= 1000
+Path0			= "Chars\snd\1_armstrong_1.wav"
+
+/************************************************************************
+**	Sound - Armstrong LiftGate Oneoffs
+*/
+
+[Armstrong_2]
+Parent			= "Base3DSound"
+InnerRadius		=200
+OuterRadius		= 1500
+Path0			= "Chars\snd\1_armstrong_2.wav"
+
+/************************************************************************
+**	Sound - Armstrong LiftGate Oneoffs
+*/
+
+[Armstrong_3]
+Parent			= "Base3DSound"
+InnerRadius		= 100
+OuterRadius		= 1000
+Path0			= "Chars\snd\1_armstrong_3.wav"
+
+/************************************************************************
+**	Sound - Armstrong LiftGate Oneoffs
+*/
+
+[Armstrong_4]
+Parent			= "Base3DSound"
+InnerRadius		= 100
+OuterRadius		= 1000
+Path0			= "Chars\snd\1_armstrong_4.wav"
+
+/************************************************************************
+**	Sound - Armstrong shove
+*/
+
+[Armstrong_5]
+Parent			= "Base3DSound"
+InnerRadius		= 225
+OuterRadius		= 1500
+Path0			= "Chars\snd\1_armstrong_5.wav"
+
+/************************************************************************
+**	Sound - Coffee Sip
+*/
+
+[CoffeeSip_1]
+Parent			= "Base3DSound"
+InnerRadius		= 100
+OuterRadius		= 800
+Path0			= "Chars\snd\CoffeeSip_1.wav"
+
+/************************************************************************
+**	Sound - Coffee Sip
+*/
+
+[CoffeeSip_2]
+Parent			= "Base3DSound"
+InnerRadius		= 100
+OuterRadius		= 800
+Path0			= "Chars\snd\CoffeeSip_2.wav"
+
+/************************************************************************
+**	Sound - Coffee Sip
+*/
+
+[CoffeeSip_3]
+Parent			= "Base3DSound"
+InnerRadius		= 100
+OuterRadius		= 800
+Path0			= "Chars\snd\CoffeeSip_3.wav"
+
+/************************************************************************
+**	Sound - slide glass on Bar
+*/
+
+[drinkwhiskey]
+Parent			= "Base3DSound"
+InnerRadius		= 2000
+OuterRadius		= 12000
+Path0			= "snd\event\slideglass.wav"
+
+/************************************************************************
+**	Sound - set down glass
+*/
+
+[glasshit]
+Parent			= "Base3DSound"
+InnerRadius		= 2000
+OuterRadius		= 12000
+Path0			= "snd\event\glasshit.wav"
+
+/************************************************************************
+**	Sound - small gulp
+*/
+
+[gulp]
+Parent			= "Base3DSound"
+InnerRadius		= 4000
+OuterRadius		= 12000
+Path0			= "snd\event\gulp.wav"
+
+/************************************************************************
+**	Sound - whiskey sip
+*/
+
+[whiskeysip]
+Parent			= "Base3DSound"
+InnerRadius		= 2000
+OuterRadius		= 12000
+Path0			= "snd\event\whiskeysip.wav"
+
+/************************************************************************
+**	Sound - dang it
+*/
+
+[dangit]
+Parent			= "Base3DSound"
+PlayOnce            = 1
+InnerRadius		= 2000
+OuterRadius		= 12000
+Path0			= "snd\event\dangit.wav"
+
+/************************************************************************
+**	Sound - dang
+*/
+
+[dang]
+Parent			= "Base3DSound"
+PlayOnce            = 1
+InnerRadius		= 2000
+OuterRadius		= 12000
+Path0			= "snd\event\dang.wav"
+
+/************************************************************************
+**	Sound - SuperSoldier Footsteps
+*/
+
+[ssfootstep1]
+Parent			= "Base3DSound"
+InnerRadius		= 300
+OuterRadius		= 2500
+Path0			= "Chars\snd\footsteps\ssfootstep_1a.WAV"
+Path1			= "Chars\snd\footsteps\ssfootstep_1b.WAV"
+
+/************************************************************************
+**	Sound - SuperSoldier Footsteps
+*/
+
+[ssfootstep2]
+Parent			= "Base3DSound"
+InnerRadius		= 300
+OuterRadius		= 2500
+Path0			= "Chars\snd\footsteps\ssfootstep_2a.WAV"
+Path1			= "Chars\snd\footsteps\ssfootstep_2b.WAV"
+
+/************************************************************************
+**	Sound - drinking fountain
+*/
+
+[drinkfountain]
+Parent			= "Base3DSound"
+InnerRadius		= 50
+OuterRadius		= 800
+Volume			= 75
+Path0			= "snd\event\drinkfountain.wav"
+
+/************************************************************************
+**	Sound - paper searching one offs
+*/
+
+[papersearch]
+Parent			= "Base3DSound"
+InnerRadius		= 50
+OuterRadius		= 800
+Volume			= 75
+Path0			= "snd\event\1_paper_01.wav"
+Path1			= "snd\event\1_paper_02.wav"
+Path2			= "snd\event\1_paper_03.wav"
+Path3			= "snd\event\1_paper_04.wav"
+Path4			= "snd\event\1_paper_05.wav"
+Path5			= "snd\event\1_paper_06.wav"
+
+/************************************************************************
+**	Sound - Zipping pants slow
+*/
+
+[zipslow]
+Parent			= "Base3DSound"
+InnerRadius		= 50
+OuterRadius		= 800
+Volume			= 75
+Path0			= "snd\event\zipslow.wav"
+
+/************************************************************************
+**	Sound - Zipping pants fast
+*/
+
+[zipfast]
+Parent			= "Base3DSound"
+InnerRadius		= 50
+OuterRadius		= 800
+Volume			= 75
+Path0			= "snd\event\zipfast.wav"
+
+/************************************************************************
+**	Sound - Light smoke
+*/
+
+[lighter]
+Parent			= "Base3DSound"
+InnerRadius		= 50
+OuterRadius		= 800
+Path0			= "snd\event\lighter.wav"
+
+/************************************************************************
+**	Sound - Zippo open
+*/
+
+[zippo_open]
+Parent			= "Base3DSound"
+InnerRadius		= 50
+OuterRadius		= 800
+Path0			= "snd\event\zippo_open.WAV"
+
+/************************************************************************
+**	Sound - Zippo close
+*/
+
+[zippo_close]
+Parent			= "Base3DSound"
+InnerRadius		= 50
+OuterRadius		= 800
+Path0			= "snd\event\zippo_close.WAV"
+
+/************************************************************************
+**	Sound - Zippo light
+*/
+
+[zippo_light]
+Parent			= "Base3DSound"
+InnerRadius		= 50
+OuterRadius		= 800
+Path0			= "snd\event\zippo_light.WAV"
+
+/************************************************************************
+**	Sound - Smoke Inhale
+*/
+
+[smokein]
+Parent			= "Base3DSound"
+InnerRadius		= 50
+OuterRadius		= 800
+Path0			= "snd\event\smoke_in_01.wav"
+Path1			= "snd\event\smoke_in_02.wav"
+
+/************************************************************************
+**	Sound - Smoke Exhale
+*/
+
+[smokeex]
+Parent			= "Base3DSound"
+InnerRadius		= 50
+OuterRadius		= 800
+Path0			= "snd\event\smoke_ex_01.wav"
+Path1			= "snd\event\smoke_ex_02.wav"
+
+/************************************************************************
+**	Sound - SuperSoldier Die 1
+*/
+
+[SSoldierDie1]
+Parent			= "Base3DSound"
+InnerRadius		= 500
+OuterRadius		= 2000
+Path0			= "Chars\snd\SSoldierDie_1.WAV"
+
+/************************************************************************
+**	Sound - SuperSoldier Die 1A
+*/
+
+[SSoldierDie1a]
+Parent			= "Base3DSound"
+InnerRadius		= 500
+OuterRadius		= 2000
+Path0			= "Chars\snd\SSoldierDie_1a.WAV"
+
+/************************************************************************
+**	Sound - SuperSoldier Die 2
+*/
+
+[SSoldierDie2]
+Parent			= "Base3DSound"
+InnerRadius		= 500
+OuterRadius		= 2000
+Path0			= "Chars\snd\SSoldierDie_2.WAV"
+
+/************************************************************************
+**	Sound - SuperSoldier Powerdwn
+*/
+
+[SSPowerdwn]
+Parent			= "Base3DSound"
+InnerRadius		= 500
+OuterRadius		= 1500
+Path0			= "Chars\snd\SSPowerdwn.WAV"
+
+/************************************************************************
+**	Sound - SuperSoldier Powerup
+*/
+
+[SSPowerup]
+Parent			= "Base3DSound"
+InnerRadius		= 500
+OuterRadius		= 1500
+Path0			= "Chars\snd\SSPowerup.WAV"
+
+/************************************************************************
+**	Sound - SuperSoldier Powerup2
+*/
+
+[SSPowerup2]
+Parent			= "Base3DSound"
+InnerRadius		= 500
+OuterRadius		= 2000
+Path0			= "Chars\snd\SSPowerup2.WAV"
+
+/************************************************************************
+**	Sound - SuperSoldier Electrocute
+*/
+
+[SSelectrocute]
+Parent			= "Base3DSound"
+InnerRadius		= 500
+OuterRadius		= 2000
+Path0			= "Chars\snd\SSelectrocute.WAV"
+
+/************************************************************************
+**	Sound - SuperSoldier Electrocute2
+*/
+
+[SSelectrocute2]
+Parent			= "Base3DSound"
+InnerRadius		= 500
+OuterRadius		= 2000
+Path0			= "Chars\snd\SSelectrocute2.WAV"
+
+/************************************************************************
+**	Sound - SuperSoldier Kittyreact
+*/
+
+[SSKittyreact]
+Parent			= "Base3DSound"
+InnerRadius		= 500
+OuterRadius		= 2000
+Path0			= "Chars\snd\SSKittyreact.WAV"
+
+/************************************************************************
+**	Sound - SuperSoldier Movements												
+*/
+
+[SSmovements]
+Parent			= "Base3DSound"
+InnerRadius		= 350
+OuterRadius		= 1800
+Path0			= "Chars\snd\SSmovement_1.wav"
+Path1			= "Chars\snd\SSmovement_2.wav"
+Path2			= "Chars\snd\SSmovement_3.wav"
+Path3			= "Chars\snd\SSmovement_4.wav"
+
+/************************************************************************
+**	Sound - AI Reload 1 Tommy Gun
+*/
+
+[AIReload_01]
+Parent			= "Base3DSound"
+InnerRadius		= 200
+OuterRadius		= 900
+Path0			= "guns\snd\tommygun\reload2.WAV"
+
+/************************************************************************
+**	Sound - AI Reload 2 Tommy Gun
+*/
+
+[AIReload_02]
+Parent			= "Base3DSound"
+InnerRadius		= 200
+OuterRadius		= 900
+Path0			= "guns\snd\tommygun\reload3.WAV"
+
+/************************************************************************
+**	Sound - Ninja death fall sound 1
+*/
+
+[movementDth1]
+Parent			= "Base3DSound"
+InnerRadius		= 500
+OuterRadius		= 1500
+Path0			= "Chars\snd\ninja\movementDth1.wav"
+
+/************************************************************************
+**	Sound - Ninja death fall sound 2
+*/
+
+[movementDth2]
+Parent			= "Base3DSound"
+InnerRadius		= 500
+OuterRadius		= 1500
+Path0			= "Chars\snd\ninja\movementDth2.wav"
+
+
+/************************************************************************
+**	Sound - Robot draw
+*/
+
+[draw]
+Parent			= "Base3DSound"
+InnerRadius		= 200
+OuterRadius		= 1300
+Path0			= "Chars\snd\robot\draw.wav"
+
+/************************************************************************
+**	Sound - Robot holster
+*/
+
+[holster]
+Parent			= "Base3DSound"
+InnerRadius		= 200
+OuterRadius		= 1300
+Path0			= "Chars\snd\robot\holster.wav"
+
+/************************************************************************
+**	Sound - Robot run
+*/
+
+[run]
+Parent			= "Base3DSound"
+InnerRadius		= 100
+OuterRadius		= 900
+Path0			= "Chars\snd\robot\run.wav"
+
+/************************************************************************
+**	Sound - Robot run2
+*/
+
+[run2]
+Parent			= "Base3DSound"
+InnerRadius		= 100
+OuterRadius		= 900
+Path0			= "Chars\snd\robot\run2.wav"
+
+/************************************************************************
+**	Sound - Robot death 1
+*/
+
+[death1]
+Parent			= "Base3DSound"
+InnerRadius		= 500
+OuterRadius		= 1500
+Path0			= "Chars\snd\robot\death1.wav"
+
+/************************************************************************
+**	Sound - Bear Trap snap closed
+*/
+
+[beartrap_snap]
+Parent			= "Base3DSound"
+InnerRadius		= 1500
+OuterRadius		= 2500
+Path0			= "guns\snd\beartrap\snap.wav"
+
+/************************************************************************
+**	Sound - Bear Trap shake off
+*/
+
+[beartrap_shakeoff]
+Parent			= "Base3DSound"
+InnerRadius		= 500
+OuterRadius		= 1500
+Path0			= "guns\snd\beartrap\shakeoff.wav"
+
+/************************************************************************
+**	Sound - Glue Trap stick
+*/
+
+[gluetrap_stick]
+Parent			= "Base3DSound"
+InnerRadius		= 500
+OuterRadius		= 1500
+Path0			= "guns\snd\gluetrap\stick.wav"
+
+/************************************************************************
+**	Sound - Glue Trap unstick
+*/
+
+[gluetrap_unstick]
+Parent			= "Base3DSound"
+InnerRadius		= 500
+OuterRadius		= 1500
+Path0			= "guns\snd\gluetrap\unstick.wav"
+
+/************************************************************************
+**	Sound - Rabbit Sniff
+*/
+
+[sniffrabbit]
+Parent			= "Base3DSound"
+InnerRadius		= 100
+OuterRadius		= 800
+Path0			= "Chars\snd\rabbitrat\sniffrabbit.wav"
+
+/************************************************************************
+**	Sound - Rat Sniff
+*/
+
+[sniffrat]
+Parent			= "Base3DSound"
+InnerRadius		= 100
+OuterRadius		= 800
+Path0			= "Chars\snd\rabbitrat\sniffrat.wav"
+
+/************************************************************************
+**	Sound - welder impact sound
+*/
+
+[weldimpact]
+Parent			= "Base3DSound"
+InnerRadius		= 500
+OuterRadius		= 1500
+Path0			= "guns\snd\welder\impact_01.wav"
+Path1			= "guns\snd\welder\impact_02.wav"
+Path2			= "guns\snd\welder\impact_03.wav"
+
+/************************************************************************
+**	Sound - writting on table
+*/
+
+[writtingsnd]
+Parent			= "Base3DSound"
+InnerRadius		= 500
+OuterRadius		= 1500
+Path0			= "snd\event\write_01.wav"
+Path1			= "snd\event\write_02.wav"
+Path2			= "snd\event\write_03.wav"
+
+/************************************************************************
+**	Sound - open drawer
+*/
+
+[draweropen]
+Parent			= "Base3DSound"
+InnerRadius		= 500
+OuterRadius		= 1500
+Path0			= "snd\doors\DeskDraweropn_1.WAV"
+
+/************************************************************************
+**	Sound - Mancrate hits
+*/
+
+[mancratehits]
+Parent			= "Base3DSound"
+InnerRadius		= 500
+OuterRadius		= 1500
+Path0			= "Chars\snd\Mancrate\mancratehit_1.WAV"
+Path1			= "Chars\snd\Mancrate\mancratehit_2.WAV"
+Path2			= "Chars\snd\Mancrate\mancratehit_3.WAV"
+
+/************************************************************************
+**	Sound - Mancrate Yelps
+*/
+
+[mancrateyelps]
+Parent			= "Base3DSound"
+InnerRadius		= 500
+OuterRadius		= 1500
+PlayChance              = 0.5
+Path0			= "Chars\snd\Mancrate\mancrateyelp_1.WAV"
+Path1			= "Chars\snd\Mancrate\mancrateyelp_2.WAV"
+Path2			= "Chars\snd\Mancrate\mancrateyelp_3.WAV"
+Path3			= "Chars\snd\Mancrate\mancrateyelp_4.WAV"
+Path4			= "Chars\snd\Mancrate\mancrateyelp_5.WAV"
+Path5			= "Chars\snd\Mancrate\mancrateyelp_6.WAV"
+
+/************************************************************************
+**	Sound - Mancrate Roll
+*/
+
+[mancrateroll1]
+Parent			= "Base3DSound"
+InnerRadius		= 500
+OuterRadius		= 1500
+Path0			= "Chars\snd\Mancrate\mancrateroll_1.WAV"
+
+/************************************************************************
+**	Sound - Mancrate Roll
+*/
+
+[mancrateroll2]
+Parent			= "Base3DSound"
+InnerRadius		= 500
+OuterRadius		= 1500
+Path0			= "Chars\snd\Mancrate\mancrateroll_2.WAV"
+
+/************************************************************************
+**	Sound - Mancrate Roll
+*/
+
+[mancrateroll3]
+Parent			= "Base3DSound"
+InnerRadius		= 500
+OuterRadius		= 1500
+Path0			= "Chars\snd\Mancrate\mancrateroll_3.WAV"
+
+/************************************************************************
+**	Sound - Mancrate Roll
+*/
+
+[mancrateroll4]
+Parent			= "Base3DSound"
+InnerRadius		= 500
+OuterRadius		= 1500
+Path0			= "Chars\snd\Mancrate\mancrateroll_4.WAV"
+
+/************************************************************************
+**	Sound - Hospital Rands
+*/
+
+[hospitalrands]
+Parent			= "BaseSFXObjSound"
+Path0			= "snd\amb\1_hospital_01.WAV"
+Path1			= "snd\amb\1_hospital_02.WAV"
+
+/************************************************************************
+**	Sound - Suprise Yelp
+*/
+
+[supriseyelp]
+Parent			= "Base3DSound"
+PlayOnce            = 1
+InnerRadius		= 1500
+OuterRadius		= 3500
+Path0			= "snd\event\cine\supriseyelp.WAV"
+
+/************************************************************************
+**	Sound - Armstrong grunt 1
+*/
+
+[armgrunt_01]
+Parent			= "Base3DSound"
+InnerRadius		= 1500
+OuterRadius		= 3500
+Path0			= "snd\event\cine\armgrunt_01.WAV"
+
+/************************************************************************
+**	Sound - Armstrong grunt 2
+*/
+
+[armgrunt_02]
+Parent			= "Base3DSound"
+InnerRadius		= 1500
+OuterRadius		= 3500
+Path0			= "snd\event\cine\armgrunt_02.WAV"
+
+/************************************************************************
+**	Sound - Armstrong grunt 3
+*/
+
+[armgrunt_03]
+Parent			= "Base3DSound"
+InnerRadius		= 1500
+OuterRadius		= 3500
+Path0			= "snd\event\cine\armgrunt_03.WAV"
+
+/************************************************************************
+**	Sound - Indian idle rands
+*/
+
+[indianidles]
+Parent			= "BaseSFXObjSound"
+Path0			= "voice\32314.wav"
+Path1			= "voice\32315.wav"
+Path2			= "voice\32316.wav"
+Path3			= "voice\32317.wav"
+Path4			= "voice\32318.wav"
+Path5			= "voice\32319.wav"
+Path6			= "voice\32320.wav"
+Path7			= "voice\32321.wav"
+Path8			= "voice\32322.wav"
+
+/************************************************************************
+**	Sound - Giving smPaper
+*/
+
+[handpaper]
+Parent			= "Base3DSound"
+InnerRadius		= 1200
+OuterRadius		= 2000
+Path0			= "Chars\snd\handpaper.WAV"
+
+/************************************************************************
+**	Sound - Getting up - Cine c07s01
+*/
+
+[getup]
+Parent			= "Base3DSound"
+PlayOnce            = 1
+InnerRadius		= 1200
+OuterRadius		= 3000
+Path0			= "snd\event\\cine\getup_0701.wav"
+
+/************************************************************************
+**	Sound - humming - Cine c07s01
+*/
+
+[humming]
+Parent			= "Base3DSound"
+PlayOnce            = 1
+InnerRadius		= 200
+OuterRadius		= 3000
+Path0			= "snd\event\\cine\humming.wav"
+
+/************************************************************************
+**	Sound - Super Soldier Laser
+*/
+
+[ssbgfiring_rand]
+Parent			= "BaseSFXObjSound"
+Path0			= "snd\event\cine\ss_bgfiring_01.WAV"
+Path1			= "snd\event\cine\ss_bgfiring_02.WAV"
+Path2			= "snd\event\cine\ss_bgfiring_03.WAV"
+
+/************************************************************************
+**      Sound - SuperSoldier Die 1b
+*/
+[SSoldierDie1b]
+Parent                    = "Base3DSound"
+InnerRadius              = 500
+OuterRadius             = 2000
+Path0                     = "Chars\snd\SSoldierDie_1b.WAV"
+
+/************************************************************************
+**      Sound - SuperSoldier Die 2a
+*/
+[SSoldierDie2a]
+Parent                    = "Base3DSound"
+InnerRadius              = 500
+OuterRadius		= 2000
+Path0                     = "Chars\snd\SSoldierDie_2a.WAV"
+
+/************************************************************************
+**	Sound - Connect Speaker Phone
+*/
+
+[SP_Connect]
+Parent			= "Base3DSound"
+InnerRadius		= 1000
+OuterRadius		= 5000
+Path0			= "snd\amb\SP_Connect.wav"
+
+/************************************************************************
+**	Sound - SuperSoldier Randoms
+*/
+
+[SSnoises]
+Parent			= "BaseSFXObjSound"
+Path0			= "Chars\snd\1_SSoldier_1.WAV"
+Path1			= "Chars\snd\1_SSoldier_2.WAV"
+Path2			= "Chars\snd\1_SSoldier_3.WAV"
+Path3			= "Chars\snd\1_SSoldier_4.WAV"
+Path4			= "Chars\snd\1_SSoldier_5.WAV"
+Path5			= "Chars\snd\1_SSoldier_6.WAV"
+
+/************************************************************************
+**	Sound - Isako Cine_c14s03a 
+*/
+
+[appear]
+Parent			= "Base3DSound"
+InnerRadius		= 2000
+OuterRadius		= 4000
+Path0			= "Chars\snd\Ninja\movement10.wav"
+
+/************************************************************************
+**	Sound - Isako Cine_c14s03b 
+*/
+
+[jumpup]
+Parent			= "Base3DSound"
+InnerRadius		= 2000
+OuterRadius		= 4000
+Path0			= "Chars\snd\Ninja\movement4.wav"
+
+/************************************************************************
+**	Sound - Isako Cine_c14s03c
+*/
+
+[vanish]
+Parent			= "Base3DSound"
+InnerRadius		= 2000
+OuterRadius		= 4000
+Path0			= "Chars\snd\Ninja\movement2.wav"
+
+/************************************************************************
+**	Sound - Isako Cine_c14s03d1
+*/
+
+[breaksword1]
+Parent			= "Base3DSound"
+InnerRadius		= 2500
+OuterRadius		= 8000
+Path0			= "snd\event\cine\breaksword1.wav"
+
+/************************************************************************
+**	Sound - Isako Cine_c14s03d2
+*/
+
+[breaksword2]
+Parent			= "Base3DSound"
+InnerRadius		= 2500
+OuterRadius		= 8000
+Path0			= "snd\event\cine\breaksword2.wav"
+
+/************************************************************************
+**	Sound - Isako Cine_c14s03d3
+*/
+
+[breaksword3]
+Parent			= "Base3DSound"
+InnerRadius		= 2500
+OuterRadius		= 8000
+Path0			= "snd\event\cine\breaksword3.wav"
+
+/************************************************************************
+**	Sound - Isako Cine_c14s03d3e
+*/
+
+[sworddown]
+Parent			= "Base3DSound"
+InnerRadius		= 2500
+OuterRadius		= 8000
+Path0			= "snd\event\cine\sworddown.wav"
+
+/************************************************************************
+**	Sound - Director Gundrop
+*/
+
+[Dirgundrop]
+Parent			= "Base3DSound"
+InnerRadius		= 2500
+OuterRadius		= 8500
+Path0			= "snd\event\cine\Dir_gundrop.WAV"
+
+/************************************************************************
+**	Sound - Mynah bird sounds
+*/
+
+[mynah_snd]
+Parent			= "Base3DSound"
+InnerRadius		= 10
+OuterRadius		= 400
+Path0			= "snd\event\mynah_01.WAV"
+Path1			= "snd\event\mynah_02.WAV"
+Path2			= "snd\event\mynah_03.WAV"
+
+/************************************************************************
+**	Sound - Rogue Comp_smash
+*/
+
+[SSsmash]
+Parent			= "Base3DSound"
+InnerRadius		= 11500
+OuterRadius		= 35000
+Path0			= "snd\event\cine\SSsmash.WAV"
+
+/************************************************************************
+**	Sound - SuperSoldier Footsteps Cine
+*/
+
+[ssfootstep3]
+Parent			= "Base3DSound"
+InnerRadius		= 8000
+OuterRadius		= 15500
+Path0			= "Chars\snd\footsteps\ssfootstep_3a.WAV"
+Path1			= "Chars\snd\footsteps\ssfootstep_3b.WAV"
+
+/************************************************************************
+**	Sound - Armstrong escape cine
+*/
+
+[Armstrongout]
+Parent			= "Base3DSound"
+InnerRadius		= 3500
+OuterRadius		= 15000
+Path0			= "snd\event\cine\Armstrongout.WAV"
+
+/************************************************************************
+**	Sound - Rogue grunt cine
+*/
+
+[Roguegrunt]
+Parent			= "Base3DSound"
+InnerRadius		= 8500
+OuterRadius		= 20000
+Path0			= "snd\event\cine\roguegrunt.WAV"
+
+/************************************************************************
+**	Sound - Breaking up randoms
+*/
+
+[breakingup_rand]
+Parent			= "BaseSFXObjSound"
+Volume                  = 85
+Path0			= "snd\amb\1_breakup_1.WAV"
+Path1			= "snd\amb\1_breakup_2.WAV"
+Path2			= "snd\amb\1_breakup_3.WAV"
+Path3			= "snd\amb\1_breakup_4.WAV"
+Path3			= "snd\amb\1_breakup_5.WAV"
+
+/************************************************************************
+**	Sound - intel respawn
+*/
+
+[intelrespawn]
+Parent			= "Base3DSound"
+InnerRadius		= 200
+OuterRadius		= 1200
+Path0			= "snd\powerups\spawn.wav"
+
+/************************************************************************
+**	Sound - startled sound c10s01
+*/
+
+[startled_snd]
+Parent			= "Base3DSound"
+InnerRadius		= 1200
+OuterRadius		= 2200
+Path0			= "snd\event\cine\10s01_scaredOss.wav"
+
+/************************************************************************
+**	Sound - Man Crate Fire sounds
+*/
+
+[mancrate_fire]
+Parent			= "Base3DSound"
+Path0			= "guns\snd\ManCrate\fire1.WAV"
+Path1			= "guns\snd\ManCrate\fire2.WAV"
+Path2			= "guns\snd\ManCrate\fire3.WAV"
+Path3			= "guns\snd\ManCrate\fire4.WAV"
+Path4			= "guns\snd\ManCrate\fire5.WAV"
+
+/************************************************************************
+**	Sound - Pierre death
+*/
+
+[pierredie]
+Parent			= "Base3DSound"
+InnerRadius		= 900
+OuterRadius		= 2800
+Path0			= "Chars\snd\pierredeath.WAV"
+
+/************************************************************************
+**	Sound - Pierre movements												
+*/
+
+[Pierremove]
+Parent			= "Base3DSound"
+InnerRadius		= 2500
+OuterRadius		= 5500
+Path0			= "Chars\snd\pierremove_1.wav"
+Path1			= "Chars\snd\pierremove_2.wav"
+Path2			= "Chars\snd\pierremove_3.wav"
+
+/************************************************************************
+**	Sound - Pierre throw												
+*/
+
+[Pierrethrow]
+Parent			= "Base3DSound"
+InnerRadius		= 2500
+OuterRadius		= 5500
+Path0			= "Chars\snd\pierrethrow.wav"
+
+/************************************************************************
+**	Sound - Volkov death												
+*/
+
+[volkovdth]
+Parent			= "Base3DSound"
+InnerRadius		= 3500
+OuterRadius		= 12000
+Path0			= "Chars\snd\volkovdeath.wav"
+
+/************************************************************************
+**	Sound - Armstrong buttonpunch cine_13s04
+*/
+
+[buttonpnch]
+Parent			= "Base3DSound"
+InnerRadius		= 8500
+OuterRadius		= 20000
+Path0			= "snd\event\cine\buttonpnch.WAV"
+
+/************************************************************************
+**	Sound - Rogue underwater scream
+*/
+
+[ss_unwa_scream]
+Parent			= "Base3DSound"
+InnerRadius		= 8500
+OuterRadius		= 20000
+Path0			= "snd\event\cine\ss_unwa_scream.WAV"
+
+/************************************************************************
+**	Sound - Volkov wheelchrlp
+*/
+
+[wheelchrlp]
+Parent			= "Base3DSound"
+InnerRadius		= 8500
+OuterRadius		= 20000
+Path0			= "snd\event\wheelchr_03.WAV"
+
+/************************************************************************
+**	Sound - Wind gusts one offs
+*/
+
+[windgusts]
+Parent			= "BaseSFXObjSound"
+Path0			= "snd\amb\1_windoff_1.WAV"
+Path1			= "snd\amb\1_windoff_2.WAV"
+Path2			= "snd\amb\1_windoff_3.WAV"
+
+/************************************************************************
+**	Sound - FemaleBodyFall_Ground cinematic version
+*/
+
+[FemBodyFall_cine]
+Parent			= "Base3DSound"
+InnerRadius		= 1000
+OuterRadius		= 5000
+Path0			= "Chars\snd\FemaleBodyFall_Ground.wav"
+
+/************************************************************************
+**	Sound - MaleBodyFall_Ground cinematic version
+*/
+
+[MaleBodyFall_cine]
+Parent			= "Base3DSound"
+InnerRadius		= 1000
+OuterRadius		= 5000
+Path0			= "Chars\snd\MaleBodyFall_Ground.wav"
+
+/************************************************************************
+**	Sound - Get hit by knife - Cinematic
+*/
+
+[knifehit_cine]
+Parent			= "Base3DSound"
+InnerRadius		= 1000
+OuterRadius		= 5000
+Path0			= "snd\event\cine\knifehit_02.wav"
+
+/************************************************************************
+**	Sound - Hawkins buttonpunch cine_15s01
+*/
+
+[buttonpnch2]
+Parent			= "Base3DSound"
+InnerRadius		= 500
+OuterRadius		= 1500
+Path0			= "snd\event\cine\buttonpnch2.WAV"
+
+/************************************************************************
+**	Sound - SSRogue laser grab cine_15s01
+*/
+
+[roguelaser]
+Parent			= "Base3DSound"
+InnerRadius		= 500
+OuterRadius		= 1500
+Path0			= "snd\event\cine\roguelaser.WAV"
+
+/************************************************************************
+**      Sound - SuperSoldier head gear
+*/
+[SSoldierhdgear]
+Parent                    = "Base3DSound"
+InnerRadius               = 500
+OuterRadius               = 2000
+Path0                     = "Chars\snd\SSoldierhdgear.WAV"
+
+/************************************************************************
+**      Sound - SuperSoldier Lasershot1
+*/
+[Lasershot1]  
+Parent                    = "Base3DSound"
+InnerRadius               = 500
+OuterRadius               = 2000
+Path0                     = "guns\snd\sslaser\SSlaser1.WAV"
+
+/************************************************************************
+**      Sound - SuperSoldier Lasershot2
+*/
+[Lasershot2]  
+Parent                    = "Base3DSound"
+InnerRadius               = 500
+OuterRadius               = 2000
+Path0                     = "guns\snd\sslaser\SSlaser2.WAV"
+
+/************************************************************************
+**      Sound - SuperSoldier Lasershot3
+*/
+[Lasershot3]  
+Parent                    = "Base3DSound"
+InnerRadius               = 500
+OuterRadius               = 2000
+Path0                     = "guns\snd\sslaser\SSlaser3.WAV"
+
+/************************************************************************
+**	Sound - SuperSoldier Steam
+*/
+
+[SSoldiersteam]
+Parent			= "Base3DSound"
+InnerRadius		= 500
+OuterRadius		= 2000
+Path0			= "Chars\snd\SSoldiersteam.WAV"
+
+/************************************************************************
+**	Sound - SSLt azpped cine c09s01
+*/
+
+[SSelecfried]
+Parent			= "Base3DSound"
+InnerRadius		= 200
+OuterRadius		= 1200
+Path0			= "snd\event\cine\SSelecfried_c09s01.wav"
+
+/************************************************************************
+**	Sound - SSRogue deathfall cine_15s01
+*/
+
+[SSdeath1501]
+Parent			= "Base3DSound"
+InnerRadius		= 11200
+OuterRadius		= 15200
+Path0			= "snd\event\cine\SSCliffFall.wav"
+
+/************************************************************************
+**	Sound - Bullett fly by sound
+*/
+
+[bulletflyby]
+Parent			= "Base3DSound"
+InnerRadius		= 200
+OuterRadius		= 600
+Path0			= "guns\snd\flyby.wav"
+Path1			= "guns\snd\flyby1.wav"
+Path2			= "guns\snd\flyby2.wav"
+
+/************************************************************************
+**	Sound - bruno sit back cine_15s01
+*/
+
+[sitback1501]
+Parent			= "Base3DSound"
+InnerRadius		= 1200
+OuterRadius		= 5200
+Path0			= "snd\event\sitback.wav"
+
+/************************************************************************
+**      Sound - Doomsday idle1
+*/
+[idle1]  
+Parent                    = "Base3DSound"
+InnerRadius               = 128
+OuterRadius               = 2048
+Path0                     = "props\snd\dooms_idle1.WAV"
+
+/************************************************************************
+**      Sound - Doomsday idle2
+*/
+[idle2]  
+Parent                    = "Base3DSound"
+InnerRadius               = 128
+OuterRadius               = 2048
+Path0                     = "props\snd\dooms_idle2.WAV"

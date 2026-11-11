@@ -1,0 +1,5931 @@
+/************************************************************************
+**
+**		           TO2 Weapons Attributes file
+** (c) 1998-2002 Monolith Productions, Inc.  All Rights Reserved
+** 
+** This file contains the following weapon related definitions:
+**
+**  WeaponOrder,
+**  Ammo,
+**  Weapon,
+**	Mod,
+**	Gear,
+**  WeaponAnis
+**
+** NOTES:  
+**
+**  1) All definition properties (i.e., [Weapon0]) ARE case sensitive.
+**	   If you are adding a new definition, it is best to start with a 
+**     copy of an existing (working) definition.
+**	2) Name properties are NOT case sensitive (i.e., Name = "Joe" is the 
+**     same as Name = "JOE")
+**  3) All time is specified in seconds (unless otherwise noted)
+**  4) The Float type is the same as Real (i.e., 1.0 or 1.5)
+**  5) The valid range of all RGB color properties is between
+**     0 and 255 (e.g., (0, 255, 0) would be green).
+*/
+
+/************************************************************************
+**
+** WEAPONORDER
+**
+** WeaponOrder is used to specify the order of all the weapons/gadgets
+** used by TO2.  This order is used to determine which weapon to 
+** select when next/previous weapon is selected.  
+**
+** Also, this order maps the weapon command bindings (i.e., AddAction
+** Weapon_1 -> Weapon_XXX in the autoexec.cfg file) to the corresponding
+** weapon/gadget in TO2. (e.g., Weapon0 = the weapon selected when the
+** Weapon_1 action is selected).
+**
+** In addition, the Automatic weapon selection uses this order to determine
+** the next weapon to switch to when the current weapon runs out of ammo.
+** When the current weapon runs out of ammo, the next available weapon 
+** with a higher order number (e.g., Weapon1 > Weapon0) will be selected.
+**
+** FirstPlayerWeapon (Integer)
+**
+**		Indicates the first weapon the player can use (e.g.,
+**		FirstPlayerWeapon = 0 -> Weapon0 is the first weapon the player can use)
+**
+** LastPlayerWeapon (Integer)
+**
+**		Indicates the last weapon the player can use (e.g.,
+**		LastPlayerWeapon = 29 -> Weapon29 is the last available weapon 
+**		the player can use)
+**
+**	Weapon0-XX (String)
+**
+**		Name of the weapon (this corresponds directly to the Name field
+**		in the Weapon description records described below.)
+**
+**  AutoSwitchWeapon0-XX (String)
+**
+**  The following specify the player-weapon auto-switch order.
+**
+**  Auto-switching works by trying to switch to the the next available weapon 
+**  starting with AutoSwitchWeapon0 and moving down the list if AutoSwitchWeapon0
+**  is unavailable.  It is VERY important that the last weapon in the list is ALWAYS
+**	available.
+*/
+
+[WeaponOrder]
+
+
+// Player Weapons (must be consecutive order 0 to ?)
+//
+FirstPlayerWeapon	= 0
+   
+Weapon0				= "Katana"		      
+Weapon1				= "Tulwar"
+Weapon2				= "Tazer"	          
+Weapon3				= "Holster"	
+EndOfClass1			= 3
+
+Weapon4				= "Crossbow"		
+Weapon5				= "Shuriken"    	
+Weapon6				= "BearTrap"		
+Weapon7				= "Banana"		
+EndOfClass2			= 7
+
+Weapon8				= "Beretta"		    
+Weapon9				= "Utility Launcher"
+EndOfClass3			= 9
+
+Weapon10			= "AK-47"			
+Weapon11			= "Tommygun"		
+Weapon12			= "TommygunInfinite"		
+Weapon13			= "SilencedSterling"
+Weapon14			= "Sterling"		
+Weapon15			= "Shotgun"			
+Weapon16			= "Sniper Rifle"	
+EndOfClass4			= 16
+
+Weapon17			= "Purse"		    
+Weapon18			= "Grenade"
+Weapon19			= "AcidGrenade"
+Weapon20			= "StunGrenade"
+Weapon21			= "SleepGrenade"
+Weapon22			= "LaughingGrenade"
+Weapon23			= "Angry Kitty"		
+Weapon24			= "Timebomb"		
+EndOfClass5			= 24
+
+Weapon25			= "Coin"		     
+Weapon26			= "Camera"		    
+Weapon27			= "Compact Codebreaker"
+Weapon28			= "Welder"		       
+Weapon29			= "Lockpick"		   
+Weapon30			= "Eavesdropping Bug"
+Weapon31			= "Perfume"		     
+Weapon32			= "Keychain"		
+EndOfClass6			= 32
+LastPlayerWeapon    = 32
+
+// Non player weapons (must come after the player weapons)... 
+//
+
+Weapon33			= "BillyClub"		//Police billy club
+Weapon34			= "SSCannon"		//Super soldier cannon
+Weapon35			= "SSLaser"			//Super soldier lt. laser
+Weapon36			= "RobotLaser"		//Robot's laser weapon
+Weapon37			= "ThrowingKnife"	//Pierre's throwing knives
+Weapon38			= "VolkovRocket"	//Volkov's wheelchair rocket launcher
+Weapon39			= "HeadButt"		//Headbutt attack for mimes
+Weapon40			= "RifleButt"		//Riflebutt attack for other guys
+Weapon41			= "ManCrate"		//Bite attack for man-crates
+
+// Player auto-weapon switching priorites (in the following order, always)...
+
+
+AutoSwitchWeapon0	= "Purse"
+AutoSwitchWeapon1	= "AK-47"
+AutoSwitchWeapon2	= "Tommygun"
+AutoSwitchWeapon3	= "SilencedSterling"
+AutoSwitchWeapon4	= "Sterling"
+AutoSwitchWeapon5	= "Shotgun"
+AutoSwitchWeapon6	= "Sniper Rifle"
+AutoSwitchWeapon7	= "Beretta"
+AutoSwitchWeapon8	= "Crossbow"
+AutoSwitchWeapon9	= "Grenade"
+AutoSwitchWeapon10	= "AcidGrenade"
+AutoSwitchWeapon11	= "Angry Kitty"	
+AutoSwitchWeapon12	= "Shuriken"
+AutoSwitchWeapon13	= "Katana"
+AutoSwitchWeapon14	= "Tulwar"
+AutoSwitchWeapon15	= "StunGrenade"
+AutoSwitchWeapon16	= "SleepGrenade"
+AutoSwitchWeapon17	= "LaughingGrenade"
+AutoSwitchWeapon18	= "Utility Launcher"
+AutoSwitchWeapon19	= "Tazer"
+AutoSwitchWeapon20	= "BearTrap"
+AutoSwitchWeapon21	= "Banana"
+AutoSwitchWeapon22	= "Holster"
+
+
+
+
+/************************************************************************
+**
+** AMMO
+**
+** Ammo definitions are used by Weapon definitions to determine 
+** the types of ammo a particular weapon can use (see the WEAPON 
+** definition for more info)
+**
+**      Valid damage types are defined in damagetypes.txt.
+**
+** All ammo definitions should contain the following properties:
+**
+**	Name (String)
+**
+**		User friendly name used in DEdit.	
+**
+**	NameId (Integer)
+**
+**		Id that maps to the Localizable Ammo name (stored in CRes.dll)	
+**
+**	DescId (Integer)
+**
+**		Id that maps to the Localizable Ammo description (stored in CRes.dll)	
+**
+**	Type (Integer)	
+**
+**		Specifies the type of ammo.  Valid values are:
+**
+**		0 - Vector
+**		1 - Projectile
+**		3 - Gadget
+**
+**	Icon (String)
+**
+**		Name of the interface icon associated with the ammo type.
+**
+**	MaxAmount (Integer)
+**
+**		Specifies the maximum amount of ammo that can be "carried" of this
+**		type.
+**
+**	SelectionAmount (Integer)
+**	
+**		Specifies the amount of ammo that is allocated when a weapon using it
+**		is selected in the interface.
+**
+**	SpawnedAmount (Integer)
+**	
+**		Specifies the amount of ammo that will be spawned when spawning
+**		ammo powerups.
+**
+**	InstDamage (Integer)	
+**
+**		Specifies the amount of Instantaneous damage done by this type of 
+**		ammo.
+**
+**	InstDamageType (String)
+**
+**		Specifies the type of Instantaneous damage done by this type of ammo.
+**		(See valid DamageTypes above).
+**
+**	AreaDamage (Integer)	
+**
+**		Specifies the Max amount of Area damage done by this type of 
+**		ammo (i.e., damage done if you are in the center of the damage).
+**
+**	AreaDamageType (String)
+**
+**		Specifies the type of Area damage done by this type of ammo.
+**		(See valid DamageTypes above).
+**
+**	AreaDamageRadius (Integer)
+**
+**		Specifies the radius of effect in game units for the Area
+**		damage.
+**
+**	ProgDamage (Float)	
+**
+**		Specifies the amount of Progressive damage done by this type of 
+**		ammo.  This is the amount of damage that is done per second.
+**
+**	ProgDamageType (String)
+**
+**		Specifies the type of Progressive damage done by this type of ammo.
+**		(See valid DamageTypes above).
+**
+**	ProgDamageDuration (Float)
+**
+**		Specifies the time the Progressive damage is applied to the victim.
+**
+**	ProgDamageRadius (Float)
+**
+**		Specifies the radius of effect for the Progressive damage (only used
+**		if ProgDamageLifetime is greater than 0.0).
+**
+**	ProgDamageLifetime (Float)
+**
+**		Specifies the time the progressive damage radius of effect lasts
+**		(for things like poison gas)
+**
+**	FireRecoilMult (Float)
+**
+**		This multiplier modifies the FireRecoilPitch value in a weapon
+**		firing this type of ammo (see FireRecoilPitch in Weapon record below) 
+**
+**	ImpactFXName (String) (OPTIONAL)
+**
+**		Specifies the impact special fx.  The value of this 
+**		property MUST correspond to the name of an ImpactFX specified in
+**		the FX.txt file.
+**
+**	UWImpactFXName (String) (OPTIONAL)
+**
+**		Specifies the under water impact special fx.  The value of this 
+**		property MUST correspond to the name of an ImpactFX specified in
+**		the FX.txt file.
+**
+**	ProjectileFXName (String) (OPTIONAL)
+**
+**		Specifies the a projectile special fx.  The value of this 
+**		property MUST correspond to the name of a ProjectileFX specified in
+**		the FX.txt file.
+**
+**	MoveableImpactOverrideFXName (String) (OPTIONAL)
+**
+**		Specifies an effect to play if the impact occurs on a moveable object, such
+**		as a model or a door. This way you can have effects that 'stick' but not
+**		stick to moveable objects so they won't hang in the air.
+**
+**	FireFXName (String) (OPTIONAL)
+**
+**		Specifies a fire special fx.  The value of this property MUST 
+**		correspond to the name of a FireFX specified in the FX.txt file.
+**
+**	TracerFXName (String) (OPTIONAL)
+**
+**		Specifies a tracer special fx.  The value of this property MUST 
+**		correspond to the name of a TracerFX specified in the FX.txt file.
+**
+**	WeaponAniOverride (String) (OPTIONAL)
+**
+**		Specifies the name of the WeaponAnis record (see below) that contains
+**		override weapon animation names for this ammo type.  If specified, these
+**		animations are used on ANY weapon using this ammo type when this
+**		ammo type is the currently selected ammo.
+**
+**	CanBeDeflected (Integer) (OPTIONAL)
+**
+**		Ammo can be deflected by weapon.  To deflect, the weapon must
+**		have a model string key "begindeflect" followed by a key "enddeflect".
+**
+**	DeflectSurfaceType (String) (OPTIONAL)
+**
+**		When ammo is deflected, the impact fx used will be based on this surface
+**		type.  Surface types found in surface.txt.
+**
+**	CanAdjustInstDamage (Integer) (OPTIONAL)
+**
+**		If set to 1 the InstDamage amount may be adjusted programatically, if set to 0
+**		the value specified by InstDamage will always be used.
+**
+**	CanServerRestrict (Integer) (OPTIONAL)
+**
+**		If set to 0 to not allow server options to restrict this item from the level.  Default: 1.
+**
+*/
+
+/*
+** Ammo0 - Tazer charge
+*/
+
+[Ammo0]
+
+Name				= "Tazer"
+NameId              = 4100
+DescId              = 0
+Type                = 0
+Priority			= 0
+Icon				= "Interface\Photos\Ammo\func_sleep"
+MaxAmount           = 1000
+SelectionAmount		= 1000
+SpawnedAmount       = 1000
+InstDamage          = 0
+InstDamageType      = "Electrocute"
+AreaDamage			= 0
+AreaDamageType		= "Unspecified"
+AreaDamageRadius    = 0
+// ProgDamage          = 30.000000
+ProgDamage          = 0.000000
+ProgDamageType      = "Sleeping"
+ProgDamageDuration  = 5.000000
+ProgDamageRadius	= 0.000000
+ProgDamageLifetime  = 0.000000
+FireRecoilMult		= 1.000000
+ImpactFXName        = "TazerBurn"
+UWImpactFXName      = "UWBullet"
+FireFXName          = "Tazer"
+TracerFXName        = ""
+WeaponAniOverride	= ""
+
+/*
+** Ammo1 - KatanaSlash
+*/
+
+[Ammo1]
+
+Name				= "Katana Slash"
+NameId              = 4101
+DescId              = 0
+Type                = 0
+Priority			= 0
+Icon				= "Interface\Photos\Ammo\Bullet_Def"
+MaxAmount           = 1000
+SelectionAmount		= 1000
+SpawnedAmount       = 1000
+InstDamage          = 30
+InstDamageType      = "Sword"
+AreaDamage			= 0
+AreaDamageType		= "Unspecified"
+AreaDamageRadius    = 0
+ProgDamage          = 0.000000
+ProgDamageType      = "Unspecified"
+ProgDamageDuration  = 0.000000
+ProgDamageRadius	= 0.000000
+ProgDamageLifetime  = 0.000000
+FireRecoilMult		= 1.000000
+ImpactFXName        = "Melee"
+UWImpactFXName      = "Melee"
+FireFXName          = "FireSoundOnly"
+TracerFXName        = ""
+WeaponAniOverride	= ""
+CanBeDeflected		= 1
+DeflectSurfaceType	= "Sword_Deflect"
+
+/*
+** Ammo2 - TulwarSlash
+*/
+
+[Ammo2]
+
+Name				= "Tulwar Slash"
+NameId              = 4102
+DescId              = 0
+Type                = 0
+Priority			= 0
+Icon				= "Interface\Photos\Ammo\Bullet_Def"
+MaxAmount           = 1000
+SelectionAmount		= 1000
+SpawnedAmount       = 1000
+InstDamage          = 30
+InstDamageType      = "Sword"
+AreaDamage			= 0
+AreaDamageType		= "Unspecified"
+AreaDamageRadius    = 0
+ProgDamage          = 0.000000
+ProgDamageType      = "Unspecified"
+ProgDamageDuration  = 0.000000
+ProgDamageRadius	= 0.000000
+ProgDamageLifetime  = 0.000000
+FireRecoilMult		= 1.000000
+ImpactFXName        = "Melee"
+UWImpactFXName      = "Melee"
+FireFXName          = "FireSoundOnly"
+TracerFXName        = ""
+WeaponAniOverride	= ""
+CanBeDeflected		= 1
+DeflectSurfaceType	= "Sword_Deflect"
+
+/*
+** Ammo3 - ShurikenAmmo
+*/
+
+[Ammo3]
+
+Name				= "Reg Shuriken"
+NameId              = 4103
+DescId              = 0
+Type                = 1
+Priority			= 0
+Icon				= "Interface\Photos\Ammo\shuriken"
+MaxAmount           = 20
+SelectionAmount		= 20
+SpawnedAmount       = 3
+InstDamage          = 20
+InstDamageType      = "Bullet"
+AreaDamage			= 0
+AreaDamageType		= "Unspecified"
+AreaDamageRadius    = 0
+ProgDamage          = 0.000000
+ProgDamageType      = "Unspecified"
+ProgDamageDuration  = 0.000000
+ProgDamageRadius	= 0.000000
+ProgDamageLifetime  = 0.000000
+FireRecoilMult		= 1.000000
+ProjectileFXName    = "ShurikenProj"
+ImpactFXName        = "ShurikenImpact"
+UWImpactFXName      = "ShurikenImpact"
+FireFXName          = ""
+TracerFXName        = ""
+WeaponAniOverride	= ""
+CanBeDeflected		= 1
+DeflectSurfaceType	= "Metal"
+
+/*
+** Ammo4 - Blow
+*/
+
+[Ammo4]
+
+Name				= "Blow"
+NameId              = 4102
+DescId              = 0
+Type                = 0
+Priority			= 0
+Icon				= "Interface\Photos\Ammo\Bullet_Def"
+MaxAmount           = 1000
+SelectionAmount		= 1000
+SpawnedAmount       = 1000
+InstDamage          = 5
+InstDamageType      = "Bleeding"
+AreaDamage			= 0
+AreaDamageType		= "Unspecified"
+AreaDamageRadius    = 0
+ProgDamage          = 0.000000
+ProgDamageType      = "Stun"
+ProgDamageDuration  = 3.000000
+ProgDamageRadius	= 0.000000
+ProgDamageLifetime  = 0.000000
+FireRecoilMult		= 1.000000
+ImpactFXName        = "Melee"
+UWImpactFXName      = "Melee"
+FireFXName          = ""
+TracerFXName        = ""
+WeaponAniOverride	= ""
+CanBeDeflected		= 1
+DeflectSurfaceType	= "Sword_Deflect"
+
+
+/*
+** Ammo5 - TimedGrenade
+*/
+
+[Ammo5]
+
+Name				= "Timed Grenade"
+NameId              = 4104
+DescId              = 0
+Type                = 1
+Priority			= 0
+Icon				= "Interface\Photos\Ammo\bullet_exp"
+MaxAmount           = 5
+SelectionAmount		= 3
+SpawnedAmount       = 1
+InstDamage          = 0
+InstDamageType      = "Bullet"
+AreaDamage			= 70
+AreaDamageType		= "Explode"
+AreaDamageRadius    = 200
+ProgDamage          = 0.000000
+ProgDamageType      = "Unspecified"
+ProgDamageDuration  = 0.000000
+ProgDamageRadius	= 0.000000
+ProgDamageLifetime  = 0.000000
+FireRecoilMult		= 1.000000
+ProjectileFXName	= "HGrenadeTimed"
+ImpactFXName        = "handgrenade"
+UWImpactFXName      = "handgrenade"
+FireFXName          = ""
+TracerFXName        = ""
+WeaponAniOverride	= ""
+
+/*
+** Ammo6 - StunGrenade
+*/
+
+[Ammo6]
+
+Name				= "Stun Grenade"
+NameId              = 4105
+DescId              = 0
+Type                = 1
+Priority			= 0
+Icon				= "Interface\Photos\Ammo\func_stun"
+MaxAmount           = 5
+SelectionAmount		= 3
+SpawnedAmount       = 1
+InstDamage          = 0
+InstDamageType      = "Stun"
+AreaDamage			= 0
+AreaDamageType		= "Unspecified"
+AreaDamageRadius    = 0
+ProgDamage          = 0.000000
+ProgDamageType      = "Stun"
+ProgDamageDuration  = 5.000000
+ProgDamageRadius	= 192.000000
+ProgDamageLifetime  = 0.100000
+FireRecoilMult		= 1.000000
+ProjectileFXName	= "StunTimed"
+ImpactFXName        = "StunGas"
+UWImpactFXName      = "StunGas"
+FireFXName          = ""
+TracerFXName        = ""
+WeaponAniOverride	= ""
+
+/*
+** Ammo7 - SleepGrenade
+*/
+
+[Ammo7]
+
+Name				= "Sleep Grenade"
+NameId              = 4106
+DescId              = 0
+Type                = 1
+Priority			= 0
+Icon				= "Interface\Photos\Ammo\func_sleep"
+MaxAmount           = 5
+SelectionAmount		= 3
+SpawnedAmount       = 1
+InstDamage          = 0
+InstDamageType      = "Sleeping"
+AreaDamage			= 0
+AreaDamageType		= "Unspecified"
+AreaDamageRadius    = 0
+ProgDamage          = 0.000000
+ProgDamageType      = "Sleeping"
+ProgDamageDuration  = 5.000000
+ProgDamageRadius	= 192.000000
+ProgDamageLifetime  = 0.100000
+FireRecoilMult		= 1.000000
+ProjectileFXName	= "SleepTimed"
+ImpactFXName        = "SleepGas"
+UWImpactFXName      = "SleepGas"
+FireFXName          = ""
+TracerFXName        = ""
+WeaponAniOverride	= ""
+
+/*
+** Ammo8 - AcidGrenade
+*/
+
+[Ammo8]
+
+Name				= "Acid Grenade"
+NameId              = 4107
+DescId              = 0
+Type                = 1
+Priority			= 0
+Icon				= "Interface\Photos\Ammo\func_acid"
+MaxAmount           = 5
+SelectionAmount		= 3
+SpawnedAmount       = 1
+InstDamage          = 0
+InstDamageType      = "Unspecified"
+AreaDamage			= 0
+AreaDamageType		= "Unspecified"
+AreaDamageRadius    = 0
+ProgDamage          = 10.000000
+//ProgDamageType      = "Choke"
+ProgDamageType      = "Burn"
+ProgDamageDuration  = 4.000000
+ProgDamageRadius	= 192.000000
+ProgDamageLifetime  = 1.000000
+FireRecoilMult		= 1.000000
+ProjectileFXName	= "AcidTimed"
+ImpactFXName        = "AcidGas"
+UWImpactFXName      = "AcidGas"
+FireFXName          = ""
+TracerFXName        = ""
+WeaponAniOverride	= ""
+
+/*
+** Ammo9 - .32 full metal jacket
+*/
+
+[Ammo9]
+
+Name				= ".32 fmj"
+NameId              = 4108
+DescId              = 4308
+Type                = 0
+Priority			= 3
+Icon				= "Interface\Photos\Ammo\Bullet_Def"
+MaxAmount           = 27
+SelectionAmount		= 27
+SpawnedAmount       = 3
+InstDamage          = 25
+InstDamageType      = "Bullet"
+AreaDamage			= 0
+AreaDamageType		= "Unspecified"
+AreaDamageRadius    = 0
+ProgDamage          = 0.000000
+ProgDamageType      = "Unspecified"
+ProgDamageDuration  = 0.000000
+ProgDamageRadius	= 0.000000
+ProgDamageLifetime  = 0.000000
+FireRecoilMult		= 1.000000
+ImpactFXName        = "BulletFmj"
+UWImpactFXName      = "UWBullet"
+FireFXName          = ".32"
+TracerFXName        = ""
+WeaponAniOverride	= ""
+CanBeDeflected		= 1
+DeflectSurfaceType	= "Metal"
+
+
+/*
+** Ammo10 - .32 cyanide-tipped
+*/
+
+[Ammo10]
+
+Name				= ".32 cyanide"
+NameId              = 4109
+DescId              = 4309
+Type                = 0
+Priority			= 5
+Icon				= "Interface\Photos\Ammo\Bullet_Cyn"
+MaxAmount           = 27
+SelectionAmount		= 27
+SpawnedAmount       = 3
+InstDamage          = 25
+InstDamageType      = "Bullet"
+AreaDamage			= 0
+AreaDamageType		= "Unspecified"
+AreaDamageRadius    = 0
+ProgDamage          = 2.000000
+ProgDamageType      = "Poison"
+ProgDamageDuration  = 3.000000
+ProgDamageRadius	= 64.000000
+ProgDamageLifetime  = 2.500000
+FireRecoilMult		= 1.000000
+ImpactFXName        = "BulletCyn"
+UWImpactFXName      = "UWBulletCyn"
+FireFXName          = ".32"
+TracerFXName        = "Tracer_Cyn"
+WeaponAniOverride	= ""
+CanBeDeflected		= 1
+DeflectSurfaceType	= "Metal"
+
+/*
+** Ammo11 - Tranquilizer (Utility launcher)
+*/
+
+[Ammo11]
+
+Name				= "Tranquilizer"
+NameId              = 4110
+DescId              = 4310
+Type                = 1
+Priority			= 7
+Icon				= "Interface\Photos\Ammo\launcher_tranq"
+MaxAmount           = 10
+SelectionAmount		= 10
+SpawnedAmount       = 1
+InstDamage          = 5
+InstDamageType      = "WorldOnly"
+AreaDamage			= 0
+AreaDamageType		= "Unspecified"
+AreaDamageRadius    = 0
+ProgDamage          = 0
+ProgDamageType      = "Sleeping"
+ProgDamageDuration  = 5.000000
+ProgDamageRadius	= 0.000000
+ProgDamageLifetime  = 0.000000
+FireRecoilMult		= 1.000000
+ProjectileFXName    = "ULDart"
+ImpactFXName        = "Dart"
+UWImpactFXName      = "Dart"
+FireFXName          = ""
+WeaponAniOverride	= ""
+CanBeDeflected		= 1
+DeflectSurfaceType	= "Metal"
+
+/*
+** Ammo12 - Camera Disabler (Utility launcher)
+*/
+
+[Ammo12]
+
+Name				= "Cam Disabler"
+NameId              = 4111
+DescId              = 4311
+Type                = 1
+Priority			= 14
+Icon				= "Interface\Photos\Ammo\Func_Disabler"
+MaxAmount           = 5
+SelectionAmount		= 5
+SpawnedAmount       = 1
+InstDamage          = 0
+InstDamageType      = "CameraDisabler"
+AreaDamage			= 0
+AreaDamageType		= "Unspecified"
+AreaDamageRadius    = 0
+ProgDamage          = 0.000000
+ProgDamageType      = "Unspecified"
+ProgDamageDuration  = 0.000000
+ProgDamageRadius	= 0.000000
+ProgDamageLifetime  = 0.000000
+FireRecoilMult		= 1.000000
+ProjectileFXName    = "CamDisablerProj"
+ImpactFXName        = "Dart"
+UWImpactFXName      = "Dart"
+FireFXName          = "FireSoundOnly"
+
+/*
+** Ammo13 - Glue bomb (Utility launcher)
+*/
+
+[Ammo13]
+
+Name				= "Glue Bomb"
+NameId              = 4112
+DescId              = 4312
+Type                = 1
+Priority			= 14
+Icon				= "Interface\Photos\Ammo\launcher_glue"
+MaxAmount           = 10
+SelectionAmount		= 5
+SpawnedAmount       = 1
+InstDamage          = 5
+InstDamageType      = "WorldOnly"
+AreaDamage			= 0
+AreaDamageType		= "Unspecified"
+AreaDamageRadius    = 0
+ProgDamage          = 0.000000
+ProgDamageType      = "Glue"
+ProgDamageDuration  = 5.000000
+ProgDamageRadius	= 64.000000
+ProgDamageLifetime  = 5.000000
+FireRecoilMult		= 1.000000
+ProjectileFXName    = "ULGlue"
+ImpactFXName        = "UL_GlueImpact"
+MoveableImpactOverrideFXName = "ULGlue_Override"
+UWImpactFXName      = "Dart"
+FireFXName          = "FireSoundOnly"
+
+/*
+** Ammo14 - Electrical (Utility launcher)
+*/
+
+[Ammo14]
+
+Name				= "Electrical"
+NameId              = 4113
+DescId              = 4313
+Type                = 1
+Priority			= 14
+Icon				= "Interface\Photos\Ammo\bullet_ele"
+MaxAmount           = 10
+SelectionAmount		= 10
+SpawnedAmount       = 1
+InstDamage          = 0
+InstDamageType      = "Electrocute"
+AreaDamage			= 0
+AreaDamageType		= "Unspecified"
+AreaDamageRadius    = 0
+ProgDamage          = 50.000000
+ProgDamageType      = "Electrocute"
+ProgDamageDuration  = 0.100000
+ProgDamageRadius	= 64.000000
+ProgDamageLifetime  = 1.000000
+FireRecoilMult		= 1.000000
+ProjectileFXName    = "ULDart"
+//ImpactFXName        = "Melee"
+ImpactFXName        = "ElectricalDart"
+UWImpactFXName      = "UWMelee"
+FireFXName          = "FireSoundOnly"
+
+/*
+** Ammo15 - Anti-Super Soldier Serum (Utility launcher)
+*/
+
+[Ammo15]
+
+Name				= "Serum"
+NameId              = 4114
+DescId              = 4314
+Type                = 1
+Priority			= 14
+Icon				= "Interface\Photos\Ammo\launcher_asss"
+MaxAmount           = 10
+SelectionAmount		= 5
+SpawnedAmount       = 1
+InstDamage          = 5
+InstDamageType      = "WorldOnly"
+AreaDamage			= 0
+AreaDamageType		= "Unspecified"
+AreaDamageRadius    = 0
+ProgDamage          = 10.000000
+ProgDamageType      = "AntiSuperSoldierSerum"
+ProgDamageDuration  = 0.100000
+ProgDamageRadius	= 0.000000
+ProgDamageLifetime  = 0.000000
+FireRecoilMult		= 1.000000
+ProjectileFXName    = "ULSerum"
+ImpactFXName        = "Dart"
+UWImpactFXName      = "Dart"
+FireFXName          = "FireSoundOnly"
+
+/*
+** Ammo16 - Laughing Gas Grenade
+*/
+
+[Ammo16]
+
+Name				= "Laughing Gas"
+NameId              = 4115
+DescId              = 0
+Type                = 1
+Priority			= 14
+Icon				= "Interface\Photos\Ammo\launcher_laugh"
+MaxAmount           = 3
+SelectionAmount		= 3
+SpawnedAmount       = 1
+InstDamage          = 5
+InstDamageType      = "WorldOnly"
+AreaDamage			= 0
+AreaDamageType		= "Unspecified"
+AreaDamageRadius    = 0
+ProgDamage          = 0.000000
+ProgDamageType      = "Laughing"
+ProgDamageDuration  = 5.000000
+ProgDamageRadius	= 192.000000
+ProgDamageLifetime  = 0.100000
+FireRecoilMult		= 1.000000
+ProjectileFXName	= "LaughTimed"
+ImpactFXName        = "laughinggas"
+UWImpactFXName      = "laughinggas"
+FireFXName          = ""
+
+/*
+** Ammo17 - 12-gauge shot
+*/
+
+[Ammo17]
+
+Name				= "12-ga shot"
+NameId              = 4116
+DescId              = 4316
+Type                = 0
+Priority			= 0
+Icon				= "Interface\Photos\Ammo\shotgun_shot"
+MaxAmount           = 20
+SelectionAmount		= 20
+SpawnedAmount       = 3
+InstDamage          = 15
+InstDamageType      = "Bullet"
+AreaDamage			= 0
+AreaDamageType		= "Unspecified"
+AreaDamageRadius    = 0
+ProgDamage          = 0.000000
+ProgDamageType      = "Unspecified"
+ProgDamageDuration  = 0.000000
+ProgDamageRadius	= 0.000000
+ProgDamageLifetime  = 0.000000
+FireRecoilMult		= 1.000000
+ImpactFXName        = "BulletFmj"
+UWImpactFXName      = "UWBullet"
+FireFXName          = "Shotgun"
+TracerFXName        = ""
+WeaponAniOverride	= ""
+
+/*
+** Ammo18 - 12-gauge explosive
+*/
+
+[Ammo18]
+
+Name				= "12-ga explosive"
+NameId              = 4117
+DescId              = 4317
+Type                = 0
+Priority			= 0
+Icon				= "Interface\Photos\Ammo\Bullet_exp"
+MaxAmount           = 20
+SelectionAmount		= 20
+SpawnedAmount       = 3
+InstDamage          = 50
+InstDamageType      = "Bullet"
+AreaDamage			= 35
+AreaDamageType		= "Explode"
+AreaDamageRadius    = 100
+ProgDamage          = 0.000000
+ProgDamageType      = "Unspecified"
+ProgDamageDuration  = 0.000000
+ProgDamageRadius	= 0.000000
+ProgDamageLifetime  = 0.000000
+FireRecoilMult		= 1.000000
+ImpactFXName        = "Shotgun_Exp"
+UWImpactFXName      = "UWBulletPhos"
+FireFXName          = "Shotgun"
+TracerFXName        = ""
+WeaponAniOverride	= ""
+
+/*
+** Ammo19 - 9mm full metal jacket
+*/
+
+[Ammo19]
+
+Name				= "9mm fmj"
+NameId              = 4118
+DescId              = 0
+Type                = 0
+Priority			= 0
+Icon				= "Interface\Photos\Ammo\Bullet_Def"
+MaxAmount           = 180
+SelectionAmount		= 90
+SpawnedAmount       = 5
+InstDamage          = 15
+InstDamageType      = "Bullet"
+AreaDamage			= 0
+AreaDamageType		= "Unspecified"
+AreaDamageRadius    = 0
+ProgDamage          = 0.000000
+ProgDamageType      = "Unspecified"
+ProgDamageDuration  = 0.000000
+ProgDamageRadius	= 0.000000
+ProgDamageLifetime  = 0.000000
+FireRecoilMult		= 1.000000
+ImpactFXName        = "BulletFmj"
+UWImpactFXName      = "UWBullet"
+FireFXName          = "9mm"
+TracerFXName        = "Standard"
+WeaponAniOverride	= ""
+CanBeDeflected		= 1
+DeflectSurfaceType	= "Metal"
+
+/*
+** Ammo20 - .45 full metal jacket
+*/
+
+[Ammo20]
+
+Name				= ".45 fmj"
+NameId              = 4119
+DescId              = 0
+Type                = 0
+Priority			= 0
+Icon				= "Interface\Photos\Ammo\Bullet_Def"
+MaxAmount           = 150
+SelectionAmount		= 50
+SpawnedAmount       = 50
+InstDamage          = 20
+InstDamageType      = "Bullet"
+AreaDamage			= 0
+AreaDamageType		= "Unspecified"
+AreaDamageRadius    = 0
+ProgDamage          = 0.000000
+ProgDamageType      = "Unspecified"
+ProgDamageDuration  = 0.000000
+ProgDamageRadius	= 0.000000
+ProgDamageLifetime  = 0.000000
+FireRecoilMult		= 1.000000
+ImpactFXName        = "BulletFmj"
+UWImpactFXName      = "UWBullet"
+FireFXName          = ".45"
+TracerFXName        = "Standard"
+WeaponAniOverride	= ""
+CanBeDeflected		= 1
+DeflectSurfaceType	= "Metal"
+
+/*
+** Ammo21 - 7.62x39 full metal jacket
+*/
+
+[Ammo21]
+
+Name				= "7.62x39 fmj"
+NameId              = 4120
+DescId              = 4320
+Type                = 0
+Priority			= 11
+Icon				= "Interface\Photos\Ammo\Bullet_Def"
+MaxAmount           = 180
+SelectionAmount		= 90
+SpawnedAmount       = 5
+InstDamage          = 30
+InstDamageType      = "Bullet"
+AreaDamage			= 0
+AreaDamageType		= "Unspecified"
+AreaDamageRadius    = 0
+ProgDamage          = 0.000000
+ProgDamageType      = "Unspecified"
+ProgDamageDuration  = 0.000000
+ProgDamageRadius	= 0.000000
+ProgDamageLifetime  = 0.000000
+FireRecoilMult		= 1.000000
+ImpactFXName        = "BulletFmj"
+UWImpactFXName      = "UWBullet"
+FireFXName          = "7.62x39"
+TracerFXName        = "Standard"
+WeaponAniOverride	= ""
+
+
+/*
+** Ammo22 - 7.62x39 phosphorous
+*/
+
+[Ammo22]
+
+Name				= "7.62x39 phos"
+NameId              = 4121
+DescId              = 4321
+Type                = 0
+Priority			= 12
+Icon				= "Interface\Photos\Ammo\Bullet_Phos"
+MaxAmount           = 180
+SelectionAmount		= 30
+SpawnedAmount       = 5
+InstDamage          = 30
+InstDamageType      = "Bullet"
+AreaDamage			= 0
+AreaDamageType		= "Unspecified"
+AreaDamageRadius    = 0
+ProgDamage          = 5.000000
+ProgDamageType      = "Burn"
+ProgDamageDuration  = 5.000000
+ProgDamageRadius	= 0.000000
+ProgDamageLifetime  = 0.000000
+FireRecoilMult		= 1.000000
+ImpactFXName        = "BulletPhos"
+UWImpactFXName      = "UWBulletPhos"
+FireFXName          = "7.62x39"
+TracerFXName        = "Tracer_Phos"
+WeaponAniOverride	= ""
+
+/*
+** Ammo23 - .308 full metal jacket
+*/
+
+[Ammo23]
+
+Name				= ".308 fmj"
+NameId              = 4122
+DescId              = 0
+Type                = 0
+Priority			= 9
+Icon				= "Interface\Photos\Ammo\Bullet_Def"
+MaxAmount           = 20
+SelectionAmount		= 20
+SpawnedAmount       = 2
+InstDamage          = 80
+InstDamageType      = "Bullet"
+AreaDamage			= 0
+AreaDamageType		= "Unspecified"
+AreaDamageRadius    = 0
+ProgDamage          = 0.000000
+ProgDamageType      = "Unspecified"
+ProgDamageDuration  = 0.000000
+ProgDamageRadius	= 0.000000
+ProgDamageLifetime  = 0.000000
+FireRecoilMult		= 1.000000
+ImpactFXName        = "BulletFmj"
+UWImpactFXName      = "UWBullet"
+FireFXName          = ".308"
+TracerFXName        = ""
+WeaponAniOverride	= ""
+
+
+/*
+** Ammo24 - Crossbow bolt
+*/
+
+[Ammo24]
+
+Name				= "Bolt"
+NameId              = 4123
+DescId              = 4323
+Type                = 1
+Priority			= 17
+Icon				= "Interface\Photos\Ammo\crossbow_def"
+MaxAmount           = 20
+SelectionAmount		= 10
+SpawnedAmount       = 1
+InstDamage          = 50
+InstDamageType      = "Bullet"
+AreaDamage			= 0
+AreaDamageType		= "Unspecified"
+AreaDamageRadius    = 0
+ProgDamage          = 0.000000
+ProgDamageType      = "Unspecified"
+ProgDamageDuration  = 0.000000
+ProgDamageRadius	= 0.000000
+ProgDamageLifetime  = 0.000000
+FireRecoilMult		= 1.000000
+ProjectileFXName    = "Bolt"
+ImpactFXName        = "Spear"
+UWImpactFXName      = "UWSpear"
+FireFXName          = "FireSoundOnly"
+TracerFXName        = ""
+WeaponAniOverride	= ""
+CanBeDeflected		= 1
+DeflectSurfaceType	= "Metal"
+
+/*
+** Ammo25 - Poison crossbow bolt
+*/
+
+[Ammo25]
+
+Name				= "Poison Bolt"
+NameId              = 4124
+DescId              = 4324
+Type                = 1
+Priority			= 41
+Icon				= "Interface\Photos\Ammo\Bullet_Cyn"
+MaxAmount           = 20
+SelectionAmount		= 20
+SpawnedAmount       = 1
+InstDamage          = 50
+InstDamageType      = "Bullet"
+AreaDamage			= 0
+AreaDamageType		= "Unspecified"
+AreaDamageRadius    = 0
+ProgDamage          = 4.000000
+ProgDamageType      = "Poison"
+ProgDamageDuration  = 4.000000
+ProgDamageRadius	= 64.000000
+ProgDamageLifetime  = 2.500000
+FireRecoilMult		= 1.000000
+ProjectileFXName    = "Bolt"
+ImpactFXName        = "BulletCyn"
+UWImpactFXName      = "UWBulletCyn"
+FireFXName          = "FireSoundOnly"
+TracerFXName        = ""
+WeaponAniOverride	= ""
+CanBeDeflected		= 1
+DeflectSurfaceType	= "Metal"
+
+
+/*
+** Ammo26 - Fire crossbow bolt
+*/
+
+[Ammo26]
+
+Name				= "Fire Bolt"
+NameId              = 4125
+DescId              = 4325
+Type                = 1
+Priority			= 42
+Icon				= "Interface\Photos\Ammo\bullet_phos"
+MaxAmount           = 10
+SelectionAmount		= 10
+SpawnedAmount       = 1
+InstDamage          = 50
+InstDamageType      = "Bullet"
+AreaDamage			= 5
+AreaDamageType		= "Burn"
+AreaDamageRadius    = 180
+ProgDamage          = 3.000000
+ProgDamageType      = "Burn"
+ProgDamageDuration  = 3.000000
+ProgDamageRadius	= 64.000000
+ProgDamageLifetime  = 2.000000
+FireRecoilMult		= 1.000000
+ProjectileFXName    = "BoltFire"
+UWImpactFXName      = "UWBulletPhos"
+FireFXName          = "FireSoundOnly"
+TracerFXName        = ""
+WeaponAniOverride	= ""
+ImpactFXName        = "Firebolt_Impact"
+
+
+/*
+** Ammo27 - Explosive crossbow bolt
+*/
+
+[Ammo27]
+
+Name				= "Explosive Bolt"
+NameId              = 4126
+DescId              = 4326
+Type                = 1
+Priority			= 43
+Icon				= "Interface\Photos\Ammo\bullet_exp"
+MaxAmount           = 10
+SelectionAmount		= 10
+SpawnedAmount       = 1
+InstDamage          = 50
+InstDamageType      = "Explode"
+AreaDamage			= 120
+AreaDamageType		= "Explode"
+AreaDamageRadius    = 170
+ProgDamage          = 0.000000
+ProgDamageType      = "Unspecified"
+ProgDamageDuration  = 0.000000
+ProgDamageRadius	= 0.000000
+ProgDamageLifetime  = 0.000000
+FireRecoilMult		= 1.000000
+ProjectileFXName    = "Bolt"
+ImpactFXName        = "Explosion1"
+UWImpactFXName      = "UWRocket"
+FireFXName          = "FireSoundOnly"
+TracerFXName        = ""
+WeaponAniOverride	= ""
+
+/*
+** Ammo28 - Micromissile
+*/
+
+[Ammo28]
+
+Name				= "Micromissile"
+NameId              = 4127
+DescId              = 0
+Type                = 1
+Priority			= 16
+Icon				= "Interface\Photos\Ammo\rocket"
+MaxAmount           = 5
+SelectionAmount		= 5
+SpawnedAmount       = 1
+InstDamage          = 0
+InstDamageType      = "Explode"
+AreaDamage			= 100
+AreaDamageType		= "Explode"
+AreaDamageRadius    = 200
+ProgDamage          = 0.000000
+ProgDamageType      = "Unspecified"
+ProgDamageDuration  = 0.000000
+ProgDamageRadius	= 0.000000
+ProgDamageLifetime  = 0.000000
+FireRecoilMult		= 1.000000
+ProjectileFXName    = "Missile"
+ImpactFXName        = "Explosion1"
+UWImpactFXName      = "UWRocket"
+FireFXName          = "Rocket"
+TracerFXName        = ""
+WeaponAniOverride	= ""
+
+/*
+** Ammo29 - Camera Ammo
+*/
+
+[Ammo29]
+
+Name				= "Camera"
+NameId              = 4128
+DescId              = 0
+Type                = 3
+Priority			= 29
+Model               = ""
+Skin                = ""
+Icon				= ""
+MaxAmount           = 1
+SelectionAmount		= 1
+SpawnedAmount       = 1
+InstDamage          = 0
+InstDamageType      = "Camera"
+AreaDamage			= 0
+AreaDamageType		= "Unspecified"
+AreaDamageRadius    = 0
+ProgDamage          = 0.000000
+ProgDamageType      = "Unspecified"
+ProgDamageDuration  = 0.000000
+ProgDamageRadius	= 0.000000
+ProgDamageLifetime  = 0.000000
+FireRecoilMult		= 0.000000
+ImpactFXName        = ""
+UWImpactFXName      = ""
+FireFXName          = "FireSoundOnly"
+TracerFXName        = ""
+WeaponAniOverride	= ""
+
+/*
+** Ammo30 - Time bomb
+*/
+
+[Ammo30]
+
+Name				= "Time Bomb"
+NameId              = 4129
+DescId              = 0
+Type                = 3
+Priority			= 25
+Icon				= "Interface\Photos\Ammo\timebomb"
+MaxAmount           = 5
+SelectionAmount		= 3
+SpawnedAmount       = 1
+InstDamage          = 0
+InstDamageType      = "TimeBomb"
+AreaDamage			= 150
+AreaDamageType		= "Explode"
+AreaDamageRadius    = 270
+ProgDamage          = 0.000000
+ProgDamageType      = "Unspecified"
+ProgDamageDuration  = 0.000000
+ProgDamageRadius	= 0.000000
+ProgDamageLifetime  = 0.000000
+FireRecoilMult		= 1.000000
+ProjectileFXName    = "TimeBombProj"
+ImpactFXName        = "Melee"
+UWImpactFXName      = "UWMelee"
+FireFXName          = ""
+TracerFXName        = ""
+WeaponAniOverride	= ""
+
+/*
+** Ammo31 - Code Breaker ammo
+*/
+
+[Ammo31]
+
+Name				= "Code Breaker Gadget"
+NameId              = 4130
+DescId              = 0
+Type                = 3
+Priority			= 15
+Icon				= ""
+MaxAmount           = 10000
+SelectionAmount		= 10000
+SpawnedAmount       = 10000
+InstDamage          = 0
+InstDamageType      = "CodeDecipherer"
+AreaDamage			= 0
+AreaDamageType		= "Unspecified"
+AreaDamageRadius    = 0
+ProgDamage          = 0.000000
+ProgDamageType      = "Unspecified"
+ProgDamageDuration  = 0.000000
+ProgDamageRadius	= 0.000000
+ProgDamageLifetime  = 0.000000
+FireRecoilMult		= 0.000000
+
+/*
+** Ammo32 -  Welder ammo
+*/
+
+[Ammo32]
+
+Name				= "Welder"
+NameId              = 4131
+DescId              = 0
+Type                = 3
+Priority			= 27
+Icon				= ""
+MaxAmount           = 1000
+SelectionAmount		= 1000
+SpawnedAmount       = 1000
+InstDamage          = 1
+InstDamageType      = "Welder"
+AreaDamage			= 0
+AreaDamageType		= "Unspecified"
+AreaDamageRadius    = 0
+ProgDamage          = 10.000000
+ProgDamageType      = "Burn"
+ProgDamageDuration  = 3.000000
+ProgDamageRadius	= 0.000000
+ProgDamageLifetime  = 0.000000
+FireRecoilMult		= 1.000000
+ImpactFXName        = "Welder"
+UWImpactFXName      = "UWWelder"
+FireFXName          = "FireSoundOnly"
+TracerFXName        = ""
+
+/*
+** Ammo33 - Lockpick
+*/
+
+[Ammo33]
+
+Name				= "Lockpick"
+NameId              = 4132
+DescId              = 0
+Type                = 3
+Priority			= 28
+Model               = ""
+Skin                = ""
+Icon				= ""
+MaxAmount           = 10000
+SelectionAmount		= 10000
+SpawnedAmount       = 10000
+InstDamage          = 0
+InstDamageType      = "LockPick"
+AreaDamage			= 0
+AreaDamageType		= "Unspecified"
+AreaDamageRadius    = 0
+ProgDamage          = 0.000000
+ProgDamageType      = "Unspecified"
+ProgDamageDuration  = 0.000000
+ProgDamageRadius	= 0.000000
+ProgDamageLifetime  = 0.000000
+FireRecoilMult		= 0.000000
+ImpactFXName        = ""
+UWImpactFXName      = ""
+FireFXName          = "FireSoundOnly"
+TracerFXName        = ""
+WeaponAniOverride	= ""
+
+/*
+** Ammo34 - Eavesdropping bug
+*/
+
+[Ammo34]
+
+Name				= "Bug"
+NameId              = 4133
+DescId              = 0
+Type                = 3
+Priority			= 14
+Icon				= "Interface\Photos\Ammo\bug"
+MaxAmount           = 5
+SelectionAmount		= 5
+SpawnedAmount       = 1
+InstDamage          = 0
+InstDamageType      = "EavesDropBug"
+AreaDamage			= 0
+AreaDamageType		= "Unspecified"
+AreaDamageRadius    = 0
+ProgDamage          = 0.000000
+ProgDamageType      = "Unspecified"
+ProgDamageDuration  = 0.000000
+ProgDamageRadius	= 0.000000
+ProgDamageLifetime  = 0.000000
+FireRecoilMult		= 1.000000
+ImpactFXName        = ""
+UWImpactFXName      = ""
+FireFXName          = "FireSoundOnly"
+
+/*
+** Ammo35 - Body remover perfume
+*/
+
+[Ammo35]
+
+Name				= "Body Remover"
+NameId              = 4134
+DescId              = 0
+Type                = 0
+Priority			= 38
+Model               = ""
+Skin                = ""
+Icon				= "Interface\Photos\Ammo\Func_Decay"
+MaxAmount           = 5
+SelectionAmount		= 5
+SpawnedAmount       = 1
+InstDamage          = 0
+InstDamageType      = "DecayPowder"
+AreaDamage			= 1
+AreaDamageType		= "DecayPowder"
+AreaDamageRadius    = 64
+ProgDamage          = 0
+ProgDamageType      = "Unspecified"
+ProgDamageDuration  = 0
+ProgDamageRadius	= 0
+ProgDamageLifetime  = 0
+FireRecoilMult		= 1.000000
+ImpactFXName        = "DecayGas"
+UWImpactFXName      = "DecayGas"
+FireFXName          = "FireSoundOnly"
+TracerFXName        = "DecayFireFX"
+WeaponAniOverride	= ""
+
+
+/*
+** Ammo36 - Invisible ink reagent - unused
+*/
+
+[Ammo36]
+
+Name				= "Ink Reagent - unused"
+NameId              = 0
+DescId              = 0
+Type                = 0
+Priority			= 0
+Model               = ""
+Skin                = ""
+Icon				= ""
+MaxAmount           = 0
+SelectionAmount		= 0
+SpawnedAmount       = 0
+InstDamage          = 0
+InstDamageType      = "Unspecified"
+AreaDamage			= 0
+AreaDamageType		= "Unspecified"		
+AreaDamageRadius    = 0
+ProgDamage          = 0
+ProgDamageType      = "Unspecified"
+ProgDamageDuration  = 0
+ProgDamageRadius	= 0
+ProgDamageLifetime  = 0
+FireRecoilMult		= 0.000000
+ImpactFXName        = ""
+UWImpactFXName      = ""
+FireFXName          = ""
+TracerFXName        = ""
+WeaponAniOverride	= ""
+
+/*
+** Ammo37 - Coin
+*/
+
+[Ammo37]
+
+Name				= "Coin"
+NameId              = 4136
+DescId              = 0
+Type                = 1
+Priority			= 26
+Icon				= "Interface\Photos\Ammo\coin"
+MaxAmount           = 5
+SelectionAmount		= 5
+SpawnedAmount       = 1
+InstDamage          = 0
+InstDamageType      = "Unspecified"
+AreaDamage			= 0
+AreaDamageType		= "Unspecified"
+AreaDamageRadius    = 0
+ProgDamage          = 0.000000
+ProgDamageType      = "Unspecified"
+ProgDamageDuration  = 0.000000
+ProgDamageRadius	= 0.000000
+ProgDamageLifetime  = 0.000000
+FireRecoilMult		= 1.000000
+ProjectileFXName    = "Coin"
+ImpactFXName        = "Coin"
+UWImpactFXName      = ""
+FireFXName          = "FireSoundOnly"
+TracerFXName        = ""
+WeaponAniOverride	= ""
+
+/*
+** Ammo38 - Angry Kitty
+*/
+
+[Ammo38]
+
+Name				= "Angry Kitty"
+NameId              = 4137
+DescId              = 0
+Type                = 1
+Priority			= 26
+Icon				= "Interface\Photos\Ammo\bullet_exp"
+MaxAmount           = 3
+SelectionAmount		= 2
+SpawnedAmount       = 1
+InstDamage          = 0
+InstDamageType      = "Unspecified"
+AreaDamage			= 150
+AreaDamageType		= "Explode"
+AreaDamageRadius    = 250
+ProgDamage          = 0.000000
+ProgDamageType      = "Unspecified"
+ProgDamageDuration  = 0.000000
+ProgDamageRadius	= 0.000000
+ProgDamageLifetime  = 0.000000
+FireRecoilMult		= 1.000000
+ProjectileFXName    = "Kitty"
+ImpactFXName        = "kitty"
+UWImpactFXName      = "kitty"
+FireFXName          = "FireSoundOnly"
+TracerFXName        = ""
+WeaponAniOverride	= ""
+
+/*
+** Ammo39 - Bear Trap
+*/
+
+[Ammo39]
+
+Name				= "Bear Trap"
+NameId				= 4138
+DescId				= 0
+Type				= 1
+Priority			= 27
+Icon				= "Interface\Photos\Ammo\beartrap"
+MaxAmount           = 3
+SelectionAmount		= 3
+SpawnedAmount       = 1
+InstDamage          = 1
+InstDamageType      = "Bullet"
+AreaDamage			= 0
+AreaDamageType		= "Unspecified"
+AreaDamageRadius    = 0
+ProgDamage          = 0.000000
+ProgDamageType      = "BearTrap"
+ProgDamageDuration  = 3.000000
+ProgDamageRadius	= 0.000000
+ProgDamageLifetime  = 0.000000
+FireRecoilMult		= 1.000000
+ProjectileFXName    = "BearTrap"
+ImpactFXName        = "BearTrap"
+UWImpactFXName      = "UWBearTrapt"
+FireFXName          = "FireSoundOnly"
+TracerFXName        = ""
+WeaponAniOverride	= ""
+CanAdjustInstDamage = 0
+
+
+/*
+** Ammo40 - SSCannon
+*/
+
+[Ammo40]
+
+Name				= "SSCannon"
+NameId              = 4100
+DescId              = 0
+Type                = 0
+Priority			= 7
+Icon				= "Interface\Photos\Ammo\Bullet_Exp"
+MaxAmount           = 50
+SelectionAmount		= 10
+SpawnedAmount       = 0
+InstDamage          = 50
+InstDamageType      = "Bullet"
+AreaDamage			= 45
+AreaDamageType		= "Explode"
+AreaDamageRadius    = 200
+ProgDamage          = 0
+ProgDamageType      = "Unspecified"
+ProgDamageDuration  = 0.000000
+ProgDamageRadius	= 0.000000
+ProgDamageLifetime  = 0.000000
+FireRecoilMult		= 1.000000
+ImpactFXName        = "SSCannon_Impact"
+UWImpactFXName      = "UWBulletExp"
+FireFXName          = "FireSoundOnly"
+TracerFXName        = ""
+//TracerFXName        = "Tracer_Exp"
+WeaponAniOverride	= ""
+
+
+/*
+** Ammo41 - SSLaser ammo
+*/
+
+[Ammo41]
+
+Name				= "SSLaserAmmo"
+NameId              = 4119
+DescId              = 0
+Type                = 0
+Priority			= 7
+Icon				= ""
+MaxAmount           = 50
+SelectionAmount		= 10
+SpawnedAmount       = 0
+InstDamage          = 50
+InstDamageType      = "Bullet"
+AreaDamage			= 45
+AreaDamageType		= "Explode"
+AreaDamageRadius    = 100
+ProgDamage          = 0
+ProgDamageType      = "Unspecified"
+ProgDamageDuration  = 0.000000
+ProgDamageRadius	= 0.000000
+ProgDamageLifetime  = 0.000000
+FireRecoilMult		= 1.000000
+ImpactFXName        = "LaserImpact"
+UWImpactFXName      = "LaserImpact"
+FireFXName          = "SSLaser"
+TracerFXName        = ""
+WeaponAniOverride	= ""
+
+
+/*
+** Ammo42 - Robot laser ammo
+*/
+
+[Ammo42]
+
+Name				= "RobotLaserAmmo"
+NameId              = 4119
+DescId              = 0
+Type                = 0
+Priority			= 7
+Icon				= ""
+MaxAmount           = 50
+SelectionAmount		= 10
+SpawnedAmount       = 0
+InstDamage          = 50
+InstDamageType      = "Bullet"
+AreaDamage			= 35
+AreaDamageType		= "Explode"
+AreaDamageRadius    = 100
+ProgDamage          = 0
+ProgDamageType      = "Unspecified"
+ProgDamageDuration  = 0.000000
+ProgDamageRadius	= 0.000000
+ProgDamageLifetime  = 0.000000
+FireRecoilMult		= 1.000000
+ImpactFXName        = "LaserImpact"
+UWImpactFXName      = "LaserImpact"
+FireFXName          = "RobotLaser"
+TracerFXName        = ""
+WeaponAniOverride	= ""
+
+
+/*
+** Ammo43 - Throwing knife
+*/
+
+[Ammo43]
+
+Name				= "Knife"
+NameId              = 4103
+DescId              = 0
+Type                = 1
+Priority			= 0
+Icon				= "Interface\Photos\Ammo\Bullet_Def"
+MaxAmount           = 30
+SelectionAmount		= 25
+SpawnedAmount       = 0
+InstDamage          = 25
+InstDamageType      = "Bullet"
+AreaDamage			= 0
+AreaDamageType		= "Unspecified"
+AreaDamageRadius    = 0
+ProgDamage          = 0.000000
+ProgDamageType      = "Unspecified"
+ProgDamageDuration  = 0.000000
+ProgDamageRadius	= 0.000000
+ProgDamageLifetime  = 0.000000
+FireRecoilMult		= 1.000000
+ProjectileFXName    = "KnifeProj"
+ImpactFXName        = "Melee"
+UWImpactFXName      = "UWMelee"
+FireFXName          = ""
+TracerFXName        = ""
+WeaponAniOverride	= ""
+
+/*
+** Ammo44 - Holster
+*/
+
+[Ammo44]
+
+Name				= "Holster"
+NameId              = 4026
+DescId              = 0
+Type                = 0
+Priority			= 0
+Icon				= ""
+MaxAmount           = 1
+SelectionAmount		= 1
+SpawnedAmount       = 1
+InstDamage          = 0
+InstDamageType      = "Unspecified"
+AreaDamage			= 0
+AreaDamageType		= "Unspecified"
+AreaDamageRadius    = 0
+ProgDamage          = 0.000000
+ProgDamageType      = "Unspecified"
+ProgDamageDuration  = 5.000000
+ProgDamageRadius	= 0.000000
+ProgDamageLifetime  = 0.000000
+FireRecoilMult		= 1.000000
+ImpactFXName        = ""
+UWImpactFXName      = ""
+FireFXName          = ""
+TracerFXName        = ""
+WeaponAniOverride	= ""
+
+
+/*
+** Ammo45 - Banana
+*/
+
+[Ammo45]
+
+Name				= "Banana"
+NameId              = 4139
+DescId              = 0
+Type                = 1
+Priority			= 14
+Icon				= "Interface\Photos\Ammo\banana"
+MaxAmount           = 5
+SelectionAmount		= 5
+SpawnedAmount       = 1
+InstDamage          = 1
+InstDamageType      = "Bullet"
+AreaDamage			= 0
+AreaDamageType		= "Unspecified"
+AreaDamageRadius    = 0
+ProgDamage          = 0.000000
+ProgDamageType      = "Slippery"
+ProgDamageDuration  = 3.000000
+ProgDamageRadius	= 64.000000
+ProgDamageLifetime  = 0.100000
+FireRecoilMult		= 1.000000
+ProjectileFXName    = "BananaProj"
+ImpactFXName        = "Soft"
+UWImpactFXName      = "Soft"
+FireFXName          = "FireSoundOnly"
+
+/*
+** Ammo46 - Wheelchair rocket
+*/
+
+[Ammo46]
+
+Name				= "Rocket"
+NameId              = 4100
+DescId              = 0
+Type                = 1
+Priority			= 16
+Icon				= "Interface\Photos\Ammo\bullet_exp"
+MaxAmount           = 5
+SelectionAmount		= 5
+SpawnedAmount       = 0
+InstDamage          = 50
+InstDamageType      = "Explode"
+AreaDamage			= 50
+AreaDamageType		= "Explode"
+AreaDamageRadius    = 200
+ProgDamage          = 0.000000
+ProgDamageType      = "Unspecified"
+ProgDamageDuration  = 0.000000
+ProgDamageRadius	= 0.000000
+ProgDamageLifetime  = 0.000000
+FireRecoilMult		= 1.000000
+ProjectileFXName    = "Rocket"
+ImpactFXName        = "Explosion1"
+UWImpactFXName      = "UWRocket"
+FireFXName          = "Rocket"
+TracerFXName        = ""
+WeaponAniOverride	= ""
+
+/*
+** Ammo47 - Tracking Device (Utility launcher)
+*/
+
+[Ammo47]
+
+Name				= "Tracking Device"
+NameId              = 4140
+DescId              = 4340
+Type                = 1
+Priority			= 7
+Icon				= "Interface\Photos\Ammo\launcher_track"
+MaxAmount           = 10
+SelectionAmount		= 10
+SpawnedAmount       = 1
+InstDamage          = 5
+InstDamageType      = "WorldOnly"
+AreaDamage			= 0
+AreaDamageType		= "Unspecified"
+AreaDamageRadius    = 0
+ProgDamage          = 0
+ProgDamageType      = "Tracker"
+ProgDamageDuration  = 0.000000
+ProgDamageRadius	= 0.000000
+ProgDamageLifetime  = 0.000000
+FireRecoilMult		= 0.000000
+ProjectileFXName    = "ULDart"
+ImpactFXName        = "TrackingDart"
+UWImpactFXName      = "TrackingDart"
+FireFXName          = ""
+WeaponAniOverride	= ""
+CanBeDeflected		= 1
+DeflectSurfaceType	= "Metal"
+
+/*
+** Ammo48 - Welder burn damage - Used internally DO NOT use this with any weapon!!!
+*/
+
+[Ammo48]
+
+Name				= "WelderBurn"
+NameId              = 4100
+DescId              = 0
+Type                = 0
+Priority			= 0
+Icon				= ""
+MaxAmount           = 1000
+SelectionAmount		= 1000
+SpawnedAmount       = 1000
+InstDamage          = 1
+InstDamageType      = "Burn"
+AreaDamage			= 0
+AreaDamageType		= "Unspecified"
+AreaDamageRadius    = 0
+ProgDamage          = 0.000000
+ProgDamageType      = "Unspecified"
+ProgDamageDuration  = 0.000000
+ProgDamageRadius	= 0.000000
+ProgDamageLifetime  = 0.000000
+FireRecoilMult		= 1.000000
+ImpactFXName        = "Welder"
+UWImpactFXName      = "UWWelder"
+FireFXName          = "FireSoundOnly"
+CanAdjustInstDamage = 0
+
+
+/*
+** Ammo49 - Man-Bite
+*/
+
+[Ammo49]
+
+Name				= "ManBite"
+NameId              = 4102
+DescId              = 0
+Type                = 0
+Priority			= 0
+Icon				= "Interface\Photos\Ammo\Bullet_Def"
+MaxAmount           = 1000
+SelectionAmount		= 1000
+SpawnedAmount       = 1000
+InstDamage          = 30
+InstDamageType      = "Sword"
+AreaDamage			= 0
+AreaDamageType		= "Unspecified"
+AreaDamageRadius    = 0
+ProgDamage          = 0.000000
+ProgDamageType      = "Unspecified"
+ProgDamageDuration  = 0.000000
+ProgDamageRadius	= 0.000000
+ProgDamageLifetime  = 0.000000
+FireRecoilMult		= 1.000000
+ImpactFXName        = ""
+UWImpactFXName      = ""
+FireFXName          = "FireSoundOnly"
+TracerFXName        = ""
+WeaponAniOverride	= ""
+CanBeDeflected		= 0
+DeflectSurfaceType	= ""
+
+/*
+** Ammo50 - Keychain
+*/
+
+[Ammo50]
+
+Name				= "Keychain"
+NameId              = 4024
+DescId              = 0
+Type                = 0
+Priority			= 0
+Icon				= ""
+MaxAmount           = 1
+SelectionAmount		= 1
+SpawnedAmount       = 1
+InstDamage          = 0
+InstDamageType      = "Unspecified"
+AreaDamage			= 0
+AreaDamageType		= "Unspecified"
+AreaDamageRadius    = 0
+ProgDamage          = 0.000000
+ProgDamageType      = "Unspecified"
+ProgDamageDuration  = 5.000000
+ProgDamageRadius	= 0.000000
+ProgDamageLifetime  = 0.000000
+FireRecoilMult		= 1.000000
+ImpactFXName        = ""
+UWImpactFXName      = ""
+FireFXName          = ""
+TracerFXName        = ""
+WeaponAniOverride	= ""
+
+/*
+** Ammo51 - Head_gun butt
+*/
+
+[Ammo51]
+
+Name				= "Head_gun butt"
+NameId              = 4102
+DescId              = 0
+Type                = 0
+Priority			= 0
+Icon				= "Interface\Photos\Ammo\Bullet_Def"
+MaxAmount           = 1000
+SelectionAmount		= 1000
+SpawnedAmount       = 1000
+InstDamage          = 30
+InstDamageType      = "Sword"
+AreaDamage			= 0
+AreaDamageType		= "Unspecified"
+AreaDamageRadius    = 0
+ProgDamage          = 0.000000
+ProgDamageType      = "Unspecified"
+ProgDamageDuration  = 0.000000
+ProgDamageRadius	= 0.000000
+ProgDamageLifetime  = 0.000000
+FireRecoilMult		= 1.000000
+ImpactFXName        = "head_gun_impact"
+UWImpactFXName      = "head_gun_impact"
+FireFXName          = "FireSoundOnly"
+TracerFXName        = ""
+WeaponAniOverride	= ""
+CanBeDeflected		= 1
+DeflectSurfaceType	= "Sword_Deflect"
+
+/************************************************************************
+**
+** WEAPON
+**
+** Weapon definitions specify the properties making up a
+** weapon.
+**
+** All weapon definitions should contain the following
+** properties:
+**
+**	Name (String)
+**
+**		User friendly name used in WeaponOrder above and in DEdit.
+**
+**	NameId (Integer)
+**
+**		Id that maps to the weapon Localizable name (stored in CRes.dll)	
+**
+**	DescriptionId (Integer)
+**
+**		Id that maps to the weapon description (stored in CRes.dll)	
+**
+**	IsAmmoNoPickupId (Integer)
+**
+**		Id that maps to the string that is displayed for IsAmmo = 1 type weapons
+**		when the weapon can not be picked up (stored in CRes.dll)
+**
+**	ClientWeaponType (Integer)
+**
+**		Weapon type:
+**			0 - none (NEVER use this number)
+**			1 - vector (bullet type weapons)
+**			2 - projectile ( slow shooting weapons, like crossbows)
+**			3 - disc (TRON type- the disc)
+**
+**  AniType (Integer)
+**
+**		Classify the weapon into a style of animation when holding the weapon
+**
+**		Values :
+**
+**		0	- rifle
+**		1	- pistol
+**		2	- melee
+**		3	- Throw
+**		4	- Rifle2
+**		5	- Rifle3
+**		6	- Holster
+**		7	- Place
+**		8	- Gadget
+**		9	- Throwing Stars
+**
+**	Icon (String)
+**
+**		Filename of the texture used for an icon associated with the weapon.
+**		
+**		for Normal icons
+**			".dtx" is appended to the name.
+**		for Unselected icons
+**			"U.dtx" is appended to the name.
+**		for Disabled icons
+**			"D.dtx" is appended to the name.
+**		for Silhouette icons
+**			"X.dtx" is appended to the name.
+**
+**	Pos (Vector)
+**
+**		The player-view weapon model pos (offset from player model in
+**		x, y, and z)
+**
+**	MuzzlePos (Vector)
+**
+**		The player-view weapon model muzzle pos (offset from the player
+**		model in x, y, and z).  This is used to determine where to place 
+**		muzzle fx.
+**
+**	BreachOffset (Vector)
+**
+**		The player-view weapon breach offset which is relative to the above
+**		model muzzle pos.  This is used to determine where shell casings will
+**		be ejected from the player-view weapon.
+**
+**	MinPerturb (Integer)
+**
+**		The minimum amount of perturb on each vector or projectile fired by 
+**		the weapon.  A value in range from MinPerturb to MaxPerturb
+**		is added to the Up and Right components of the firing direction
+**		vector based on the current accuracy of the player/ai firing the
+**		weapon.
+**
+**	MaxPerturb (Integer)
+**
+**		The maximum amount of perturb on each vector or projectile fired by 
+**		the weapon.  A value in range from MinPerturb to MaxPerturb
+**		is added to the Up and Right components of the firing direction
+**		vector based on the current accuracy of the player/ai firing the
+**		weapon.
+**
+**	Range (Integer)
+**
+**		The range of the weapon.
+**
+**	Recoil (Vector)
+**
+**		The amount of weapon recoil.
+**
+**	VectorsPerRound (Integer)
+**
+**		The number of vectors (rays cast) per round.
+**
+**	PVModel (String)
+**
+**		Name of the player-view weapon model.
+**
+**	PVSkin0-N (String)
+**
+**		Name of the player-view weapon skin(s) (NOTE: You can specify "Hands" if
+**		you want to use the player-view hands texture associated with the
+**		current player model style).
+**      There can be any number of skins: PVSkin0, PVSkin1, ..., PVSkinN
+**
+**  PVRenderStyle0-N (String)
+**
+**		Name of the render style file ltb(s).
+**      There can be any number of render styles: PVRenderStyle0, PVRenderStyle1, ..., PVRenderStyleN
+**
+**	PVMuzzleFXName (String) (OPTIONAL)
+**
+**		Specifies the optional player-view muzzle fx for this weapon.
+**		The value of this property MUST correspond to a name specified 
+**		in the MuzzleFX definitions in the Attributes\fx.txt file.
+**
+**	PVAttachFXName (String) (OPTIONAL)
+**
+**		Specifies the optional player-view fx attachment for this weapon.
+**		The value of this property MUST correspond to an effect created 
+**		with FXEd.
+**
+**	HHModel (String)
+**
+**		Name of the hand-held (and powerup) weapon model.
+**
+**	HHSkin0-N (String)
+**
+**		Name of the hand-held (and powerup) weapon skin(s).
+**      There can be any number of skins: HHSkin0, HHSkin1, ..., HHSkinN
+**
+**  HHRenderStyle0-N (String)
+**
+**		Name of the render style file ltb(s).
+**      There can be any number of render styles: HHRenderStyle0, HHRenderStyle1, ..., HHRenderStyleN
+**
+**	HHModelScale (Vector)
+**
+**		The scale of the hand-held (and powerup) weapon model.
+**
+**	HHMuzzleFXName (String) (OPTIONAL)
+**
+**		Specifies the optional hand-held muzzle fx for this weapon.
+**		The value of this property MUST correspond to a name specified 
+**		in the MuzzleFX definitions in the Attributes\fx.txt file.
+**
+**	FireSnd(String)
+**
+**		Name of the sound that is played when the weapon is fired.
+**
+**	AltFireSnd(String)
+**
+**		Name of the sound that is played when the weapon is alt-fired.
+**
+**	SilencedFireSnd(String)
+**
+**		Name of the sound that is played when the weapon is fired with
+**		a silencer.
+**
+**	DryFireSnd(String)
+**
+**		Name of the sound that is played when the weapon is dry fired.
+**
+**	ReloadSnd1 (String)
+**
+**		Name of the sound that is played when the weapon is reloaded.
+**		(mapped to SOUND_KEY 1)
+**
+**	ReloadSnd2 (String)
+**
+**		Optionally the name of a sound that is played when the weapon 
+**		is reloaded (mapped to SOUND_KEY 2).
+**
+**	ReloadSnd3 (String)
+**
+**		Optionally the name of a sound that is played when the weapon 
+**		is reloaded (mapped to SOUND_KEY 3).
+**
+**	SelectSnd (String)
+**
+**		Name of the sound that is played when the weapon is selected.
+**		(mapped to SOUND_KEY 4)
+**
+**	DeselectSnd (String)
+**
+**		Name of the sound that is played when the weapon is deselected.
+**		(mapped to SOUND_KEY 5)
+**	
+**	MiscSound1 - MiscSound5 (string)
+**
+**		Optional miscellaneous sounds to play during weapon animations.
+**		(mapped to SOUND_KEY 10 - SOUND_KEY 14)
+**
+**	FireSndRadius (Integer)
+**
+**		The radius of volume fallof that fire sounds are played at
+**
+**	AIFireSndRadius (Integer)
+**
+**		The radius of volume that fire sounds make, w.r.t to AI's senses
+**
+**	WeaponSndRadius (Integer)
+**
+**		The radius of volume falloff that all other sounds, non-fire sounds, are played at
+**
+**	EnvironmentMap (Integer)
+**
+**		Specifies whether or not the weapon uses environment mapping. 
+**
+**	InfiniteAmmo (Integer)
+**
+**		Specifies whether or not the weapon has unlimited ammo. 
+**		(1 = true, 0 = false)
+**
+**	ShotsPerClip (Integer)
+**
+**		The number of rounds the weapon can fire before it must be reloaded.
+**
+**  FireRecoilPitch (Float)
+**
+**		Specifies the amount the weapon should pitch (in degrees) when
+**		fired.
+**
+**	FireRecoilDecay (Float)
+**	
+**		Specifies the time (in seconds) it should take for the weapon's
+**		pitch to get back to normal after recoiling from firing.
+**
+**	AmmoName# (String)
+**
+**		Specifies the type of ammo available for this weapon.  The value
+**		of this property MUST correspond to the name specified in the
+**		AMMO definitions above.  If the weapon uses multiple ammo types, 
+**		you may specify multiple AmmoName properties.  For example:
+**
+**			AmmoName0	= "9mm fmj"
+**			AmmoName1	= "9mm dum dum"
+**		
+**		Note:  The first (or only) ammo type specified is considered the
+**			   "default" ammo type.  Every weapon MUST have at least one
+**			   ammo type specified.
+**
+**	ModName# (String) (OPTIONAL)
+**
+**		Specifies the optional mods available for this weapon.  The value
+**		of this property MUST correspond to the name specified in the
+**		MOD definitions below.  If the weapon uses multiple mods, 
+**		you may specify multiple ModName properties.  For example:
+**
+**			ModName0	= "9mm fmj"
+**			ModName1	= "9mm dum dum"
+**		
+**	PVFXName# (String) (OPTIONAL)
+**
+**		Specifies the optional player-view fx available for this weapon.
+**		The value of this property MUST correspond to a name specified 
+**		in the PVFX definitions in the Attributes\fx.txt file.  If the weapon 
+**		uses multiple pv fx, you may specify multiple PVFXName properties.
+**		For example:
+**
+**			PVFXName0	= "LighterFlameFX"
+**			PVFXName1	= "LighterLightFX"
+**
+**  AIWeaponType (Integer)
+**
+**		Classify the weapon for use by AI
+**
+**		Values :
+**
+**		0	- None
+**		1	- Ranged
+**		2	- Melee
+**		3	- Thrown
+**		
+**	AIMinBurstInterval	(Float in seconds)
+**	AIMaxBurstInterval	(Float in seconds)
+**
+**		Specifies the range of time an AI will wait in between firing a burst
+**		from a weapon. IE, the AI will shoot somewhere between Min/AIMaxBurstShots,
+**		then wait Min/AIMaxBurstInterval seconds, then shoot again.
+**
+**	AIMinBurstShots		(Integer)
+**	AIMaxBurstShots		(Integer)
+**
+**		Specifies the range of shots an AI will fire when it is firing a burst
+**		from a weapon. IE, the AI will shoot somewhere between Min/AIMaxBurstShots,
+**		then wait Min/AIMaxBurstInterval seconds, then shoot again.
+**
+**  AIAnimatesReloads
+**
+**		Specifies whether or not an AI animates reloading this weapon.
+**		(1 = true, 0 = false)
+**
+**	LooksDangerous (Integer)
+**
+**		Specifies whether or not the weapon/gadget looks dangerous to AIs.
+**		(1 = true, 0 = false)
+**
+**	FireDelay (Integer)
+**
+**		Specifies the minimum delay in milliseconds between fire keys
+**
+**	HideWhenEmpty (Integer)
+**
+**		Specifies whether or not the weapon/gadget should be hidden when out of ammo
+**		(also implies that the deselect animation shouldn't be played when auto-switching
+**		from this weapon when it runs out of ammo)
+**		(1 = true, 0 = false)
+**
+**	IsAmmo (Integer)
+**
+**		Specifies whether or not the weapon/gadget should be treated as ammo.  In other
+**		words is the weapon placed/thrown (e.g., grenade, bear trap, etc.).  If set to
+**		true the weapon's pick-up message won't be displayed when the weapon is picked up
+**		unless the weapon can't be picked up.  If the weapon can't be picked up the
+**		IsAmmoNoPickupId string is displayed.  This should be used for "thrown" weapons 
+**		so the player doesn't see both the weapon pickup message AND the ammo pick up message.
+**		(1 = true, 0 = false)
+**
+**  HolsterAttachment (String) (OPTIONAL)
+**  
+**      Specifies node and model to attch when weapon is holstered.
+**
+**		For example:
+**
+**			HolsterAttachment = "BACK AK47_holster"
+**
+**  HiddenPiece0-N (String) (OPTIONAL)
+**
+**		Names of Gadget model pieces to hide/show when the gadget is fired.  There can
+**		be any number of pieces to hide/show.  NOTE: this only works for Gadget type
+**		weapons (Gadget above)
+**
+**	FireAnimRateScale (Float) (OPTIONAL)
+**
+**		Speeds up or slows down the rate of the Fire animation.  By default the scale is 1.0 
+**		which will play the animation at normal speed, 2.0 will double the speed, and 0.5 will
+**		half the speed.
+**
+**	ReloadAnimRateScale (Float) (OPTIONAL)
+**
+**		Speeds up or slows down the rate of the Reload animation.  By default the scale is 1.0 
+**		which will play the animation at normal speed, 2.0 will double the speed, and 0.5 will
+**		half the speed.
+**
+** PowerupFX (String)
+**
+**		Name of the FxED created FX to be played when the item respawns.  This FX will constantly loop as long
+**		as the item is waiting to be picked up.
+**
+**	RespawnWaitVisible	(Integer)
+**
+**		(0 or 1) If 0 the item will become invisible once it is picked up and is waiting to respawn.  Otherwise the item
+**		will remain visible.
+**
+**	RespawnWaitFX (String)
+**
+**		Name of an FxED created FX to play once the item is picked up and is waiting to respawn.
+**
+**	RespawnWaitSkin0-N (String)
+**
+**		Name of the skin files that will be associted with the mode once it is picked up and is waiting to respawn.
+**
+**	RespawnWaitRenderStyle0-N (String)
+**
+**		Name of the renderstyle that will be associated with the model once it is pickedup and is waiting to respawn.
+**
+**	CanServerRestrict (Integer) (OPTIONAL)
+**
+**		If set to 0 to not allow server options to restrict this item from the level.  Default: 1.
+**
+*/
+
+
+/*
+** Tazer
+*/
+
+[Weapon0]
+
+Name					= "Tazer"
+NameId					= 4000
+DescriptionId			= 4050
+ClientWeaponType		= 1
+AniType					= 8
+Icon					= "Interface\Photos\Weapons\Tazer"
+Pos						= <-0.165000, -0.187500, 0.515000>
+MuzzlePos				= <1.000000, -1.100000, 13.800000>
+BreachOffset			= <0.000000, 0.000000, 0.000000>
+MinPerturb				= 0
+MaxPerturb				= 10
+Range					= 100
+Recoil					= <0.000000, 0.000000, 0.000000>
+VectorsPerRound			= 1
+PVModel					= "Guns\Models_PV\tazer.ltb"
+PVSkin0					= "Hands"
+PVSkin1					= "Guns\Skins_PV\tazer.dtx"
+PVSkin2					= "TexFX\RenderStyles\shine.dtx"
+PVRenderStyle0 			= "RS\pv_envmap.ltb"
+PVMuzzleFXName			= "Tazer_PV_Muzz"
+PVAttachFXName0			= "Test_PVTazerFX"
+PVAttachFXName1			= "tazergreen"
+PVAttachFXName2			= "tazerred"
+HHModel					= "Guns\Models_HH\tazer.ltb"
+HHSkin0					= "Guns\Skins_pv\tazer.dtx"
+HHModelScale			= <1.000000, 1.000000, 1.000000>
+HHMuzzleFXName			= "Tazer_HH_Muzz"
+SilencedFireSnd			= ""
+AltFireSnd				= "Guns\Snd\Tazer\altfire.wav"
+FireSnd					= "Guns\Snd\Tazer\fire.wav"
+DryFireSnd				= "Guns\Snd\Tazer\dryfire.wav"
+ReloadSnd1				= "Guns\Snd\Tazer\reload1.wav"
+SelectSnd				= "Guns\Snd\Tazer\select.wav"
+DeselectSnd				= "Guns\Snd\Tazer\deselect.wav"
+FireSndRadius			= 1280
+AIFireSndRadius			= 128
+EnvironmentMap			= 0
+InfiniteAmmo			= 1
+ShotsPerClip			= 1
+FireRecoilPitch			= 2.000000
+FireRecoilDecay			= 0.200000
+AmmoName0				= "Tazer"
+AIWeaponType			= 0
+AIMinBurstInterval		= 0.500000
+AIMaxBurstInterval		= 1.500000
+AIMinBurstShots			= 1
+AIMaxBurstShots			= 5
+AIAnimatesReloads		= 1
+LooksDangerous			= 0
+FireDelay				= 600
+HideWhenEmpty			= 0
+PowerupFX				= ""
+RespawnWaitVisible		= 1
+RespawnWaitFX			= ""
+RespawnWaitSkin0		= "FX\PowerupPU.dtx"
+RespawnWaitRenderStyle0	= "RS\PowerupPU.ltb"
+RespawnWaitTranslucent	= 1
+
+
+/*
+** Katana
+*/
+
+[Weapon1]
+
+Name					= "Katana"
+NameId					= 4001
+DescriptionId			= 4051
+ClientWeaponType		= 1
+AniType					= 2
+Icon					= "Interface\Photos\Weapons\Katana"
+Pos						= <0.065000, -0.780000, -0.060000>
+MuzzlePos				= <1.000000, 0.520000, 53.440907>
+BreachOffset			= <0.000000, 0.000000, 0.000000>
+MinPerturb				= 0
+MaxPerturb				= 10
+Range					= 128
+Recoil					= <0.000000, 0.000000, 0.000000>
+VectorsPerRound			= 1
+PVModel					= "Guns\Models_PV\Katana.ltb"
+PVSkin0					= "Hands"
+PVSkin1					= "Guns\Skins_PV\Katana.dtx"
+PVSkin2					= "TexFX\RenderStyles\clouds2.dtx"
+PVRenderStyle0 			= "RS\pv_envmap.ltb"
+PVMuzzleFXName			= ""
+HHModel					= "Guns\Models_HH\katana.ltb"
+HHSkin0					= "Guns\Skins_PV\Katana.dtx"
+HHModelScale			= <1.000000, 1.000000, 1.000000>
+HHMuzzleFXName			= ""
+PVAttachFXName0			= "SwordTrail"
+SilencedFireSnd			= ""
+FireSnd					= "KatanaFire"
+SelectSnd				= "Guns\Snd\Katana\select.wav"
+DeselectSnd				= "Guns\Snd\Katana\deselect.wav"
+FireSndRadius			= 1280
+AIFireSndRadius			= 128
+EnvironmentMap			= 0
+InfiniteAmmo			= 1
+ShotsPerClip			= 1
+FireRecoilPitch			= 0.000000
+FireRecoilDecay			= 0.000000
+AmmoName0				= "Katana Slash"
+AIWeaponType			= 2
+AIMinBurstInterval		= 0.000000
+AIMaxBurstInterval		= 0.000000
+AIMinBurstShots			= 0
+AIMaxBurstShots			= 0
+AIAnimatesReloads		= 0
+LooksDangerous			= 1
+FireDelay				= 450
+HideWhenEmpty			= 0
+HolsterAttachment		= "BACK katana_holster"
+CanBeDeflected			= 1
+PowerupFX				= ""
+RespawnWaitVisible		= 1
+RespawnWaitFX			= ""
+RespawnWaitSkin0		= "FX\PowerupPU.dtx"
+RespawnWaitRenderStyle0	= "RS\PowerupPU.ltb"
+RespawnWaitTranslucent	= 1
+
+/*
+** Tulwar
+*/
+
+[Weapon2]
+
+Name					= "Tulwar"
+NameId					= 4002
+DescriptionId			= 4052
+ClientWeaponType		= 1
+AniType					= 2
+Icon					= "Interface\Photos\Weapons\Tulwar"
+Pos						= <0.000000, -1.000000, 0.300000>
+MuzzlePos				= <1.000000, 0.520000, 53.440907>
+BreachOffset			= <0.000000, 0.000000, 0.000000>
+MinPerturb				= 0
+MaxPerturb				= 10
+Range					= 128
+Recoil					= <0.000000, 0.000000, 0.000000>
+VectorsPerRound			= 1
+PVModel					= "Guns\Models_PV\Tulwar.ltb"
+PVSkin0					= "Hands"
+PVSkin1					= "Guns\Skins_PV\Tulwar.dtx"
+PVSkin2					= "TexFX\RenderStyles\clouds2.dtx"
+PVRenderStyle0			= "RS\pv_envmap.ltb"
+PVMuzzleFXName			= ""
+HHModel					= "Guns\Models_HH\Tulwar.ltb"
+HHSkin0					= "Guns\Skins_PV\Tulwar.dtx"
+HHModelScale			= <1.000000, 1.000000, 1.000000>
+HHMuzzleFXName			= ""
+PVAttachFXName0			= "SwordTrail"
+SilencedFireSnd			= ""
+FireSnd					= "TulwarFire"
+SelectSnd				= "Guns\Snd\Tulwar\select.wav"
+DeselectSnd				= "Guns\Snd\Tulwar\deselect.wav"
+FireSndRadius			= 1280
+AIFireSndRadius			= 128
+EnvironmentMap			= 0
+InfiniteAmmo			= 1
+ShotsPerClip			= 1
+FireRecoilPitch			= 0.000000
+FireRecoilDecay			= 0.000000
+AmmoName0				= "Tulwar Slash"
+AIWeaponType			= 2
+AIMinBurstInterval		= 0.000000
+AIMaxBurstInterval		= 0.000000
+AIMinBurstShots			= 0
+AIMaxBurstShots			= 0
+AIAnimatesReloads		= 1
+LooksDangerous			= 1
+FireDelay				= 300
+HideWhenEmpty			= 0
+HolsterAttachment		= "NOSE tulwar_holster"
+CanBeDeflected			= 1
+PowerupFX				= ""
+RespawnWaitVisible		= 1
+RespawnWaitFX			= ""
+RespawnWaitSkin0		= "FX\PowerupPU.dtx"
+RespawnWaitRenderStyle0	= "RS\PowerupPU.ltb"
+RespawnWaitTranslucent	= 1
+
+
+/*
+** Shuriken
+*/
+
+[Weapon3]
+
+Name					= "Shuriken"
+NameId					= 4003
+DescriptionId			= 4053
+ClientWeaponType		= 2
+AniType					= 9
+Icon					= "Interface\Photos\Weapons\Shuriken"
+Pos						= <0.525000, -0.422502, 0.175000>
+MuzzlePos				= <0.000000, 0.000000, 13.800000>
+BreachOffset			= <0.000000, 0.000000, 0.000000>
+MinPerturb				= 5
+MaxPerturb				= 50
+Range					= 100000
+Recoil					= <0.000000, 0.000000, 0.000000>
+VectorsPerRound			= 1
+PVModel					= "Guns\Models_PV\shuriken.ltb"
+PVSkin0					= "Hands"
+PVSkin1					= "Guns\Skins_PV\shuriken.dtx"
+PVSkin2					= "TexFX\RenderStyles\clouds2.dtx"
+PVRenderStyle0			= "RS\pv_envmap.ltb"
+PVMuzzleFXName			= ""
+HHModel					= "Guns\models_hh\shuriken.ltb"
+HHSkin0					= "Guns\Skins_PV\shuriken.dtx"
+HHModelScale			= <1.000000, 1.000000, 1.000000>
+HHMuzzleFXName			= ""
+FireSnd					= "Guns\Snd\Shuriken\fire.wav"
+SelectSnd				= "Guns\Snd\Shuriken\select.wav"
+DeselectSnd				= "Guns\Snd\Shuriken\deselect.wav"
+FireSndRadius			= 1280
+AIFireSndRadius			= 8
+EnvironmentMap			= 0
+InfiniteAmmo			= 0
+ShotsPerClip			= 3
+FireRecoilPitch			= 2.000000
+FireRecoilDecay			= 0.200000
+AmmoName0				= "Reg Shuriken"
+AIWeaponType			= 1
+AIMinBurstInterval		= 0.000000
+AIMaxBurstInterval		= 0.000000
+AIMinBurstShots			= 0
+AIMaxBurstShots			= 0
+AIAnimatesReloads		= 0
+LooksDangerous			= 1
+FireDelay				= 90
+HideWhenEmpty			= 1
+IsAmmo					= 1
+IsAmmoNoPickupId		= 4032
+PowerupFX				= ""
+RespawnWaitVisible		= 1
+RespawnWaitFX			= ""
+RespawnWaitSkin0		= "FX\PowerupPU.dtx"
+RespawnWaitRenderStyle0	= "RS\PowerupPU.ltb"
+RespawnWaitTranslucent	= 1
+
+/*
+** Grenade
+*/
+
+[Weapon4]
+
+Name					= "Grenade"
+NameId					= 4004
+DescriptionId			= 4054
+ClientWeaponType		= 2
+AniType					= 3
+Icon					= "Interface\Photos\Weapons\Grenade"
+Pos						= <-0.190000, -0.549999, 0.135000>
+MuzzlePos				= <1.939999, -2.179999, 10.359921>
+BreachOffset			= <0.000000, 0.000000, 0.000000>
+MinPerturb				= 20
+MaxPerturb				= 50
+Range					= 100000
+Recoil					= <0.000000, 0.000000, 0.000000>
+VectorsPerRound			= 1
+PVModel					= "Guns\Models_PV\grenade.ltb"
+PVSkin0					= "Hands"
+PVSkin1					= "Guns\Skins_PV\grenade.dtx"
+PVSkin2					= "TexFX\RenderStyles\shine3.dtx"
+PVSkin3					= "TexFX\RenderStyles\clouds2.dtx"
+PVRenderStyle0 			= "RS\pv_envmap.ltb"
+PVMuzzleFXName			= ""
+HHModel					= "Guns\Models_HH\grenade.ltb"
+HHSkin0					= "Guns\Skins_pv\grenade.dtx"
+HHModelScale			= <1.000000, 1.000000, 1.000000>
+HHMuzzleFXName			= ""
+SilencedFireSnd			= ""
+AltFireSnd				= "Guns\Snd\grenade\altfire.wav"
+FireSnd					= ""
+DryFireSnd				= "Guns\Snd\grenade\dryfire.wav"
+ReloadSnd1				= "Guns\Snd\grenade\reload1.wav"
+ReloadSnd2				= "Guns\Snd\grenade\idle_1.wav"
+ReloadSnd3				= "Guns\Snd\grenade\idle_2.wav"
+MiscSound1				= "Guns\Snd\grenade\fire.wav"
+MiscSound2				= "Guns\Snd\grenade\firetoss.wav"
+SelectSnd				= "Guns\Snd\grenade\select.wav"
+DeselectSnd				= "Guns\Snd\grenade\deselect.wav"
+FireSndRadius			= 1280
+AIFireSndRadius			= 128
+EnvironmentMap			= 0
+InfiniteAmmo			= 0
+ShotsPerClip			= 1
+AmmoMultiplier			= 1
+FireRecoilPitch			= 2.000000
+FireRecoilDecay			= 0.200000
+AmmoName0				= "Timed Grenade"
+AIWeaponType			= 3
+AIMinBurstInterval		= 10.00000
+AIMaxBurstInterval		= 20.00000
+AIMinBurstShots			= 1
+AIMaxBurstShots			= 1
+AIAnimatesReloads		= 1
+LooksDangerous			= 1
+FireDelay				= 1100
+HideWhenEmpty			= 1
+IsAmmo					= 1
+IsAmmoNoPickupId		= 4033
+HiddenPiece0			= "polySurface52"
+HiddenPiece1			= "polySurface61"
+PowerupFX				= ""
+RespawnWaitVisible		= 1
+RespawnWaitFX			= ""
+RespawnWaitSkin0		= "FX\PowerupPU.dtx"
+RespawnWaitRenderStyle0	= "RS\PowerupPU.ltb"
+RespawnWaitTranslucent	= 1
+
+/*
+** Angry Kitty
+*/
+
+[Weapon5]
+
+Name					= "Angry Kitty"
+NameId					= 4005
+DescriptionId			= 4055
+ClientWeaponType		= 2
+AniType					= 7
+Icon					= "Interface\Photos\Weapons\Kitty"
+Pos						= <-0.160000, -1.239999, 0.700000>
+MuzzlePos				= <1.939999, -2.179999, 10.359921>
+BreachOffset			= <0.000000, 0.000000, 0.000000>
+MinPerturb				= 0
+MaxPerturb				= 10
+Range					= 100000
+Recoil					= <0.000000, 0.000000, 0.000000>
+VectorsPerRound			= 1
+PVModel					= "Guns\Models_PV\kitty.ltb"
+PVSkin0					= "Hands"
+PVSkin1					= "Guns\Skins_PV\kitty.dtx"
+PVSkin2					= "Guns\Skins_PV\eye.dtx"
+PVSkin3					= "TexFX\RenderStyles\shine2.dtx"
+PVRenderStyle0 			= "RS\pv_envmap.ltb"
+PVMuzzleFXName			= ""
+HHModel					= "Guns\Models_HH\kitty.ltb"
+HHSkin0					= "Guns\Skins_PV\kitty.dtx"
+HHSkin1					= "Guns\Skins_PV\eye.dtx"
+HHModelScale			= <1.000000, 1.000000, 1.000000>
+HHMuzzleFXName			= ""
+PVAttachFXName0			= "KittyL"
+PVAttachFXName1			= "KittyR"
+SilencedFireSnd			= ""
+AltFireSnd				= ""
+FireSnd					= ""
+DryFireSnd				= ""
+ReloadSnd1				= ""
+MiscSound1				= "Guns\Snd\kitty\fire.wav"
+MiscSound2				= "Guns\Snd\kitty\idle_1.wav"
+MiscSound3				= "Guns\Snd\kitty\idle_2.wav"
+SelectSnd				= "Guns\Snd\kitty\select.wav"
+DeselectSnd				= "Guns\Snd\kitty\deselect.wav"
+FireSndRadius			= 1280
+AIFireSndRadius			= 128
+EnvironmentMap			= 0
+InfiniteAmmo			= 0
+ShotsPerClip			= 1
+AmmoMultiplier			= 1
+FireRecoilPitch			= 2.000000
+FireRecoilDecay			= 0.200000
+AmmoName0				= "Angry Kitty"
+AIWeaponType			= 0
+AIMinBurstInterval		= 0.500000
+AIMaxBurstInterval		= 1.500000
+AIMinBurstShots			= 1
+AIMaxBurstShots			= 5
+AIAnimatesReloads		= 1
+LooksDangerous			= 0
+FireDelay				= 1900
+HideWhenEmpty			= 1
+IsAmmo					= 1
+IsAmmoNoPickupId		= 4034
+PowerupFX				= ""
+RespawnWaitVisible		= 1
+RespawnWaitFX			= ""
+RespawnWaitSkin0		= "FX\PowerupPU.dtx"
+RespawnWaitRenderStyle0	= "RS\PowerupPU.ltb"
+RespawnWaitTranslucent	= 1
+
+/*
+** Beretta
+*/
+
+[Weapon6]
+
+Name					= "Beretta"
+NameId					= 4006
+DescriptionId			= 4056
+ClientWeaponType		= 1
+AniType					= 1
+Icon					= "Interface\Photos\Weapons\Beretta"
+Pos						= <-0.572500, 0.062500, -0.220000>
+MuzzlePos				= <1.434990, -1.515000, 8.474898>
+BreachOffset			= <0.050000, 0.000000, -1.580012>
+MinPerturb				= 20
+MaxPerturb				= 50
+Range					= 100000
+Recoil					= <0.000000, 0.000000, 0.000000>
+VectorsPerRound			= 1
+PVModel					= "Guns\Models_PV\beretta.ltb"
+PVSkin0					 = "Hands"
+PVSkin1					= "Guns\Skins_PV\beretta.dtx"
+PVSkin2					= "TexFX\RenderStyles\shinyspot.dtx"
+PVRenderStyle0 			= "RS\pv_envmap.ltb"
+PVMuzzleFXName			= "Beretta_PV_Muzz"
+HHModel					= "Guns\Models_HH\beretta.ltb"
+HHSkin0					= "Guns\Skins_pv\beretta.dtx"
+HHModelScale			= <1.000000, 1.000000, 1.000000>
+HHMuzzleFXName			= ""
+SilencedFireSnd			= "Guns\Snd\beretta\silenced.wav"
+AltFireSnd				= "Guns\Snd\beretta\altfire.wav"
+FireSnd					= "Guns\Snd\beretta\fire.wav"
+DryFireSnd				= "Guns\Snd\beretta\dryfire.wav"
+ReloadSnd1				= "Guns\Snd\beretta\reload1.wav"
+ReloadSnd2				= "Guns\Snd\beretta\reload2.wav"
+ReloadSnd3				= "Guns\Snd\beretta\reload3.wav"
+SelectSnd				= "Guns\Snd\beretta\select.wav"
+DeselectSnd				= "Guns\Snd\beretta\deselect.wav"
+FireSndRadius			= 3000
+AIFireSndRadius			= 2000
+EnvironmentMap			= 0
+InfiniteAmmo			= 0  
+ShotsPerClip			= 9
+FireRecoilPitch			= 2.000000
+FireRecoilDecay			= 0.200000
+ModName0				= "Beretta Silencer"
+AmmoName0				= ".32 fmj"
+AmmoName1				= ".32 cyanide"
+AIWeaponType			= 1
+AIMinBurstInterval		= 0.500000
+AIMaxBurstInterval		= 1.500000
+AIMinBurstShots			= 1
+AIMaxBurstShots			= 5
+AIAnimatesReloads		= 1
+LooksDangerous			= 1
+FireDelay				= 200
+HideWhenEmpty			= 0
+PowerupFX				= ""
+RespawnWaitVisible		= 1
+RespawnWaitFX			= ""
+RespawnWaitSkin0		= "FX\PowerupPU.dtx"
+RespawnWaitRenderStyle0	= "RS\PowerupPU.ltb"
+RespawnWaitTranslucent	= 1
+
+
+/*
+** Launcher
+*/
+
+[Weapon7]
+
+Name					= "Utility Launcher"
+NameId					= 4007
+DescriptionId			= 4057
+ClientWeaponType		= 1
+AniType					= 1
+Icon					= "Interface\Photos\Weapons\Launcher"
+Pos						= <-0.690000, -0.375000, -0.220000>
+MuzzlePos				= <0.834992, 0.657498, 13.059983>
+BreachOffset			= <0.000000, 0.000000, 0.000000>
+MinPerturb				= 5
+MaxPerturb				= 50
+Range					= 100000
+Recoil					= <0.000000, 0.000000, 0.000000>
+VectorsPerRound			= 1
+PVModel					= "Guns\Models_PV\launcher.ltb"
+PVSkin0					= "Hands"
+PVSkin1					= "Guns\Skins_PV\launcher.dtx"
+PVSkin2					= "TexFX\RenderStyles\clouds2.dtx"
+PVRenderStyle0			= "RS\pv_envmap.ltb"
+PVMuzzleFXName			= ""
+HHModel					= "Guns\Models_HH\launcher.ltb"
+HHSkin0					= "Guns\Skins_pv\launcher.dtx"
+HHModelScale			= <1.000000, 1.000000, 1.000000>
+HHMuzzleFXName			= ""
+SilencedFireSnd			= ""
+AltFireSnd				= "Guns\Snd\UtilityLauncher\altfire.wav"
+FireSnd					= "Guns\Snd\UtilityLauncher\fire.wav"
+DryFireSnd				= "Guns\Snd\UtilityLauncher\dryfire.wav"
+ReloadSnd1				= "Guns\Snd\UtilityLauncher\reload1.wav"
+ReloadSnd2				= "Guns\Snd\UtilityLauncher\reload2.wav"
+SelectSnd				= "Guns\Snd\UtilityLauncher\select.wav"
+DeselectSnd				= "Guns\Snd\UtilityLauncher\deselect.wav"
+FireSndRadius			= 3000
+AIFireSndRadius			= 0
+EnvironmentMap			= 0
+InfiniteAmmo			= 0
+ShotsPerClip			= 1
+FireRecoilPitch			= 2.000000
+FireRecoilDecay			= 0.200000
+ModName0				= "Launcher Scope"
+AmmoName0				= "Tracking Device"
+AmmoName1				= "Tranquilizer"
+AmmoName2				= "Cam Disabler"
+AmmoName3				= "Glue Bomb"
+AmmoName4				= "Electrical"
+AmmoName5				= "Serum"
+AIWeaponType			= 0
+AIMinBurstInterval		= 0.500000
+AIMaxBurstInterval		= 1.500000
+AIMinBurstShots			= 1
+AIMaxBurstShots			= 5
+AIAnimatesReloads		= 1
+LooksDangerous			= 1
+FireDelay				= 200
+HideWhenEmpty			= 0
+PowerupFX				= ""
+RespawnWaitVisible		= 1
+RespawnWaitFX			= ""
+RespawnWaitSkin0		= "FX\PowerupPU.dtx"
+RespawnWaitRenderStyle0	= "RS\PowerupPU.ltb"
+RespawnWaitTranslucent	= 1
+
+
+/*
+** Shotgun
+*/
+
+[Weapon8]
+
+Name					= "Shotgun"
+NameId					= 4008
+DescriptionId			= 4058
+ClientWeaponType		= 1
+AniType					= 0
+Icon					= "Interface\Photos\Weapons\Shotgun"
+Pos						= <-0.075000, -0.632500, 0.930000>
+MuzzlePos				= <0.750000, -0.657496, 4.954798>
+BreachOffset			= <0.140000, 0.000000, -2.735015>
+MinPerturb				= 35
+MaxPerturb				= 100
+Range					= 100000
+Recoil					= <0.000000, 0.000000, 0.000000>
+VectorsPerRound			= 5
+PVModel					= "Guns\Models_PV\shotgun.ltb"
+PVSkin0					= "Hands"
+PVSkin1					= "Guns\Skins_PV\shotgun.dtx"
+PVSkin2					= "TexFX\RenderStyles\shine.dtx"
+PVRenderStyle0 			= "RS\pv_envmap.ltb"
+PVMuzzleFXName			= "Shotgun_PV_Muzz"
+HHModel					= "Guns\Models_HH\shotgun.ltb"
+HHSkin0					= "Guns\skins_pv\shotgun.dtx"
+HHModelScale			= <1.000000, 1.000000, 1.000000>
+HHMuzzleFXName			= ""
+SilencedFireSnd			= ""
+AltFireSnd				= "Guns\Snd\shotgun\altfire.wav"
+FireSnd					= "Guns\Snd\shotgun\fire.wav"
+DryFireSnd				= "Guns\Snd\shotgun\dryfire.wav"
+ReloadSnd1				= "Guns\Snd\shotgun\reload1.wav"
+ReloadSnd2				= "Guns\Snd\shotgun\reload2.wav"
+SelectSnd				= "Guns\Snd\shotgun\select.wav"
+DeselectSnd				= "Guns\Snd\shotgun\deselect.wav"
+FireSndRadius			= 3000
+AIFireSndRadius			= 2000
+EnvironmentMap			= 0
+InfiniteAmmo			= 0
+ShotsPerClip			= 8
+AmmoMultiplier			= 1
+FireRecoilPitch			= 2.000000
+FireRecoilDecay			= 0.200000
+AmmoName0				= "12-ga shot"
+AmmoName1				= "12-ga explosive"
+AIWeaponType			= 1
+AIMinBurstInterval		= 0.500000
+AIMaxBurstInterval		= 1.500000
+AIMinBurstShots			= 1
+AIMaxBurstShots			= 5
+AIAnimatesReloads		= 1
+LooksDangerous			= 1
+FireDelay				= 450
+HideWhenEmpty			= 0
+PowerupFX				= ""
+RespawnWaitVisible		= 1
+RespawnWaitFX			= ""
+RespawnWaitSkin0		= "FX\PowerupPU.dtx"
+RespawnWaitRenderStyle0	= "RS\PowerupPU.ltb"
+RespawnWaitTranslucent	= 1
+
+
+/*
+** Sterling
+*/
+
+[Weapon9]
+
+Name					= "Sterling"
+NameId					= 4009
+DescriptionId			= 4059
+ClientWeaponType		= 1
+AniType					= 0
+Icon					= "Interface\Photos\Weapons\Sterling"
+Pos						= <-0.225000, 0.147500, 0.040000>
+MuzzlePos				= <1.120000, -2.179999, 7.979867>
+BreachOffset			= <1.084999, -1.975021, -3.767539>
+MinPerturb				= 30
+MaxPerturb				= 60
+Range					= 100000
+Recoil					= <0.000000, 0.000000, 0.000000>
+VectorsPerRound			= 1
+PVModel					= "Guns\Models_PV\sterling.ltb"
+PVSkin0					= "Hands"
+PVSkin1					= "Guns\Skins_PV\sterling.dtx"
+PVSkin2					= "TexFX\RenderStyles\clouds2.dtx"
+PVRenderStyle0 			= "RS\pv_envmap_alpharef250.ltb"
+PVRenderStyle1 			= "RS\default.ltb"
+PVMuzzleFXName			= "Sterling_PV_Muzz"
+HHModel					= "Guns\Models_HH\sterling.ltb"
+HHSkin0					= "Guns\skins_pv\sterling.dtx"
+HHModelScale			= <1.000000, 1.000000, 1.000000>
+HHMuzzleFXName			= "Sterling_HH_Muzz"
+SilencedFireSnd			= "Guns\Snd\Sterling\silenced.wav"
+AltFireSnd				= "Guns\Snd\Sterling\altfire.wav"
+FireSnd					= ""
+DryFireSnd				= "Guns\Snd\Sterling\dryfire.wav"
+ReloadSnd1				= "Guns\Snd\Sterling\reload1.wav"
+ReloadSnd2				= "Guns\Snd\Sterling\reload2.wav"
+ReloadSnd3				= "Guns\Snd\Sterling\reload3.wav"
+MiscSound1				= "Guns\Snd\Sterling\fire.wav"
+MiscSound2				= "Guns\Snd\Sterling\fireloop.wav"
+SelectSnd				= "Guns\Snd\Sterling\select.wav"
+DeselectSnd				= "Guns\Snd\Sterling\deselect.wav"
+FireSndRadius			= 3000
+AIFireSndRadius			= 2000
+EnvironmentMap			= 0
+InfiniteAmmo			= 0
+ShotsPerClip			= 30
+FireRecoilPitch			= 2.000000
+FireRecoilDecay			= 0.200000
+ModName0				= ""
+AmmoName0				= "9mm fmj"
+AIWeaponType			= 1
+AIMinBurstInterval		= 0.500000
+AIMaxBurstInterval		= 1.500000
+AIMinBurstShots			= 3
+AIMaxBurstShots			= 9
+AIAnimatesReloads		= 1
+LooksDangerous			= 1
+FireDelay				= 90
+HideWhenEmpty			= 0
+HolsterAttachment		= "BACK sterling_holster"
+PowerupFX				= ""
+RespawnWaitVisible		= 1
+RespawnWaitFX			= ""
+RespawnWaitSkin0		= "FX\PowerupPU.dtx"
+RespawnWaitRenderStyle0	= "RS\PowerupPU.ltb"
+RespawnWaitTranslucent	= 1
+
+
+/*
+** TommyGun
+*/
+
+[Weapon10]
+
+Name					= "Tommygun"
+NameId					= 4010
+DescriptionId			= 4060
+ClientWeaponType		= 1
+AniType					= 0
+Icon					= "Interface\Photos\Weapons\TommyGun"
+Pos						= <0.000000, 0.305000, -0.540000>
+MuzzlePos				= <0.445000, -1.772487, 8.484879>
+BreachOffset			= <0.480000, -1.362507, -6.345098>
+MinPerturb				= 30
+MaxPerturb				= 60
+Range					= 100000
+Recoil					= <0.000000, 0.000000, 0.000000>
+VectorsPerRound			= 1
+PVModel					= "Guns\Models_PV\tommygun.ltb"
+PVSkin0					= "Hands"
+PVSkin1					= "Guns\Skins_PV\tommygun.dtx"
+PVSkin2					= "TexFX\RenderStyles\shine.dtx"
+PVRenderStyle0 			= "RS\pv_envmap.ltb"
+PVMuzzleFXName			= "Tommygun_PV_Muzz"
+HHModel					= "Guns\Models_HH\tommygun.ltb"
+HHSkin0					= "Guns\Skins_PV\tommygun.dtx"
+HHModelScale			= <1.000000, 1.000000, 1.000000>
+HHMuzzleFXName			= "Tommygun_HH_Muzz"
+SilencedFireSnd			= ""
+AltFireSnd				= "Guns\Snd\Tommygun\altfire.wav"
+FireSnd					= ""
+DryFireSnd				= "Guns\Snd\Tommygun\dryfire.wav"
+ReloadSnd1				= "Guns\Snd\Tommygun\reload1.wav"
+ReloadSnd2				= "Guns\Snd\Tommygun\reload2.wav"
+ReloadSnd3				= "Guns\Snd\Tommygun\reload3.wav"
+MiscSound1				= "Guns\Snd\Tommygun\fire.wav"
+MiscSound2				= "Guns\Snd\Tommygun\fireloop.wav"
+SelectSnd				= "Guns\Snd\Tommygun\select.wav"
+DeselectSnd				= "Guns\Snd\Tommygun\deselect.wav"
+FireSndRadius			= 3000
+AIFireSndRadius			= 2000
+EnvironmentMap			= 0
+InfiniteAmmo			= 0
+ShotsPerClip			= 50
+FireRecoilPitch			= 2.000000
+FireRecoilDecay			= 0.200000
+AmmoName0				= ".45 fmj"
+AIWeaponType			= 1
+AIMinBurstInterval		= 0.500000
+AIMaxBurstInterval		= 1.500000
+AIMinBurstShots			= 3
+AIMaxBurstShots			= 9
+AIAnimatesReloads		= 1
+LooksDangerous			= 1
+FireDelay				= 85
+HideWhenEmpty			= 0
+HolsterAttachment		= "BACK tommygun_holster"
+PowerupFX				= ""
+RespawnWaitVisible		= 1
+RespawnWaitFX			= ""
+RespawnWaitSkin0		= "FX\PowerupPU.dtx"
+RespawnWaitRenderStyle0	= "RS\PowerupPU.ltb"
+RespawnWaitTranslucent	= 1
+
+
+/*
+** AK-47
+*/
+
+[Weapon11]
+
+Name					= "AK-47"
+NameId					= 4011
+DescriptionId			= 4061
+ClientWeaponType		= 1
+AniType					= 0
+Icon					= "Interface\Photos\Weapons\AK47"
+Pos						= <0.075000, -0.542500, 0.775000>
+MuzzlePos				= <0.535000, -1.290000, 7.309852>
+BreachOffset			= <0.799999, -1.310013, -4.320051>
+MinPerturb				= 30
+MaxPerturb				= 60
+Range					= 100000
+Recoil					= <0.000000, 0.000000, 0.000000>
+VectorsPerRound			= 1
+PVModel					= "Guns\Models_PV\ak47.ltb"
+PVSkin0					= "Hands"
+PVSkin1					= "Guns\Skins_PV\ak47.dtx"
+PVSkin2					= "TexFX\RenderStyles\chrome.dtx"
+PVRenderStyle0 			= "RS\pv_envmap.ltb"
+PVMuzzleFXName			= "AK-47_PV_Muzz"
+HHModel					= "Guns\Models_HH\ak47.ltb"
+HHSkin0					= "Guns\Skins_PV\ak47.dtx"
+//HHRenderStyle0		  = "RS\default.ltb"
+HHModelScale			= <1.000000, 1.000000, 1.000000>
+HHMuzzleFXName			= "AK-47_HH_Muzz"
+SilencedFireSnd			= ""
+AltFireSnd				= "Guns\Snd\ak47\altfire.wav"
+FireSnd					= ""
+DryFireSnd				= "Guns\Snd\ak47\dryfire.wav"
+ReloadSnd1				= "Guns\Snd\ak47\reload1.wav"
+ReloadSnd2				= "Guns\Snd\ak47\reload2.wav"
+MiscSound1				= "Guns\Snd\ak47\fire.wav"
+MiscSound2				= "Guns\Snd\ak47\fireloop.wav"
+SelectSnd				= "Guns\Snd\ak47\select.wav"
+DeselectSnd				= "Guns\Snd\ak47\deselect.wav"
+FireSndRadius			= 3000
+AIFireSndRadius			= 2000
+EnvironmentMap			= 0
+InfiniteAmmo			= 0
+ShotsPerClip			= 30
+AmmoMultiplier			= 1
+FireRecoilPitch			= 2.000000
+FireRecoilDecay			= 0.200000
+ModName0				= ""
+AmmoName0				= "7.62x39 fmj"
+AmmoName1				= "7.62x39 phos"
+AIWeaponType			= 1
+AIMinBurstInterval		= 0.500000
+AIMaxBurstInterval		= 1.500000
+AIMinBurstShots			= 3
+AIMaxBurstShots			= 6
+AIAnimatesReloads		= 1
+LooksDangerous			= 1
+FireDelay				= 85
+HideWhenEmpty			= 0
+HolsterAttachment		= "BACK AK47_holster"
+PowerupFX				= ""
+RespawnWaitVisible		= 1
+RespawnWaitFX			= ""
+RespawnWaitSkin0		= "FX\PowerupPU.dtx"
+RespawnWaitRenderStyle0	= "RS\PowerupPU.ltb"
+RespawnWaitTranslucent	= 1
+
+/*
+** Sniper Rifle
+*/
+
+[Weapon12]
+
+Name					= "Sniper Rifle"
+NameId					= 4012
+DescriptionId			= 4062
+ClientWeaponType		= 1
+AniType					= 0
+Icon					= "Interface\Photos\Weapons\Sniper"
+Pos						= <0.080000, -0.602500, 0.665000>
+MuzzlePos				= <0.395000, -0.794996, 4.859796>
+BreachOffset			= <-0.045000, 1.202480, -3.765039>
+MinPerturb				= 5
+MaxPerturb				= 60
+Range					= 100000
+Recoil					= <0.000000, 0.000000, 0.000000>
+VectorsPerRound			= 1
+PVModel					= "Guns\Models_PV\sniper.ltb"
+PVSkin0					= "Hands"
+PVSkin1					= "Guns\Skins_PV\sniper.dtx"
+PVSkin2					= "TexFX\RenderStyles\clouds.dtx"
+PVSkin3					= "Guns\Skins_PV\lens2.dtx"
+PVRenderStyle0			= "RS\pv_envmap.ltb"
+PVRenderStyle1 			= "RS\pv_glass.ltb"
+PVMuzzleFXName			= "Basic_PV_Muzz"
+HHModel					= "Guns\Models_HH\sniper.ltb"
+HHSkin0					= "Guns\skins_pv\sniper.dtx"
+HHModelScale			= <1.000000, 1.000000, 1.000000>
+HHMuzzleFXName			= "Sniper_HH_Muzz"
+SilencedFireSnd			= "Guns\Snd\sniper\silenced.wav"
+AltFireSnd				= "Guns\Snd\sniper\altfire.wav"
+FireSnd					= "Guns\Snd\sniper\fire.wav"
+DryFireSnd				= "Guns\Snd\sniper\dryfire.wav"
+ReloadSnd1				= "Guns\Snd\sniper\reload1.wav"
+ReloadSnd2				= "Guns\Snd\sniper\reload2.wav"
+SelectSnd				= "Guns\Snd\sniper\select.wav"
+DeselectSnd				= "Guns\Snd\sniper\deselect.wav"
+FireSndRadius			= 3000
+AIFireSndRadius			= 2000
+EnvironmentMap			= 0
+InfiniteAmmo			= 0
+ShotsPerClip			= 5
+AmmoMultiplier			= 1
+FireRecoilPitch			= 2.000000
+FireRecoilDecay			= 0.200000
+ModName0				= "Sniper Scope"
+ModName1				= "Sniper Silencer"
+AmmoName0				= ".308 fmj"
+AIWeaponType			= 1
+AIMinBurstInterval		= 2.000000
+AIMaxBurstInterval		= 4.000000
+AIMinBurstShots			= 1
+AIMaxBurstShots			= 1
+AIAnimatesReloads		= 1
+LooksDangerous			= 1
+FireDelay				= 1000
+HideWhenEmpty			= 0
+PowerupFX				= ""
+RespawnWaitVisible		= 1
+RespawnWaitFX			= ""
+RespawnWaitSkin0		= "FX\PowerupPU.dtx"
+RespawnWaitRenderStyle0	= "RS\PowerupPU.ltb"
+RespawnWaitTranslucent	= 1
+
+
+/*
+** Crossbow
+*/
+
+[Weapon13]
+
+Name					= "Crossbow"
+NameId					= 4013
+DescriptionId			= 4063
+ClientWeaponType		= 2
+AniType					= 0
+Icon					= "Interface\Photos\Weapons\Crossbow"
+Pos						= <0.375000, -0.660000, 0.500000>
+MuzzlePos				= <1.000000, -1.100000, 13.800000>
+BreachOffset			= <0.000000, 0.000000, 0.000000>
+MinPerturb				= 5
+MaxPerturb				= 60
+Range					= 100000
+Recoil					= <0.000000, 0.000000, 0.000000>
+VectorsPerRound			= 1
+PVModel					= "Guns\Models_PV\crossbow.ltb"
+PVSkin0					= "Hands"
+PVSkin1					= "Guns\Skins_PV\crossbow.dtx"
+PVSkin2					= "TexFX\RenderStyles\shine.dtx"
+PVRenderStyle0 			= "RS\pv_envmap.ltb"
+PVMuzzleFXName			= ""
+HHModel					= "Guns\Models_HH\crossbow.ltb"
+HHSkin0					= "Guns\Skins_PV\crossbow.dtx"
+HHModelScale			= <1.000000, 1.000000, 1.000000>
+HHMuzzleFXName			= ""
+SilencedFireSnd			= ""
+AltFireSnd				= "Guns\Snd\Crossbow\altfire.wav"
+FireSnd					= "Guns\Snd\Crossbow\fire.wav"
+DryFireSnd				= "Guns\Snd\Crossbow\dryfire.wav"
+ReloadSnd1				= "Guns\Snd\Crossbow\reload1.wav"
+SelectSnd				= "Guns\Snd\Crossbow\select.wav"
+DeselectSnd				= "Guns\Snd\Crossbow\deselect.wav"
+FireSndRadius			= 1280
+AIFireSndRadius			= 128
+EnvironmentMap			= 0
+InfiniteAmmo			= 0
+ShotsPerClip			= 1
+FireRecoilPitch			= 2.000000
+FireRecoilDecay			= 0.200000
+ModName0				= "Crossbow Scope"
+AmmoName0				= "Bolt"
+AmmoName1				= "Fire Bolt"
+AmmoName2				= "Poison Bolt"
+AmmoName3				= "Explosive Bolt"
+AIWeaponType			= 1
+AIMinBurstInterval		= 0.500000
+AIMaxBurstInterval		= 1.500000
+AIMinBurstShots			= 1
+AIMaxBurstShots			= 5
+AIAnimatesReloads		= 1
+LooksDangerous			= 1
+FireDelay				= 500
+HideWhenEmpty			= 1
+HiddenPiece0			= "polySurface94"
+PowerupFX				= ""
+RespawnWaitVisible		= 1
+RespawnWaitFX			= ""
+RespawnWaitSkin0		= "FX\PowerupPU.dtx"
+RespawnWaitRenderStyle0	= "RS\PowerupPU.ltb"
+RespawnWaitTranslucent	= 1
+
+
+
+/*
+** Purse micromissile launcher
+*/
+
+[Weapon14]
+
+Name					= "Purse"
+NameId					= 4014
+DescriptionId			= 4064
+ClientWeaponType		= 2
+AniType					= 0
+Icon					= "Interface\Photos\Weapons\Purse"
+Pos						= <-0.040000, -1.415005, -0.795000>
+MuzzlePos				= <1.939999, -2.179999, 10.359921>
+BreachOffset			= <0.000000, 0.000000, 0.000000>
+MinPerturb				= 30
+MaxPerturb				= 60
+Range					= 100000
+Recoil					= <0.000000, 0.000000, 0.000000>
+VectorsPerRound			= 1
+PVModel					= "Guns\Models_PV\purse.ltb"
+PVSkin0					= "Hands"
+PVSkin1					= "Guns\Skins_PV\purse.dtx"
+PVSkin2					= "TexFX\RenderStyles\clouds2.dtx"
+PVSkin3					= "Guns\Skins_PV\rocketlens.dtx"
+PVRenderStyle0 			= "RS\pv_envmap.ltb"
+PVRenderStyle1			= "RS\pv_glass.ltb"
+PVMuzzleFXName			= "Basic_PV_Muzz"
+PVAttachFXName0			= "purseblue"
+PVAttachFXName1			= "pursered"
+HHModel					= "Guns\Models_HH\purse.ltb"
+HHSkin0					= "Guns\skins_pv\purse.dtx"
+HHModelScale			= <1.000000, 1.000000, 1.000000>
+HHMuzzleFXName			= ""
+SilencedFireSnd			= ""
+AltFireSnd				= ""
+FireSnd					= ""
+DryFireSnd				= "Guns\Snd\purse\dryfire.wav"
+ReloadSnd1				= "Guns\Snd\purse\reload1.wav"
+MiscSound1				= "Guns\Snd\purse\fire.wav"
+SelectSnd				= "Guns\Snd\purse\select.wav"
+DeselectSnd				= "Guns\Snd\purse\deselect.wav"
+FireSndRadius			= 3000
+AIFireSndRadius			= 2000
+EnvironmentMap			= 0
+InfiniteAmmo			= 0
+ShotsPerClip			= 1
+AmmoMultiplier			= 1
+FireRecoilPitch			= 2.000000
+FireRecoilDecay			= 0.200000
+AmmoName0				= "Micromissile"
+AIWeaponType			= 0
+AIMinBurstInterval		= 0.500000
+AIMaxBurstInterval		= 1.500000
+AIMinBurstShots			= 1
+AIMaxBurstShots			= 5
+AIAnimatesReloads		= 1
+LooksDangerous			= 0
+FireDelay				= 900
+HideWhenEmpty			= 0
+PowerupFX				= ""
+RespawnWaitVisible		= 1
+RespawnWaitFX			= ""
+RespawnWaitSkin0		= "FX\PowerupPU.dtx"
+RespawnWaitRenderStyle0	= "RS\PowerupPU.ltb"
+RespawnWaitTranslucent	= 1
+
+
+/*
+** Camera
+*/
+
+[Weapon15]
+
+Name					= "Camera"
+NameId					= 4015
+DescriptionId			= 4065
+ClientWeaponType		= 1
+AniType					= 8
+Icon					= "Interface\Photos\Weapons\Camera"
+Pos						= <0.120000, -0.940002, 0.820000>
+MuzzlePos				= <1.000000, -1.100000, 13.800000>
+BreachOffset			= <0.000000, 0.000000, 0.000000>
+MinPerturb				= 0
+MaxPerturb				= 10
+Range					= 100000
+Recoil					= <0.000000, 0.000000, 0.000000>
+VectorsPerRound			= 1
+PVModel					= "Guns\Models_PV\camera.ltb"
+PVSkin0					= "Hands"
+PVSkin1					= "Guns\Skins_PV\camera.dtx"
+PVSkin2					= "TexFX\RenderStyles\chrome.dtx"
+PVSkin3					= "Guns\Skins_PV\camlens.dtx"
+PVSkin4					= "TexFX\RenderStyles\clouds2.dtx"
+PVRenderStyle0			= "RS\pv_envmap.ltb"
+PVRenderStyle1			= "RS\pv_glass.ltb"
+PVMuzzleFXName			= ""
+PVAttachFXName0			= "cameralight"
+HHModel					= "Guns\Models_HH\camera.ltb"
+HHSkin0					= "Guns\skins_pv\camera.dtx"
+HHModelScale			= <1.000000, 1.000000, 1.000000>
+HHMuzzleFXName			= ""
+SilencedFireSnd			= ""
+AltFireSnd				= "Guns\Snd\Camera\altfire.wav"
+FireSnd					= "Guns\Snd\Camera\fire.wav"
+DryFireSnd				= "Guns\Snd\Camera\dryfire.wav"
+ReloadSnd1				= "Guns\Snd\Camera\reload.wav"
+SelectSnd				= "Guns\Snd\Camera\select.wav"
+DeselectSnd				= "Guns\Snd\Camera\deselect.wav"
+FireSndRadius			= 1280
+AIFireSndRadius			= 128
+EnvironmentMap			= 0
+InfiniteAmmo			= 1
+ShotsPerClip			= 1
+AmmoMultiplier			= 1
+FireRecoilPitch			= 0.000000
+FireRecoilDecay			= 0.000000
+AmmoName0				= "Camera"
+ModName0				= "Camera Scope"
+AIWeaponType			= 0
+AIMinBurstInterval		= 0.500000
+AIMaxBurstInterval		= 1.500000
+AIMinBurstShots			= 1
+AIMaxBurstShots			= 5
+AIAnimatesReloads		= 1
+LooksDangerous			= 0
+FireDelay				= 1100
+HideWhenEmpty			= 0
+PowerupFX				= ""
+RespawnWaitVisible		= 1
+RespawnWaitFX			= ""
+RespawnWaitSkin0		= "FX\PowerupPU.dtx"
+RespawnWaitRenderStyle0	= "RS\PowerupPU.ltb"
+RespawnWaitTranslucent	= 1
+
+
+/*
+** Timebomb
+*/
+
+[Weapon16]
+
+Name					= "Timebomb"
+NameId					= 4016
+DescriptionId			= 4066
+ClientWeaponType		= 1
+AniType					= 7
+Icon					= "Interface\Photos\Weapons\TimeBomb"
+Pos						= <0.100000, -1.475002, 0.160000>
+MuzzlePos				= <1.000000, -1.100000, 13.800000>
+BreachOffset			= <0.000000, 0.000000, 0.000000>
+MinPerturb				= 0
+MaxPerturb				= 10
+Range					= 100
+Recoil					= <0.000000, 0.000000, 0.000000>
+VectorsPerRound			= 1
+PVModel					= "Guns\Models_PV\timebomb.ltb"
+PVSkin0					= "Hands"
+PVSkin1					= "Guns\Skins_PV\timebomb.dtx"  	
+PVSkin2					= "TexFX\RenderStyles\clouds.dtx"  		
+PVSkin3					= "Guns\Skins_PV\bomblens.dtx"
+PVSkin4					= "TexFX\RenderStyles\clouds.dtx"
+PVRenderStyle0 			= "RS\pv_envmap.ltb" 		
+PVRenderStyle1 			= "RS\pv_glass.ltb"
+PVMuzzleFXName			= ""
+PVAttachFXName0			= "TimebombGreen"
+PVAttachFXName1			= "TimebombRed"
+PVAttachFXName2			= "TimebombYellow1"
+PVAttachFXName3			= "TimebombYellow2"
+PVAttachFXName4			= "TimebombYellow3"
+HHModel					= "Guns\Models_HH\timebomb.ltb"
+HHSkin0					= "Guns\skins_pv\timebomb.dtx"
+HHModelScale			= <1.000000, 1.000000, 1.000000>
+HHMuzzleFXName			= ""
+SilencedFireSnd			= ""
+AltFireSnd				= "Guns\Snd\timebomb\altfire.wav"
+FireSnd					= "Guns\Snd\timebomb\stick.wav"
+DryFireSnd				= "Guns\Snd\timebomb\dryfire.wav"
+ReloadSnd1				= "Guns\Snd\timebomb\fire.wav"
+SelectSnd				= "Guns\Snd\timebomb\select.wav"
+DeselectSnd				= "Guns\Snd\timebomb\deselect.wav"
+FireSndRadius			= 1280
+AIFireSndRadius			= 8
+EnvironmentMap			= 0
+InfiniteAmmo			= 0
+ShotsPerClip			= 1
+FireRecoilPitch			= 2.000000
+FireRecoilDecay			= 0.200000
+AmmoName0				= "Time Bomb"
+AIWeaponType			= 0
+AIMinBurstInterval		= 0.500000
+AIMaxBurstInterval		= 1.500000
+AIMinBurstShots			= 1
+AIMaxBurstShots			= 5
+AIAnimatesReloads		= 1
+LooksDangerous			= 1
+FireDelay				= 4000
+HideWhenEmpty			= 1
+IsAmmo					= 1
+IsAmmoNoPickupId		= 4035
+HiddenPiece0			= "pCylinder19"
+HiddenPiece1			= "polySurface32"
+HiddenPiece2			= "pCylinder20"
+HiddenPiece3			= "polySurface34"
+PowerupFX				= ""
+RespawnWaitVisible		= 1
+RespawnWaitFX			= ""
+RespawnWaitSkin0		= "FX\PowerupPU.dtx"
+RespawnWaitRenderStyle0	= "RS\PowerupPU.ltb"
+RespawnWaitTranslucent	= 1
+
+
+/*
+** Compact Codebreaker
+*/
+
+[Weapon17]
+
+Name					= "Compact Codebreaker"
+NameId					= 4017
+DescriptionId			= 4067
+ClientWeaponType		= 1
+AniType					= 8
+Icon					= "Interface\Photos\Weapons\Compact"
+Pos						= <-0.300000, -1.375002, 0.125000>
+MuzzlePos				= <1.000000, -1.100000, 13.800000>
+BreachOffset			= <0.000000, 0.000000, 0.000000>
+MinPerturb				= 0
+MaxPerturb				= 10
+Range					= 100
+Recoil					= <0.000000, 0.000000, 0.000000>
+VectorsPerRound			= 1
+PVModel					= "Guns\Models_PV\codebreaker.ltb"
+PVSkin0					= "Hands"
+PVSkin1					= "Guns\Skins_PV\codebreaker.dtx"
+PVSkin2					= "TexFX\RenderStyles\gold.dtx"
+PVSkin3					= "TexFX\RenderStyles\mirror.dtx"
+PVRenderStyle0 			= "RS\pv_envmap.ltb"
+PVMuzzleFXName			= ""
+HHModel					= "Guns\Models_HH\codebreaker.ltb"
+HHSkin0					= "Guns\skins_pv\codebreaker.dtx"
+HHModelScale			= <1.000000, 1.000000, 1.000000>
+HHMuzzleFXName			= ""
+SilencedFireSnd			= ""
+AltFireSnd				= "Guns\Snd\Codebreaker\altfire.wav"
+FireSnd					= ""
+DryFireSnd				= "Guns\Snd\Codebreaker\dryfire.wav"
+ReloadSnd1				= "Guns\Snd\Codebreaker\reload1.wav"
+MiscSound1				= "Guns\Snd\Codebreaker\firestart.wav"
+MiscSound2				= "Guns\Snd\Codebreaker\notarget.wav"
+MiscSound3				= "Guns\Snd\Codebreaker\firestop.wav"
+SelectSnd				= "Guns\Snd\Codebreaker\select.wav"
+DeselectSnd				= "Guns\Snd\Codebreaker\deselect.wav"
+FireSndRadius			= 1280
+AIFireSndRadius			= 128
+EnvironmentMap			= 0
+InfiniteAmmo			= 1
+ShotsPerClip			= 1
+FireRecoilPitch			= 0.000000
+FireRecoilDecay			= 0.000000
+AmmoName0				= "Code Breaker Gadget"
+AIWeaponType			= 0
+AIMinBurstInterval		= 0.500000
+AIMaxBurstInterval		= 1.500000
+AIMinBurstShots			= 1
+AIMaxBurstShots			= 5
+AIAnimatesReloads		= 1
+LooksDangerous			= 0
+FireDelay				= 400
+HideWhenEmpty			= 0
+PowerupFX				= ""
+RespawnWaitVisible		= 1
+RespawnWaitFX			= ""
+RespawnWaitSkin0		= "FX\PowerupPU.dtx"
+RespawnWaitRenderStyle0	= "RS\PowerupPU.ltb"
+RespawnWaitTranslucent	= 1
+
+
+
+/*
+** Welder
+*/
+
+[Weapon18]
+
+Name					= "Welder"
+NameId					= 4018
+DescriptionId			= 4068
+ClientWeaponType		= 1
+AniType					= 8
+Icon					= "Interface\Photos\Weapons\Welder"
+Pos						= <-0.165000, -1.890007, 0.495000>
+MuzzlePos				= <1.000000, -1.100000, 13.800000>
+BreachOffset			= <0.000000, 0.000000, 0.000000>
+MinPerturb				= 0
+MaxPerturb				= 10
+Range					= 100
+Recoil					= <0.000000, 0.000000, 0.000000>
+VectorsPerRound			= 1
+PVModel					= "Guns\Models_PV\welder.ltb"
+PVSkin0					= "Hands"
+PVSkin1					= "Guns\Skins_PV\welder.dtx"
+PVSkin2					= "TexFX\RenderStyles\clouds.dtx"
+PVRenderStyle0 			= "RS\pv_envmap.ltb"
+PVMuzzleFXName			= "Welder_PV_Muzz"
+UseUWMuzzleFX			= 1
+HHModel					= "Guns\Models_HH\welder.ltb"
+HHSkin0					= "Guns\skins_pv\welder.dtx"
+HHModelScale			= <1.000000, 1.000000, 1.000000>
+HHMuzzleFXName			= "Welder_HH_Muzz"
+SilencedFireSnd			= ""
+AltFireSnd				= "Guns\Snd\welder\altfire.wav"
+FireSnd					= ""
+DryFireSnd				= "Guns\Snd\welder\dryfire.wav"
+ReloadSnd1				= "Guns\Snd\welder\reload1.wav"
+MiscSound1				= "Guns\Snd\welder\firestart.wav"
+MiscSound2				= "Guns\Snd\welder\fireloop.wav"
+MiscSound3				= "Guns\Snd\welder\firestop.wav"
+SelectSnd				= "Guns\Snd\welder\select.wav"
+DeselectSnd				= "Guns\Snd\welder\deselect.wav"
+FireSndRadius			= 1280
+AIFireSndRadius			= 128
+EnvironmentMap			= 0
+InfiniteAmmo			= 1
+ShotsPerClip			= 1
+FireRecoilPitch			= 0.000000
+FireRecoilDecay			= 0.000000
+AmmoName0				= "Welder"
+AIWeaponType			= 0
+AIMinBurstInterval		= 0.500000
+AIMaxBurstInterval		= 1.500000
+AIMinBurstShots			= 1
+AIMaxBurstShots			= 5
+AIAnimatesReloads		= 1
+LooksDangerous			= 0
+FireDelay				= 400
+HideWhenEmpty			= 0
+PowerupFX				= ""
+RespawnWaitVisible		= 1
+RespawnWaitFX			= ""
+RespawnWaitSkin0		= "FX\PowerupPU.dtx"
+RespawnWaitRenderStyle0	= "RS\PowerupPU.ltb"
+RespawnWaitTranslucent	= 1
+
+
+/*
+** Lockpick
+*/
+
+[Weapon19]
+
+Name					= "Lockpick"
+NameId					= 4019
+DescriptionId			= 4069
+ClientWeaponType		= 1
+AniType					= 8
+Icon					= "Interface\Photos\Weapons\Clippers"
+Pos						= <0.060000, -0.665002, 0.140000>
+MuzzlePos				= <1.000000, -1.100000, 13.800000>
+BreachOffset			= <0.000000, 0.000000, 0.000000>
+MinPerturb				= 0
+MaxPerturb				= 10
+Range					= 100
+Recoil					= <0.000000, 0.000000, 0.000000>
+VectorsPerRound			= 1
+PVModel					= "Guns\Models_PV\lockpick.ltb"
+PVSkin0					= "Hands"
+PVSkin1					= "Guns\Skins_PV\lockpick.dtx"
+PVSkin2					= "TexFX\RenderStyles\chrome2.dtx"
+PVRenderStyle0			= "RS\pv_envmap.ltb"
+PVMuzzleFXName			= ""
+HHModel					= "Guns\Models_HH\lockpick.ltb"
+HHSkin0					= "Guns\skins_pv\lockpick.dtx"
+HHModelScale			= <1.000000, 1.000000, 1.000000>
+HHMuzzleFXName			= ""
+SilencedFireSnd			= ""
+AltFireSnd				= "Guns\Snd\lockpick\altfire.wav"
+FireSnd					= ""
+DryFireSnd				= "Guns\Snd\lockpick\dryfire.wav"
+ReloadSnd1				= "Guns\Snd\lockpick\reload1.wav"
+SelectSnd				= "Guns\Snd\lockpick\select.wav"
+DeselectSnd				= "Guns\Snd\lockpick\deselect.wav"
+FireSndRadius			= 1280
+AIFireSndRadius			= 128
+EnvironmentMap			= 0
+InfiniteAmmo			= 1
+ShotsPerClip			= 1
+FireRecoilPitch			= 0.000000
+FireRecoilDecay			= 0.000000
+AmmoName0				= "Lockpick"
+AIWeaponType			= 0
+AIMinBurstInterval		= 0.500000
+AIMaxBurstInterval		= 1.500000
+AIMinBurstShots			= 1
+AIMaxBurstShots			= 5
+AIAnimatesReloads		= 1
+LooksDangerous			= 0
+FireDelay				= 400
+HideWhenEmpty			= 0
+PowerupFX				= ""
+RespawnWaitVisible		= 1
+RespawnWaitFX			= ""
+RespawnWaitSkin0		= "FX\PowerupPU.dtx"
+RespawnWaitRenderStyle0	= "RS\PowerupPU.ltb"
+RespawnWaitTranslucent	= 1
+
+
+
+/*
+** Eavesdropping bug
+*/
+
+[Weapon20]
+
+Name					= "Eavesdropping Bug"
+NameId					= 4020
+DescriptionId			= 4070
+ClientWeaponType		= 1
+AniType					= 8
+Icon					= "Interface\Photos\Weapons\Bug"
+Pos						= <0.070000, -1.037501, 0.060000>
+MuzzlePos				= <1.000000, -1.100000, 13.800000>
+BreachOffset			= <0.000000, 0.000000, 0.000000>
+MinPerturb				= 0
+MaxPerturb				= 10
+Range					= 100
+Recoil					= <0.000000, 0.000000, 0.000000>
+VectorsPerRound			= 1
+PVModel					= "Guns\Models_PV\bug.ltb"
+PVSkin0					= "Hands"
+PVSkin1					= "Guns\Skins_PV\bug.dtx"
+PVSkin2					= "TexFX\RenderStyles\shimmer.dtx"
+PVRenderStyle0			= "RS\pv_envmap.ltb"
+PVMuzzleFXName			= ""
+HHModel					= "Guns\Models_HH\bug.ltb"
+HHSkin0					= "Guns\Skins_PV\bug.dtx"
+HHModelScale			= <1.000000, 1.000000, 1.000000>
+HHMuzzleFXName			= ""
+SilencedFireSnd			= ""
+AltFireSnd				= "Guns\Snd\bug\altfire.wav"
+FireSnd					= "Guns\Snd\bug\fire.wav"
+DryFireSnd				= "Guns\Snd\bug\dryfire.wav"
+ReloadSnd1				= "Guns\Snd\bug\reload1.wav"
+SelectSnd				= "Guns\Snd\bug\select.wav"
+DeselectSnd				= "Guns\Snd\bug\deselect.wav"
+FireSndRadius			= 1280
+AIFireSndRadius			= 128
+EnvironmentMap			= 0
+InfiniteAmmo			= 0
+ShotsPerClip			= 1
+FireRecoilPitch			= 0.000000
+FireRecoilDecay			= 0.000000
+AmmoName0				= "Bug"
+AIWeaponType			= 0
+AIMinBurstInterval		= 0.500000
+AIMaxBurstInterval		= 1.500000
+AIMinBurstShots			= 1
+AIMaxBurstShots			= 5
+AIAnimatesReloads		= 1
+LooksDangerous			= 0
+FireDelay				= 1000
+HideWhenEmpty			= 1
+HiddenPiece0			= "polySurface19"
+HiddenPiece1			= "polySurface20"
+HiddenPiece2			= "polySurface21"
+HiddenPiece3			= "polySurface22"
+HiddenPiece4			= "polySurface23"
+IsAmmo					= 1
+IsAmmoNoPickupId		= 4043
+PowerupFX				= ""
+RespawnWaitVisible		= 1
+RespawnWaitFX			= ""
+RespawnWaitSkin0		= "FX\PowerupPU.dtx"
+RespawnWaitRenderStyle0	= "RS\PowerupPU.ltb"
+RespawnWaitTranslucent	= 1
+
+
+/*
+** Perfume
+*/
+
+[Weapon21]
+
+Name					= "Perfume"
+NameId					= 4021
+DescriptionId			= 4071
+ClientWeaponType		= 1
+AniType					= 8
+Icon					= "Interface\Photos\Weapons\Perfume"
+Pos						= <-0.540000, -1.615001, 0.680000>
+MuzzlePos				= <1.000000, -1.100000, 13.800000>
+BreachOffset			= <0.000000, 0.000000, 0.000000>
+MinPerturb				= 0
+MaxPerturb				= 10
+Range					= 100
+Recoil					= <0.000000, 0.000000, 0.000000>
+VectorsPerRound			= 1
+PVModel					= "Guns\Models_PV\perfume.ltb"
+PVSkin0					= "Hands"
+PVSkin1					= "Guns\Skins_PV\perfume.dtx"
+PVSkin2					= "TexFX\RenderStyles\clouds.dtx"
+PVRenderStyle0			= "RS\pv_envmap.ltb"
+PVMuzzleFXName			= ""
+HHModel					= "Guns\Models_HH\perfume.ltb"
+HHSkin0					= "Guns\skins_pv\perfume.dtx"
+HHModelScale			= <1.000000, 1.000000, 1.000000>
+HHMuzzleFXName			= ""
+SilencedFireSnd			= ""
+AltFireSnd				= "Guns\Snd\Perfume\altfire.wav"
+FireSnd					= "Guns\Snd\Perfume\fire.wav"
+DryFireSnd				= "Guns\Snd\Perfume\dryfire.wav"
+ReloadSnd1				= "Guns\Snd\Perfume\reload1.wav"
+ReloadSnd2				= "Guns\Snd\Perfume\reload2.wav"
+SelectSnd				= "Guns\Snd\Perfume\select.wav"
+DeselectSnd				= "Guns\Snd\Perfume\deselect.wav"
+FireSndRadius			= 1280
+AIFireSndRadius			= 128
+EnvironmentMap			= 0
+InfiniteAmmo			= 0
+ShotsPerClip			= 1
+FireRecoilPitch			= 0.000000
+FireRecoilDecay			= 0.000000
+AmmoName0				= "Body Remover"
+AIWeaponType			= 0
+AIMinBurstInterval		= 0.500000
+AIMaxBurstInterval		= 1.500000
+AIMinBurstShots			= 1
+AIMaxBurstShots			= 5
+AIAnimatesReloads		= 1
+LooksDangerous			= 0
+FireDelay				= 250
+HideWhenEmpty			= 0
+PowerupFX				= ""
+RespawnWaitVisible		= 1
+RespawnWaitFX			= ""
+RespawnWaitSkin0		= "FX\PowerupPU.dtx"
+RespawnWaitRenderStyle0	= "RS\PowerupPU.ltb"
+RespawnWaitTranslucent	= 1
+
+
+
+/*
+** Coin
+*/
+
+[Weapon22]
+
+Name					= "Coin"
+NameId					= 4022
+DescriptionId			= 4072
+ClientWeaponType		= 2
+AniType					= 8
+Icon					= "Interface\Photos\Weapons\Coin"
+Pos						= <-0.060000, -0.960002, -0.360000>
+MuzzlePos				= <1.000000, -1.100000, 13.800000>
+BreachOffset			= <0.000000, 0.000000, 0.000000>
+MinPerturb				= 20
+MaxPerturb				= 40
+Range					= 100000
+Recoil					= <0.000000, 0.000000, 0.000000>
+VectorsPerRound			= 1
+PVModel					= "Guns\Models_PV\coin.ltb"
+PVSkin0					= "Hands"
+PVSkin1					= "Guns\Skins_PV\coin.dtx"
+PVSkin2					= "TexFX\RenderStyles\chrome2.dtx"
+PVRenderStyle0			= "RS\pv_envmap.ltb"
+PVMuzzleFXName			= ""
+HHModel					= "Guns\models_hh\coin.ltb"
+HHSkin0					= "Guns\Skins_PV\coin.dtx"
+HHModelScale			= <1.000000, 1.000000, 1.000000>
+HHMuzzleFXName			= ""
+SilencedFireSnd			= ""
+AltFireSnd				= "Guns\Snd\coin\altfire.wav"
+FireSnd					= "Guns\Snd\coin\fire.wav"
+DryFireSnd				= "Guns\Snd\coin\dryfire.wav"
+ReloadSnd1				= "Guns\Snd\coin\reload1.wav"
+SelectSnd				= "Guns\Snd\coin\select.wav"
+DeselectSnd				= "Guns\Snd\coin\deselect.wav"
+FireSndRadius			= 128
+AIFireSndRadius			= 0
+EnvironmentMap			= 0
+InfiniteAmmo			= 0
+ShotsPerClip			= 1
+FireRecoilPitch			= 0.000000
+FireRecoilDecay			= 0.000000
+AmmoName0				= "Coin"
+AIWeaponType			= 0
+AIMinBurstInterval		= 0.500000
+AIMaxBurstInterval		= 1.500000
+AIMinBurstShots			= 1
+AIMaxBurstShots			= 5
+AIAnimatesReloads		= 1
+LooksDangerous			= 0
+FireDelay				= 700
+HideWhenEmpty			= 1
+IsAmmo					= 1
+IsAmmoNoPickupId		= 4036
+HiddenPiece0			= "pCylinder1"
+PowerupFX				= ""
+RespawnWaitVisible		= 1
+RespawnWaitFX			= ""
+RespawnWaitSkin0		= "FX\PowerupPU.dtx"
+RespawnWaitRenderStyle0	= "RS\PowerupPU.ltb"
+RespawnWaitTranslucent	= 1
+
+
+/*
+** Beartrap
+*/
+
+[Weapon23]
+
+Name					= "BearTrap"
+NameId					= 4023
+DescriptionId			= 4073
+ClientWeaponType		= 1
+AniType					= 7
+Icon					= "Interface\Photos\Weapons\BearTrap"
+Pos						= <-0.020000, -1.499999, 1.100000>
+MuzzlePos				= <1.939999, -2.179999, 10.359921>
+BreachOffset			= <0.000000, 0.000000, 0.000000>
+MinPerturb				= 0
+MaxPerturb				= 10
+Range					= 100
+Recoil					= <0.000000, 0.000000, 0.000000>
+VectorsPerRound			= 1
+PVModel					= "Guns\Models_PV\beartrap.ltb"
+PVSkin0					= "Hands"
+PVSkin1					= "Guns\Skins_PV\beartrap.dtx"
+PVSkin2					= "TexFX\RenderStyles\shine4.dtx"
+PVRenderStyle0			= "RS\pv_envmap.ltb"
+PVMuzzleFXName			= ""
+HHModel					= "Guns\Models_HH\BearTrap.ltb"
+HHSkin0					= "Guns\Skins_PV\beartrap.dtx"
+HHModelScale			= <1.000000, 1.000000, 1.000000>
+HHMuzzleFXName			= ""
+SilencedFireSnd			= ""
+AltFireSnd				= "Guns\Snd\beartrap\altfire.wav"
+FireSnd					= ""
+DryFireSnd				= "Guns\Snd\beartrap\dryfire.wav"
+ReloadSnd1				= "Guns\Snd\beartrap\reload1.wav"
+SelectSnd				= "Guns\Snd\beartrap\select.wav"
+DeselectSnd				= "Guns\Snd\beartrap\deselect.wav"
+MiscSound1				= "Guns\Snd\beartrap\fire.wav"
+FireSndRadius			= 1280
+AIFireSndRadius			= 128
+EnvironmentMap			= 0
+InfiniteAmmo			= 0
+ShotsPerClip			= 30
+AmmoMultiplier			= 1
+FireRecoilPitch			= 2.000000
+FireRecoilDecay			= 0.200000
+AmmoName0				= "Bear Trap"
+AIWeaponType			= 0
+AIMinBurstInterval		= 0.500000
+AIMaxBurstInterval		= 1.500000
+AIMinBurstShots			= 1
+AIMaxBurstShots			= 5
+AIAnimatesReloads		= 1
+LooksDangerous			= 1
+FireDelay				= 2000
+HideWhenEmpty			= 1
+IsAmmo					= 1
+IsAmmoNoPickupId		= 4037
+PowerupFX				= ""
+RespawnWaitVisible		= 1
+RespawnWaitFX			= ""
+RespawnWaitSkin0		= "FX\PowerupPU.dtx"
+RespawnWaitRenderStyle0	= "RS\PowerupPU.ltb"
+RespawnWaitTranslucent	= 1
+
+/*
+** Keychain
+*/
+
+[Weapon24]
+
+
+Name					= "Keychain"
+NameId					= 4024
+DescriptionId			= 4074
+ClientWeaponType		= 1
+AniType					= 8
+Icon					= "Interface\Photos\Weapons\Keychain"
+Pos						= <0.140000, -0.500001, -0.200000>
+MuzzlePos				= <1.939999, -2.179999, 10.359921>
+BreachOffset			= <0.000000, 0.000000, 0.000000>
+MinPerturb				= 0
+MaxPerturb				= 10
+Range					= 100000
+Recoil					= <0.000000, 0.000000, 0.000000>
+VectorsPerRound			= 1
+PVModel					= "Guns\Models_PV\keychain.ltb"
+PVSkin0					= "Hands"
+PVSkin1					= "Guns\Skins_PV\keychain.dtx"
+PVSkin2					= "TexFx\RenderStyles\chrome2.dtx"
+PVRenderStyle0 			= "RS\pv_envmap.ltb"
+PVRenderStyle1			= "RS\pv_keychain.ltb"
+PVMuzzleFXName			= ""
+PVAttachFXName0			= "Keychain_glow"
+HHModel					= "Guns\Models_HH\keychain.ltb"
+HHSkin0					= "Guns\skins_pv\keychain.dtx"
+HHModelScale			= <1.000000, 1.000000, 1.000000>
+HHMuzzleFXName			= ""
+SilencedFireSnd			= ""
+AltFireSnd				= ""
+FireSnd					= ""
+DryFireSnd				= ""
+ReloadSnd1				= ""
+SelectSnd				= "Guns\Snd\keychain\select.wav"
+DeselectSnd				= "Guns\Snd\keychain\deselect.wav"
+FireSndRadius			= 1280
+AIFireSndRadius			= 0
+EnvironmentMap			= 0
+InfiniteAmmo			= 1
+ShotsPerClip			= 1
+AmmoMultiplier			= 1
+FireRecoilPitch			= 2.000000
+FireRecoilDecay			= 0.200000
+AmmoName0				= "Keychain"  // Not use, but needs some type of ammo
+AIWeaponType			= 0
+AIMinBurstInterval		= 0.500000
+AIMaxBurstInterval		= 1.500000
+AIMinBurstShots			= 1
+AIMaxBurstShots			= 5
+AIAnimatesReloads		= 1
+LooksDangerous			= 0
+FireDelay				= 100
+HideWhenEmpty			= 0
+PowerupFX				= ""
+RespawnWaitVisible		= 1
+RespawnWaitFX			= ""
+RespawnWaitSkin0		= "FX\PowerupPU.dtx"
+RespawnWaitRenderStyle0	= "RS\PowerupPU.ltb"
+RespawnWaitTranslucent	= 1
+
+
+/*
+** BillyClub
+*/
+
+[Weapon25]
+
+Name					= "BillyClub"
+NameId					= 4025
+DescriptionId			= 4075
+ClientWeaponType		= 1
+AniType					= 2
+Icon					= "Interface\Photos\Weapons\sniper"
+Pos						= <-0.100000, -1.180000, 0.500000>
+MuzzlePos				= <1.000000, 0.520000, 53.440907>
+BreachOffset			= <0.000000, 0.000000, 0.000000>
+MinPerturb				= 0
+MaxPerturb				= 10
+Range					= 128
+Recoil					= <0.000000, 0.000000, 0.000000>
+VectorsPerRound			= 1
+PVModel					= "Guns\Models_PV\Tulwar.ltb"
+PVSkin0					= "Hands"
+PVSkin1					= "Guns\Skins_PV\Tulwar.dtx"
+PVRenderStyle0 			= "RS\default.ltb"
+PVMuzzleFXName			= ""
+HHModel					= "Guns\Models_HH\billyclub.ltb"
+HHSkin0					= "guns\skins_hh\club.dtx"
+HHModelScale			= <1.000000, 1.000000, 1.000000>
+HHMuzzleFXName			= ""
+SilencedFireSnd			= ""
+FireSnd					= ""
+SelectSnd				= ""
+DeselectSnd				= ""
+FireSndRadius			= 1280
+AIFireSndRadius			= 128
+EnvironmentMap			= 0
+InfiniteAmmo			= 1
+ShotsPerClip			= 1
+FireRecoilPitch			= 0.000000
+FireRecoilDecay			= 0.000000
+AmmoName0				= "Head_gun butt"
+AIWeaponType			= 2
+AIMinBurstInterval		= 0.000000
+AIMaxBurstInterval		= 0.000000
+AIMinBurstShots			= 0
+AIMaxBurstShots			= 0
+AIAnimatesReloads		= 1
+LooksDangerous			= 1
+FireDelay				= 575
+HideWhenEmpty			= 0
+HolsterAttachment		= "NOSE club_holster"
+PowerupFX				= ""
+RespawnWaitVisible		= 0
+RespawnWaitFX			= ""
+RespawnWaitSkin0		= ""
+RespawnWaitRenderStyle0	= ""
+RespawnWaitTranslucent	= 0
+
+
+
+/*
+** SSCannon
+*/
+
+[Weapon26]
+
+Name					= "SSCannon"
+NameId					= 4025
+DescriptionId			= 4075
+AniType					= 0
+Icon					= "Interface\Photos\Weapons\sniper"
+Pos						= <-0.100000, -1.180000, 0.500000>
+MuzzlePos				= <1.000000, 0.520000, 53.440907>
+BreachOffset			= <0.000000, 0.000000, 0.000000>
+MinPerturb				= 0
+MaxPerturb				= 10
+Range					= 3000
+Recoil					= <0.000000, 0.000000, 0.000000>
+VectorsPerRound			= 1
+PVModel					= "Guns\Models_PV\Tulwar.ltb"
+PVSkin0					= "Hands"
+PVSkin1					= "Guns\Skins_PV\Tulwar.dtx"
+PVRenderStyle0 			= "RS\default.ltb"
+PVMuzzleFXName			= ""
+HHModel					= "Guns\Models_HH\OnlySocket.ltb"
+HHSkin0					= "guns\skins_hh\club.dtx"
+HHModelScale			= <1.000000, 1.000000, 1.000000>
+HHMuzzleFXName			= "SS_Cannon_HH_Muzz"
+SilencedFireSnd			= ""
+FireSnd					= "Guns\Snd\sscannon\fire.wav"
+SelectSnd				= "Guns\Snd\sscannon\select.wav"
+DeselectSnd				= "Guns\Snd\sscannon\deselect.wav"
+FireSndRadius			= 3000
+AIFireSndRadius			= 2000
+EnvironmentMap			= 0
+InfiniteAmmo			= 1
+ShotsPerClip			= 1
+FireRecoilPitch			= 0.000000
+FireRecoilDecay			= 0.000000
+AmmoName0				= "SSCannon"
+AIWeaponType			= 1
+AIMinBurstInterval		= 0.00000
+AIMaxBurstInterval		= 0.00000
+AIMinBurstShots			= 1
+AIMaxBurstShots			= 1
+AIAnimatesReloads		= 1
+LooksDangerous			= 1
+FireDelay				= 575
+HideWhenEmpty			= 0
+PowerupFX				= ""
+RespawnWaitVisible		= 0
+RespawnWaitFX			= ""
+RespawnWaitSkin0		= ""
+RespawnWaitRenderStyle0	= ""
+RespawnWaitTranslucent	= 0
+
+
+/*
+** SSLaser
+*/
+
+[Weapon27]
+
+Name					= "SSLaser"
+NameId					= 4025
+DescriptionId			= 4075
+AniType					= 0
+Icon					= ""
+Pos						= <-0.100000, -1.180000, 0.500000>
+MuzzlePos				= <1.000000, 0.520000, 53.440907>
+BreachOffset			= <0.000000, 0.000000, 0.000000>
+MinPerturb				= 0
+MaxPerturb				= 10
+Range					= 3000
+Recoil					= <0.000000, 0.000000, 0.000000>
+VectorsPerRound			= 1
+PVModel					= ""
+PVSkin0					= ""
+PVSkin1					= ""
+PVRenderStyle0 			= ""
+PVMuzzleFXName			= ""
+HHModel					= "Guns\Models_HH\OnlySocket.ltb"
+HHSkin0					= "guns\skins_hh\club.dtx"
+HHModelScale			= <1.000000, 1.000000, 1.000000>
+HHMuzzleFXName			= "SSLaser_HH_Muzz"
+SilencedFireSnd			= ""
+FireSnd					= "sslaser"
+SelectSnd				= "Guns\Snd\sslaser\select.wav"
+DeselectSnd				= "Guns\Snd\sslaser\deselect.wav"
+FireSndRadius			= 3000
+AIFireSndRadius			= 2000
+EnvironmentMap			= 0
+InfiniteAmmo			= 1
+ShotsPerClip			= 1
+FireRecoilPitch			= 0.000000
+FireRecoilDecay			= 0.000000
+AmmoName0				= "SSLaserAmmo"
+AIWeaponType			= 1
+AIMinBurstInterval		= 0.00000
+AIMaxBurstInterval		= 0.00000
+AIMinBurstShots			= 1
+AIMaxBurstShots			= 1
+AIAnimatesReloads		= 1
+LooksDangerous			= 1
+FireDelay				= 575
+HideWhenEmpty			= 0
+PowerupFX				= ""
+RespawnWaitVisible		= 0
+RespawnWaitFX			= ""
+RespawnWaitSkin0		= ""
+RespawnWaitRenderStyle0	= ""
+RespawnWaitTranslucent	= 0
+
+
+
+/*
+** Robot laser weapon
+*/
+
+[Weapon28]
+
+Name					= "RobotLaser"
+NameId					= 4025
+DescriptionId			= 4075
+AniType					= 0
+Icon					= "Interface\Photos\Weapons\sniper"
+Pos						= <-0.100000, -1.180000, 0.500000>
+MuzzlePos				= <1.000000, 0.520000, 53.440907>
+BreachOffset			= <0.000000, 0.000000, 0.000000>
+MinPerturb				= 0
+MaxPerturb				= 10
+Range					= 3000
+Recoil					= <0.000000, 0.000000, 0.000000>
+VectorsPerRound			= 1
+PVModel					= ""
+PVSkin0					= ""
+PVSkin1					= ""
+PVRenderStyle0 			= ""
+PVMuzzleFXName			= ""
+HHModel					= "Guns\Models_HH\RobotLaser.ltb"
+HHSkin0					= ""
+HHModelScale			= <1.000000, 1.000000, 1.000000>
+HHMuzzleFXName			= "RobotLaser_HH_Muzz"
+SilencedFireSnd			= ""
+FireSnd					= "robotlaser"
+SelectSnd				= "Guns\Snd\laser\select.wav"
+DeselectSnd				= "Guns\Snd\laser\deselect.wav"
+FireSndRadius			= 3000
+AIFireSndRadius			= 2000
+EnvironmentMap			= 0
+InfiniteAmmo			= 1
+ShotsPerClip			= 1
+FireRecoilPitch			= 0.000000
+FireRecoilDecay			= 0.000000
+AmmoName0				= "RobotLaserAmmo"
+AIWeaponType			= 1
+AIMinBurstInterval		= 1.00000
+AIMaxBurstInterval		= 2.00000
+AIMinBurstShots			= 1
+AIMaxBurstShots			= 1
+AIAnimatesReloads		= 1
+LooksDangerous			= 1
+FireDelay				= 575
+HideWhenEmpty			= 0
+PowerupFX				= ""
+RespawnWaitVisible		= 0
+RespawnWaitFX			= ""
+RespawnWaitSkin0		= ""
+RespawnWaitRenderStyle0	= ""
+RespawnWaitTranslucent	= 0
+
+
+
+/*
+** Throwing knives
+*/
+
+[Weapon29]
+
+Name					= "ThrowingKnife"
+NameId					= 4003
+DescriptionId			= 4053
+ClientWeaponType		= 2
+AniType					= 0
+Icon					= "Interface\Photos\Weapons\sniper"
+Pos						= <0.440000, -0.480002, 0.240000>
+MuzzlePos				= <0.000000, 0.000000, 13.800000>
+BreachOffset			= <0.000000, 0.000000, 0.000000>
+MinPerturb				= 0
+MaxPerturb				= 10
+Range					= 100000
+Recoil					= <0.000000, 0.000000, 0.000000>
+VectorsPerRound			= 1
+PVModel					= "Guns\Models_PV\shuriken.ltb"
+PVSkin0					= "Hands"
+PVSkin1					= "Guns\Skins_PV\shuriken.dtx"
+PVRenderStyle0 			= "RS\envmap.ltb"
+PVMuzzleFXName			= ""
+HHModel					= "Guns\Models_hh\OnlySocket.ltb"
+HHSkin0					= ""
+HHModelScale			= <1.000000, 1.000000, 1.000000>
+HHMuzzleFXName			= ""
+FireSnd					= "Guns\Snd\Shuriken\fire.wav"
+SelectSnd				= "Guns\Snd\Shuriken\select.wav"
+DeselectSnd				= "Guns\Snd\Shuriken\deselect.wav"
+FireSndRadius			= 1280
+AIFireSndRadius			= 8
+EnvironmentMap			= 0
+InfiniteAmmo			= 0
+ShotsPerClip			= 1
+FireRecoilPitch			= 2.000000
+FireRecoilDecay			= 0.200000
+AmmoName0				= "Knife"
+AIWeaponType			= 1
+AIMinBurstInterval		= 0.500000
+AIMaxBurstInterval		= 0.500000
+AIMinBurstShots			= 1
+AIMaxBurstShots			= 1
+AIAnimatesReloads		= 1
+LooksDangerous			= 1
+FireDelay				= 0
+HideWhenEmpty			= 1
+PowerupFX				= ""
+RespawnWaitVisible		= 0
+RespawnWaitFX			= ""
+RespawnWaitSkin0		= ""
+RespawnWaitRenderStyle0	= ""
+RespawnWaitTranslucent	= 0
+
+
+
+[Weapon30]
+
+Name					= "Holster"
+NameId					= 4026
+DescriptionId			= 4076
+ClientWeaponType		= 1
+AniType					= 6
+Icon					= "Interface\Photos\Weapons\Holster"
+Pos						= <-0.225000, -0.327500, 0.320000>
+MuzzlePos				= <0.000000, 0.000000, 0.000000>
+BreachOffset			= <0.000000, 0.000000, 0.000000>
+MinPerturb				= 0
+MaxPerturb				= 10
+Range					= 100000
+Recoil					= <0.000000, 0.000000, 0.000000>
+VectorsPerRound			= 0
+PVModel					= ""
+PVSkin0					= ""
+PVSkin1					= ""
+PVRenderStyle0 			= ""
+PVMuzzleFXName			= ""
+HHModel					= "Guns\Models_hh\OnlySocket.ltb"
+HHSkin0					= ""
+HHModelScale			= <1.000000, 1.000000, 1.000000>
+HHMuzzleFXName			= ""
+FireSnd					= ""
+SelectSnd				= ""
+DeselectSnd				= ""
+FireSndRadius			= 0
+AIFireSndRadius			= 0
+EnvironmentMap			= 0
+InfiniteAmmo			= 1
+ShotsPerClip			= 0
+FireRecoilPitch			= 0.000000
+FireRecoilDecay			= 0.000000
+AmmoName0				= "Holster"
+AIWeaponType			= 0
+AIMinBurstInterval		= 0.000000
+AIMaxBurstInterval		= 0.000000
+AIMinBurstShots			= 0
+AIMaxBurstShots			= 0
+AIAnimatesReloads		= 0
+LooksDangerous			= 0
+FireDelay				= 0
+HideWhenEmpty			= 0
+PowerupFX				= ""
+RespawnWaitVisible		= 0
+RespawnWaitFX			= ""
+RespawnWaitSkin0		= ""
+RespawnWaitRenderStyle0	= ""
+RespawnWaitTranslucent	= 0
+
+
+
+/*
+** Banana
+*/
+
+[Weapon31]
+
+Name					= "Banana"
+NameId					= 4025
+DescriptionId			= 4075
+ClientWeaponType		= 2
+AniType					= 3
+Icon					= "Interface\Photos\Weapons\Banana"
+Pos						= <-0.084999, -1.410029, 0.664999>
+MuzzlePos				= <0.000000, 0.000000, 13.800000>
+BreachOffset			= <0.000000, 0.000000, 0.000000>
+MinPerturb				= 20
+MaxPerturb				= 40
+Range					= 100000
+Recoil					= <0.000000, 0.000000, 0.000000>
+VectorsPerRound			= 1
+PVModel					= "Guns\Models_PV\banana.ltb"
+PVSkin0					= "Hands"
+PVSkin1					= "Guns\Skins_PV\banana.dtx"
+PVSkin2					= "TexFX\RenderStyles\bananashine.dtx"
+PVRenderStyle0 			= "RS\pv_envmap.ltb"
+PVMuzzleFXName			= ""
+HHModel					= "Guns\models_hh\banana.ltb"
+HHSkin0					= "Guns\skins_pv\banana.dtx"
+HHModelScale			= <1.000000, 1.000000, 1.000000>
+HHMuzzleFXName			= ""
+FireSnd					= "Guns\Snd\banana\fire.wav"
+SelectSnd				= "Guns\Snd\banana\select.wav"
+DeselectSnd				= "Guns\Snd\banana\deselect.wav"
+FireSndRadius			= 1280
+AIFireSndRadius			= 0
+EnvironmentMap			= 0
+InfiniteAmmo			= 0
+ShotsPerClip			= 1
+FireRecoilPitch			= 2.000000
+FireRecoilDecay			= 0.200000
+AmmoName0				= "Banana"
+AIWeaponType			= 0
+AIMinBurstInterval		= 0.500000
+AIMaxBurstInterval		= 0.500000
+AIMinBurstShots			= 1
+AIMaxBurstShots			= 1
+AIAnimatesReloads		= 1
+LooksDangerous			= 0
+FireDelay				= 900
+HideWhenEmpty			= 1
+IsAmmo					= 1
+IsAmmoNoPickupId		= 4038
+HiddenPiece0			= "polySurface1"
+PowerupFX				= ""
+RespawnWaitVisible		= 1
+RespawnWaitFX			= ""
+RespawnWaitSkin0		= "FX\PowerupPU.dtx"
+RespawnWaitRenderStyle0	= "RS\PowerupPU.ltb"
+RespawnWaitTranslucent	= 1
+
+
+/*
+** Stun Grenade
+*/
+
+[Weapon32]
+
+Name					= "StunGrenade"
+NameId					= 4027
+DescriptionId			= 4077
+ClientWeaponType		= 2
+AniType					= 3
+Icon					= "Interface\Photos\Weapons\GrenStun"
+Pos						= <-0.190000, -0.549999, 0.135000>
+MuzzlePos				= <1.939999, -2.179999, 10.359921>
+BreachOffset			= <0.000000, 0.000000, 0.000000>
+MinPerturb				= 20
+MaxPerturb				= 40
+Range					= 100000
+Recoil					= <0.000000, 0.000000, 0.000000>
+VectorsPerRound			= 1
+PVModel					= "Guns\Models_PV\stun.ltb"
+PVSkin0					= "Hands"
+PVSkin1					= "Guns\Skins_PV\stun.dtx"
+PVSkin2					= "TexFX\RenderStyles\shine.dtx"
+PVRenderStyle0 			= "RS\pv_envmap.ltb"
+PVMuzzleFXName			= ""
+HHModel					= "Guns\models_hh\stun.ltb"
+HHSkin0					= "Guns\Skins_pv\stun.dtx"
+HHModelScale			= <1.000000, 1.000000, 1.000000>
+HHMuzzleFXName			= ""
+SilencedFireSnd			= ""
+AltFireSnd				= "Guns\Snd\grenade\altfire.wav"
+FireSnd					= ""
+DryFireSnd				= "Guns\Snd\grenade\dryfire.wav"
+ReloadSnd1				= "Guns\Snd\grenade\reload1.wav"
+ReloadSnd2				= "Guns\Snd\grenade\idle_1.wav"
+ReloadSnd3				= "Guns\Snd\grenade\idle_2.wav"
+MiscSound1				= "Guns\Snd\grenade\fire.wav"
+MiscSound2				= "Guns\Snd\grenade\firetoss.wav"
+SelectSnd				= "Guns\Snd\grenade\select.wav"
+DeselectSnd				= "Guns\Snd\grenade\deselect.wav"
+FireSndRadius			= 1280
+AIFireSndRadius			= 128
+EnvironmentMap			= 0
+InfiniteAmmo			= 0
+ShotsPerClip			= 1
+AmmoMultiplier			= 1
+FireRecoilPitch			= 2.000000
+FireRecoilDecay			= 0.200000
+AmmoName0				= "Stun Grenade"
+AIWeaponType			= 3
+AIMinBurstInterval		= 10.00000
+AIMaxBurstInterval		= 20.00000
+AIMinBurstShots			= 1
+AIMaxBurstShots			= 1
+AIAnimatesReloads		= 1
+LooksDangerous			= 0
+FireDelay				= 1200
+HideWhenEmpty			= 1
+IsAmmo					= 1
+IsAmmoNoPickupId		= 4039
+HiddenPiece0			= "polySurface43"
+PowerupFX				= ""
+RespawnWaitVisible		= 1
+RespawnWaitFX			= ""
+RespawnWaitSkin0		= "FX\PowerupPU.dtx"
+RespawnWaitRenderStyle0	= "RS\PowerupPU.ltb"
+RespawnWaitTranslucent	= 1
+
+
+
+/*
+** Sleep Grenade
+*/
+
+[Weapon33]
+
+Name					= "SleepGrenade"
+NameId					= 4028
+DescriptionId			= 4078
+ClientWeaponType		= 2
+AniType					= 3
+Icon					= "Interface\Photos\Weapons\GrenSleep"
+Pos						= <-0.190000, -0.549999, 0.135000>
+MuzzlePos				= <1.939999, -2.179999, 10.359921>
+BreachOffset			= <0.000000, 0.000000, 0.000000>
+MinPerturb				= 20
+MaxPerturb				= 40
+Range					= 100000
+Recoil					= <0.000000, 0.000000, 0.000000>
+VectorsPerRound			= 1
+PVModel					= "Guns\Models_PV\sleep.ltb"
+PVSkin0					= "Hands"
+PVSkin1					= "Guns\Skins_PV\sleep.dtx"
+PVSkin2					= "TexFX\RenderStyles\shine.dtx"
+PVRenderStyle0 			= "RS\pv_envmap.ltb"
+PVMuzzleFXName			= ""
+HHModel					= "Guns\models_hh\sleep.ltb"
+HHSkin0					= "Guns\Skins_pv\sleep.dtx"
+HHModelScale			= <1.000000, 1.000000, 1.000000>
+HHMuzzleFXName			= ""
+SilencedFireSnd			= ""
+AltFireSnd				= "Guns\Snd\grenade\altfire.wav"
+FireSnd					= ""
+DryFireSnd				= "Guns\Snd\grenade\dryfire.wav"
+ReloadSnd1				= "Guns\Snd\grenade\reload1.wav"
+ReloadSnd2				= "Guns\Snd\grenade\idle_1.wav"
+ReloadSnd3				= "Guns\Snd\grenade\idle_2.wav"
+MiscSound1				= "Guns\Snd\grenade\fire.wav"
+MiscSound2				= "Guns\Snd\grenade\firetoss.wav"
+SelectSnd				= "Guns\Snd\grenade\select.wav"
+DeselectSnd				= "Guns\Snd\grenade\deselect.wav"
+FireSndRadius			= 1280
+AIFireSndRadius			= 128
+EnvironmentMap			= 0
+InfiniteAmmo			= 0
+ShotsPerClip			= 1
+AmmoMultiplier			= 1
+FireRecoilPitch			= 2.000000
+FireRecoilDecay			= 0.200000
+AmmoName0				= "Sleep Grenade"
+AIWeaponType			= 3
+AIMinBurstInterval		= 10.00000
+AIMaxBurstInterval		= 20.00000
+AIMinBurstShots			= 1
+AIMaxBurstShots			= 1
+AIAnimatesReloads		= 1
+LooksDangerous			= 0
+FireDelay				= 1300
+HideWhenEmpty			= 1
+IsAmmo					= 1
+IsAmmoNoPickupId		= 4040
+HiddenPiece0			= "polySurface33"
+PowerupFX				= ""
+RespawnWaitVisible		= 1
+RespawnWaitFX			= ""
+RespawnWaitSkin0		= "FX\PowerupPU.dtx"
+RespawnWaitRenderStyle0	= "RS\PowerupPU.ltb"
+RespawnWaitTranslucent	= 1
+
+
+/*
+** Acid Grenade
+*/
+
+[Weapon34]
+
+Name					= "AcidGrenade"
+NameId					= 4029
+DescriptionId			= 4079
+ClientWeaponType		= 2
+AniType					= 3
+Icon					= "Interface\Photos\Weapons\GrenAcid"
+Pos						= <-0.190000, -0.549999, 0.135000>
+MuzzlePos				= <1.939999, -2.179999, 10.359921>
+BreachOffset			= <0.000000, 0.000000, 0.000000>
+MinPerturb				= 20
+MaxPerturb				= 40
+Range					= 100000
+Recoil					= <0.000000, 0.000000, 0.000000>
+VectorsPerRound			= 1
+PVModel					= "Guns\Models_PV\acid.ltb"
+PVSkin0					= "Hands"
+PVSkin1					= "Guns\Skins_PV\acid.dtx"
+PVSkin2					= "TexFX\RenderStyles\shine.dtx"
+PVRenderStyle0 			= "RS\pv_envmap.ltb"
+PVMuzzleFXName			= ""
+HHModel					= "Guns\models_hh\acid.ltb"
+HHSkin0					= "Guns\Skins_pv\acid.dtx"
+HHModelScale			= <1.000000, 1.000000, 1.000000>
+HHMuzzleFXName			= ""
+SilencedFireSnd			= ""
+AltFireSnd				= "Guns\Snd\grenade\altfire.wav"
+FireSnd					= ""
+DryFireSnd				= "Guns\Snd\grenade\dryfire.wav"
+ReloadSnd1				= "Guns\Snd\grenade\reload1.wav"
+ReloadSnd2				= "Guns\Snd\grenade\idle_1.wav"
+ReloadSnd3				= "Guns\Snd\grenade\idle_2.wav"
+MiscSound1				= "Guns\Snd\grenade\fire.wav"
+MiscSound2				= "Guns\Snd\grenade\firetoss.wav"
+SelectSnd				= "Guns\Snd\grenade\select.wav"
+DeselectSnd				= "Guns\Snd\grenade\deselect.wav"
+FireSndRadius			= 1280
+AIFireSndRadius			= 128
+EnvironmentMap			= 0
+InfiniteAmmo			= 0
+ShotsPerClip			= 1
+AmmoMultiplier			= 1
+FireRecoilPitch			= 2.000000
+FireRecoilDecay			= 0.200000
+AmmoName0				= "Acid Grenade"
+AIWeaponType			= 3
+AIMinBurstInterval		= 10.00000
+AIMaxBurstInterval		= 20.00000
+AIMinBurstShots			= 1
+AIMaxBurstShots			= 1
+AIAnimatesReloads		= 1
+LooksDangerous			= 0
+FireDelay				= 1100
+HideWhenEmpty			= 1
+IsAmmo					= 1
+IsAmmoNoPickupId		= 4041
+HiddenPiece0			= "polySurface28"
+PowerupFX				= ""
+RespawnWaitVisible		= 1
+RespawnWaitFX			= ""
+RespawnWaitSkin0		= "FX\PowerupPU.dtx"
+RespawnWaitRenderStyle0	= "RS\PowerupPU.ltb"
+RespawnWaitTranslucent	= 1
+
+
+
+/*
+** Laughing Gas Grenade
+*/
+
+[Weapon35]
+
+Name					= "LaughingGrenade"
+NameId					= 4030
+DescriptionId			= 4080
+ClientWeaponType		= 2
+AniType					= 3
+Icon					= "Interface\Photos\Weapons\GrenLaugh"
+Pos						= <-0.190000, -0.549999, 0.135000>
+MuzzlePos				= <1.939999, -2.179999, 10.359921>
+BreachOffset			= <0.000000, 0.000000, 0.000000>
+MinPerturb				= 20
+MaxPerturb				= 40
+Range					= 100000
+Recoil					= <0.000000, 0.000000, 0.000000>
+VectorsPerRound			= 1
+PVModel					= "Guns\Models_PV\sleep.ltb"
+PVSkin0					= "Hands"
+PVSkin1					= "Guns\Skins_PV\laugh.dtx"
+PVSkin2					= "TexFX\RenderStyles\shine.dtx"
+PVRenderStyle0 			= "RS\pv_envmap.ltb"
+PVMuzzleFXName			= ""
+HHModel					= "Guns\models_hh\sleep.ltb"
+HHSkin0					= "Guns\Skins_pv\laugh.dtx"
+HHModelScale			= <1.000000, 1.000000, 1.000000>
+HHMuzzleFXName			= ""
+SilencedFireSnd			= ""
+AltFireSnd				= "Guns\Snd\grenade\altfire.wav"
+FireSnd					= ""
+DryFireSnd				= "Guns\Snd\grenade\dryfire.wav"
+ReloadSnd1				= "Guns\Snd\grenade\reload1.wav"
+ReloadSnd2				= "Guns\Snd\grenade\idle_1.wav"
+ReloadSnd3				= "Guns\Snd\grenade\idle_2.wav"
+MiscSound1				= "Guns\Snd\grenade\fire.wav"
+MiscSound2				= "Guns\Snd\grenade\firetoss.wav"
+SelectSnd				= "Guns\Snd\grenade\select.wav"
+DeselectSnd				= "Guns\Snd\grenade\deselect.wav"
+FireSndRadius			= 1280
+AIFireSndRadius			= 128
+EnvironmentMap			= 0
+InfiniteAmmo			= 0
+ShotsPerClip			= 1
+AmmoMultiplier			= 1
+FireRecoilPitch			= 2.000000
+FireRecoilDecay			= 0.200000
+AmmoName0				= "Laughing Gas"
+AIWeaponType			= 3
+AIMinBurstInterval		= 10.00000
+AIMaxBurstInterval		= 20.00000
+AIMinBurstShots			= 1
+AIMaxBurstShots			= 1
+AIAnimatesReloads		= 1
+LooksDangerous			= 0
+FireDelay				= 1100
+HideWhenEmpty			= 1
+IsAmmo					= 1
+IsAmmoNoPickupId		= 4042
+HiddenPiece0			= "polySurface33"
+PowerupFX				= ""
+RespawnWaitVisible		= 1
+RespawnWaitFX			= ""
+RespawnWaitSkin0		= "FX\PowerupPU.dtx"
+RespawnWaitRenderStyle0	= "RS\PowerupPU.ltb"
+RespawnWaitTranslucent	= 1
+
+
+/*
+** Volkov's wheelchair rocket launcher
+*/
+
+[Weapon36]
+
+Name					= "VolkovRocket"
+NameId					= 4014
+DescriptionId			= 4064
+ClientWeaponType		= 2
+AniType					= 0
+Icon					= "Interface\Photos\Weapons\Purse"
+Pos						= <-0.040000, -1.415005, -0.795000>
+MuzzlePos				= <1.939999, -2.179999, 10.359921>
+BreachOffset			= <0.000000, 0.000000, 0.000000>
+MinPerturb				= 0
+MaxPerturb				= 10
+Range					= 100000
+Recoil					= <0.000000, 0.000000, 0.000000>
+VectorsPerRound			= 1
+PVModel					= "Guns\Models_PV\purse.ltb"
+PVSkin0					= "Hands"
+PVSkin1					= "Guns\Skins_PV\purse.dtx"
+PVSkin2					= "TexFX\RenderStyles\clouds2.dtx"
+PVSkin3					= "Guns\Skins_PV\rocketlens.dtx"
+PVRenderStyle0			= "RS\default.ltb"
+PVRenderStyle1 			= "RS\pv_envmap.ltb"
+PVRenderStyle2 			= "RS\pv_glass.ltb"
+PVMuzzleFXName			= "Basic_PV_Muzz"
+PVAttachFXName0			= "purseblue"
+PVAttachFXName1			= "pursered"
+HHModel					= "Guns\Models_HH\OnlySocket.ltb"
+HHSkin0					= ""
+HHModelScale			= <1.000000, 1.000000, 1.000000>
+HHMuzzleFXName			= ""
+SilencedFireSnd			= ""
+AltFireSnd				= ""
+FireSnd					= ""
+DryFireSnd				= "Guns\Snd\purse\dryfire.wav"
+ReloadSnd1				= "Guns\Snd\purse\reload1.wav"
+MiscSound1				= "Guns\Snd\purse\fire.wav"
+SelectSnd				= "Guns\Snd\purse\select.wav"
+DeselectSnd				= "Guns\Snd\purse\deselect.wav"
+FireSndRadius			= 3000
+AIFireSndRadius			= 2000
+EnvironmentMap			= 0
+InfiniteAmmo			= 0
+ShotsPerClip			= 30
+AmmoMultiplier			= 1
+FireRecoilPitch			= 2.000000
+FireRecoilDecay			= 0.200000
+AmmoName0				= "Rocket"
+AIWeaponType			= 1
+AIMinBurstInterval		= 0.500000
+AIMaxBurstInterval		= 1.500000
+AIMinBurstShots			= 1
+AIMaxBurstShots			= 2
+AIAnimatesReloads		= 0
+LooksDangerous			= 0
+FireDelay				= 100
+HideWhenEmpty			= 0
+PowerupFX				= ""
+RespawnWaitVisible		= 0
+RespawnWaitFX			= ""
+RespawnWaitSkin0		= ""
+RespawnWaitRenderStyle0	= ""
+RespawnWaitTranslucent	= 0
+
+
+
+/*
+** HeadButt
+*/
+
+[Weapon37]
+
+Name					= "HeadButt"
+NameId					= 4025
+DescriptionId			= 4075
+ClientWeaponType		= 1
+AniType					= 2
+Icon					= "Interface\Photos\Weapons\sniper"
+Pos						= <-0.100000, -1.180000, 0.500000>
+MuzzlePos				= <1.000000, 0.520000, 53.440907>
+BreachOffset			= <0.000000, 0.000000, 0.000000>
+MinPerturb				= 0
+MaxPerturb				= 10
+Range					= 128
+Recoil					= <0.000000, 0.000000, 0.000000>
+VectorsPerRound			= 1
+PVModel					= "Guns\Models_PV\Tulwar.ltb"
+PVSkin0					= "Hands"
+PVSkin1					= "Guns\Skins_PV\Tulwar.dtx"
+PVRenderStyle0 			= "RS\default.ltb"
+PVMuzzleFXName			= ""
+HHModel					= "Guns\Models_HH\onlysocket.ltb"
+HHSkin0					= ""
+HHModelScale			= <1.000000, 1.000000, 1.000000>
+HHMuzzleFXName			= ""
+SilencedFireSnd			= ""
+FireSnd					= ""
+SelectSnd				= ""
+DeselectSnd				= ""
+FireSndRadius			= 1280
+AIFireSndRadius			= 128
+EnvironmentMap			= 0
+InfiniteAmmo			= 1
+ShotsPerClip			= 1
+FireRecoilPitch			= 0.000000
+FireRecoilDecay			= 0.000000
+AmmoName0				= "Head_gun butt"
+AIWeaponType			= 2
+AIMinBurstInterval		= 0.000000
+AIMaxBurstInterval		= 0.000000
+AIMinBurstShots			= 0
+AIMaxBurstShots			= 0
+AIAnimatesReloads		= 1
+LooksDangerous			= 0
+FireDelay				= 575
+HideWhenEmpty			= 0
+PowerupFX				= ""
+RespawnWaitVisible		= 0
+RespawnWaitFX			= ""
+RespawnWaitSkin0		= ""
+RespawnWaitRenderStyle0	= ""
+RespawnWaitTranslucent	= 0
+
+/*
+** RifleButt
+*/
+
+[Weapon38]
+
+Name					= "RifleButt"
+NameId					= 4025
+DescriptionId			= 4075
+ClientWeaponType		= 1
+AniType					= 2
+Icon					= "Interface\Photos\Weapons\sniper"
+Pos						= <-0.100000, -1.180000, 0.500000>
+MuzzlePos				= <1.000000, 0.520000, 53.440907>
+BreachOffset			= <0.000000, 0.000000, 0.000000>
+MinPerturb				= 0
+MaxPerturb				= 10
+Range					= 128
+Recoil					= <0.000000, 0.000000, 0.000000>
+VectorsPerRound			= 1
+PVModel					= "Guns\Models_PV\Tulwar.ltb"
+PVSkin0					= "Hands"
+PVSkin1					= "Guns\Skins_PV\Tulwar.dtx"
+PVRenderStyle0 			= "RS\default.ltb"
+PVMuzzleFXName			= ""
+HHModel					= "Guns\Models_HH\onlysocket.ltb"
+HHSkin0					= ""
+HHModelScale			= <1.000000, 1.000000, 1.000000>
+HHMuzzleFXName			= ""
+SilencedFireSnd			= ""
+FireSnd					= ""
+SelectSnd				= ""
+DeselectSnd				= ""
+FireSndRadius			= 1280
+AIFireSndRadius			= 128
+EnvironmentMap			= 0
+InfiniteAmmo			= 1
+ShotsPerClip			= 1
+FireRecoilPitch			= 0.000000
+FireRecoilDecay			= 0.000000
+AmmoName0				= "Head_gun butt"
+AIWeaponType			= 2
+AIMinBurstInterval		= 0.000000
+AIMaxBurstInterval		= 0.000000
+AIMinBurstShots			= 0
+AIMaxBurstShots			= 0
+AIAnimatesReloads		= 1
+LooksDangerous			= 0
+FireDelay				= 575
+HideWhenEmpty			= 0
+PowerupFX				= ""
+RespawnWaitVisible		= 0
+RespawnWaitFX			= ""
+RespawnWaitSkin0		= ""
+RespawnWaitRenderStyle0	= ""
+RespawnWaitTranslucent	= 0
+
+
+/*
+** ManCrate
+*/
+
+[Weapon39]
+
+Name					= "ManCrate"
+NameId					= 4002
+DescriptionId			= 4052
+ClientWeaponType		= 1
+AniType					= 2
+Icon					= "Interface\Photos\Weapons\Tulwar"
+Pos						= <0.000000, -1.000000, 0.300000>
+MuzzlePos				= <1.000000, 0.520000, 53.440907>
+BreachOffset			= <0.000000, 0.000000, 0.000000>
+MinPerturb				= 0
+MaxPerturb				= 10
+Range					= 128
+Recoil					= <0.000000, 0.000000, 0.000000>
+VectorsPerRound			= 1
+PVModel					= "Guns\Models_PV\Tulwar.ltb"
+PVSkin0					= "Hands"
+PVSkin1					= "Guns\Skins_PV\Tulwar.dtx"
+PVSkin2					= "TexFX\RenderStyles\clouds2.dtx"
+PVRenderStyle0			= "RS\pv_envmap.ltb"
+PVMuzzleFXName			= ""
+HHModel					= "Guns\Models_HH\onlysocket.ltb"
+HHSkin0					= ""
+HHModelScale			= <1.000000, 1.000000, 1.000000>
+HHMuzzleFXName			= ""
+PVAttachFXName0			= ""
+SilencedFireSnd			= ""
+FireSnd					= ""
+SelectSnd				= ""
+DeselectSnd				= ""
+FireSndRadius			= 1280
+AIFireSndRadius			= 640
+EnvironmentMap			= 0
+InfiniteAmmo			= 1
+ShotsPerClip			= 1
+FireRecoilPitch			= 0.000000
+FireRecoilDecay			= 0.000000
+AmmoName0				= "ManBite"
+AIWeaponType			= 2
+AIMinBurstInterval		= 0.000000
+AIMaxBurstInterval		= 0.000000
+AIMinBurstShots			= 0
+AIMaxBurstShots			= 0
+AIAnimatesReloads		= 1
+LooksDangerous			= 0
+FireDelay				= 575
+HideWhenEmpty			= 0
+CanBeDeflected			= 0
+PowerupFX				= ""
+RespawnWaitVisible		= 0
+RespawnWaitFX			= ""
+RespawnWaitSkin0		= ""
+RespawnWaitRenderStyle0	= ""
+RespawnWaitTranslucent	= 0
+
+
+/*
+** Sterling silenced
+*/
+
+[Weapon40]
+
+Name					= "SilencedSterling"
+NameId					= 4031
+DescriptionId			= 4081
+ClientWeaponType		= 1
+AniType					= 0
+Icon					= "Interface\Photos\Weapons\Sterling2"
+Pos						= <-0.225000, 0.147500, 0.040000>
+MuzzlePos				= <0.845000, -1.629995, 7.964867>
+BreachOffset			= <1.084999, -1.975021, -3.767539>
+MinPerturb				= 30
+MaxPerturb				= 60
+Range					= 100000
+Recoil					= <0.000000, 0.000000, 0.000000>
+VectorsPerRound			= 1
+PVModel					= "Guns\Models_PV\sterling2.ltb"
+PVSkin0					= "Hands"
+PVSkin1					= "Guns\Skins_PV\sterling2.dtx"
+PVSkin2					= "TexFX\RenderStyles\clouds2.dtx"
+PVRenderStyle0 			= "RS\pv_envmap.ltb"
+PVRenderStyle1 			= "RS\default.ltb"
+PVMuzzleFXName			= "Basic_PV_Muzz"
+HHModel					= "Guns\Models_HH\sterling2.ltb"
+HHSkin0					= "Guns\skins_pv\sterling2.dtx"
+HHModelScale			= <1.000000, 1.000000, 1.000000>
+HHMuzzleFXName			= ""
+SilencedFireSnd			= "Guns\Snd\Sterling\silenced.wav"
+AltFireSnd				= "Guns\Snd\Sterling\altfire.wav"
+FireSnd					= ""
+DryFireSnd				= "Guns\Snd\Sterling\dryfire.wav"
+ReloadSnd1				= "Guns\Snd\Sterling\reload1.wav"
+ReloadSnd2				= "Guns\Snd\Sterling\reload2.wav"
+ReloadSnd3				= "Guns\Snd\Sterling\reload3.wav"
+MiscSound1				= "Guns\Snd\Sil_Sterling\sil_fire.wav"
+MiscSound2				= "Guns\Snd\Sil_Sterling\sil_loop.wav"
+SelectSnd				= "Guns\Snd\Sterling\select.wav"
+DeselectSnd				= "Guns\Snd\Sterling\deselect.wav"
+FireSndRadius			= 1280
+AIFireSndRadius			= 256
+EnvironmentMap			= 0
+InfiniteAmmo			= 0
+ShotsPerClip			= 30
+FireRecoilPitch			= 2.000000
+FireRecoilDecay			= 0.200000
+ModName0				= ""
+AmmoName0				= "9mm fmj"
+AIWeaponType			= 1
+AIMinBurstInterval		= 0.500000
+AIMaxBurstInterval		= 1.500000
+AIMinBurstShots			= 1
+AIMaxBurstShots			= 5
+AIAnimatesReloads		= 1
+LooksDangerous			= 1
+FireDelay				= 90
+HideWhenEmpty			= 0
+HolsterAttachment		= "BACK sterling_holster"
+PowerupFX				= ""
+RespawnWaitVisible		= 1
+RespawnWaitFX			= ""
+RespawnWaitSkin0		= "FX\PowerupPU.dtx"
+RespawnWaitRenderStyle0	= "RS\PowerupPU.ltb"
+RespawnWaitTranslucent	= 1
+
+
+/*
+** TommyGun
+*/
+
+[Weapon41]
+
+Name					= "TommygunInfinite"
+NameId					= 4010
+DescriptionId			= 4060
+ClientWeaponType		= 1
+AniType					= 0
+Icon					= "Interface\Photos\Weapons\TommyGun"
+Pos						= <0.000000, 0.305000, -0.540000>
+MuzzlePos				= <0.555000, -1.569984, 8.374876>
+BreachOffset			= <0.480000, -1.362507, -6.345098>
+MinPerturb				= 30
+MaxPerturb				= 60
+Range					= 100000
+Recoil					= <0.000000, 0.000000, 0.000000>
+VectorsPerRound			= 1
+PVModel					= "Guns\Models_PV\tommygun.ltb"
+PVSkin0					= "Hands"
+PVSkin1					= "Guns\Skins_PV\tommygun.dtx"
+PVSkin2					= "TexFX\RenderStyles\shine.dtx"
+PVRenderStyle0 			= "RS\pv_envmap.ltb"
+PVMuzzleFXName			= "Tommygun_PV_Muzz"
+HHModel					= "Guns\Models_HH\tommygun.ltb"
+HHSkin0					= "Guns\Skins_PV\tommygun.dtx"
+HHModelScale			= <1.000000, 1.000000, 1.000000>
+HHMuzzleFXName			= "Tommygun_HH_Muzz"
+SilencedFireSnd			= ""
+AltFireSnd				= "Guns\Snd\Tommygun\altfire.wav"
+FireSnd					= ""
+DryFireSnd				= "Guns\Snd\Tommygun\dryfire.wav"
+ReloadSnd1				= "Guns\Snd\Tommygun\reload1.wav"
+ReloadSnd2				= "Guns\Snd\Tommygun\reload2.wav"
+ReloadSnd3				= "Guns\Snd\Tommygun\reload3.wav"
+MiscSound1				= "Guns\Snd\Tommygun\fire.wav"
+MiscSound2				= "Guns\Snd\Tommygun\fireloop.wav"
+SelectSnd				= "Guns\Snd\Tommygun\select.wav"
+DeselectSnd				= "Guns\Snd\Tommygun\deselect.wav"
+FireSndRadius			= 3000
+AIFireSndRadius			= 2000
+EnvironmentMap			= 0
+InfiniteAmmo			= 1
+ShotsPerClip			= 50
+FireRecoilPitch			= 2.000000
+FireRecoilDecay			= 0.200000
+AmmoName0				= ".45 fmj"
+AIWeaponType			= 1
+AIMinBurstInterval		= 0.500000
+AIMaxBurstInterval		= 1.500000
+AIMinBurstShots			= 1
+AIMaxBurstShots			= 5
+AIAnimatesReloads		= 1
+LooksDangerous			= 1
+FireDelay				= 90
+HideWhenEmpty			= 0
+HolsterAttachment		= "BACK tommygun_holster"
+PowerupFX				= ""
+RespawnWaitVisible		= 0
+RespawnWaitFX			= ""
+RespawnWaitSkin0		= ""
+RespawnWaitRenderStyle0	= ""
+RespawnWaitTranslucent	= 0
+
+
+
+/************************************************************************
+**
+** MOD
+**
+** Mod definitions specify the properties making up a
+** weapon modification.
+**
+** All modification definitions should contain the following
+** properties:
+**
+**	Name (String)
+**
+**		User friendly name used in DEdit.
+**
+**	Socket (String)
+**
+**		Name of the model socket to attach the mod model to.
+**
+**	NameId (Integer)
+**
+**		Id that maps to the gear name (stored in CRes.dll)	
+**
+**	DescriptionId (Integer)
+**
+**		Id that maps to the weapon description (stored in CRes.dll)	
+**
+**	Icon (String)
+**
+**		Name of the interface icon associated with the ammo type.
+**
+**	Type (Integer)	
+**
+**		Specifies the type of mod.  Valid values are:
+**
+**		0 - Silencer
+**		1 - Scope
+**
+**	AttachModel (String)
+**
+**		Name of the model attachment associated with the mod.
+**
+**	AttachSkin0-N (String)
+**
+**		Name of the skin(s) associated with the mod attachment model.
+**      There can be any number of skins: AttachSkin0, AttachSkin1, ..., AttachSkinN
+**
+**  AttachRenderStyle0-N (String)
+**
+**		Name of the render style file ltb(s).
+**      There can be any number of render styles: AttachRenderStyle0, AttachRenderStyle1, ..., AttachRenderStyleN
+**
+**	AttachScale (Vector)
+**
+**		Scale of the mod attachment model.
+**
+**	ZoomLevel (Integer)
+**
+**		Level the weapon can zoom to (Valid levels are 1, 2, and 3.
+**		0 = can't zoom). Ignored for non-scope mods.
+**
+**	NightVision (Integer)
+**
+**		Does the mod provide night vision (1 = true, 0 = false).
+**		Ignored for non-scope mods.
+**
+**	Integrated (Integer)
+**
+**		Is the mod built into the weapon (1 = true, 0 = false).
+**
+**	Priority (Integer)
+**
+**		This is used for weapons that have more than one mod of the same
+**		type (e.g., two scopes).  This field indicates which should be used
+**		if the weapon has both mods (the highest priority is used).  NOTE:
+**		this is a number between 0 and 255, that should default to 0.
+**
+**	ZoomInSound (String)
+**
+**		Name of the sound that is played when the weapon is zoomed in.
+**
+**	ZoomOutSound (String)
+**
+**		Name of the sound that is played when the weapon is zoomed out.
+**
+**	PickUpSound (String)
+**
+**		Name of the sound that is played when the mod is picked up (either
+**		absolute path to sound or name of soundbutes sound)
+**
+**	RespawnSound (String)
+**
+**		Name of the sound that is played when the mod respawns in multiplayer
+**		(either absolute path to sound or name of the soundbutes.txt sound)
+**
+**	PowerupModel (String)
+**
+**		Name of the powerup model associated with the mod.
+**
+**	PowerupSkin0-N (String)
+**
+**		Name of the powerup skin(s) associated with the mod.
+**      There can be any number of skins: PowerupSkin0, PowerupSkin1, ..., PowerupSkinN
+**
+**  PowerupRenderStyle0-N (String)
+**
+**		Name of the render style file ltb(s).
+**      There can be any number of render styles: PowerupRenderStyle0, PowerupRenderStyle1, ..., PowerupRenderStyleN
+**
+**	PowerupModelScale (Float)
+**
+**		The scaling factor used with the powerup model. 
+**		(same model as attach model)
+**
+**	TintColor (Vector)
+**
+**		Color to tint the screen when gear is picked up (r, g, b)
+**
+**	TintTime (Float)
+**
+**		Duration in seconds of screen tint when gear is picked up
+**
+**	AISilencedFireSndRadius (Integer)
+**
+**		The radius of volume that silenced fire sounds make, w.r.t to AI's senses
+**		NOTE: this value only works with Type = 0 mods.
+**
+** PowerupFX (String)
+**
+**		Name of the FxED created FX to be played when the item respawns.  This FX will constantly loop as long
+**		as the item is waiting to be picked up.
+**
+**	RespawnWaitVisible	(Integer)
+**
+**		(0 or 1) If 0 the item will become invisible once it is picked up and is waiting to respawn.  Otherwise the item
+**		will remain visible.
+**
+**	RespawnWaitFX (String)
+**
+**		Name of an FxED created FX to play once the item is picked up and is waiting to respawn.
+**
+**	RespawnWaitSkin0-N (String)
+**
+**		Name of the skin files that will be associted with the mode once it is picked up and is waiting to respawn.
+**
+**	RespawnWaitRenderStyle0-N (String)
+**
+**		Name of the renderstyle that will be associated with the model once it is pickedup and is waiting to respawn.
+*/
+
+/*
+** beretta Silencer
+*/
+
+[Mod0]
+Name					= "Beretta Silencer"
+Socket					= "Silencer"
+NameId					= 4250
+DescriptionId			= 4250
+Icon					= "Interface\Photos\Mods\silencer.dtx"
+Type					= 0
+AttachModel				= "Guns\Models_pv\silencer.ltb"
+AttachSkin0				= "Guns\Skins_pv\silencer.dtx"
+AttachSkin1				= "TexFX\RenderStyles\clouds.dtx"
+AttachRenderStyle0		= "RS\pv_envmap.ltb"
+AttachScale				= <1.000000, 1.000000, 1.000000>
+ZoomLevel				= 0
+NightVision				= 0
+Integrated				= 0
+Priority				= 0
+ZoomInSound				= ""
+ZoomOutSound			= ""
+PickUpSound				= "ModItemPickupSound"  // see soundbutes.txt
+RespawnSound			= "ModItemRespawnSound" // see soundbutes.txt
+PowerupModel			= "Guns\Models_pv\silencer.ltb"
+PowerupSkin0			= "Guns\Skins_pv\silencer.dtx"
+PowerupModelScale		= 18.000000
+TintColor				= <0.250000, 0.250000, 0.400000>
+TintTime				= 2.000000
+AISilencedFireSndRadius = 128
+PowerupFX				= ""
+RespawnWaitVisible		= 1
+RespawnWaitFX			= ""
+RespawnWaitSkin0		= "FX\PowerupPU.dtx"
+RespawnWaitRenderStyle0	= "RS\PowerupPU.ltb"
+RespawnWaitTranslucent	= 1
+
+
+[Mod1]
+Name					= "Camera Scope"
+Socket					= "Scope"
+NameId					= 4251
+DescriptionId			= 4251
+Icon					= ""
+Type					= 1
+AttachModel				= ""
+AttachSkin0				= ""
+AttachScale				= <1.000000, 1.000000, 1.000000>
+ZoomLevel				= 1
+NightVision				= 0
+Integrated				= 1
+Priority				= 0
+ZoomInSound				= "guns\snd\Camera\camerazoom.wav"
+ZoomOutSound			        = "guns\snd\Camera\camerazoom.wav"
+PickUpSound				= "ModItemPickupSound"  // see soundbutes.txt
+RespawnSound			= "ModItemRespawnSound" // see soundbutes.txt
+PowerupModel			= ""
+PowerupSkin0			= ""
+PowerupModelScale		= 18.000000
+TintColor				= <0.250000, 0.250000, 0.400000>
+TintTime				= 2.000000
+PowerupFX				= ""
+RespawnWaitVisible		= 1
+RespawnWaitFX			= ""
+RespawnWaitSkin0		= "FX\PowerupPU.dtx"
+RespawnWaitRenderStyle0	= "RS\PowerupPU.ltb"
+RespawnWaitTranslucent	= 1
+
+
+/*
+** Sniper Silencer
+*/
+
+[Mod2]
+Name					= "Sniper Silencer"
+Socket					= "Silencer"
+NameId					= 4252
+DescriptionId			= 4250
+Icon					= "Interface\Photos\Mods\silencer.dtx"
+Type					= 0
+AttachModel				= "Guns\Models_pv\ssilencer.ltb"
+AttachSkin0				= "Guns\Skins_pv\silencer.dtx"
+AttachSkin1				= "TexFX\RenderStyles\clouds.dtx"
+AttachRenderStyle0		= "RS\pv_envmap.ltb"
+AttachScale				= <1.000000, 1.000000, 1.000000>
+ZoomLevel				= 0
+NightVision				= 0
+Integrated				= 0
+Priority				= 0
+ZoomInSound				= ""
+ZoomOutSound			        = ""
+PickUpSound				= "ModItemPickupSound"  // see soundbutes.txt
+RespawnSound			= "ModItemRespawnSound" // see soundbutes.txt
+PowerupModel			= "Guns\Models_pv\silencer.ltb"
+PowerupSkin0			= "Guns\Skins_pv\silencer.dtx"
+PowerupModelScale		= 18.000000
+TintColor				= <0.250000, 0.250000, 0.400000>
+TintTime				= 2.000000
+AISilencedFireSndRadius = 256
+PowerupFX				= ""
+RespawnWaitVisible		= 1
+RespawnWaitFX			= ""
+RespawnWaitSkin0		= "FX\PowerupPU.dtx"
+RespawnWaitRenderStyle0	= "RS\PowerupPU.ltb"
+RespawnWaitTranslucent	= 1
+
+
+/*
+** Sterling Silencer
+*/
+
+[Mod3]
+Name					= "Sterling Silencer"
+Socket					= "Silencer"
+NameId					= 4253
+DescriptionId			= 4250
+Icon					= "Interface\Photos\Mods\silencer.dtx"
+Type					= 0
+AttachModel				= "Guns\Models_pv\silencer.ltb"
+AttachSkin0				= "Guns\Skins_pv\silencer.dtx"
+AttachSkin1				= "TexFX\RenderStyles\clouds.dtx"
+AttachRenderStyle0		= "RS\pv_envmap.ltb"
+AttachScale				= <1.000000, 1.000000, 1.000000>
+ZoomLevel				= 0
+NightVision				= 0
+Integrated				= 0
+Priority				= 0
+ZoomInSound				= ""
+ZoomOutSound			= ""
+PickUpSound				= "ModItemPickupSound"  // see soundbutes.txt
+RespawnSound			= "ModItemRespawnSound" // see soundbutes.txt
+PowerupModel			= "Guns\Models_pv\silencer.ltb"
+PowerupSkin0			= "Guns\Skins_pv\silencer.dtx"
+PowerupModelScale		= 18.000000
+TintColor				= <0.250000, 0.250000, 0.400000>
+TintTime				= 2.000000
+AISilencedFireSndRadius = 256
+PowerupFX				= ""
+RespawnWaitVisible		= 1
+RespawnWaitFX			= ""
+RespawnWaitSkin0		= "FX\PowerupPU.dtx"
+RespawnWaitRenderStyle0	= "RS\PowerupPU.ltb"
+RespawnWaitTranslucent	= 1
+
+
+/*
+** Sniper Rifle Scope
+*/
+
+[Mod4]
+Name					= "Sniper Scope"
+Socket					= "Scope"
+NameId					= 4254
+DescriptionId			= 4251
+Icon					= ""
+Type					= 1
+AttachModel				= ""
+AttachSkin0				= ""
+AttachScale				= <1.000000, 1.000000, 1.000000>
+ZoomLevel				= 2
+NightVision				= 0
+Integrated				= 1
+Priority				= 0
+ZoomInSound				= "guns\snd\sniper\sniperzoom.wav"
+ZoomOutSound			= "guns\snd\sniper\sniperzoom.wav"
+PickUpSound				= "ModItemPickupSound"  // see soundbutes.txt
+RespawnSound			= "ModItemRespawnSound" // see soundbutes.txt
+PowerupModel			= ""
+PowerupSkin0			= ""
+PowerupModelScale		= 18.000000
+TintColor				= <0.250000, 0.250000, 0.400000>
+TintTime				= 2.000000
+PowerupFX				= ""
+RespawnWaitVisible		= 1
+RespawnWaitFX			= ""
+RespawnWaitSkin0		= "FX\PowerupPU.dtx"
+RespawnWaitRenderStyle0	= "RS\PowerupPU.ltb"
+RespawnWaitTranslucent	= 1
+
+
+/*
+** Utility Launcher Scope
+*/
+
+[Mod5]
+Name					= "Launcher Scope"
+Socket					= "scope"
+NameId					= 4255
+DescriptionId			= 4251
+Icon					= ""
+Type					= 1
+AttachModel				= "guns\models_pv\scope.ltb"
+AttachSkin0				= "guns\skins_pv\scope.dtx"
+AttachSkin1				= "guns\skins_pv\lens2.dtx"
+AttachSkin2				= "TexFX\RenderStyles\clouds.dtx"
+AttachRenderStyle0		= "RS\pv_envmap.ltb"
+AttachRenderStyle1		= "RS\pv_glass.ltb"
+AttachScale				= <1.000000, 1.000000, 1.000000>
+ZoomLevel				= 1
+NightVision				= 0
+Integrated				= 0
+Priority				= 0
+ZoomInSound				= "guns\snd\sniper\sniperzoom.wav"
+ZoomOutSound			        = "guns\snd\sniper\sniperzoom.wav"
+PickUpSound				= "ModItemPickupSound"  // see soundbutes.txt
+RespawnSound			= "ModItemRespawnSound" // see soundbutes.txt
+PowerupModel			= ""
+PowerupSkin0			= ""
+PowerupModelScale		= 18.000000
+TintColor				= <0.250000, 0.250000, 0.400000>
+TintTime				= 2.000000
+PowerupFX				= ""
+RespawnWaitVisible		= 1
+RespawnWaitFX			= ""
+RespawnWaitSkin0		= "FX\PowerupPU.dtx"
+RespawnWaitRenderStyle0	= "RS\PowerupPU.ltb"
+RespawnWaitTranslucent	= 1
+
+
+/*
+** Crossbow scope
+*/
+
+[Mod6]
+Name					= "Crossbow Scope"
+Socket					= "Scope"
+NameId					= 4256
+DescriptionId			= 4251
+Icon					= ""
+Type					= 1
+AttachModel				= "guns\models_pv\scope.ltb"
+AttachSkin0				= "guns\skins_pv\scope.dtx"
+AttachSkin1				= "guns\skins_pv\lens2.dtx"
+AttachSkin2				= "TexFX\RenderStyles\clouds.dtx"
+AttachRenderStyle0		= "RS\pv_envmap.ltb"
+AttachRenderStyle1		= "RS\pv_glass.ltb"
+AttachScale				= <1.000000, 1.000000, 1.000000>
+ZoomLevel				= 1
+NightVision				= 0
+Integrated				= 0
+Priority				= 0
+ZoomInSound				= "guns\snd\sniper\sniperzoom.wav"
+ZoomOutSound			= "guns\snd\sniper\sniperzoom.wav"
+PickUpSound				= "ModItemPickupSound"  // see soundbutes.txt
+RespawnSound			= "ModItemRespawnSound" // see soundbutes.txt
+PowerupModel			= "guns\models_pv\scope.ltb"
+PowerupSkin0			= "guns\skins_pv\scope.dtx"
+PowerupSkin1			= "guns\skins_pv\lens2.dtx"
+PowerupModelScale		= 10.000000
+TintColor				= <0.250000, 0.250000, 0.400000>
+TintTime				= 2.000000
+PowerupFX				= ""
+RespawnWaitVisible		= 1
+RespawnWaitFX			= ""
+RespawnWaitSkin0		= "FX\PowerupPU.dtx"
+RespawnWaitRenderStyle0	= "RS\PowerupPU.ltb"
+RespawnWaitTranslucent	= 1
+
+
+/*
+** Cufftest
+*/
+
+[Mod7]
+Name					= "Cuff"
+Socket					= "cuff"
+NameId					= 4256
+DescriptionId			= 4251
+Icon					= ""
+Type					= 1
+AttachModel				= "guns\models_pv\cuff.ltb"
+AttachSkin0				= "guns\skins_pv\cuff.dtx"
+AttachSkin1				= "Chars\skins\CateWFins.dtx"
+AttachRenderStyle0		= "RS\default.ltb"
+AttachRenderStyle1		= "RS\FurShell.ltb"
+AttachRenderStyle2		= "RS\FurFins.ltb"
+AttachScale				= <1.000000, 1.000000, 1.000000>
+ZoomLevel				= 0
+NightVision				= 0
+Integrated				= 0
+Priority				= 0
+ZoomInSound				= ""
+ZoomOutSound			= ""
+PickUpSound				= "ModItemPickupSound"  // see soundbutes.txt
+RespawnSound			= "ModItemRespawnSound" // see soundbutes.txt
+PowerupModel			= ""
+PowerupSkin0			= ""
+PowerupModelScale		= 18.000000
+TintColor				= <0.250000, 0.250000, 0.400000>
+TintTime				= 2.000000
+PowerupFX				= ""
+RespawnWaitVisible		= 0
+RespawnWaitFX			= ""
+RespawnWaitSkin0		= ""
+RespawnWaitRenderStyle0	= ""
+RespawnWaitTranslucent	= 0
+
+
+
+
+/************************************************************************
+**
+** GEAR
+**
+** Gear definitions specify the properties making up miscellaneous
+** equipment..
+**
+** All gear definitions should contain the following
+** properties:
+**
+**	Name (String)
+**
+**		User friendly name used in DEdit.	
+**
+**	NameId (Integer)
+**
+**		Id that maps to the gear name (stored in CRes.dll)	
+**
+**	DescriptionId (Integer)
+**
+**		Id that maps to the gear description (stored in CRes.dll)	
+**
+**	Model (String)
+**
+**		Name of the model associated with the gear type.
+**
+**	Skin0-N (String)
+**
+**		Name of the skin file dtx(s) associated with the gear type model.
+**      There can be any number of skins: Skin0, Skin1, ..., SkinN
+**
+**  RenderStyle0-N (String)
+**
+**		Name of the render style file ltb(s).
+**      There can be any number of render styles: RenderStyle0, RenderStyle1, ..., RenderStyleN
+**
+**	Icon (String)
+**
+**		Name of the interface icon associated with the gear.
+**
+**	ProtectionType (String)
+**
+**		Specifies the type of damage this type of gear protects against.
+**		(See valid DamageTypes above).
+**
+**	Protection (Float)
+**
+**		Specifies the percent of damage this type of gear prevents.
+**			0.0 = no protection, 1.0 = full protection
+**
+**	Armor (Float)
+**
+**		Specifies the amount of armor this type of gear provides.
+**
+**	Health (Float)
+**
+**		Specifies the amount of health this type of gear provides.
+**
+**	Stealth (Float)
+**
+**		Specifies the how much the gear reduces the volume of walking sounds
+**			0.0 = no reduction, 1.0 = completely eliminated
+**
+**  Selectable (Integer)
+**		
+**		Specifies if this type of gear is ever available during mission 
+**		outfitting. 1 = may be available, 0 = never available
+**
+**  Exclusive (Integer)
+**		
+**		Specifies if only one unit of this gear may be picked up. 
+**		 1 = only one may be picked up, 0 = multiples may be picked up
+**
+**	TintColor (Vector)
+**
+**		Color to tint the screen when gear is picked up (r, g, b)
+**
+**	TintTime (Float)
+**
+**		Duration in seconds of screen tint when gear is picked up
+**
+**	PickUpSound (String)
+**
+**		Name of the sound that is played when the mod is picked up (either
+**		the absolute path to the sound or the name of the soundbutes.txt sound)
+**
+**	RespawnSound (String)
+**
+**		Name of the sound that is played when the mod respawns in multiplayer
+**		(either the absolute path to the sound or the name of the soundbutes.txt
+**		sound)
+**
+**	InterfaceSkin0-N (String)
+**
+**		Name of the skin file dtx(s) associated with the gear type interface model.
+**      There can be any number of skins: InterfaceSkin0, InterfaceSkin1, ..., InterfaceSkinN
+**
+**  InterfaceRenderStyle0-N (String)
+**
+**		Name of the render style file ltb(s).
+**      There can be any number of render styles: InterfaceRenderStyle0, InterfaceRenderStyle1, ..., InterfaceRenderStyleN
+**
+** PowerupFX (String)
+**
+**		Name of the FxED created FX to be played when the item respawns.  This FX will constantly loop as long
+**		as the item is waiting to be picked up.
+**
+**	RespawnWaitVisible	(Integer)
+**
+**		(0 or 1) If 0 the item will become invisible once it is picked up and is waiting to respawn.  Otherwise the item
+**		will remain visible.
+**
+**	RespawnWaitFX (String)
+**
+**		Name of an FxED created FX to play once the item is picked up and is waiting to respawn.
+**
+**	RespawnWaitSkin0-N (String)
+**
+**		Name of the skin files that will be associted with the mode once it is picked up and is waiting to respawn.
+**
+**	RespawnWaitRenderStyle0-N (String)
+**
+**		Name of the renderstyle that will be associated with the model once it is pickedup and is waiting to respawn.
+**
+**	CanServerRestrict (Integer) (OPTIONAL)
+**
+**		If set to 0 to not allow server options to restrict this item from the level.  Default: 1.
+**
+*/
+
+/*
+** Body Armor
+*/
+[Gear0]
+Name					= "Body Armor"
+NameId					= 4200
+DescriptionId			= 4250
+Model					= "Props\Models\PUArmor.ltb"
+Skin0					= "Props\Skins\PUArmor.dtx"
+Icon					= "Interface\Photos\Weapons\ArmorX.dtx"
+ProtectionType			= ""
+Protection				= 1.000000
+Armor					= 50.000000
+Health					= 0.000000
+Stealth					= 0.000000
+Selectable				= 0
+Exclusive				= 0
+TintColor				= <0.250000, 0.250000, 0.400000>
+TintTime				= 2.000000
+PickUpSound				= "snd\powerups\pu_armor.wav"
+RespawnSound			= "BodyArmorRespawnSound" // see soundbutes.txt
+PowerupFX				= ""
+RespawnWaitVisible		= 1
+RespawnWaitFX			= ""
+RespawnWaitSkin0		= "FX\PowerupPU.dtx"
+RespawnWaitRenderStyle0	= "RS\PowerupPU.ltb"
+RespawnWaitTranslucent	= 1
+
+
+[Gear1]
+Name					= "Body Armor Small"
+NameId					= 4201
+DescriptionId			= 4251
+Model					= "Props\Models\PUArmor.ltb"
+Skin0					= "Props\Skins\PUArmorSm.dtx"
+Icon					= "Interface\Photos\Weapons\ArmorX.dtx"
+ProtectionType			= ""
+Protection				= 1.000000
+Armor					= 25.000000
+Health					= 0.000000
+Stealth					= 0.000000
+Selectable				= 0
+Exclusive				= 0
+TintColor				= <0.250000, 0.250000, 0.400000>
+TintTime				= 2.000000
+PickUpSound				= "snd\powerups\pu_armor_sm.wav"
+RespawnSound			= "BodyArmorRespawnSound" // see soundbutes.txt
+PowerupFX				= ""
+RespawnWaitVisible		= 1
+RespawnWaitFX			= ""
+RespawnWaitSkin0		= "FX\PowerupPU.dtx"
+RespawnWaitRenderStyle0	= "RS\PowerupPU.ltb"
+RespawnWaitTranslucent	= 1
+
+
+[Gear2]
+Name					= "First Aid"
+NameId					= 4202
+DescriptionId			= 4252
+Model					= "Props\Models\PUFirstAid.ltb"
+Skin0					= "Props\Skins\PUFirstAid.dtx"
+RenderStyle0			= "RS\transparent.ltb"
+Icon					= "Interface\Photos\Weapons\HealthX.dtx"
+ProtectionType			= ""
+Protection				= 1.000000
+Armor					= 0.000000
+Health					= 50.000000
+Stealth					= 0.000000
+Selectable				= 0
+Exclusive				= 0
+TintColor				= <0.250000, 0.250000, 0.400000>
+TintTime				= 2.000000
+PickUpSound				= "snd\powerups\pu_firstaid.WAV"
+RespawnSound			= "BodyArmorRespawnSound" // see soundbutes.txt
+PowerupFX				= ""
+RespawnWaitVisible		= 1
+RespawnWaitFX			= ""
+RespawnWaitSkin0		= "FX\PowerupPU.dtx"
+RespawnWaitRenderStyle0	= "RS\PowerupPU.ltb"
+RespawnWaitTranslucent	= 1
+
+
+[Gear3]
+Name					= "First Aid Small"
+NameId					= 4203
+DescriptionId			= 4253
+Model					= "Props\Models\PuBandage.ltb"
+Skin0					= "Props\Skins\PuBandage.dtx"
+Icon					= "Interface\Photos\Weapons\HealthX.dtx"
+ProtectionType			= ""
+Protection				= 1.000000
+Armor					= 0.000000
+Health					= 25.000000
+Stealth					= 0.000000
+Selectable				= 0
+Exclusive				= 0
+TintColor				= <0.250000, 0.250000, 0.400000>
+TintTime				= 2.000000
+PickUpSound				= "snd\powerups\pu_bandaid.wav"
+RespawnSound			= "BodyArmorRespawnSound" // see soundbutes.txt
+PowerupFX				= ""
+RespawnWaitVisible		= 1
+RespawnWaitFX			= ""
+RespawnWaitSkin0		= "FX\PowerupPU.dtx"
+RespawnWaitRenderStyle0	= "RS\PowerupPU.ltb"
+RespawnWaitTranslucent	= 1
+
+
+[Gear4]
+Name					= "Body Armor Found"
+NameId					= 4204
+DescriptionId			= 4254
+Model					= "Props\Models\PUArmor.ltb"
+Skin0					= "Props\Skins\PUArmor.dtx"
+Icon					= "Interface\Photos\Weapons\ArmorX.dtx"
+ProtectionType			= ""
+Protection				= 1.000000
+Armor					= 10.000000
+Health					= 0.000000
+Stealth					= 0.000000
+Selectable				= 0
+Exclusive				= 0
+TintColor				= <0.250000, 0.250000, 0.400000>
+TintTime				= 2.000000
+PickUpSound				= "snd\powerups\pu_armor.wav"
+RespawnSound			= "BodyArmorRespawnSound" // see soundbutes.txt
+PowerupFX				= ""
+RespawnWaitVisible		= 1
+RespawnWaitFX			= ""
+RespawnWaitSkin0		= "FX\PowerupPU.dtx"
+RespawnWaitRenderStyle0	= "RS\PowerupPU.ltb"
+RespawnWaitTranslucent	= 1
+
+
+[Gear5]
+Name					= "First Aid Found"
+NameId					= 4205
+DescriptionId			= 4255
+Model					= "Props\Models\PUJar.ltb"
+Skin0					= "Props\Skins\PUJar.dtx"
+Icon					= "Interface\Photos\Weapons\HealthX.dtx"
+ProtectionType			= ""
+Protection				= 1.000000
+Armor					= 0.000000
+Health					= 10.000000
+Stealth					= 0.000000
+Selectable				= 0
+Exclusive				= 0
+TintColor				= <0.250000, 0.250000, 0.400000>
+TintTime				= 2.000000
+PickUpSound				= "snd\powerups\pu_firstaid.WAV"
+RespawnSound			= "BodyArmorRespawnSound" // see soundbutes.txt
+PowerupFX				= ""
+RespawnWaitVisible		= 1
+RespawnWaitFX			= ""
+RespawnWaitSkin0		= "FX\PowerupPU.dtx"
+RespawnWaitRenderStyle0	= "RS\PowerupPU.ltb"
+RespawnWaitTranslucent	= 1
+
+/************************************************************************
+**
+** Multiplayer
+**
+** Default weapons for non-coop multiplayer levels (may be overridden by
+**	specific levels)
+**
+*/
+
+[Multiplayer]
+DefaultWeapons			= "Katana,Beretta"

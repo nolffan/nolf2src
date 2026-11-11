@@ -1,0 +1,1617 @@
+/************************************************************************
+**
+**		No One Lives Forever Sound Filters Attributes file
+**
+** This file contains the following sound filters related definitions:
+**
+**  SoundFilter
+**
+**
+** NOTES:  
+**
+**  1) All definition properties (i.e., [SoundFilter0]) ARE case sensitive.
+**	   If you are adding a new definition, it is best to start with a 
+**     copy of an existing (working) definition.
+**	2) Name properties are NOT case sensitive (i.e., Name = "Joe" is the same
+**	   as Name = "JOE")
+**  3) All time is specified in seconds (unless otherwise noted)
+**  4) The Float type is the same as Real (i.e., 1.0 or 1.5)
+**  5) The valid range of all RGB color properties is between
+**     0 and 255 (e.g., (0, 255, 0) would be green).
+**
+*/
+
+/****************************************************************************
+**
+**  SUMMARY OF FILTER NAMES
+**
+**
+**	Dynamic						(Internal - DO NOT MODIFY)
+**	UnFiltered					(Internal - DO NOT MODIFY)
+**
+**	These are the default EAX Reverb Settings:
+**
+**	Generic						(EAX 2.0 Default)
+**	Padded Cell					(EAX 2.0 Default)
+**	Room						(EAX 2.0 Default)
+**	Bathroom					(EAX 2.0 Default)
+**	Living Room					(EAX 2.0 Default)
+**	Stone Room					(EAX 2.0 Default)
+**	Auditorium					(EAX 2.0 Default)
+**	Concert Hall				(EAX 2.0 Default)
+**	Cave						(EAX 2.0 Default)
+**	Arena						(EAX 2.0 Default)
+**	Hangar						(EAX 2.0 Default)
+**	Carpeted Hallway			(EAX 2.0 Default)
+**	Hallway						(EAX 2.0 Default)
+**	Stone Corridor				(EAX 2.0 Default)
+**	Alley						(EAX 2.0 Default)
+**	Forest						(EAX 2.0 Default)
+**	City	 					(EAX 2.0 Default)
+**	Mountains 					(EAX 2.0 Default)
+**	Quarry	 					(EAX 2.0 Default)
+**	Plain	 					(EAX 2.0 Default)
+**	Parking Lot					(EAX 2.0 Default)
+**	Sewer Pipe					(EAX 2.0 Default)
+**	Underwater 					(EAX 2.0 Default)
+**	Drugged 					(EAX 2.0 Default)
+**	Dizzy						(EAX 2.0 Default)
+**	Psychotic 					(EAX 2.0 Default)
+*/
+
+/************************************************************************
+**
+** SOUNDFILTER
+**
+** The Sound Filter definitions define all of the attributes associated 
+** with a particular sound filter type.  Each sound filter, by definition,
+** contains 0 to 10 Variable, Value pairs.  For each variable definition
+** there MUST be a corresponding value.  For example,
+**
+**		Var0	= "Quality"
+**		Value0	= 1.0
+**		Var1	= "Level"
+**		Value1	= 3.0
+**
+**	is valid.  However,
+**
+**		Var0	= "Quality"
+**		Var1	= "Level"
+**		Value1	= 3.0"
+**
+**	is NOT valid.	
+**
+** All SoundFilter definitions must contain the following properties:
+**
+**  Name (String)
+**
+**      The user friendly name of the sound filter (what shows up in DEdit). 
+**
+**  FilterName (String)
+**
+**      The name of the filter. 
+**
+**  Var0 - Var9 (String)
+**
+**      Variable names associated with the filter. 
+**
+**	Value0 - Value9 (Float)
+**
+**		The values of the above Var0 - Var9 variables.
+**
+*/
+
+
+/*
+**	EAX2.0 Environments
+**
+**	These are the environments supported by EAX2.0.  You need to use these values
+**	when setting the Environment parameter.
+**
+**	EAX_ENVIRONMENT_GENERIC				= 0
+**	EAX_ENVIRONMENT_PADDEDCELL			= 1
+**	EAX_ENVIRONMENT_ROOM				= 2
+**	EAX_ENVIRONMENT_BATHROOM			= 3
+**	EAX_ENVIRONMENT_LIVINGROOM			= 4
+**	EAX_ENVIRONMENT_STONEROOM			= 5
+**	EAX_ENVIRONMENT_AUDITORIUM			= 6
+**	EAX_ENVIRONMENT_CONCERTHALL			= 7
+**	EAX_ENVIRONMENT_CAVE				= 8
+**	EAX_ENVIRONMENT_ARENA				= 9
+**	EAX_ENVIRONMENT_HANGAR				= 10
+**	EAX_ENVIRONMENT_CARPETEDHALLWAY		= 11
+**	EAX_ENVIRONMENT_HALLWAY				= 12
+**	EAX_ENVIRONMENT_STONECORRIDOR		= 13
+**	EAX_ENVIRONMENT_ALLEY				= 14
+**	EAX_ENVIRONMENT_FOREST				= 15
+**	EAX_ENVIRONMENT_CITY				= 16
+**	EAX_ENVIRONMENT_MOUNTAINS			= 17
+**	EAX_ENVIRONMENT_QUARRY				= 18
+**	EAX_ENVIRONMENT_PLAIN				= 19
+**	EAX_ENVIRONMENT_PARKINGLOT			= 20
+**	EAX_ENVIRONMENT_SEWERPIPE			= 21
+**	EAX_ENVIRONMENT_UNDERWATER			= 22
+**	EAX_ENVIRONMENT_DRUGGED				= 23
+**	EAX_ENVIRONMENT_DIZZY				= 24
+**	EAX_ENVIRONMENT_PSYCHOTIC			= 25
+*/
+
+/*
+**	Parameters
+**
+**	These are the parameters that are available for each filter type with
+**	ranges and default values.
+**
+**	Values are given with units for reference, where appropriate, but only enter the 
+**	floating point version of the number when you actually set the value.
+**
+**	
+**	Reverb:
+**	"Environment"		0			25		One of the EAX2.0 Environment values.
+**	"Room"				-10000mb	0mb		Attenuation of room effect
+**	"RoomHF"			-10000mb	0mb		Attenuation of high frequency room effect
+**	"RoomRolloffFactor"	0			10		Rolloff for reflected signals
+**	"DecayTime"			0.1ms		20ms	Decay time (Duh!)		
+**	"DecayHFRatio"		0.1			2.0		Ratio of decay of high-frequency to low-frequency
+**	"Reflections"		-10000mb	1000mb	Attenuation of early reflections relative to room effect
+**	"ReflectionsDelay"	0ms			0.3ms	Delay of early reflection relative to direct sound
+**	"Reverb"			-10000mb	2000mb	Attenuation of late reflections relative to room effect
+**	"ReverbDelay"		0ms			0.1ms	Delay of late reflections
+**	"Diffusion"			0			1		Echo Size in later reflection decay
+**	"Size"				1m			100m	Size of room
+**	"AirAbsorptionHF" 	-100		0		Air absorption of HF
+**	"Direct"			-10000		1000	Direct sound (dry sound) boost (reduce for greater reverb effect)
+**
+*/
+
+/*
+** Dynamic filter (Also know as the "global" filter).  By default all 
+**				   sounds use this filter which is dynamically determined
+**				   at runtime (based on the the position of the listener 
+**				   when the sound is played).
+**
+**	DO NOT MODIFY THIS FILTER (if you do, things will break ;)
+*/
+
+[SoundFilter0]
+
+Name			= "Dynamic"
+FilterName		= ""
+
+/*
+**  UnFiltered.  Sound that are unfiltered will not use any filters 
+**				 (including the dynamic filter defined above).
+**
+**	  DO NOT MODIFY THIS FILTER (if you do, things will break ;)
+*/
+
+[SoundFilter1]
+
+Name			= "UnFiltered"
+FilterName		= ""
+
+/*
+**  Generic (EAX 2.0 Default)
+
+
+[SoundFilter2]
+
+Name			= "Generic"
+FilterName		= "Reverb Filter"
+Var0			= "Room"
+Value0			= -1000.0
+Var1			= "RoomHF"
+Value1			= -100.0
+Var2			= "RoomRolloffFactor"
+Value2			= 0.0
+Var3			= "DecayTime"
+Value3			= 1.49
+Var4			= "DecayHFRatio"
+Value4			= 0.83
+Var5			= "Reflections"
+Value5			= -2602.0
+Var6			= "ReflectionsDelay"
+Value6			= 0.007
+Var7			= "Reverb"
+Value7			= 200.0
+Var8			= "ReverbDelay"
+Value8			= 0.011
+Var9			= "Diffusion"
+Value9			= 1.0
+Var10			= "Size"
+Value10			= 7.5
+Var11			= "AirAbsorptionHF"
+Value11			= -5.0
+Var12			= "Direct"
+Value12			= 0.0
+*/
+
+/*
+**  Padded Cell (EAX 2.0 Default)
+
+
+[SoundFilter3]
+
+Name			= "Padded Cell"
+FilterName		= "Reverb Filter"
+Var0			= "Room"
+Value0			= -1000.0
+Var1			= "RoomHF"
+Value1			= -6000.0
+Var2			= "RoomRolloffFactor"
+Value2			= 0.0
+Var3			= "DecayTime"
+Value3			= 0.17
+Var4			= "DecayHFRatio"
+Value4			= 0.10
+Var5			= "Reflections"
+Value5			= -1204.0
+Var6			= "ReflectionsDelay"
+Value6			= 0.001
+Var7			= "Reverb"
+Value7			= 207.0
+Var8			= "ReverbDelay"
+Value8			= 0.002
+Var9			= "Diffusion"
+Value9			= 1.0
+Var10			= "Size"
+Value10			= 1.4
+Var11			= "AirAbsorptionHF"
+Value11			= -5.0
+Var12			= "Direct"
+Value12			= 0.0
+*/
+
+/*
+**  Room (EAX 2.0 Default)
+
+
+[SoundFilter4]
+
+Name			= "Room"
+FilterName		= "Reverb Filter"
+Var0			= "Room"
+Value0			= -1000.0
+Var1			= "RoomHF"
+Value1			= -454.0
+Var2			= "RoomRolloffFactor"
+Value2			= 0.0
+Var3			= "DecayTime"
+Value3			= 0.40
+Var4			= "DecayHFRatio"
+Value4			= 0.83
+Var5			= "Reflections"
+Value5			= -1646.0
+Var6			= "ReflectionsDelay"
+Value6			= 0.002
+Var7			= "Reverb"
+Value7			= 53.0
+Var8			= "ReverbDelay"
+Value8			= 0.003
+Var9			= "Diffusion"
+Value9			= 1.0
+Var10			= "Size"
+Value10			= 1.9
+Var11			= "AirAbsorptionHF"
+Value11			= -5.0
+Var12			= "Direct"
+Value12			= 0.0
+*/
+
+/*
+**  Bathroom (EAX 2.0 Default)
+
+
+[SoundFilter5]
+
+Name			= "Bathroom"
+FilterName		= "Reverb Filter"
+Var0			= "Room"
+Value0			= -1000.0
+Var1			= "RoomHF"
+Value1			= -1200.0
+Var2			= "RoomRolloffFactor"
+Value2			= 0.0
+Var3			= "DecayTime"
+Value3			= 1.49
+Var4			= "DecayHFRatio"
+Value4			= 0.54
+Var5			= "Reflections"
+Value5			= -370.0
+Var6			= "ReflectionsDelay"
+Value6			= 0.007
+Var7			= "Reverb"
+Value7			= 1030.0
+Var8			= "ReverbDelay"
+Value8			= 0.011
+Var9			= "Diffusion"
+Value9			= 1.0
+Var10			= "Size"
+Value10			= 1.4
+Var11			= "AirAbsorptionHF"
+Value11			= -5.0
+Var12			= "Direct"
+Value12			= 0.0
+*/
+
+/*
+**  Living Room (EAX 2.0 Default)
+
+
+[SoundFilter6]
+
+Name			= "Living Room"
+FilterName		= "Reverb Filter"
+Var0			= "Room"
+Value0			= -1000.0
+Var1			= "RoomHF"
+Value1			= -6000.0
+Var2			= "RoomRolloffFactor"
+Value2			= 0.0
+Var3			= "DecayTime"
+Value3			= 0.50
+Var4			= "DecayHFRatio"
+Value4			= 0.10
+Var5			= "Reflections"
+Value5			= -1376.0
+Var6			= "ReflectionsDelay"
+Value6			= 0.003
+Var7			= "Reverb"
+Value7			= -1104.0
+Var8			= "ReverbDelay"
+Value8			= 0.004
+Var9			= "Diffusion"
+Value9			= 1.0
+Var10			= "Size"
+Value10			= 2.5
+Var11			= "AirAbsorptionHF"
+Value11			= -5.0
+Var12			= "Direct"
+Value12			= 0.0
+*/
+
+/*
+**  Stone Room (EAX 2.0 Default)
+
+
+[SoundFilter7]
+
+Name			= "Stone Room"
+FilterName		= "Reverb Filter"
+Var0			= "Room"
+Value0			= -1000.0
+Var1			= "RoomHF"
+Value1			= -300.0
+Var2			= "RoomRolloffFactor"
+Value2			= 0.0
+Var3			= "DecayTime"
+Value3			= 2.31
+Var4			= "DecayHFRatio"
+Value4			= 0.64
+Var5			= "Reflections"
+Value5			= -711.0
+Var6			= "ReflectionsDelay"
+Value6			= 0.012
+Var7			= "Reverb"
+Value7			= 83.0
+Var8			= "ReverbDelay"
+Value8			= 0.017
+Var9			= "Diffusion"
+Value9			= 1.0
+Var10			= "Size"
+Value10			= 11.6
+Var11			= "AirAbsorptionHF"
+Value11			= -5.0
+Var12			= "Direct"
+Value12			= 0.0
+*/
+
+/*
+**  Auditorium (EAX 2.0 Default)
+
+
+[SoundFilter8]
+
+Name			= "Auditorium"
+FilterName		= "Reverb Filter"
+Var0			= "Room"
+Value0			= -1000.0
+Var1			= "RoomHF"
+Value1			= -476.0
+Var2			= "RoomRolloffFactor"
+Value2			= 0.0
+Var3			= "DecayTime"
+Value3			= 4.32
+Var4			= "DecayHFRatio"
+Value4			= 0.59
+Var5			= "Reflections"
+Value5			= -789.0
+Var6			= "ReflectionsDelay"
+Value6			= 0.02
+Var7			= "Reverb"
+Value7			= -289.0
+Var8			= "ReverbDelay"
+Value8			= 0.03
+Var9			= "Diffusion"
+Value9			= 1.0
+Var10			= "Size"
+Value10			= 21.6
+Var11			= "AirAbsorptionHF"
+Value11			= -5.0
+Var12			= "Direct"
+Value12			= 0.0
+*/
+
+/*
+**  Concert Hall (EAX 2.0 Default)
+
+
+[SoundFilter9]
+
+Name			= "Concert Hall"
+FilterName		= "Reverb Filter"
+Var0			= "Room"
+Value0			= -1000.0
+Var1			= "RoomHF"
+Value1			= -500.0
+Var2			= "RoomRolloffFactor"
+Value2			= 0.0
+Var3			= "DecayTime"
+Value3			= 3.92
+Var4			= "DecayHFRatio"
+Value4			= 0.70
+Var5			= "Reflections"
+Value5			= -1230.0
+Var6			= "ReflectionsDelay"
+Value6			= 0.02
+Var7			= "Reverb"
+Value7			= -2.0
+Var8			= "ReverbDelay"
+Value8			= 0.029
+Var9			= "Diffusion"
+Value9			= 1.0
+Var10			= "Size"
+Value10			= 19.6
+Var11			= "AirAbsorptionHF"
+Value11			= -5.0
+Var12			= "Direct"
+Value12			= 0.0
+*/
+
+/*
+**  Cave (EAX 2.0 Default)
+
+
+[SoundFilter10]
+
+Name			= "Cave"
+FilterName		= "Reverb Filter"
+Var0			= "Room"
+Value0			= -1000.0
+Var1			= "RoomHF"
+Value1			= 0.0
+Var2			= "RoomRolloffFactor"
+Value2			= 0.0
+Var3			= "DecayTime"
+Value3			= 2.91
+Var4			= "DecayHFRatio"
+Value4			= 1.30
+Var5			= "Reflections"
+Value5			= -602.0
+Var6			= "ReflectionsDelay"
+Value6			= 0.015
+Var7			= "Reverb"
+Value7			= -302.0
+Var8			= "ReverbDelay"
+Value8			= 0.022
+Var9			= "Diffusion"
+Value9			= 1.0
+Var10			= "Size"
+Value10			= 14.6
+Var11			= "AirAbsorptionHF"
+Value11			= -5.0
+Var12			= "Direct"
+Value12			= 0.0
+*/
+
+/*
+**  Arena (EAX 2.0 Default)
+
+
+[SoundFilter11]
+
+Name			= "Arena"
+FilterName		= "Reverb Filter"
+Var0			= "Room"
+Value0			= -1000.0
+Var1			= "RoomHF"
+Value1			= -698.0
+Var2			= "RoomRolloffFactor"
+Value2			= 0.0
+Var3			= "DecayTime"
+Value3			= 7.24
+Var4			= "DecayHFRatio"
+Value4			= 0.33
+Var5			= "Reflections"
+Value5			= -1166.0
+Var6			= "ReflectionsDelay"
+Value6			= 0.020
+Var7			= "Reverb"
+Value7			= 16.0
+Var8			= "ReverbDelay"
+Value8			= 0.030
+Var9			= "Diffusion"
+Value9			= 1.0
+Var10			= "Size"
+Value10			= 36.2
+Var11			= "AirAbsorptionHF"
+Value11			= -5.0
+*/
+
+/*
+**  Hangar (EAX 2.0 Default)
+
+
+[SoundFilter12]
+
+Name			= "Hangar"
+FilterName		= "Reverb Filter"
+Var0			= "Room"
+Value0			= -1000.0
+Var1			= "RoomHF"
+Value1			= -1000.0
+Var2			= "RoomRolloffFactor"
+Value2			= 0.0
+Var3			= "DecayTime"
+Value3			= 10.05
+Var4			= "DecayHFRatio"
+Value4			= 0.23
+Var5			= "Reflections"
+Value5			= -602.0
+Var6			= "ReflectionsDelay"
+Value6			= 0.015
+Var7			= "Reverb"
+Value7			= 198.0
+Var8			= "ReverbDelay"
+Value8			= 0.030
+Var9			= "Diffusion"
+Value9			= 1.0
+Var10			= "Size"
+Value10			= 50.3
+Var11			= "AirAbsorptionHF"
+Value11			= -5.0
+Var12			= "Direct"
+Value12			= 0.0
+*/
+
+/*
+**  Carpeted Hallway (EAX 2.0 Default)
+
+
+[SoundFilter13]
+
+Name			= "Carpeted Hallway"
+FilterName		= "Reverb Filter"
+Var0			= "Room"
+Value0			= -1000.0
+Var1			= "RoomHF"
+Value1			= -4000.0
+Var2			= "RoomRolloffFactor"
+Value2			= 0.0
+Var3			= "DecayTime"
+Value3			= 0.30
+Var4			= "DecayHFRatio"
+Value4			= 0.1
+Var5			= "Reflections"
+Value5			= -1831.0
+Var6			= "ReflectionsDelay"
+Value6			= 0.002
+Var7			= "Reverb"
+Value7			= -1630.0
+Var8			= "ReverbDelay"
+Value8			= 0.030
+Var9			= "Diffusion"
+Value9			= 1.0
+Var10			= "Size"
+Value10			= 1.9
+Var11			= "AirAbsorptionHF"
+Value11			= -5.0
+Var12			= "Direct"
+Value12			= 0.0
+*/
+
+/*
+**  Hallway (EAX 2.0 Default)
+
+
+[SoundFilter14]
+
+Name			= "Hallway"
+FilterName		= "Reverb Filter"
+Var0			= "Room"
+Value0			= -1000.0
+Var1			= "RoomHF"
+Value1			= -300.0
+Var2			= "RoomRolloffFactor"
+Value2			= 0.0
+Var3			= "DecayTime"
+Value3			= 1.49
+Var4			= "DecayHFRatio"
+Value4			= 0.59
+Var5			= "Reflections"
+Value5			= -1219.0
+Var6			= "ReflectionsDelay"
+Value6			= 0.007
+Var7			= "Reverb"
+Value7			= 441.0
+Var8			= "ReverbDelay"
+Value8			= 0.011
+Var9			= "Diffusion"
+Value9			= 1.0
+Var10			= "Size"
+Value10			= 1.8
+Var11			= "AirAbsorptionHF"
+Value11			= -5.0
+Var12			= "Direct"
+Value12			= 0.0
+*/
+
+/*
+**  Stone Corridor (EAX 2.0 Default)
+
+
+[SoundFilter15]
+
+Name			= "Stone Corridor"
+FilterName		= "Reverb Filter"
+Var0			= "Room"
+Value0			= -1000.0
+Var1			= "RoomHF"
+Value1			= -237.0
+Var2			= "RoomRolloffFactor"
+Value2			= 0.0
+Var3			= "DecayTime"
+Value3			= 2.70
+Var4			= "DecayHFRatio"
+Value4			= 0.79
+Var5			= "Reflections"
+Value5			= -1214.0
+Var6			= "ReflectionsDelay"
+Value6			= 0.013
+Var7			= "Reverb"
+Value7			= 395.0
+Var8			= "ReverbDelay"
+Value8			= 0.020
+Var9			= "Diffusion"
+Value9			= 1.0
+Var10			= "Size"
+Value10			= 13.5
+Var11			= "AirAbsorptionHF"
+Value11			= -5.0
+Var12			= "Direct"
+Value12			= 0.0
+*/
+
+/*
+**  Alley (EAX 2.0 Default)
+
+
+[SoundFilter16]
+
+Name			= "Alley"
+FilterName		= "Reverb Filter"
+Var0			= "Room"
+Value0			= -1000.0
+Var1			= "RoomHF"
+Value1			= -270.0
+Var2			= "RoomRolloffFactor"
+Value2			= 0.0
+Var3			= "DecayTime"
+Value3			= 1.49
+Var4			= "DecayHFRatio"
+Value4			= 0.86
+Var5			= "Reflections"
+Value5			= -1204.0
+Var6			= "ReflectionsDelay"
+Value6			= 0.007
+Var7			= "Reverb"
+Value7			= -4.0
+Var8			= "ReverbDelay"
+Value8			= 0.011
+Var9			= "Diffusion"
+Value9			= 0.3
+Var10			= "Size"
+Value10			= 7.5
+Var11			= "AirAbsorptionHF"
+Value11			= -5.0
+Var12			= "Direct"
+Value12			= 0.0
+*/
+
+/*
+**  Forest (EAX 2.0 Default)
+
+
+[SoundFilter17]
+
+Name			= "Forest"
+FilterName		= "Reverb Filter"
+Var0			= "Room"
+Value0			= -1000.0
+Var1			= "RoomHF"
+Value1			= -3300.0
+Var2			= "RoomRolloffFactor"
+Value2			= 0.0
+Var3			= "DecayTime"
+Value3			= 1.49
+Var4			= "DecayHFRatio"
+Value4			= 0.54
+Var5			= "Reflections"
+Value5			= -2560.0
+Var6			= "ReflectionsDelay"
+Value6			= 0.162
+Var7			= "Reverb"
+Value7			= -613.0
+Var8			= "ReverbDelay"
+Value8			= 0.088
+Var9			= "Diffusion"
+Value9			= 0.3
+Var10			= "Size"
+Value10			= 38.0
+Var11			= "AirAbsorptionHF"
+Value11			= -5.0
+Var12			= "Direct"
+Value12			= 0.0
+*/
+
+/*
+**  City (EAX 2.0 Default)
+
+
+[SoundFilter18]
+
+Name			= "City"
+FilterName		= "Reverb Filter"
+Var0			= "Room"
+Value0			= -1000.0
+Var1			= "RoomHF"
+Value1			= -800.0
+Var2			= "RoomRolloffFactor"
+Value2			= 0.0
+Var3			= "DecayTime"
+Value3			= 1.49
+Var4			= "DecayHFRatio"
+Value4			= 0.67
+Var5			= "Reflections"
+Value5			= -2273.0
+Var6			= "ReflectionsDelay"
+Value6			= 0.007
+Var7			= "Reverb"
+Value7			= -2217.0
+Var8			= "ReverbDelay"
+Value8			= 0.011
+Var9			= "Diffusion"
+Value9			= 0.5
+Var10			= "Size"
+Value10			= 7.5
+Var11			= "AirAbsorptionHF"
+Value11			= -5.0
+Var12			= "Direct"
+Value12			= 0.0
+*/
+
+/*
+**	Mountains (EAX 2.0 Default)
+
+
+[SoundFilter19]
+
+Name			= "Mountains"
+FilterName		= "Reverb Filter"
+Var0			= "Room"
+Value0			= -1000.0
+Var1			= "RoomHF"
+Value1			= -2500.0
+Var2			= "RoomRolloffFactor"
+Value2			= 0.0
+Var3			= "DecayTime"
+Value3			= 1.49
+Var4			= "DecayHFRatio"
+Value4			= 0.21
+Var5			= "Reflections"
+Value5			= -2780.0
+Var6			= "ReflectionsDelay"
+Value6			= 0.3
+Var7			= "Reverb"
+Value7			= -2014.0
+Var8			= "ReverbDelay"
+Value8			= 0.1
+Var9			= "Diffusion"
+Value9			= 0.27
+Var10			= "Size"
+Value10			= 100
+Var11			= "AirAbsorptionHF"
+Value11			= -5.0
+Var12			= "Direct"
+Value12			= 0.0
+*/
+
+/*
+**	Quarry	(EAX 2.0 Default)
+
+
+[SoundFilter20]
+
+Name			= "Quarry"
+FilterName		= "Reverb Filter"
+Var0			= "Room"
+Value0			= -1000.0
+Var1			= "RoomHF"
+Value1			= -1000.0
+Var2			= "RoomRolloffFactor"
+Value2			= 0.0
+Var3			= "DecayTime"
+Value3			= 1.49
+Var4			= "DecayHFRatio"
+Value4			= 0.83
+Var5			= "Reflections"
+Value5			= 0.0
+Var6			= "ReflectionsDelay"
+Value6			= 0.061
+Var7			= "Reverb"
+Value7			= 500.0
+Var8			= "ReverbDelay"
+Value8			= 0.025
+Var9			= "Diffusion"
+Value9			= 1.0
+Var10			= "Size"
+Value10			= 17.5
+Var11			= "AirAbsorptionHF"
+Value11			= -5.0
+Var12			= "Direct"
+Value12			= 0.0
+*/
+
+/*
+**	Plain	(EAX 2.0 Default)
+
+
+[SoundFilter21]
+
+Name			= "Plain"
+FilterName		= "Reverb Filter"
+Var0			= "Room"
+Value0			= -1000.0
+Var1			= "RoomHF"
+Value1			= -2000.0
+Var2			= "RoomRolloffFactor"
+Value2			= 0.0
+Var3			= "DecayTime"
+Value3			= 1.49
+Var4			= "DecayHFRatio"
+Value4			= 0.5
+Var5			= "Reflections"
+Value5			= -2466.0
+Var6			= "ReflectionsDelay"
+Value6			= 0.179
+Var7			= "Reverb"
+Value7			= 2514.0
+Var8			= "ReverbDelay"
+Value8			= 0.1
+Var9			= "Diffusion"
+Value9			= 0.21
+Var10			= "Size"
+Value10			= 42.5
+Var11			= "AirAbsorptionHF"
+Value11			= -5.0
+Var12			= "Direct"
+Value12			= 0.0
+*/
+
+/*
+**	Parking Lot	(EAX 2.0 Default)
+
+
+[SoundFilter22]
+
+Name			= "Parking Lot"
+FilterName		= "Reverb Filter"
+Var0			= "Room"
+Value0			= -1000.0
+Var1			= "RoomHF"
+Value1			= 0.0
+Var2			= "RoomRolloffFactor"
+Value2			= 0.0
+Var3			= "DecayTime"
+Value3			= 1.65
+Var4			= "DecayHFRatio"
+Value4			= 1.5
+Var5			= "Reflections"
+Value5			= -1363.0
+Var6			= "ReflectionsDelay"
+Value6			= 0.008
+Var7			= "Reverb"
+Value7			= -1153.0
+Var8			= "ReverbDelay"
+Value8			= 0.012
+Var9			= "Diffusion"
+Value9			= 1.0
+Var10			= "Size"
+Value10			= 8.3
+Var11			= "AirAbsorptionHF"
+Value11			= -5.0
+Var12			= "Direct"
+Value12			= 0.0
+*/
+
+/*
+**	Sewer Pipe	(EAX 2.0 Default)
+
+
+[SoundFilter23]
+
+Name			= "Sewer Pipe"
+FilterName		= "Reverb Filter"
+Var0			= "Room"
+Value0			= -1000.0
+Var1			= "RoomHF"
+Value1			= -1000.0
+Var2			= "RoomRolloffFactor"
+Value2			= 0.0
+Var3			= "DecayTime"
+Value3			= 2.81
+Var4			= "DecayHFRatio"
+Value4			= 0.14
+Var5			= "Reflections"
+Value5			= 429.0
+Var6			= "ReflectionsDelay"
+Value6			= 0.014
+Var7			= "Reverb"
+Value7			= 648.0
+Var8			= "ReverbDelay"
+Value8			= 0.021
+Var9			= "Diffusion"
+Value9			= 0.8
+Var10			= "Size"
+Value10			= 1.7
+Var11			= "AirAbsorptionHF"
+Value11			= -5.0
+Var12			= "Direct"
+Value12			= 0.0
+*/
+
+/*
+**	Underwater	(EAX 2.0 Default)
+
+
+[SoundFilter24]
+
+Name			= "Underwater"
+FilterName		= "Reverb Filter"
+Var0			= "Room"
+Value0			= 0.0
+Var1			= "RoomHF"
+Value1			= -4000.0
+Var2			= "RoomRolloffFactor"
+Value2			= 0.0
+Var3			= "DecayTime"
+Value3			= 1.49
+Var4			= "DecayHFRatio"
+Value4			= 0.1
+Var5			= "Reflections"
+Value5			= -449.0
+Var6			= "ReflectionsDelay"
+Value6			= 0.007
+Var7			= "Reverb"
+Value7			= 1700.0
+Var8			= "ReverbDelay"
+Value8			= 0.011
+Var9			= "Diffusion"
+Value9			= 1.0
+Var10			= "Size"
+Value10			= 1.8
+Var11			= "AirAbsorptionHF"
+Value11			= -5.0
+Var12			= "Direct"
+Value12			= 0.0
+*/
+
+/*
+**	Drugged (EAX 2.0 Default)
+
+
+[SoundFilter25]
+
+Name			= "Drugged"
+FilterName		= "Reverb Filter"
+Var0			= "Room"
+Value0			= -1000.0
+Var1			= "RoomHF"
+Value1			= 0
+Var2			= "RoomRolloffFactor"
+Value2			= 0.0
+Var3			= "DecayTime"
+Value3			= 8.39
+Var4			= "DecayHFRatio"
+Value4			= 1.36
+Var5			= "Reflections"
+Value5			= -400.0
+Var6			= "ReflectionsDelay"
+Value6			= 0.002
+Var7			= "Reverb"
+Value7			= 985.0
+Var8			= "ReverbDelay"
+Value8			= 0.03
+Var9			= "Diffusion"
+Value9			= 0.5
+Var10			= "Size"
+Value10			= 1.9
+Var11			= "AirAbsorptionHF"
+Value11			= -5.0
+Var12			= "Direct"
+Value12			= 0.0
+*/
+
+/*
+**	Dizzy	(EAX 2.0 Default)
+
+
+[SoundFilter26]
+
+Name			= "Dizzy"
+FilterName		= "Reverb Filter"
+Var0			= "Room"
+Value0			= -1000.0
+Var1			= "RoomHF"
+Value1			= -400.0
+Var2			= "RoomRolloffFactor"
+Value2			= 0.0
+Var3			= "DecayTime"
+Value3			= 17.26
+Var4			= "DecayHFRatio"
+Value4			= 0.56
+Var5			= "Reflections"
+Value5			= -115.0
+Var6			= "ReflectionsDelay"
+Value6			= 0.02
+Var7			= "Reverb"
+Value7			= -613.0
+Var8			= "ReverbDelay"
+Value8			= 0.03
+Var9			= "Diffusion"
+Value9			= 0.6
+Var10			= "Size"
+Value10			= 1.8
+Var11			= "AirAbsorptionHF"
+Value11			= -5.0
+Var12			= "Direct"
+Value12			= 0.0
+*/
+
+/*
+**	Psychotic 	(EAX 2.0 Default)
+*/
+
+[SoundFilter2]
+
+Name			= "Psychotic"
+FilterName		= "Reverb Filter"
+Var0			= "Room"
+Value0			= -2000.0
+Var1			= "RoomHF"
+Value1			= -151.0
+Var2			= "RoomRolloffFactor"
+Value2			= 0.0
+Var3			= "DecayTime"
+Value3			= 7.23
+Var4			= "DecayHFRatio"
+Value4			= 0.91
+Var5			= "Reflections"
+Value5			= -626.0
+Var6			= "ReflectionsDelay"
+Value6			= 0.02
+Var7			= "Reverb"
+Value7			= 774
+Var8			= "ReverbDelay"
+Value8			= 0.03
+Var9			= "Diffusion"
+Value9			= 0.5
+Var10			= "Size"
+Value10			= 1.0
+Var11			= "AirAbsorptionHF"
+Value11			= -5.0
+Var12			= "Direct"
+Value12			= 0.0
+Var13			= "Environment"
+Value13			= 25
+
+
+/*
+**  Bathroom Small(NOLF2)
+*/
+
+[SoundFilter3]
+
+Name			= "BathroomSmall"
+FilterName		= "Reverb Filter"
+Var0			= "Room"
+Value0			= -1000.0
+Var1			= "RoomHF"
+Value1			= -1200.0
+Var2			= "RoomRolloffFactor"
+Value2			= 0.0
+Var3			= "DecayTime"
+Value3			= 1.00
+Var4			= "DecayHFRatio"
+Value4			= 0.54
+Var5			= "Reflections"
+Value5			= -770.0
+Var6			= "ReflectionsDelay"
+Value6			= 0.007
+Var7			= "Reverb"
+Value7			= -100.0
+Var8			= "ReverbDelay"
+Value8			= 0.011
+Var9			= "Diffusion"
+Value9			= 1.0
+Var10			= "Size"
+Value10			= 1.1
+Var11			= "AirAbsorptionHF"
+Value11			= -5.0
+Var12			= "Direct"
+Value12			= -100.0
+
+/*
+**  Bathroom Large(NOLF2)
+*/
+
+[SoundFilter4]
+
+Name			= "BathroomLarge"
+FilterName		= "Reverb Filter"
+Var0			= "Room"
+Value0			= -1000.0
+Var1			= "RoomHF"
+Value1			= -1000.0
+Var2			= "RoomRolloffFactor"
+Value2			= 0.0
+Var3			= "DecayTime"
+Value3			= 1.49
+Var4			= "DecayHFRatio"
+Value4			= 0.54
+Var5			= "Reflections"
+Value5			= -570.0
+Var6			= "ReflectionsDelay"
+Value6			= 0.007
+Var7			= "Reverb"
+Value7			= -100.0
+Var8			= "ReverbDelay"
+Value8			= 0.011
+Var9			= "Diffusion"
+Value9			= 1.0
+Var10			= "Size"
+Value10			= 1.6
+Var11			= "AirAbsorptionHF"
+Value11			= -5.0
+Var12			= "Direct"
+Value12			= -100.0
+
+/*
+**	Underwater	(NOLF2)
+*/
+
+[SoundFilter5]
+
+Name			= "Underwater"
+FilterName		= "Reverb Filter"
+Var0			= "Room"
+Value0			= 0.0
+Var1			= "RoomHF"
+Value1			= -4000.0
+Var2			= "RoomRolloffFactor"
+Value2			= 0.0
+Var3			= "DecayTime"
+Value3			= 1.49
+Var4			= "DecayHFRatio"
+Value4			= 0.1
+Var5			= "Reflections"
+Value5			= -449.0
+Var6			= "ReflectionsDelay"
+Value6			= 0.007
+Var7			= "Reverb"
+Value7			= 700.0
+Var8			= "ReverbDelay"
+Value8			= 0.011
+Var9			= "Diffusion"
+Value9			= 1.0
+Var10			= "Size"
+Value10			= 1.8
+Var11			= "AirAbsorptionHF"
+Value11			= -5.0
+Var12			= "Direct"
+Value12			= -3000.0
+
+/*
+**  Room Small (NOLF2)
+*/
+
+[SoundFilter6]
+
+Name			= "RoomSmall"
+FilterName		= "Reverb Filter"
+Var0			= "Room"
+Value0			= -700.0
+Var1			= "RoomHF"
+Value1			= -1000.0
+Var2			= "RoomRolloffFactor"
+Value2			= 0.0
+Var3			= "DecayTime"
+Value3			= 0.17
+Var4			= "DecayHFRatio"
+Value4			= 0.10
+Var5			= "Reflections"
+Value5			= -1204.0
+Var6			= "ReflectionsDelay"
+Value6			= 0.001
+Var7			= "Reverb"
+Value7			= 0.0
+Var8			= "ReverbDelay"
+Value8			= 0.002
+Var9			= "Diffusion"
+Value9			= 1.0
+Var10			= "Size"
+Value10			= 1.0
+Var11			= "AirAbsorptionHF"
+Value11			= -90.0
+Var12			= "Direct"
+Value12			= 0.0
+
+/*
+**  Room Medium (NOLF2)
+*/
+
+[SoundFilter7]
+
+Name			= "RoomMed"
+FilterName		= "Reverb Filter"
+Var0			= "Room"
+Value0			= -800.0
+Var1			= "RoomHF"
+Value1			= -1500.0
+Var2			= "RoomRolloffFactor"
+Value2			= 0.0
+Var3			= "DecayTime"
+Value3			= 0.57
+Var4			= "DecayHFRatio"
+Value4			= 0.10
+Var5			= "Reflections"
+Value5			= -1204.0
+Var6			= "ReflectionsDelay"
+Value6			= 0.001
+Var7			= "Reverb"
+Value7			= 0.0
+Var8			= "ReverbDelay"
+Value8			= 0.002
+Var9			= "Diffusion"
+Value9			= 1.0
+Var10			= "Size"
+Value10			= 1.0
+Var11			= "AirAbsorptionHF"
+Value11			= -100.0
+Var12			= "Direct"
+Value12			= 0.0
+
+/*
+**  Room Large (NOLF2)
+*/
+
+[SoundFilter8]
+
+Name			= "RoomLarge"
+FilterName		= "Reverb Filter"
+Var0			= "Room"
+Value0			= -1000.0
+Var1			= "RoomHF"
+Value1			= -1700.0
+Var2			= "RoomRolloffFactor"
+Value2			= 0.0
+Var3			= "DecayTime"
+Value3			= 0.90
+Var4			= "DecayHFRatio"
+Value4			= 0.34
+Var5			= "Reflections"
+Value5			= -1646.0
+Var6			= "ReflectionsDelay"
+Value6			= 0.002
+Var7			= "Reverb"
+Value7			= 0.0
+Var8			= "ReverbDelay"
+Value8			= 0.003
+Var9			= "Diffusion"
+Value9			= 1.0
+Var10			= "Size"
+Value10			= 2.2
+Var11			= "AirAbsorptionHF"
+Value11			= -5.0
+Var12			= "Direct"
+Value12			= -200.0
+
+/*
+**  Hallway (NOLF2)
+*/
+
+[SoundFilter9]
+
+Name			= "Hallway"
+FilterName		= "Reverb Filter"
+Var0			= "Room"
+Value0			= -800.0
+Var1			= "RoomHF"
+Value1			= -537.0
+Var2			= "RoomRolloffFactor"
+Value2			= 0.0
+Var3			= "DecayTime"
+Value3			= 0.5
+Var4			= "DecayHFRatio"
+Value4			= 0.79
+Var5			= "Reflections"
+Value5			= -1200.0
+Var6			= "ReflectionsDelay"
+Value6			= 0.013
+Var7			= "Reverb"
+Value7			= -395.0
+Var8			= "ReverbDelay"
+Value8			= 0.020
+Var9			= "Diffusion"
+Value9			= 1.0
+Var10			= "Size"
+Value10			= 1.0
+Var11			= "AirAbsorptionHF"
+Value11			= -5.0
+Var12			= "Direct"
+Value12			= -100.0
+
+/*
+**  Hallway Tight(NOLF2)
+*/
+
+[SoundFilter10]
+
+Name			= "Hallway_tight"
+FilterName		= "Reverb Filter"
+Var0			= "Room"
+Value0			= -800.0
+Var1			= "RoomHF"
+Value1			= -837.0
+Var2			= "RoomRolloffFactor"
+Value2			= 0.0
+Var3			= "DecayTime"
+Value3			= 0.3
+Var4			= "DecayHFRatio"
+Value4			= 0.79
+Var5			= "Reflections"
+Value5			= -1214.0
+Var6			= "ReflectionsDelay"
+Value6			= 0.013
+Var7			= "Reverb"
+Value7			= 0.0
+Var8			= "ReverbDelay"
+Value8			= 0.010
+Var9			= "Diffusion"
+Value9			= 1.0
+Var10			= "Size"
+Value10			= 1.0
+Var11			= "AirAbsorptionHF"
+Value11			= -5.0
+Var12			= "Direct"
+Value12			= -100.0
+
+/*
+**  OutSide (NOLF2)
+*/
+
+[SoundFilter11]
+
+Name			= "Outside"
+FilterName		= "Reverb Filter"
+Var0			= "Room"
+Value0			= -2000.0
+Var1			= "RoomHF"
+Value1			= -2500.0
+Var2			= "RoomRolloffFactor"
+Value2			= 0.0
+Var3			= "DecayTime"
+Value3			= 1.49
+Var4			= "DecayHFRatio"
+Value4			= 0.21
+Var5			= "Reflections"
+Value5			= -2780.0
+Var6			= "ReflectionsDelay"
+Value6			= 0.3
+Var7			= "Reverb"
+Value7			= -1014.0
+Var8			= "ReverbDelay"
+Value8			= 0.1
+Var9			= "Diffusion"
+Value9			= 0.27
+Var10			= "Size"
+Value10			= 1.0
+Var11			= "AirAbsorptionHF"
+Value11			= -5.0
+Var12			= "Direct"
+Value12			= 0.0
+
+/*
+**  Kitchen (NOLF2)
+*/
+
+[SoundFilter12]
+
+Name			= "kitchen"
+FilterName		= "Reverb Filter"
+Var0			= "Room"
+Value0			= -1800.0
+Var1			= "RoomHF"
+Value1			= -300.0
+Var2			= "RoomRolloffFactor"
+Value2			= 0.0
+Var3			= "DecayTime"
+Value3			= 0.100
+Var4			= "DecayHFRatio"
+Value4			= 0.100
+Var5			= "Reflections"
+Value5			= 1000.0
+Var6			= "ReflectionsDelay"
+Value6			= 0.010
+Var7			= "Reverb"
+Value7			= 0.0
+Var8			= "ReverbDelay"
+Value8			= 0.011
+Var9			= "Diffusion"
+Value9			= 1.0
+Var10			= "Size"
+Value10			= 1.09
+Var11			= "AirAbsorptionHF"
+Value11			= -5.0
+Var12			= "Direct"
+Value12			= -200.0
+
+/*
+**	twister 1 (NOLF2)
+*/
+
+[SoundFilter13]
+
+Name			= "twister_1"
+FilterName		= "Reverb Filter"
+Var0			= "Room"
+Value0			= -2000.0
+Var1			= "RoomHF"
+Value1			= -2500.0
+Var2			= "RoomRolloffFactor"
+Value2			= 0.0
+Var3			= "DecayTime"
+Value3			= 1.49
+Var4			= "DecayHFRatio"
+Value4			= 0.21
+Var5			= "Reflections"
+Value5			= -2780.0
+Var6			= "ReflectionsDelay"
+Value6			= 0.3
+Var7			= "Reverb"
+Value7			= -1014.0
+Var8			= "ReverbDelay"
+Value8			= 0.1
+Var9			= "Diffusion"
+Value9			= 0.27
+Var10			= "Size"
+Value10			= 100
+Var11			= "AirAbsorptionHF"
+Value11			= -5.0
+Var12			= "Direct"
+Value12			= 0.0
+
+/*
+**	twister 2 (NOLF2)
+*/
+
+[SoundFilter14]
+
+Name			= "twister_2"
+FilterName		= "Reverb Filter"
+Var0			= "Room"
+Value0			= -2000.0
+Var1			= "RoomHF"
+Value1			= -2500.0
+Var2			= "RoomRolloffFactor"
+Value2			= 0.0
+Var3			= "DecayTime"
+Value3			= 1.49
+Var4			= "DecayHFRatio"
+Value4			= 0.21
+Var5			= "Reflections"
+Value5			= -2780.0
+Var6			= "ReflectionsDelay"
+Value6			= 0.3
+Var7			= "Reverb"
+Value7			= -1014.0
+Var8			= "ReverbDelay"
+Value8			= 0.1
+Var9			= "Diffusion"
+Value9			= 0.27
+Var10			= "Size"
+Value10			= 100
+Var11			= "AirAbsorptionHF"
+Value11			= -5.0
+Var12			= "Direct"
+Value12			= 0.0
+
+/*
+**  Cave Big (NOLF2)
+*/
+
+[SoundFilter15]
+
+Name			= "Cave_big"
+FilterName		= "Reverb Filter"
+Var0			= "Room"
+Value0			= -1900.0
+Var1			= "RoomHF"
+Value1			= 0.0
+Var2			= "RoomRolloffFactor"
+Value2			= 0.0
+Var3			= "DecayTime"
+Value3			= 2.91
+Var4			= "DecayHFRatio"
+Value4			= 1.30
+Var5			= "Reflections"
+Value5			= -602.0
+Var6			= "ReflectionsDelay"
+Value6			= 0.015
+Var7			= "Reverb"
+Value7			= -302.0
+Var8			= "ReverbDelay"
+Value8			= 0.022
+Var9			= "Diffusion"
+Value9			= 1.0
+Var10			= "Size"
+Value10			= 14.6
+Var11			= "AirAbsorptionHF"
+Value11			= -5.0
+Var12			= "Direct"
+Value12			= -100.0
+
+/*
+**  Cave Small (NOLF2)
+*/
+
+[SoundFilter16]
+
+Name			= "Cave_small"
+FilterName		= "Reverb Filter"
+Var0			= "Room"
+Value0			= -1600.0
+Var1			= "RoomHF"
+Value1			= 0.0
+Var2			= "RoomRolloffFactor"
+Value2			= 0.0
+Var3			= "DecayTime"
+Value3			= 2.91
+Var4			= "DecayHFRatio"
+Value4			= 1.30
+Var5			= "Reflections"
+Value5			= -602.0
+Var6			= "ReflectionsDelay"
+Value6			= 0.015
+Var7			= "Reverb"
+Value7			= -302.0
+Var8			= "ReverbDelay"
+Value8			= 0.022
+Var9			= "Diffusion"
+Value9			= 1.0
+Var10			= "Size"
+Value10			= 5.6
+Var11			= "AirAbsorptionHF"
+Value11			= -5.0
+Var12			= "Direct"
+Value12			= -100.0

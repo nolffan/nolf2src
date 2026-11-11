@@ -18,6 +18,10 @@ parts of it by hand, and how the game is packaged.
   * `toolchains/`, the compilers (Visual C++ 6.0 SP5 and the other
     revisions), the DirectX 8.1 SDK and Microsoft's DirectMusic. See
     `toolchains/README.md`.
+  * `lithtools/`, the reconstruction of LithTech's development tools: the
+    build uses its `lithrez` (`build/lithrez.sh` builds it, without its Qt
+    GUI) to pack `assets/rez/`, the 1.3 update's data, into the game
+    directory's `nolf2src.rez` (`assets/README.md`). A shallow submodule.
   * `rez/`, the retail game the build takes its data from. It fetches the
     redump images of the two European discs of *No One Lives Forever 2*
     from archive.org, checks them, and installs the game from them as its
@@ -53,14 +57,15 @@ parts of it by hand, and how the game is packaged.
 
 | Step | What | Output |
 |---|---|---|
-| 1. resources | the game data from the retail game: the `.rez` archives (the retail game DLLs inside them zeroed), the movies, the shipped `autoexec.cfg` and default profile | `out/nolf2-legacy-release/` |
+| 1. resources | the game data from the retail discs: the `.rez` archives (the retail game DLLs inside them zeroed) and the movies | `out/nolf2-legacy-release/` |
+| 1b. assets | the 1.3 update's data, from `assets/`: `assets/rez/` packed into `nolf2src.rez` by lithtools' `lithrez` (`build/lithrez.sh`; a fixed time, so the same bytes every build), and 1.3's `autoexec.cfg` and default profile (`assets/README.md`) | `out/nolf2-legacy-release/` |
 | 2. third-party runtime | Bink (`binkw32.dll`) and the Microsoft C++ and MFC runtime DLLs from the retail game: licensed binaries with no source. The modern build takes only the Microsoft runtime, and builds its own `binkw32.dll` | `out/nolf2-legacy-release/` |
 | 2b. Jupiter SDK source | WONAPI, the library `ServerDir.dll` is built with, from the installed SDK (`tools/jupitersrc.py`; never committed) | `src/Game/Libs/` |
 | 2c. engine art | the icon `lithtech.rc` compiles into `Lithtech.exe` (`IDR_MAINFRAME`, five images), read out of the retail `Lithtech.exe`'s resources (`tools/retailextract.py art`; never committed: the retail game's art, not ours). The engine's text resources (dialog, version block, string table) are `.rc` source in the repository (`lithtech.rc`, `server.rc`, `ltmsg.rc`); its other binary resources, MFC's help cursor and four bitmaps, come from the toolchain's `afxres.rc`, as the original's did | `src/Engine/runtime/winbuild/lithtech/res/` |
 | 3. compile | `build/compile.sh`: every compile and link, by `build/build.mk` -- the libraries, the game DLLs, the launcher and the dedicated server from Monolith's workspace, `ServerDir.dll`, `snddrv.dll`, the engine (`Lithtech.exe`, `server.dll`) and `ltmsg.dll` | `src/Game/built/`, `src/Engine/built/` |
 | 4. assemble | the built binaries into the game directory; the game DLLs go in `custom/`, last in the rez stack | `out/nolf2-legacy-release/` |
 | 5. audit | every PE file in the game directory listed with its origin (`MANIFEST.txt`); the build fails if one is unaccounted for, or if a `.rez` archive still holds one | |
-| 6. package | the game directory as a compressed tar, whole (`-private`), and without the retail game's files plus the scripts that install them from the player's own disc images and 1.3 update (`-public`; below) | `out/nolf2-legacy-release-private.tar.gz`, `-public.tar.gz` |
+| 6. package | the game directory as a compressed tar, whole (`-private`), and without the retail game's files plus the scripts that install them from the player's own disc images (`-public`; below) | `out/nolf2-legacy-release-private.tar.gz`, `-public.tar.gz` |
 
 Every binary in the game directory is built from this repository except the
 third-party runtime of step 2; the audit prints them all.
@@ -118,18 +123,20 @@ Every game directory is packaged twice by `build/package.sh`:
 * `out/<directory>-private.tar.gz` (about 0.9 GB): the whole directory,
   the retail game's data included. For your own machines, and for others
   developing on the build.
-* `out/<directory>-public.tar.gz` (5 MB; about 20 MB for a debug build,
-  with its `.pdb` files): the same without anything
-  that came from the retail game -- every file `MANIFEST.txt` lists as
-  `data` or `THIRD-PARTY` -- and with two scripts that install those files
-  from the player's own disc images of *No One Lives Forever 2* (the
-  European or the USA release) and Sierra's English 1.3 update,
-  `nolf2-update_1x3.exe`: `linux-install.sh` and `windows-install.bat`
-  (`tools/mkinstall.py`). They check every file they write against its
+* `out/<directory>-public.tar.gz` (about 70 MB, most of it the 1.3
+  update's data in `nolf2src.rez`; 15 MB more for a debug build, with its
+  `.pdb` files): the same without anything that came from the retail
+  discs -- every file `MANIFEST.txt` lists as `data` or `THIRD-PARTY` --
+  and with two scripts that install those files from the player's own disc
+  images of *No One Lives Forever 2* (the European or the USA release):
+  `linux-install.sh` and `windows-install.bat` (`tools/mkinstall.py`). The
+  data of Sierra's free English 1.3 update is in the archive itself
+  (`asset` in `MANIFEST.txt`: `nolf2src.rez` and the shipped settings and
+  default profile, from `assets/`), so the player needs only the discs. They check every file they write against its
   SHA-256, so the result is the private archive's directory, byte for byte.
   Its last file, `SHA256SUMS`, lists every file of the archive and every
   file the scripts write (but `autoexec.cfg` and `Profiles/Default.prf`,
-  which they write only if missing and the game rewrites); the scripts
+  which the archive carries and the game rewrites); the scripts
   check the directory against it first and stop if a file of the archive is
   missing or changed, or a file is there that is neither the archive's nor
   one they or the game write (a release unpacked over another installation
@@ -142,22 +149,20 @@ for `tools/playtest.sh`. The launcher never reads it: it writes its own
 
 `LICENSE_NOTES.md` says what each holds and under whose terms.
 
-Nothing is installed or run from the discs or the update. NOLF2's setup
-stores its files compressed in InstallShield 6 cabinets that span both
-discs (`data1.hdr`, `data1.cab` to `data3.cab`; only `Data/GAME.REZ` is a
-plain file), and the update packs its own InstallShield setup into a
-Microsoft cabinet (MSZIP) inside a self-extractor. `tools/mkinstall.py`
-works out, against the images in `rez/isos/` and the update rez/ carries,
-where every byte the game needs is: for each retail file, the ranges of an
-image that hold it as it is or as InstallShield's compressed chunks (each a
+Nothing is installed or run from the discs. NOLF2's setup stores its files
+compressed in InstallShield 6 cabinets that span both discs (`data1.hdr`,
+`data1.cab` to `data3.cab`; only `Data/GAME.REZ` is a plain file).
+`tools/mkinstall.py` works out, against the images in `rez/isos/`, where
+every byte the game needs is: for each retail file, the ranges of an image
+that hold it as it is or as InstallShield's compressed chunks (each a
 16-bit length and a raw deflate stream; a file split across two cabinets
 has a range on each disc), one way per release (the cabinets lie at other
-offsets on the USA discs), and for the update, the cabinet's offset. It
-reads every way back and checks it against the retail file before it
-writes the list. A script then needs no InstallShield or ISO 9660 code,
-only an inflater: it recognises each image by its size and SHA-256, unpacks
-the update's cabinet in memory (checked by its SHA-256 too), and writes
-each of our files from its retail file, with the retail game DLLs inside
+offsets on the USA discs). It reads every way back and checks it against
+the retail file before it writes the list. (It can also read an update's
+cabinet, for a project that installs from one; `build/retail.py` sets
+NOLF2's to none, `INSTALL_UPDATE`.) A script then needs no InstallShield or
+ISO 9660 code, only an inflater: it recognises each image by its size and
+SHA-256, and writes each of our files from its retail file, with the retail game DLLs inside
 the archives as zeros. On Linux `python3`'s zlib inflates (bash and
 coreutils do the rest); on Windows, PowerShell 5.1's .NET `DeflateStream`
 (an MSZIP block's 32 KB of history goes in front of it as a stored deflate
@@ -200,7 +205,7 @@ beforehand keeps its own text, and gets the archives added. Its steps are the ma
 above, so a run can be reproduced locally:
 
 ```sh
-git submodule update --init                 # tools/, toolchains/, rez/, ext/ffmpeg
+git submodule update --init                 # tools/, toolchains/, rez/, lithtools/, ext/ffmpeg
 make image && make retail sdk               # (CI: the image from its layer cache, IMAGE_BUILD=0)
 export NOLF2_ARCHIVES=public
 make && make progress && make debug && make modern && make modern-debug

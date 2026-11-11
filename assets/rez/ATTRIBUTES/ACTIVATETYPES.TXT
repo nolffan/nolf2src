@@ -1,0 +1,215 @@
+/************************************************************************
+**
+** A C T I V A T E  T Y P E S
+**
+** All ActivateTypes definitions should contain the following properties:
+**
+**  Name (String)
+**
+**	The user friendly name of the ActivateType (what shows up in DEdit).
+**
+**  StateON (integer)
+**
+**	A string ID from CRes.dll of the text to display whe the object is in
+**	it's ON state.  Use -1 for no text.
+**
+**  StateOFF (integer)
+**
+**	A string ID from CRes.dll of the text to display whe the object is in
+**	it's OFF	 state.  Use -1 for no text.
+*/
+
+/*
+** ActivateType0 - Open Close (Pretty Generic. Doors default to this.)
+*/
+
+[ActivateType0]
+
+Name		= "OpenClose"
+StateON		= 2178	// close
+StateOFF	= 2177	// open
+
+/*
+** ActivateType1 - Tip Over (Bottles)
+*/
+
+[ActivateType1]
+
+Name		= "TipOver"
+StateON		= 2179	// tip over
+StateOFF	= -1
+
+[ActivateType2]
+
+Name		= "EnterCombination"
+StateON		= -1
+StateOFF	= 2901	// enter combination
+
+[ActivateType3]
+
+Name		= "Erase"
+StateON		= -1
+StateOFF	= 2902	// erase
+
+[ActivateType4]
+
+Name		= "SoundAlarm"
+StateON		= 2903	// sound alarm
+StateOFF	= 2903	// sound alarm
+
+[ActivateType5]
+
+Name		= "Bulb"
+StateON		= 2904	// screw bulb in
+StateOFF	= 2905	// unscrew bulb
+
+[ActivateType6]
+
+Name		= "RingChimes"
+StateON		= 2906	// ring chimes
+StateOFF	= 2906	// ring chimes
+
+[ActivateType7]
+
+Name		= "OnOff"
+StateON		= 2908	// turn off
+StateOFF	= 2907	// turn on
+
+[ActivateType8]
+
+Name		= "Flush"
+StateON		= 2909	// flush
+StateOFF	= 2909	// flush
+
+[ActivateType9]
+
+Name		= "M9"
+StateON		= 2910	// retrieve data
+StateOFF	= 2910	// retrieve data
+
+[ActivateType10]
+
+Name		= "ReplaceTube"
+StateON		= 2911	// replace vacuum tube
+StateOFF	= 2911	// replace vacuum tube
+
+[ActivateType11]
+
+Name		= "EnterPassword"
+StateON		= 2912	// enter the password
+StateOFF	= 2912	// enter the password
+
+[ActivateType12]
+
+Name		= "Sugar"
+StateON		= 2913	// pour sugar
+StateOFF	= 2913	// pour sugar
+
+[ActivateType13]
+
+Name		= "PickUp"
+StateON		= 454	// pick up
+StateOFF	= 454	// pick up
+
+[ActivateType14]
+
+Name		= "PourCoffee"
+StateON		= 2914	// pour coffee
+StateOFF	= 2914	// pour coffee
+
+[ActivateType15]
+
+Name		= "RemovePoster"
+StateON		= 2915	// remove poster
+StateOFF	= 2915	// remove poster
+
+[ActivateType16]
+
+Name		= "PressButton"
+StateON		= 2916	// press button
+StateOFF	= 2916	// press button
+
+[ActivateType17]
+
+Name		= "Play"
+StateON		= 2917	// play
+StateOFF	= 2917	// play
+
+[ActivateType18]
+
+Name		= "ShutOff"
+StateON		= -1
+StateOFF	= 2918	// shut off
+
+[ActivateType19]
+
+Name		= "Repair"
+StateON		= -1
+StateOFF	= 2919	// repair
+
+[ActivateType20]
+
+Name		= "RadioUnity"
+StateON		= 2920	// radio unity headquarters
+StateOFF	= 2920	// radio unity headquarters
+
+[ActivateType21]
+
+Name		= "DumpWater"
+StateON		= 2921	// dump water
+StateOFF	= 2921	// dump water
+
+[ActivateType22]
+
+Name		= "UnlockGate"
+StateON		= -1	// 
+StateOFF	= 2923	// unlock gate
+
+[ActivateType23]
+
+Name		= "Intercom"
+StateON		= 2924	// activate intercom
+StateOFF	= 2924	// activate intercom
+
+[ActivateType24]
+
+Name		= "ActivateCrane"
+StateON		= 2925	// activate crane
+StateOFF	= 2925	// activate crane
+
+[ActivateType25]
+
+Name		= "PullFinger"
+StateON		= 2926	// pull my finger
+StateOFF	= 2926	// pull my finger
+
+[ActivateType26]
+
+Name		= "Faucet"
+StateON		= -1	// 
+StateOFF	= 2907	// turn on
+
+[ActivateType27]
+
+Name		= "Horn"
+StateON		= 2927	// honk horn
+StateOFF	= 2927	// honk horn
+
+[ActivateType28]
+
+Name		= "Examine"
+StateON		= 2928	// examine
+StateOFF	= 2928	// examine
+
+[ActivateType29]
+
+Name		= "Activate"
+StateON		= 2929	// activate
+StateOFF	= 2929	// activate
+
+[ActivateType30]
+
+Name		= "ValveStartOn"
+StateON		= 2907	// turn on
+StateOFF	= -1	// 
+
