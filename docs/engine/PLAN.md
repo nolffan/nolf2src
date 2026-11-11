@@ -2276,3 +2276,30 @@ Both halves of that lead tried (Lithtech.exe, against 68d25fb):
     two stack slots (`[esp+0x10]`/`[esp+0x14]`) swapped; the same source is
     identical in CShell.dll, so it is how Object.lto's build compiles
     SoundButeMgr.cpp (its defines or inline budget), not the source.
+
+### unwritten3
+
+Tools 34a4a8e (a shape-placed stub proves its operands) left seven rows
+unwritten: three were new, and none needed source.
+- **Lithtech.exe 0x42a2b0, server.dll 0x1000afe8, Object.lto
+  0x10163be0** (13-16 byte forwarders): the source was there all along
+  (findobj.obj's `CFindObj::FindObjectServer`, twice, and ProjectileTypes'
+  `CGrenadeImpact::HandleImpact`). Name order had given each address to a
+  look-alike (`CLTServer::GetStringData` and the like), 34a4a8e refuted
+  that one and moved it home, and the address stayed empty: the stub that
+  had been crowded off every look-alike was never tried again. Tools
+  0a08bdd: such a stub takes a freed hit where every operand maps. +22
+  identical, unwritten 7 -> 4.
+- **Lithtech.exe 0x4481e0** is model.obj's `_$E38` (the initializer
+  storing `IAnimQuatChannel`'s vtable), written, and its own address maps
+  there. It is refuted by a false pairing: D3DRender's
+  `??_GIAggregateShader` (ours 0x527970, retail 0x527550 by position among
+  the 23 look-alikes `store vtable; test; call delete` each image has)
+  was placed at 0x4485e0, model.obj's quat-channel deleting destructor,
+  so IAggregateShader's vtable maps to IAnimQuatChannel's. Checking the
+  deleting destructors' operands as the stubs' are (tried) loses 31
+  recorded rows (Lithtech.exe unwritten 5 -> 13): model.obj's folded
+  `??_G` group is never placed, and its vtable maps to nothing that would
+  prove an address. Left as a scoring question.
+- 0x4cb9c0, 0x4cc680 and 0x501010: unchanged (see unwritten2, sortlead
+  and round2).
