@@ -167,7 +167,7 @@ No string-referencing function lacks a Jupiter counterpart. In all,
 functions are anchored this way.
 
 **Hand comparisons** of disassembly against source (`fear/skel.py`,
-`tools/exedump.py`):
+`ext/tools/exedump.py`):
 
 * **kernel/net `CUDPDriver::HostSession`** (0x48b8b0): the same sequence:
   * Term2, then the default port 0x6cf0

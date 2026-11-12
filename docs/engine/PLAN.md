@@ -52,22 +52,22 @@ Background, in this directory:
 | 3 | `server`: `server.dll` compiles, links and loads (`server/`, `shared/`, `world/`, `model/`, `kernel/net`, `kernel/io`) | 2 | done: nothing stubbed; the built dll hosts a level in NOLF2Srv.exe, the built exe plays C01S01 |
 | 4 | `client`: the exe's own objects (`client/`, `kernel/src`, input, DirectMusic, video, console) with the server objects at `/O2` | 2 (3 helps) | done: no client stubs, Bink at run time; Lithtech.exe is `/O2 /Ob2` without `/GX`; the built exe reaches the main menu under Wine (`+DisableSound 1`) |
 | 5 | `libs`: `rezmgr`, `stdlith`/`lith`, `ltmem`, `iltsound`, `ui` (Lib_UI) | 2 | done: no stubs left; fonts and the mem command as 2002 had them; the libraries' flags and link order as retail's |
-| 6 | `render`: `render_b` (drawprim, texinterface) and `render_a` back-ported from D3D9 to D3D8 | 2 | done: all of it compiles for D3D8 and links; a device comes up under Wine (tools/rendertest); not yet seen in the game |
+| 6 | `render`: `render_b` (drawprim, texinterface) and `render_a` back-ported from D3D9 to D3D8 | 2 | done: all of it compiles for D3D8 and links; a device comes up under Wine (ext/tools/rendertest); not yet seen in the game |
 | 7 | `boot`: the built `Lithtech.exe` in the game under Wine: to the menu, then a level; snddrv/ServerDir/ltmsg built ones in | 3–6 | done: every engine binary in the game is built (no retail engine left); `make test` plays from the main menu into C01S01 with sound (null ALSA device); `make modern` builds and runs the same |
 | 8 | `modern`: the modern build of the engine (FFmpeg Bink, fixes) | 7 | done: no RAD binary in the modern build (Bink on FFmpeg; NOLF2 has no Miles); the launcher installed in both builds; Hor+, widescreen modes, the launcher's server name (`docs/MODERN.md`) |
 | 9 | `match`: byte-matching passes per module, ratcheted by `make progress` | 3–6 | ongoing |
-| 9a | `net`: multiplayer with the built engine (dedicated server and client over UDP); kernel/net and the server-side modules matched | 3, 7 | done: our Lithtech.exe joins our NOLF2Srv.exe/server.dll (and retail's server.dll) over loopback, `tools/mptest.sh`; server.dll +102, Lithtech.exe +104 identical |
+| 9a | `net`: multiplayer with the built engine (dedicated server and client over UDP); kernel/net and the server-side modules matched | 3, 7 | done: our Lithtech.exe joins our NOLF2Srv.exe/server.dll (and retail's server.dll) over loopback, `ext/tools/mptest.sh`; server.dll +102, Lithtech.exe +104 identical |
 | 9b | `rendermatch`: render_a/render_b structures and file formats against retail, the renderer in the game, byte matching | 6, 7 | done: layouts and loaders fixed (below); Lithtech.exe 5,509 -> 5,792 identical |
 | 9c | `cshell`: the game DLLs (`CShell.dll`, `Object.lto`, `ClientFx.fxd`) against retail: what the source release does not have of 1.3 | 9 | done: one layout (CInterfaceTimer) was most of CShell's gap; CShell.dll 5,234 -> 5,414 identical (91.7% -> 98.4% of its bytes), Object.lto 9,253 -> 9,254; the rest is listed below |
 | 10 | `release`: public archives built by GitHub Actions, as nolfsrc does (its commits "Install scripts that copy the game's data out of the player's discs", "Package each game directory as a -private and a -public archive", "Build switches for CI: NOLF_ARCHIVES and IMAGE_BUILD", "CI: build the four public archives on GitHub Actions", "CI: check the release build for byte regressions", "CI: upload each archive unzipped") | 7, 8 and everything ported | done: -private / -public archives, install scripts from the player's own disc images (EU or USA) and 1.3 update, linux-run*.sh, the workflow as nolfsrc's now (prepare + four parallel jobs; not yet run on GitHub); ServerDir.dll's score made reproducible by package 11 |
 | 11 | `bugs`: the variants (debug, modern, modern-debug) checked to build the whole game, engine included, and to play; `docs/RETAIL_BUGS.md`; the safe fixes in the modern build | 7, 8 | done: every variant builds every binary with its define and passes the playtest; 48 entries listed, 23 of them fixed in the modern build (three only on one side: see the notes) (M-G5..M-G16, M-L3, M-E7..M-E12) |
 | 12 | `modernizer`: the NOLF 2 Modernizer (haekb) inventoried change by change in `docs/MODERN.md`, its fixes and features reimplemented in the modern build, its known issues answered | 8, 11 | done for the most part: no disc / CD key, its retail crash fixes, widescreen menus/HUD/FOV/zoom, mouse look (M-E3), frame limiter, windows, focus, display options (FOV, frame limit, antialiasing, 4:3 cinematics), wheel, fps counter, anisotropy, scope margins, the dedicated server without the registry; left: the console (M-E5), Internet play (M-E6), controllers (M-G47), jukebox (M-G46), the damage flash's width (M-G38) |
 | 13 | `mouse`: why mouse look jumps about (a player's report, modern build on a desktop under Wine) | 7 | done: retail's `input_ReadInput` (Lithtech.exe 0x4319b0, byte-identical in both builds) adds a look axis's last event again per pass and per frame; MODERN.md M-E3 (with M-E4's frame limit) is the fix; `docs/RETAIL_BUGS.md` has it and the packages' retail bugs |
-| 14 | `xinput`: controller support in the modern build (docs/MODERN.md M-G47 and the Modernizer's known issue K8), as nolfsrc's P7: an XInput pad, DirectInput joysticks removed | 8, 12 | done: `##gamepad` (M-E20), no DirectInput joysticks (M-E21), sticks, menus, cut-scenes and decisions read by the client (M-G47, M-G60, M-G61), the Controller screen (M-G62), a retail binding bug fixed (M-G63); tested with a simulated pad (`tools/playtest-pad.txt`); rumble and button prompts not started (M-G64, M-G65) |
+| 14 | `xinput`: controller support in the modern build (docs/MODERN.md M-G47 and the Modernizer's known issue K8), as nolfsrc's P7: an XInput pad, DirectInput joysticks removed | 8, 12 | done: `##gamepad` (M-E20), no DirectInput joysticks (M-E21), sticks, menus, cut-scenes and decisions read by the client (M-G47, M-G60, M-G61), the Controller screen (M-G62), a retail binding bug fixed (M-G63); tested with a simulated pad (`ext/tools/playtest-pad.txt`); rumble and button prompts not started (M-G64, M-G65) |
 | 15 | `winmode`: window modes in the modern build -- full screen, a window, or a borderless window at the desktop's resolution -- as nolfsrc's M-P1-22: the engine, `render_a`, the Display screen, the launcher's Display dialog, the run scripts | 8, 12 | done: `Windowed` + `WindowMode` (docs/MODERN.md M-E30, M-G70, M-L5), M-G40's toggle folded in; tested under Xvfb in each mode and switched from the menu and the launcher; `make progress` unchanged |
 | 16 | `fps`: 300 frames a second in single player at real speed, as nolfsrc's M-P1-23 (its 0dd4bf4, d171625, 9780977): what goes wrong at high frame rates found, measured and fixed in the modern build, then M-E4's limit raised from 60 | 8, 12 | done: the server tick (AIs), the player's walk and crouch, particle/line systems, aim perturb, fire sparks, debris rest; MaxFPS 300, 60 in multiplayer (docs/MODERN.md M-E4; 4 `docs/RETAIL_BUGS.md` entries) |
 | 17 | `nolfsync`: nolfsrc's commits since package 16 (its history rewritten: a99873c, 549ea60, 3bc4fac, 7855bf1, a97a06c, 1a7a95c, 39d8636, bc52297, 82d0759, 4f5b3fa, 113b4f4), each ported where NOLF2 needs it | 14, 15, 16 | done: out of the water at high frame rates and a 240 default limit (M-E4; 1 `docs/RETAIL_BUGS.md` entry); the documentation in `docs/` with an install guide, console and variables, changelog and credits; the rest already here, not applicable or waiting for M-E5 (notes) |
-| 18 | `console`: the developer console in the modern build (docs/MODERN.md M-E5), with nolfsrc's `GetPos`/`SetPos` (its M-P2-14) and Shift+Esc (M-P2-15) | 12, 17 | done: the engine's own console revived behind the define (keys, drawing at any resolution, completion, answers), the game paused under it in single player, `GetPos`/`SetPos`; tested in play at 640x480, 1920x1080 and 4K and over a multiplayer client (`tools/playtest-console.txt`); 2 `docs/RETAIL_BUGS.md` entries |
+| 18 | `console`: the developer console in the modern build (docs/MODERN.md M-E5), with nolfsrc's `GetPos`/`SetPos` (its M-P2-14) and Shift+Esc (M-P2-15) | 12, 17 | done: the engine's own console revived behind the define (keys, drawing at any resolution, completion, answers), the game paused under it in single player, `GetPos`/`SetPos`; tested in play at 640x480, 1920x1080 and 4K and over a multiplayer client (`ext/tools/playtest-console.txt`); 2 `docs/RETAIL_BUGS.md` entries |
 | 19 | `winlaunch`: issue #1 -- on Windows the launcher offered only "Install" (no installer registry) and `Lithtech.exe` typed by hand failed with "Bad Image" / "Missing shell DLL" (no `-rez custom`) | 10, 8 | done: legacy build: `windows-install.bat` registers the game, `windows-run.bat`; the modern build's launcher needs no registry and no administrator (M-L6, M-L7, M-G71); tested under Wine in fresh prefixes (notes); not yet on real Windows; 1 `docs/RETAIL_BUGS.md` entry |
 | 20 | `serverdir`: why `ServerDir.dll` scored 33.8% (207 identical, 129 near, 130 unwritten) | 9 | done: the 2002 SDK `CServerDir_Titan` replaced by NOLF2's 1.3 one from the F.E.A.R. source release, with `TitanTest.cpp` linked as retail did; 207 -> 417 identical, 0 near, 130 -> 0 unwritten, 1 -> 0 unplaced (33.8% -> 99.3%; the rest is 75 rows too small to place) |
 | 21 | `unwritten`: the engine's unwritten functions (Lithtech.exe 54, server.dll 5) identified and written or shown not to be functions; cjacksrc's engine cross-referenced and ported where NOLF2's retail code agrees | 9 | done: Lithtech.exe unwritten 53 -> 8, identical 5,891 -> 5,928 (+16,019 bytes); server.dll unwritten 17 -> 0, identical 2,513 -> 2,527; three tools changes (enumeration); the cjacksrc map in the notes; 1 `docs/RETAIL_BUGS.md` entry |
@@ -84,12 +84,12 @@ Done. What there is now:
 - `guides/` (02, 03, 05, 07, 09, 10, 11, 12, 13, README), adapted to NOLF2;
   01, 04, 06 and 08 were left out (README says why). NOLF1 worked examples
   are kept where the lesson is general and labelled "from NOLF1's engine".
-- `tools/tgt.py`: per-target facts from `progress/targets.py`. uncovered,
+- `ext/tools/tgt.py`: per-target facts from `progress/targets.py`. uncovered,
   asmweb, vtabcheck, o2gap, decoded, decodedlt, nearscan, layoutscan,
   tagmap, fndiff and sdkvtab take a target (`Lithtech`, `server`, ...) and
   read our objects from the link's `.rsp`, so they work as soon as the
   engine links through build.mk's `binary` macro. `libfndiff.py` is not
-  adapted (NOLF2 ships no prebuilt library; tools/README.md says so).
+  adapted (NOLF2 ships no prebuilt library; ext/tools/README.md says so).
   `agentwt.sh` makes worktrees the way this plan does (branch `<name>`,
   hard links).
 - `progress/engine/`: `mac-functions.csv` / `mac-server-functions.csv`
@@ -97,12 +97,12 @@ Done. What there is now:
   and the evidence) and `mac_modules.md` (per module and file; the Jupiter
   files the Mac build lacks, the Mac classes Jupiter lacks). Use them to
   decide which Jupiter files exist in 2002 and which functions to drop.
-  Regenerate with `tools/macinventory.py --jupiter ../fear/Dev/Source`; it
-  needs the Mac release, which this repo's `rez/games` does not have:
-  `rez/fetch-isos.sh nolf2-mac-usa && rez/install-games.sh nolf2-mac-usa`.
+  Regenerate with `ext/tools/macinventory.py --jupiter ../fear/Dev/Source`; it
+  needs the Mac release, which this repo's `ext/rez/games` does not have:
+  `ext/rez/fetch-isos.sh nolf2-mac-usa && ext/rez/install-games.sh nolf2-mac-usa`.
 - `progress/engine/Lithtech-iat-calls.csv`: the import behind each of the
   1,514 redirected `call [IAT]` sites (all paired with the demo).
-  `tools/demoimports.py extract|map|plain`; `plain` gives
+  `ext/tools/demoimports.py extract|map|plain`; `plain` gives
   `out/mpdemo/Lithtech-readable.exe` to read with exedump/objdump. Shifts in
   the encrypted pages: retail = demo + 0x40 to 0x565250, + 0x30 to
   0x5675e0, - 0x10 after.
@@ -264,7 +264,7 @@ What was found and changed:
   misread render blocks, "Out of memory"; s_net was not the cause).
 
 **What runs.** `build/engine.sh server test` (loads, CreateServer /
-DeleteServer). `tools/srvtest.sh` (new): the built NOLF2Srv.exe with the
+DeleteServer). `ext/tools/srvtest.sh` (new): the built NOLF2Srv.exe with the
 built server.dll hosts the first co-op level (CP_c01s01) under Xvfb and
 keeps running, as with the retail dll; deathmatch needs a DMMissions.txt
 the game's host screen writes. The built Lithtech.exe (game dir from
@@ -456,7 +456,7 @@ Left, and for other packages:
 **State.** Every render_a file and render_b's `d3ddrawprim.cpp` compile
 for Direct3D 8 and are in the build (`D3DRender.dsp`, `Lithtech.dsp`); the
 stand-ins are gone and `Lithtech.exe` links. A device comes up under Wine:
-`tools/rendertest/` (build.sh, run.sh, in the build container after
+`ext/tools/rendertest/` (build.sh, run.sh, in the build container after
 `build/engine.sh Lithtech link`) links a harness with Lithtech.exe's
 objects, fills the engine's `g_Render` with its own callbacks and brings
 the renderer up windowed: modes listed, device created (HAL), frames
@@ -566,7 +566,7 @@ went in: none is kept retail.
   DirectSound buffers, the menu and level sounds mixed.
 
 **Sound in the container.** Wine's winealsa needs an ALSA device; the
-container has none, so `snddrv.dll`'s Init failed. `tools/playtest.sh`
+container has none, so `snddrv.dll`'s Init failed. `ext/tools/playtest.sh`
 now writes an `asound.conf` in the run directory (the system
 `alsa.conf`, then `pcm.!default { type null }`) and sets
 `ALSA_CONFIG_PATH` when there is no `/dev/snd`: Wine picks winealsa
@@ -580,12 +580,12 @@ its own; windowed, Wine's frame shrinks the client area to 634x448 and
 the page no longer maps 1:1. `PLAYTEST_WINDOWED=1` gives a window,
 `PLAYTEST_ARGS` adds engine arguments.
 
-**make test** plays `tools/playtest-newgame.txt` on
+**make test** plays `ext/tools/playtest-newgame.txt` on
 `out/nolf2-legacy-release` (out/play/test/): main menu, Single player >
 New game > Normal, loading screen and opening cinematic (skipped),
 control with the HUD, look, walk, the in-game menu and back. A run whose
 `skipcine` never sees the HUD is now judged NO HUD (a failure). Also
-passing on the built engine: `tools/playtest-basic.txt` from
+passing on the built engine: `ext/tools/playtest-basic.txt` from
 `+runworld` C01S01 (move, jump, duck, fire, weapons, F6 quicksave writes
 `Save/.../QuickSave`, F9 quickload); its in-game-menu waits went from 2
 to 3 s (the menu slides in; at 2 s the second Escape was lost). Bink
@@ -642,10 +642,10 @@ D3D8 surface formats NOLF2's engine uses) with `zig cc` into `out/ext/`;
 runtime from retail. The engine looks up twelve Bink entry points at run
 time (`binkvideomgrimpl.cpp`); no game DLL imports Bink. No OpenMiles:
 nothing in NOLF2 loads `mss32.dll` (snddrv.dll is DirectSound). The movies
-play (`tools/playtest-movies.txt`, about 80 s of logos to the menu; the
+play (`ext/tools/playtest-movies.txt`, about 80 s of logos to the menu; the
 same with RAD's DLL); `linux-run.sh` turns them on when `MANIFEST.txt` lists our
 binkw32. **For the coordinator:** the main checkout needs `git submodule
-update --init ext/ffmpeg` before `make modern`; `tools/agentwt.sh` now
+update --init ext/ffmpeg` before `make modern`; `ext/tools/agentwt.sh` now
 hard-links `ext/ffmpeg` into new worktrees (this one was populated the
 same way, from nolfsrc's checkout of the same commit).
 
@@ -669,7 +669,7 @@ empty; no file of net's or rendermatch's was touched (M-E2 is in
 render_a and left for later).
 
 **jupitersrc.** `src/Game/Libs/` (fetched SDK source) is hard-linked
-between worktrees, and `tools/jupitersrc.py` wrote through the links: the
+between worktrees, and `ext/tools/jupitersrc.py` wrote through the links: the
 net worktree (without the sierraup patch) unpatched `CServerDir_Titan.cpp`
 for every tree, and `make progress` here lost six ServerDir.dll
 functions. It now replaces files instead. Other worktrees keep sharing
@@ -687,7 +687,7 @@ WON servers (M-E6), an FOV option (M-G4).
 
 ### 9a. net
 
-Done. **Multiplayer works** with the built engine: `tools/mptest.sh`
+Done. **Multiplayer works** with the built engine: `ext/tools/mptest.sh`
 starts NOLF2Srv.exe with a `server.dll` (ours by default;
 `out/reference/server.dll` is the protocol's control) hosting the first
 co-op level, and our `Lithtech.exe` joins it over UDP loopback through
@@ -839,7 +839,7 @@ SharedTexture/object layouts). `make progress` passes.
 
 **Where the gap was.** Of CShell.dll's 109 KB of non-identical code, 89 KB
 was 187 nears and 19 KB `small` (global initializers, unverifiable by the
-scorer: not source work). `tools/layoutscan.py --image=CShell` put 180 of
+scorer: not source work). `ext/tools/layoutscan.py --image=CShell` put 180 of
 the nears, in InterfaceMgr, GameClientShell and every screen, on one field
 shift of 12 bytes: retail's `CInterfaceTimer` is 0x1c bytes, without the
 source release's `m_fTimeLeft`, and `CInterfaceMgr` holds three of them.
@@ -944,7 +944,7 @@ script's own directory), so a string added there is not built into
 
 Tested: `make modern` at 1280x720 (menus, Display screen, a new game,
 antialiasing 4x full screen and windowed, the dedicated server without
-the registry key, `tools/srvtest.sh` without its `reg add`); `make test`
+the registry key, `ext/tools/srvtest.sh` without its `reg add`); `make test`
 and `make progress` unchanged.
 
 ### modernizer: retail bugs
@@ -985,21 +985,21 @@ each engine object's command line has `/D NOLF2SRC_DEBUG /Z7 /Oy-` or
 `out/build-<variant>/`), and the debug variants put a `.pdb` beside every
 binary. Nothing needed fixing. `make test TEST_GAME=out/<variant>` (new)
 plays a variant's game directory (`out/play/test-<name>/`); all three pass
-`playtest-newgame.txt`, and `tools/srvtest.sh` hosts CP_c01s01 with the
+`playtest-newgame.txt`, and `ext/tools/srvtest.sh` hosts CP_c01s01 with the
 modern `NOLF2Srv.exe` and `server.dll`.
 
 **`releasesrc.py`** now ignores directives inside `/* */` comments:
 `ltdirectmusic_impl.cpp` keeps a commented-out `#else`/`#endif`, which the
 stripper took for an unmatched `#endif` once the file had a variant block.
 Also: the editing tool drops trailing whitespace on the lines it touches,
-and retail files have plenty; `tools/releasesrc.py diff` (run in the
+and retail files have plenty; `ext/tools/releasesrc.py diff` (run in the
 checkout: it uses the current directory) catches it, run it after every
 edit.
 
 **`docs/RETAIL_BUGS.md`** (48 entries) came from the porting notes, from
 nolfsrc's list looked for bug by bug in NOLF2's game and engine code, and
 from reading the multiplayer, gameplay and engine code for the same kinds
-of mistake. Engine entries were checked with `tools/exematch.py` against
+of mistake. Engine entries were checked with `ext/tools/exematch.py` against
 `out/reference/` (it runs on the host, read only): each names a function
 byte-identical to retail at its address. NOLF2's engine fixed or rewrote
 most of NOLF1's server.dll bugs (the list ends with them); the game code
@@ -1032,7 +1032,7 @@ client's wrong function names.
   test; `CP_DAMAGE` from clients needs a design; the sprite-system timing
   and the snow rate change how the shipped effects look.
 
-**Score.** `tools/releasesrc.py diff` is empty and `make game` recompiles
+**Score.** `ext/tools/releasesrc.py diff` is empty and `make game` recompiles
 nothing for the fixes. `make progress` passes.
 
 **ServerDir.dll was not reproducible** (six recorded functions, 0x10003cc0,
@@ -1046,9 +1046,9 @@ fresh build). Two causes, both fixed:
   `CServerDir_Titan.cpp` alone (its source changed; the main checkout's
   14:15 rebuild) uses stdafx's header, and compiles differently: 377,910
   bytes against 375,182, eight more of its functions retail's
-  (`tools/exematch.py`). The recorded score is from such a rebuild. The
+  (`ext/tools/exematch.py`). The recorded score is from such a rebuild. The
   same source compiled in the two orders, by hand, gives exactly the two
-  objects. `tools/dsp2mk.py` (`YX_FIRST`) now compiles ServerDir's
+  objects. `ext/tools/dsp2mk.py` (`YX_FIRST`) now compiles ServerDir's
   `stdafx.cpp` first, so every build makes the retail-matching object.
   (The main checkout's `make game` did not rebuild the object because the
   release tree's copy of the source had not changed since 14:15 -- the
@@ -1061,7 +1061,7 @@ fresh build). Two causes, both fixed:
   the path or the text). WONAPI has three (`CDKey.cpp`, `CRC.cpp`,
   `QueueSocket.cpp`), in symbol names and, for `QueueSocket.cpp`, in an
   RTTI type name in a COMDAT data section, so the length moves code and
-  data. `tools/anonns.py` rewrites them, for the libraries `build.mk`'s
+  data. `ext/tools/anonns.py` rewrites them, for the libraries `build.mk`'s
   `PINNED_LIBS` names (WONAPI only: other projects' anonymous namespaces
   have not moved a recorded function), to the numbers of the WONAPI.lib the
   score was recorded on; the pinned objects are then those objects byte
@@ -1081,7 +1081,7 @@ Done: nolfsrc's release pattern, for NOLF2 (`docs/BUILDING.md`, "Archives";
   `linux-install.sh` and `windows-install.bat`.
   `NOLF2_ARCHIVES` (default `private public`) picks them; `IMAGE_BUILD=0`
   makes `make image` take the docker image as it is.
-- `tools/mkinstall.py` writes the install scripts. As nolfsrc's (its
+- `ext/tools/mkinstall.py` writes the install scripts. As nolfsrc's (its
   8a94af5, 9b6f580, b850912, 1792b21) they read the player's own *disc
   images*, nothing installed: both discs of the European or the USA
   release (`.iso`, redump `.bin`/`.cue` or `.zip`; MODE1 tracks on the
@@ -1100,7 +1100,7 @@ Done: nolfsrc's release pattern, for NOLF2 (`docs/BUILDING.md`, "Archives";
   MSZIP folder, 29.5 MB unpacked) holding its own IS6 setup; the list
   records the cabinet's offset and the unpacked folder's SHA-256, and the
   ranges of the update's files in it. Every way is read back and checked
-  here against `rez/games/nolf2-eu-1.3/`. Output files are then the retail
+  here against `ext/rez/games/nolf2-eu-1.3/`. Output files are then the retail
   file in order with `C`/`Z`/`L` runs (the retail DLLs blanked in
   GAME2.REZ, GAMEDLL.REZ, Update_v1x3.rez), each checked by SHA-256; no
   optional or player's-own files any more. The scripts need an inflater
@@ -1116,15 +1116,15 @@ Done: nolfsrc's release pattern, for NOLF2 (`docs/BUILDING.md`, "Archives";
 - The run scripts are `linux-run.sh` and `linux-run-launcher.sh`, as in
   nolfsrc; `build/all.sh` removes the old names from a game directory.
 - `make debug`/`make modern-debug` were broken on master by package 11's
-  `tools/anonns.py` (with /Z7 the debug records hold the namespace names,
+  `ext/tools/anonns.py` (with /Z7 the debug records hold the namespace names,
   with relocations after them; the tool refuses). Only the release build is
   pinned now (`build/build.mk`): variants are never scored.
-- `tools/retailextract.py resources` hard-links the retail files it does
+- `ext/tools/retailextract.py resources` hard-links the retail files it does
   not change (Engine/GAME/SOUND.REZ, the movies): a game directory is
   1.2 GB instead of 1.8.
 - `.github/workflows/public-archives.yml`, as nolfsrc's now: a job
   "prepare" fetches the EU and USA disc zips and the SDK image only on a
-  cache miss (keyed on `rez/isos/SHA256SUMS`) and writes the docker layer
+  cache miss (keyed on `ext/rez/isos/SHA256SUMS`) and writes the docker layer
   cache; then four build jobs (a matrix, fail-fast off) each build one
   variant with `NOLF2_ARCHIVES=public` (no private archive is made) and
   upload its `-public.tar.gz` itself (upload-artifact v7, `archive:
@@ -1159,7 +1159,7 @@ recorded score came from a WONAPI.lib built once on Oct 12 and never
 rebuilt. Fix before turning CI on: pin the number (e.g. patch it in the
 objects after compiling, or score `ServerDir.dll` without those
 functions), or record the fresh-build score. (Done by package 11:
-`stdafx.cpp` compiled first, and `tools/anonns.py` pins the names.)
+`stdafx.cpp` compiled first, and `ext/tools/anonns.py` pins the names.)
 
 ### 13. mouse
 
@@ -1210,7 +1210,7 @@ modern build), the multiplayer timer, the bomb (not fixed).
   elsewhere (`ClientRes/Shared/Lang/EN/ClientResShared.rc`, through
   ClientRes.dsp's `/i` directories; `Shared/Lang/EN/ResShared.rc`; the
   launcher's bitmaps in `RES/bmp/` and `RES/Lang/EN/bmp/`) rebuilt nothing.
-  `build.mk`'s `rcfile` now hands every script to `tools/mkdeps.py` as a
+  `build.mk`'s `rcfile` now hands every script to `ext/tools/mkdeps.py` as a
   compile's source: it depends on the files in its directory and in each
   `/i` directory (resolved from the project directory, as rc.exe does), and
   on what it `#include`s and `rcinclude`s and the files its resources name
@@ -1242,8 +1242,8 @@ Everything is behind `NOLF2SRC_MODERN`; docs/MODERN.md has the items.
   from the modern build's 31000 and up).
 - **Retail bug**: a gamepad's buttons were bound by instance number
   (`docs/RETAIL_BUGS.md`, M-G63).
-- **Testing**: `NOLF2SRC_PADTEST` makes a file the pad; `tools/playtest.sh`
-  has `pad` and `tap`, and `tools/playtest-pad.txt` drives the menus,
+- **Testing**: `NOLF2SRC_PADTEST` makes a file the pad; `ext/tools/playtest.sh`
+  has `pad` and `tap`, and `ext/tools/playtest-pad.txt` drives the menus,
   Configure controls (a button bound), the Controller screen, a new game
   (cut-scene, briefing and cinematic gone on from with A) and play (turn,
   run, walk, crouch, the menu with Start, back with B). Not tested: real
@@ -1283,9 +1283,9 @@ at the desktop's size, so old configs come up as before).
   `_BORDERLESS`; 31000-31001 renamed to `IDS_MODERN_WINDOWMODE`); the
   launcher's own table 31000-31002 and control 1100; docs/MODERN.md M-E30,
   M-G70, M-L5.
-- **Testing.** `tools/playtest.sh` has `PLAYTEST_SCREEN` (a display larger
+- **Testing.** `ext/tools/playtest.sh` has `PLAYTEST_SCREEN` (a display larger
   than the mode, so a window has room around it) and a `screen` command
-  (the whole display); `tools/playtest-display.txt` steps the screen
+  (the whole display); `ext/tools/playtest-display.txt` steps the screen
   through the three modes. Xvfb has no window manager, so a framed
   window's frame is not drawn; only its placement shows. Full screen on
   Xvfb can only be at the display's own size.
@@ -1296,7 +1296,7 @@ at the desktop's size, so old configs come up as before).
   asked for, with and without a window manager (openbox, in a scratch
   image: `PLAYTEST_WM`), antialiasing on and off, borderless from the
   command line and both ways through the in-game Display screen, Alt+Tab
-  and minimise/restore (`tools/playtest-borderless.txt`). Found and fixed:
+  and minimise/restore (`ext/tools/playtest-borderless.txt`). Found and fixed:
   at 3840x2160 the game crashed as it started (M-E31: a text parse, the
   HUD's radio menu; full screen at that size too, but borderless takes a
   4K desktop's size unasked); on a 5:4-only display leaving the Display
@@ -1456,13 +1456,13 @@ event.
   names), lines of console text over play (`NumConsoleLines`, Jupiter's
   `DrawSmall`), a console background image (`console.pcx`, not shipped),
   the mouse wheel to scroll. `ConsoleAlpha` is not read.
-- **Testing**: `tools/playtest.sh` has `type <text>`;
-  `tools/playtest-console.txt` (modern game directory) opens it over play,
+- **Testing**: `ext/tools/playtest.sh` has `type <text>`;
+  `ext/tools/playtest-console.txt` (modern game directory) opens it over play,
   sets a variable, `GetPos`, Tab (one match, several), Up, `Cheat pos`,
   closes it and walks, `SetPos` back to the start (GetPos then reads the
   start again, on the floor), Shift+Esc and Esc, the in-game menu. Run at
   640x480, 1920x1080 and 3840x2160 (`PLAYTEST_RES`), screenshots checked.
-  Multiplayer: `tools/mptest.sh` with `MPTEST_KEYS` ending
+  Multiplayer: `ext/tools/mptest.sh` with `MPTEST_KEYS` ending
   `grave g e t p o s Return ... grave` (the modern join screen needs
   `Down Down` before the server's `Return`): over a joined client,
   `GetPos` answered, `SetPos` refused, the client stayed joined. That the
@@ -1526,22 +1526,22 @@ the archives without "MZ" is not loaded, and a message says why and how to
 start the game (once). Arguments after `-cmdfile` are read (tested:
 `Lithtech.exe +DisableMovies 0` played the movies over nolf2cmds.txt's 1).
 
-**Testing** (`tools/playtest.sh`: `PLAYTEST_LAUNCH` starts another program
+**Testing** (`ext/tools/playtest.sh`: `PLAYTEST_LAUNCH` starts another program
 than `Lithtech.exe -cmdfile`, and the game counts as running while it or a
 `Lithtech.exe` is; `wfocus`, `wclick`, `sclick` drive the launcher's
 dialogs; MANIFEST.txt is now linked into the run directory, for
 `windows-run.bat`), each in a new `PLAYTEST_PREFIX` (no registry):
-- modern, `tools/playtest-launcher.txt` (800x600): Play shown, Uninstall
+- modern, `ext/tools/playtest-launcher.txt` (800x600): Play shown, Uninstall
   disabled; Display and Options (warnings, OK); Play, the detail dialog,
   the main menu. The prefix then had only the HKCU key (the launcher's
   values and the game's `ProfileName`), no HKLM key.
-  `tools/playtest-launcher-again.txt` in the same prefix: no detail dialog,
+  `ext/tools/playtest-launcher-again.txt` in the same prefix: no detail dialog,
   the options kept, the main menu.
 - modern, a prefix with a retail install's HKLM values (`InstallDir`
   `C:\Games\NOLF2`, `UpdateCommandLine1` `-rez Update_v1x3.rez`, `EndGame`):
   copied to HKCU on the first run; played from its own folder, with
   `-rez custom` after the update.
-- modern, bare `Lithtech.exe`: `tools/playtest-newgame.txt` passes (menu,
+- modern, bare `Lithtech.exe`: `ext/tools/playtest-newgame.txt` passes (menu,
   new game, play). The issue's stack without `custom`: the main menu. With
   `custom` before the update: the new message box.
 - `cmd /c windows-run.bat`: release build to the main menu (movies off);
@@ -1549,8 +1549,8 @@ dialogs; MANIFEST.txt is now linked into the run directory, for
   modern build's 0, then the argument).
 - release build: fresh prefix, "install" and the issue's error (reproduced);
   with the values the installer writes added by `wine reg add` (HKLM,
-  `/reg:32`), `tools/playtest-launcher.txt` reaches the game.
-- modern `NOLF2Srv.exe` in a fresh prefix: `tools/srvtest.sh` ALIVE.
+  `/reg:32`), `ext/tools/playtest-launcher.txt` reaches the game.
+- modern `NOLF2Srv.exe` in a fresh prefix: `ext/tools/srvtest.sh` ALIVE.
 
 **Not tested** (no Windows here): the PowerShell itself (reviewed for
 PowerShell 5.1 and ASCII only; `mkinstall.py` checks the latter); the
@@ -1574,7 +1574,7 @@ HKCU (modern reads and writes HKCU only); and, in the modern build,
 installs the .bat in the legacy build only; `windows-install.ps1` writes
 the registry only when MANIFEST.txt has no `EXT` `binkw32.dll`, i.e. the
 legacy build, with Disable Movies 1). The tests above of those parts no
-longer apply; `tools/playtest-launcher.txt` (modern, fresh prefix) was run
+longer apply; `ext/tools/playtest-launcher.txt` (modern, fresh prefix) was run
 again after the change.
 
 ### srvplace
@@ -1727,7 +1727,7 @@ What was left, and why:
   + `TitanTest.obj` (to 0x10017a40) differ from retail only in addresses.
 - 4 unplaced (`~CWinSync_CSAuto`, `~CWinSync_CS`, `~CWinSync_Event`,
   `~_Node_Alloc_Lock`): in retail at the same addresses, but reached only by
-  `jmp` from exception-unwind funclets, which `tools/enumfuncs.py` did not
+  `jmp` from exception-unwind funclets, which `ext/tools/enumfuncs.py` did not
   follow, so they merged into the rows before them. New rule 4e: the jump
   target of a funclet (`lea/mov ecx,<slot>` or `mov ecx,imm32`, optionally
   `add ecx,imm`, then `jmp rel32`) is a start. Every target gains
@@ -1738,7 +1738,7 @@ What was left, and why:
 **The function tables are derived** (`out/reference/*-functions.csv`), so
 a tree with the old tables would score the new baseline wrong:
 `build/progress.sh` now rebuilds them (`build/reference.sh tables`) when
-`tools/enumfuncs.py` is newer than they are, and enumfuncs writes a new file
+`ext/tools/enumfuncs.py` is newer than they are, and enumfuncs writes a new file
 over the old one, never through a worktree's hard link.
 
 Left: 75 `small` rows (647 bytes), functions too short to place by bytes.
@@ -1938,7 +1938,7 @@ bytes), unplaced 128 -> 126, unwritten 9.
   marking them NOT A FUNCTION frees eight `FinalizeUnlock` instances retail
   seems to expand, so unplaced rises.
 - The Lib_UI tail in the SecuROM pages could be placed against the MP
-  demo's plaintext (`tools/demoimports.py plain`) if progress.py matched
+  demo's plaintext (`ext/tools/demoimports.py plain`) if progress.py matched
   the `encrypted` range against it.
 
 ### rendershader
@@ -1991,7 +1991,7 @@ six SortSections.
 
 A measurement change, no code work. `small` functions (fewer than 8
 unmasked bytes, placed by shape) are now verified in the linked images:
-tools/progress.py builds a mapping of our addresses to shipped ones from
+ext/tools/progress.py builds a mapping of our addresses to shipped ones from
 the identical functions (their relocated operands, typed by the COFF
 relocation -- exematch.parse_obj_masked can now return the types --, their
 own addresses, the slots of vtables they pair, import slots by name; any
@@ -2020,7 +2020,7 @@ short initializers counted by shape only change names.
   function. A mapping by symbol + offset from our .map (a reference to
   g+8 when identical code only names g+4) would verify more; so would
   mapping the C runtime's statics (`_atexit`) by name or bytes.
-- `tools/progress.py --refuted[=target]` lists ~205 refuted ones
+- `ext/tools/progress.py --refuted[=target]` lists ~205 refuted ones
   (Lithtech 62, server 34, CShell 52, Object 39, ClientFx 7, snddrv 5,
   NOLF2Srv 5, ServerDir 1). Most are still shape misplacements among
   sibling initializers whose right address is held by another unverified
@@ -2108,7 +2108,7 @@ so ours had icons 1-4 and MFC's help cursor (`AFX_IDC_CONTEXTHELP`, 30977,
 two images) as cursors 5-6; retail has icons 1-5 and cursors 6-7. The
 cursor itself is the toolchain's `afxres.rc` `res\help.cur`, byte for
 byte. build/all.sh now reads retail's icon out of the retail Lithtech.exe
-at build time (step 2c, `tools/retailextract.py art`, a new general
+at build time (step 2c, `ext/tools/retailextract.py art`, a new general
 command) into `src/Engine/runtime/winbuild/lithtech/res/lithtech.ico`
 (ignored, not committed), and `lithtech.rc` names it; `idr_main.ico` is
 gone. The modern build shares the script and the step.
@@ -2213,8 +2213,8 @@ Both halves of that lead tried (Lithtech.exe, against 68d25fb):
 
 - **The encrypted pages read for placement.** progress/targets.py gives
   Lithtech.exe `readable` (out/mpdemo/Lithtech-readable.exe, made by
-  build/progress.sh from rez/'s demo chunks with tools/demoimports.py
-  extract + plain); tools/progress.py enumerates and compares from it,
+  build/progress.sh from ext/rez/'s demo chunks with ext/tools/demoimports.py
+  extract + plain); ext/tools/progress.py enumerates and compares from it,
   the rows there stay `encrypted`. Lithtech.exe unplaced 113 -> 64 (tools
   433cecf); then the shape count (short functions covered by count) also
   takes the shipped supply from those pages: 64 -> 27 (tools c3a8d77).

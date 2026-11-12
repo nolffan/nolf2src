@@ -1,16 +1,16 @@
 #!/usr/bin/env bash
 # lithrez, the command line tool for LithTech .rez archives, built from the
-# lithtools submodule (lithtools/tools/lithrez; C++17, CMake) into
+# lithtools submodule (ext/lithtools/tools/lithrez; C++17, CMake) into
 # out/lithrez/lithrez, without its Qt GUI and tests: build/all.sh packs
 # assets/rez/ into the game directory's nolf2src.rez with it. Built again
 # only when its sources are newer than the binary.
 #
 #   build/lithrez.sh
 set -e
-SRC=lithtools/tools/lithrez
+SRC=ext/lithtools/tools/lithrez
 OUT=out/lithrez
 [ -f "$SRC/CMakeLists.txt" ] || {
-    echo "error: lithtools/ is empty -- it is a submodule: run git submodule update --init lithtools" >&2
+    echo "error: ext/lithtools/ is empty -- it is a submodule: run git submodule update --init lithtools" >&2
     exit 1
 }
 if [ -x "$OUT/lithrez" ] &&

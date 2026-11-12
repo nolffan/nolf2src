@@ -14,7 +14,7 @@ runs on the engine built from source: see "Not done yet".)
 | `CShell.dll`, `Object.lto`, `ClientFx.fxd` | exact file size; code 16, 144 and 96 bytes off |
 
 These were SP6 builds. The build now uses VC6 SP5 (build 8966), as retail
-did (`toolchains/msvc-6.00-8966`), which makes `ClientFx.fxd` exact too; see
+did (`ext/toolchains/msvc-6.00-8966`), which makes `ClientFx.fxd` exact too; see
 README.md for the current state.
 
 ## What is in the repo
@@ -22,7 +22,7 @@ README.md for the current state.
 - **Submodules:** `rez` and `toolchains`, staged with their GitHub URLs. They
   were cloned from local copies to avoid downloading.
 - **Disc images:** the NOLF2 zips and isos are hard-linked into
-  `rez/isos/` from another local copy of rez, so they take no extra space,
+  `ext/rez/isos/` from another local copy of rez, so they take no extra space,
   and all verified against `isos/SHA256SUMS`.
 - **Source:** Monolith's release in `src/`, keeping the `Game/`, `Engine/`,
   `libs/` layout so their project files work unmodified. Text is converted to
@@ -30,7 +30,7 @@ README.md for the current state.
   byte.
 - **Build chain:** the same style as nolfsrc, with `NOLF2SRC_MODERN` /
   `NOLF2SRC_DEBUG` and outputs `out/nolf2-{legacy,modern}-{release,debug}`.
-  The new part is `tools/dsp2mk.py`, which reads Monolith's workspace and
+  The new part is `ext/tools/dsp2mk.py`, which reads Monolith's workspace and
   project files (Final configuration) and generates the build rules, compile
   for compile.
 - **Output folders:** the game folder is audited (11 built, the engine
@@ -41,7 +41,7 @@ README.md for the current state.
 
 - A new release, `nolf2-eu-1.3`: the European install with the English 1.3
   update applied.
-- `tools/sfxcab.py`, which unpacks the update's self-extractor.
+- `ext/tools/sfxcab.py`, which unpacks the update's self-extractor.
 - The update's registry values (`UpdateNum` 2, `UpdateCommandLine1`).
 - Its file hashes in `games.sha256`.
 - The README updated.
@@ -65,7 +65,7 @@ Separately, a rare Wine compiler crash under parallel load (`C1001` /
   (SecuROM asks for the disc; the protection is not removed or bypassed).
   Since package 7 of `docs/engine/PLAN.md` the game gets the engine built
   from source, which has none, and runs.
-- **Launcher (`NOLF2.exe`):** builds (DirectX 8.1 SDK, `toolchains/dxsdk-8.1`)
+- **Launcher (`NOLF2.exe`):** builds (DirectX 8.1 SDK, `ext/toolchains/dxsdk-8.1`)
   but `build/all.sh` does not put it in the game directory yet.
 - **`make progress`:** adapted to NOLF2: `progress/targets.py` lists each
   binary, its code range and what is left out (the C runtime, D3DX, WONAPI,
@@ -90,7 +90,7 @@ Doing it once nolf2src's scorer works means two real users shape the config.
 
 That is how it went: the tools became target-driven in nolf2src (step 1 is
 `progress/targets.py`, step 2 the tools reading it), and the shared repository
-is github.com/nolffan/tools, carried as `tools/` by nolf2src and cjacksrc,
+is github.com/nolffan/tools, carried as `ext/tools/` by nolf2src and cjacksrc,
 and by nolfsrc at a commit from before the target-driven tools.
 
 ## Next steps

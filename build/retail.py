@@ -1,4 +1,4 @@
-# NOLF2's retail game, for tools/retailextract.py and tools/mkinstall.py
+# NOLF2's retail game, for ext/tools/retailextract.py and ext/tools/mkinstall.py
 # (their defaults are NOLF2's; this sets what differs from them).
 #
 # The 1.3 update's data ships with the release: assets/ holds what its

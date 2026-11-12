@@ -1,17 +1,17 @@
 [submodule "rez"]
-	path = rez
+	path = ext/rez
 	url = git@github.com:nolffan/rez.git
 [submodule "toolchains"]
-	path = toolchains
+	path = ext/toolchains
 	url = git@github.com:nolffan/toolchains.git
 [submodule "ext/ffmpeg"]
 	path = ext/ffmpeg
 	url = git@github.com:FFmpeg/FFmpeg.git
 	shallow = true
 [submodule "tools"]
-	path = tools
+	path = ext/tools
 	url = git@github.com:nolffan/tools.git
 [submodule "lithtools"]
-	path = lithtools
+	path = ext/lithtools
 	url = git@github.com:nolffan/lithtools.git
 	shallow = true

@@ -1,4 +1,4 @@
-## The text differences from the retail images that are known: tools/datacheck.py.
+## The text differences from the retail images that are known: ext/tools/datacheck.py.
 ## <image><TAB><retail|ours><TAB><string>; `# ...` is the reason for the entries after it.
 
 # Monolith's build path: WONAPI's QueueSocket.cpp was compiled as C:\proj\to2\source_retail\Game\Libs\WONAPI\..., and an anonymous namespace's RTTI name is made from the path (and a time stamp); ours is built from the repository

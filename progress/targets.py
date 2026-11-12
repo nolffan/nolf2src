@@ -1,7 +1,7 @@
 """What the scoreboard scores: this project's binaries, and where each one's
 own code, and ours, is.
 
-tools/progress.py and tools/ratchet.py read this file and nothing else
+ext/tools/progress.py and ext/tools/ratchet.py read this file and nothing else
 about the project, so they know no binary by name: a binary is added here,
 not in the tools. Plain data, with the evidence for every address beside
 it (the CSVs in this directory are the rest of the evidence).
@@ -43,10 +43,10 @@ TARGETS, one dict per shipped binary, in the README's order:
   cited_src  the source trees whose comments cite it (default CITED_SRC):
              per target, because the DLLs share the 0x10000000 range
   purecall   the shipped address of the CRT's `_purecall` (every abstract
-             vtable's filler), where tools/vtabcheck.py cannot find its
+             vtable's filler), where ext/tools/vtabcheck.py cannot find its
              `jmp [IAT]` thunk itself
 
-The reconstruction tools (tools/tgt.py) read the same entries: a tool is
+The reconstruction tools (ext/tools/tgt.py) read the same entries: a tool is
 given a target by label or stem (`Lithtech`, `server`), and its image,
 build, link inputs and regions come from here.
 
@@ -54,9 +54,9 @@ Optional per target, for what NOLF's scoreboard needs and this one does
 not yet: icl (Intel C/C++ padding and /Qip names), linked_oracle (compare
 relocation-free functions against our linked image too), lib_range,
 lib_block, own_names / own_symbols (names that say a function's shipped
-address) -- see tools/progress.py.
+address) -- see ext/tools/progress.py.
 
-How the ranges were found: `tools/libscan.py <image> <lib>...` puts each
+How the ranges were found: `ext/tools/libscan.py <image> <lib>...` puts each
 library's functions in the image, and for a binary we build, our own .map
 names the library of every function and the retail address of each
 boundary is found from ours (the game DLLs are laid out as retail, at most
@@ -122,7 +122,7 @@ TARGETS = [
          encrypted=[(0x00565000, 0x0056a000)],
          # those pages as the multiplayer demo's unprotected engine has them
          # (built 20 days after 1.3, Rich header identical), at retail's
-         # addresses: tools/demoimports.py plain, made by build/progress.sh.
+         # addresses: ext/tools/demoimports.py plain, made by build/progress.sh.
          # Read for placement only: the rows there stay `encrypted`
          readable="out/mpdemo/Lithtech-readable.exe",
          # D3DX, statically linked from the DirectX 8.1 SDK's d3dx8.lib
@@ -147,7 +147,7 @@ TARGETS = [
          # repository, so they need no entry.
          third_party=["d3dx8.lib"],
          # MSVCRT!_purecall's `jmp [IAT]` thunk, in the encrypted pages:
-         # the demo's thunk, placed by tools/demoimports.py's shift for
+         # the demo's thunk, placed by ext/tools/demoimports.py's shift for
          # 0x5675e0.. (retail = demo - 0x10)
          purecall=0x00567616),
     dict(label="server.dll", what="the engine's server", kind="image",
@@ -163,7 +163,7 @@ TARGETS = [
          # src/Game/Libs/ServerDir/ServerDir.dsw: CServerDir_Titan.cpp and
          # TitanTest.cpp (Monolith's, from the F.E.A.R. source release) and
          # WONAPI.lib, the WON/Titan client library, from the LithTech
-         # Jupiter SDK (tools/jupitersrc.py)
+         # Jupiter SDK (ext/tools/jupitersrc.py)
          built="src/Game/built/Final/libs/ServerDir/ServerDir.dll",
          # Monolith's code is CServerDir_Titan.obj, 0x10001000..0x10016d70,
          # then TitanTest.obj to 0x10017a40: its globals' initializers

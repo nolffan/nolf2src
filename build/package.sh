@@ -14,13 +14,13 @@
 #                               `THIRD-PARTY` files), which its
 #                               linux-install.sh / windows-install.bat copy
 #                               out of the player's own disc images and 1.3
-#                               update (tools/mkinstall.py): the one to give
+#                               update (ext/tools/mkinstall.py): the one to give
 #                               to other people. Its SHA256SUMS lists every
 #                               file of the archive and every file the
 #                               scripts write; they refuse a directory that
 #                               is not the archive unpacked. It needs the
 #                               images of both
-#                               releases' discs in rez/isos/ (rez/fetch-isos.sh
+#                               releases' discs in ext/rez/isos/ (ext/rez/fetch-isos.sh
 #                               nolf2-eu nolf2-usa); without them it is
 #                               skipped.
 #
@@ -40,7 +40,7 @@
 # one has them too when their shipped copies ship with it (assets/game/),
 # else its install scripts write them. nolf2cmds.txt, the engine's command file as the build
 # writes it (build/nolf2cmds.sh), is in the private archive (for
-# tools/playtest.sh) but not the public one: the launcher never reads it
+# ext/tools/playtest.sh) but not the public one: the launcher never reads it
 # (it writes launchcmds.txt).
 # Each is written beside and renamed into place, so a failed run never
 # leaves a truncated one; the <name>.tar.gz and plain .tar older builds made
@@ -85,7 +85,7 @@ fi
 # left out.
 PUB="$PARENT/$NAME-public.tar.gz"
 rc=0
-python3 "$HERE/../tools/mkinstall.py" "$OUT" "$PARENT/$STAGE" || rc=$?
+python3 "$HERE/../ext/tools/mkinstall.py" "$OUT" "$PARENT/$STAGE" || rc=$?
 if [ $rc = 3 ] && [ -n "${NOLF2_ARCHIVES:-}" ]; then
     echo "   $PUB: no disc images, but NOLF2_ARCHIVES asks for it" >&2
     exit 1

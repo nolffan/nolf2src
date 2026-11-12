@@ -1,6 +1,6 @@
 # 07 · Naming anonymous functions from vtables
 
-The check-literal trick (`tools/tagmap.py`: the `Class::Method` string a
+The check-literal trick (`ext/tools/tagmap.py`: the `Class::Method` string a
 `RETURN_ERROR` pushes) names a function only if it validates its arguments. Most functions don't, so most of a
 stripped engine binary stays `sub_1000xxxx`. This guide is the second naming
 source, and it is bigger than the first: **a vtable is a class's method list
@@ -14,7 +14,7 @@ checks or not.
    in the data sections:
 
    ```sh
-   tools/vtabmap.py out/reference/server.dll --at <addr> \
+   ext/tools/vtabmap.py out/reference/server.dll --at <addr> \
        --names out/reference/server-functions.csv
    ```
 
@@ -26,7 +26,7 @@ checks or not.
 2. **Anchor the run against an SDK header.** Count virtuals in the header
    (`src/Engine/sdk/inc/`, NOLF2's own SDK; for engine-internal classes
    the Jupiter tree's headers, `../fear/Dev/Source/runtime`), in declaration order, starting from the class's
-   first virtual — `tools/sdkvtab.py` reads that order off a header for you.
+   first virtual — `ext/tools/sdkvtab.py` reads that order off a header for you.
    When the labelled slots land on the right names in the right order, the
    vtable is identified — and every *unlabelled* slot between them is now
    named by whatever the header declares at that position.
@@ -35,7 +35,7 @@ checks or not.
    back-to-back vtables into one run, because nothing separates them in
    `.rdata`. The seam shows as a discontinuity: the slot sequence stops
    following one header and starts following another. Anchors on both sides
-   pin it exactly. `tools/vtabaudit.py` enumerates tables one per row from
+   pin it exactly. `ext/tools/vtabaudit.py` enumerates tables one per row from
    the evidence (the constructors that store each vptr), which is the
    reliable way to split a run.
 
@@ -49,13 +49,13 @@ is NOLF2's own SDK and the right era, but the Jupiter tree's headers are four
 years later, and vtable order is the thing that drifts. Check each slot's
 argument count against its `ret N` before trusting a long stretch of header
 order. The Mac engine helps here too: its vtables (`__ZTV...` symbols, read
-with `tools/macho.py`) list the 2003 methods in order, by name.
+with `ext/tools/macho.py`) list the 2003 methods in order, by name.
 
 **NOLF2's binaries make this easier than NOLF1's did.** `server.dll` has a
 `.reloc` section, so a vtable's extent there is exact: every slot is a
 relocated pointer and the next non-relocated dword ends the table.
 `build/reference.sh` already writes `<stem>-vtables.csv` for both engine
-images (`tools/vtabaudit.py`: 453 tables in the exe, 171 in the dll).
+images (`ext/tools/vtabaudit.py`: 453 tables in the exe, 171 in the dll).
 `Lithtech.exe` has no relocations, so its tables are found by evidence, as
 in NOLF1.
 
@@ -110,7 +110,7 @@ ILTVideoMgr…) has its implementation's vtable somewhere in `.rdata`. Each one
 is a batch of named, typed, documented functions — the same thing the
 literals give, but denser, and with signatures attached.
 
-Once a target links, `tools/vtabcheck.py` closes the loop the other way: it
+Once a target links, `ext/tools/vtabcheck.py` closes the loop the other way: it
 compares our linked image's vtables with the shipped ones slot by slot, which
 catches a constructor that is byte-identical (the vptr store is a masked
 relocation) while installing a stand-in table that is too short.

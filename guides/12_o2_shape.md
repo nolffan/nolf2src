@@ -1,6 +1,6 @@
 # 12 · Fixing /O2 shape in already-correct source
 
-Read this before working any `tools/o2gap.py` row. Everything here was learned
+Read this before working any `ext/tools/o2gap.py` row. Everything here was learned
 from measured builds in nolfsrc, on NOLF1's engine (whose `server.dll` was
 also `/O1` and whose `lithtech.exe` was `/O2`); none of it is theory. The
 function names, addresses and the "server/lithtech" counts below are NOLF1's.
@@ -24,7 +24,7 @@ the `/O2`-visible SHAPE is wrong. That is far cheaper than reconstructing from
 raw bytes, and server.dll acts as a built-in regression check: an edit that
 breaks `/O1` changed semantics rather than placement.
 
-`tools/o2gap.py` lists these functions. Work them with both loops:
+`ext/tools/o2gap.py` lists these functions. Work them with both loops:
 
 ```sh
 build/engine.sh server-one   <file.cpp> <symbol>
@@ -57,7 +57,7 @@ body again; one function needed the move at two levels before it closed.
 size.** Examples: `add $0x11a0` vs `$0x119c` (a missing dword), `push $0x2c4`
 vs `$0x20c` (`sizeof` 184 bytes short, read straight off `operator new`),
 `mov 0x1534` vs `0x1530` (`LTList` is 0x10 bytes, not 0x14). **Check this
-FIRST on any size-exact near.** `tools/layoutscan.py` and `tools/nearpos.py`
+FIRST on any size-exact near.** `ext/tools/layoutscan.py` and `ext/tools/nearpos.py`
 find this class mechanically.
 
 **3. Inline visibility, in both directions.** A helper the shipped `/O2`
@@ -123,7 +123,7 @@ those functions have no address in the shipped client at all.
 
 **Do not run a full build while someone else is editing the same tree.**
 Build per file as each edit lands, or give each worker its own worktree
-(`tools/agentwt.sh`).
+(`ext/tools/agentwt.sh`).
 
 ## The census proves the CALLEE, not the CALLERS
 
@@ -290,12 +290,12 @@ each iteration.
   window is the last three characters plus the NUL. Read the address back as
   text before disassembling it.
 * Enumeration SIZES are unreliable above about 1 KB: one row said 2,593 bytes
-  against a real 4,613. Verify extents with `tools/extentcheck.py` and by
+  against a real 4,613. Verify extents with `ext/tools/extentcheck.py` and by
   sweeping `e8`/`e9` displacements into the body.
 * `exematch` MASKS every relocated byte, so changing a call's callee SYMBOL
   cannot affect matching. It CAN break the whole link (`build/engine.sh
   Lithtech`): a renamed callee needs its definition (nolfsrc used alias
-  objects, `tools/mkaliasobj.py`, as a stopgap), and a second definition is a
+  objects, `ext/tools/mkaliasobj.py`, as a stopgap), and a second definition is a
   duplicate-COMDAT error. Check the link, not just the score.
 * A `+` suffix on an exematch address means those bytes occur more than once.
   When two functions differ ONLY inside a masked relocation, exematch will name

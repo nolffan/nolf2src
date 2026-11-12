@@ -509,7 +509,7 @@ as a double and you get `0.0001`, not the nonsense a float read gives.
 **Vtable slot order must be the SDK header's declaration order.** This is
 invisible until a function reaches a sibling method through `this` — and then
 every slot is wrong at once. Derive the layout from the binary (`ret N` arg
-counts plus error-tag strings, `tools/vtabmap.py`) and cross-check against the
+counts plus error-tag strings, `ext/tools/vtabmap.py`) and cross-check against the
 header; where an SDK header is from a later era than the binary, the binary
 wins. See [07-vtables](07_vtables.md).
 
@@ -733,7 +733,7 @@ Three cautions, all learned the hard way:
 ## Compiler revisions
 
 **NOLF2 has one.** Every Monolith object in NOLF2's binaries is `cl` build
-8966 (VC6 SP5, `toolchains/msvc-6.00-8966`), by the Rich headers, and the
+8966 (VC6 SP5, `ext/toolchains/msvc-6.00-8966`), by the Rich headers, and the
 game DLLs, launcher, dedicated server, `ServerDir.dll` and `snddrv.dll`
 built with it reproduce their retail Rich headers triple for triple
 ([`progress/COMPILERS.md`](../progress/COMPILERS.md)). So a near in NOLF2 is
@@ -745,7 +745,7 @@ data only).
 **`@comp.id` is exact where the Rich header is only inventory.** Every object
 MSVC emits carries an absolute symbol whose low sixteen bits are the
 compiler's build number; a `.lib` keeps its objects' symbol tables, so for a
-library the attribution is per object. `tools/compid.py` reads it out of a
+library the attribution is per object. `ext/tools/compid.py` reads it out of a
 `.lib` or an `.obj`.
 
 The flags, as known so far (the engine's are testimony until proven per
@@ -1620,12 +1620,12 @@ that hole:
 
 The first was found only by accident, when reconstructing the send side made
 two `fadds` share one `.rdata` address. The second was found by
-`tools/fpconst.py`, written for the purpose: for every function exematch
+`ext/tools/fpconst.py`, written for the purpose: for every function exematch
 places uniquely in the image, it walks the object's relocations and, where
 one points at a read-only constant of ours, reads the corresponding address
 out of the shipped image and compares the constants themselves.
 
-    python3 tools/fpconst.py out/reference/server.dll src/engine/server/Release
+    python3 ext/tools/fpconst.py out/reference/server.dll src/engine/server/Release
 
 Run it after any batch of changes; a clean sweep reports every operand
 agreeing.

@@ -1,14 +1,14 @@
 # build/build.mk -- every compile and link of the game, as one Makefile.
 #
 # Monolith's Visual C++ 6 workspace (src/Game/TO2.dsw) as Developer Studio
-# would build it: tools/dsp2mk.py reads the workspace and the project files
+# would build it: ext/tools/dsp2mk.py reads the workspace and the project files
 # and writes the rules (.build/projects.mk) -- every compile with the flags
 # its project's configuration gives it (the shipped one, "Final"; the
 # libraries' "Release" where they have no "Final"), one source per compile,
 # every library and link, the custom build steps (flex and bison). `make -j`
 # then runs the compiles of every binary at once, and a rebuild redoes only
 # what changed: an object is rebuilt when its source, a header it includes
-# (tools/mkdeps.py finds them: VC6 cannot list them; for a resource script,
+# (ext/tools/mkdeps.py finds them: VC6 cannot list them; for a resource script,
 # whatever it can include), or its command line
 # changes (the line is kept in <object>.cmd), a binary when any of its inputs
 # does.
@@ -24,7 +24,7 @@
 # ServerApp, ServerDir, ltmsg, Lithtech, server, and the libraries they
 # depend on); any single output.
 #
-# The compilers see the tree's src/ as drive S: and toolchains/ as T:, so
+# The compilers see the tree's src/ as drive S: and ext/toolchains/ as T:, so
 # they see the same paths wherever the tree is: VC6's output for NOLF's game
 # DLLs depended on the path. (Monolith's own build ran in
 # \proj\to2\source\, as the project files' custom build steps show; Wine
@@ -71,7 +71,7 @@ PROJECTS_WANTED := ClientShellDLL Object ClientFxDLL ClientRes ServerRes ServerA
 # import library: src/Game/Libs/ServerDir/ServerDir.dsw (written for this
 # project) builds it from CServerDir_Titan (src/Game/Libs/ServerDir/, from
 # the F.E.A.R. source release) and the LithTech Jupiter SDK's WONAPI, which
-# tools/jupitersrc.py copies into src/Game/Libs/ from rez/ (build/all.sh
+# ext/tools/jupitersrc.py copies into src/Game/Libs/ from ext/rez/ (build/all.sh
 # does, first).
 SERVERDIR_WANTED := ServerDir
 
@@ -108,7 +108,7 @@ PFX := $(ROOT)/.wine/drives
 # libraries, and the linker and librarian it ships. The SP5 tree has no
 # resource compiler; RC.EXE is SP6's. The DirectX 8.1 SDK comes before VC's
 # own directories, where its setup puts it.
-TC      := $(ROOT)/toolchains
+TC      := $(ROOT)/ext/toolchains
 VC8966  := $(TC)/msvc-6.00-8966
 VC9782  := $(TC)/msvc-6.00-9782
 DXSDK   := $(TC)/dxsdk-8.1
@@ -118,7 +118,7 @@ LIBEXE  := $(VC8966)/BIN/lib.exe
 RC      := $(VC9782)/Common/MSDev98/Bin/RC.EXE
 CL_eaxguid := $(TC)/msvc-6.00-8168/BIN/cl.exe
 
-# Windows paths: src/ is S:, toolchains/ T:, the rest Z:
+# Windows paths: src/ is S:, ext/toolchains/ T:, the rest Z:
 wz = z:$(subst /,\,$(1))
 ws = $(if $(filter $(ROOT)/src $(ROOT)/src/%,$(1)),s:$(subst /,\,$(patsubst $(ROOT)/src%,%,$(1))),$(if $(filter $(TC) $(TC)/%,$(1)),t:$(subst /,\,$(patsubst $(TC)%,%,$(1))),$(call wz,$(1))))
 
@@ -173,7 +173,7 @@ endef
 # $(call rcfile,<res>,<project dir>,<rc as spelled>,<rc in the tree>,<flags>)
 # What the script can include -- the files in its directory and in each /i
 # directory, what it #includes and rcincludes, the bitmaps, icons and other
-# files its resources name, recursively -- tools/mkdeps.py finds, as it
+# files its resources name, recursively -- ext/tools/mkdeps.py finds, as it
 # finds a compile's headers.
 define rcfile
 DEPSPEC += $(subst $(space),|,$(1)$(tab)$(2)$(tab)$(3)$(tab)$(strip $(NOLF2SRC_RCFLAGS) $(5)))
@@ -183,7 +183,7 @@ endef
 
 # $(call library,<lib>,<project dir>,<flags>,<objects>,<objects as the project dir sees them>)
 # A library PINNED_LIBS names has its objects' anonymous-namespace numbers,
-# which VC6 draws afresh on every compile, pinned first (tools/anonns.py):
+# which VC6 draws afresh on every compile, pinned first (ext/tools/anonns.py):
 # their length moves ServerDir.dll's layout, and a scored build has to be
 # reproducible. Only the release build is: a variant (NOLF2SRC_CFLAGS set) is
 # never scored, and with /Z7 the debug records hold the names too, which the
@@ -191,7 +191,7 @@ endef
 PINNED_LIBS := $(if $(NOLF2SRC_CFLAGS),,src/Game/built/Release/libs/WonAPI/WONAPI.lib)
 define library
 $(call tool,$(1),$(4) | wine-drives,\
-    $(if $(filter $(1),$(PINNED_LIBS)),python3 $(ROOT)/tools/anonns.py $(4:%=$(ROOT)/%) && )\
+    $(if $(filter $(1),$(PINNED_LIBS)),python3 $(ROOT)/ext/tools/anonns.py $(4:%=$(ROOT)/%) && )\
     cd $(2) && { printf '%s\n' $(call q,$(3) $(subst /,\,$(5))) > $(1:%=$(ROOT)/%).rsp; } && \
     $(ENV_GAME) $(WINE) $(LIBEXE) '@$(call ws,$(ROOT)/$(1)).rsp')
 endef
@@ -231,41 +231,41 @@ $(1) &: $(2) | wine-drives
 endef
 
 # ---------------------------------------------------------------------------
-# The projects (tools/dsp2mk.py)
+# The projects (ext/tools/dsp2mk.py)
 
 DEPDIR := $(ROOT)/.build
 $(shell mkdir -p $(DEPDIR))
 PROJECTS :=
-DSP_OK := $(shell python3 tools/dsp2mk.py src/Game/TO2.dsw Final $(DEPDIR)/projects.mk $(PROJECTS_WANTED) 2>$(DEPDIR)/dsp2mk.log && echo ok)
+DSP_OK := $(shell python3 ext/tools/dsp2mk.py src/Game/TO2.dsw Final $(DEPDIR)/projects.mk $(PROJECTS_WANTED) 2>$(DEPDIR)/dsp2mk.log && echo ok)
 ifneq ($(DSP_OK),ok)
-$(error tools/dsp2mk.py failed: $(file <$(DEPDIR)/dsp2mk.log))
+$(error ext/tools/dsp2mk.py failed: $(file <$(DEPDIR)/dsp2mk.log))
 endif
 include $(DEPDIR)/projects.mk
 
 ifeq ($(wildcard $(ROOT)/src/Game/Libs/WONAPI/WONAPI.dsp),)
-$(error src/Game/Libs/WONAPI/ is missing -- the Jupiter SDK's source is put there by tools/jupitersrc.py (build/all.sh runs it))
+$(error src/Game/Libs/WONAPI/ is missing -- the Jupiter SDK's source is put there by ext/tools/jupitersrc.py (build/all.sh runs it))
 endif
-DSP_OK := $(shell python3 tools/dsp2mk.py src/Game/Libs/ServerDir/ServerDir.dsw Final $(DEPDIR)/serverdir.mk $(SERVERDIR_WANTED) 2>$(DEPDIR)/dsp2mk-serverdir.log && echo ok)
+DSP_OK := $(shell python3 ext/tools/dsp2mk.py src/Game/Libs/ServerDir/ServerDir.dsw Final $(DEPDIR)/serverdir.mk $(SERVERDIR_WANTED) 2>$(DEPDIR)/dsp2mk-serverdir.log && echo ok)
 ifneq ($(DSP_OK),ok)
-$(error tools/dsp2mk.py failed: $(file <$(DEPDIR)/dsp2mk-serverdir.log))
+$(error ext/tools/dsp2mk.py failed: $(file <$(DEPDIR)/dsp2mk-serverdir.log))
 endif
 include $(DEPDIR)/serverdir.mk
 
-DSP_OK := $(shell python3 tools/dsp2mk.py src/Engine/snddrv/snddrv.dsw Final $(DEPDIR)/snddrv.mk $(SNDDRV_WANTED) 2>$(DEPDIR)/dsp2mk-snddrv.log && echo ok)
+DSP_OK := $(shell python3 ext/tools/dsp2mk.py src/Engine/snddrv/snddrv.dsw Final $(DEPDIR)/snddrv.mk $(SNDDRV_WANTED) 2>$(DEPDIR)/dsp2mk-snddrv.log && echo ok)
 ifneq ($(DSP_OK),ok)
-$(error tools/dsp2mk.py failed: $(file <$(DEPDIR)/dsp2mk-snddrv.log))
+$(error ext/tools/dsp2mk.py failed: $(file <$(DEPDIR)/dsp2mk-snddrv.log))
 endif
 include $(DEPDIR)/snddrv.mk
 
-DSP_OK := $(shell python3 tools/dsp2mk.py src/Engine/ltmsg/ltmsg.dsw Final $(DEPDIR)/ltmsg.mk $(LTMSG_WANTED) 2>$(DEPDIR)/dsp2mk-ltmsg.log && echo ok)
+DSP_OK := $(shell python3 ext/tools/dsp2mk.py src/Engine/ltmsg/ltmsg.dsw Final $(DEPDIR)/ltmsg.mk $(LTMSG_WANTED) 2>$(DEPDIR)/dsp2mk-ltmsg.log && echo ok)
 ifneq ($(DSP_OK),ok)
-$(error tools/dsp2mk.py failed: $(file <$(DEPDIR)/dsp2mk-ltmsg.log))
+$(error ext/tools/dsp2mk.py failed: $(file <$(DEPDIR)/dsp2mk-ltmsg.log))
 endif
 include $(DEPDIR)/ltmsg.mk
 
-DSP_OK := $(shell python3 tools/dsp2mk.py --have "$(PROJECTS)" src/Engine/runtime/winbuild/Engine.dsw Final $(DEPDIR)/engine.mk $(ENGINE_WANTED) 2>$(DEPDIR)/dsp2mk-engine.log && echo ok)
+DSP_OK := $(shell python3 ext/tools/dsp2mk.py --have "$(PROJECTS)" src/Engine/runtime/winbuild/Engine.dsw Final $(DEPDIR)/engine.mk $(ENGINE_WANTED) 2>$(DEPDIR)/dsp2mk-engine.log && echo ok)
 ifneq ($(DSP_OK),ok)
-$(error tools/dsp2mk.py failed: $(file <$(DEPDIR)/dsp2mk-engine.log))
+$(error ext/tools/dsp2mk.py failed: $(file <$(DEPDIR)/dsp2mk-engine.log))
 endif
 include $(DEPDIR)/engine.mk
 
@@ -309,10 +309,10 @@ $(TOOLS):
 
 FORCE:
 
-# Header dependencies (tools/mkdeps.py), brought up to date on every run
+# Header dependencies (ext/tools/mkdeps.py), brought up to date on every run
 $(file >$(DEPDIR)/deps.spec,$(subst |, ,$(subst $(space),$(nl),$(DEPSPEC))))
-DEPS_OK := $(shell python3 tools/mkdeps.py $(DEPDIR)/deps.spec $(DEPDIR)/deps.mk && echo ok)
+DEPS_OK := $(shell python3 ext/tools/mkdeps.py $(DEPDIR)/deps.spec $(DEPDIR)/deps.mk && echo ok)
 ifneq ($(DEPS_OK),ok)
-$(error tools/mkdeps.py failed)
+$(error ext/tools/mkdeps.py failed)
 endif
 include $(DEPDIR)/deps.mk

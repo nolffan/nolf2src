@@ -12,7 +12,7 @@ guide is how to work on them.
 - **No function names.** You work by address. `.text` is carved into
   functions with synthetic names (`sub_<addr>`); `build/reference.sh` writes
   that table for every image to `out/reference/<stem>-functions.csv`, and
-  `tools/progress.py` gives each row a status in `out/progress/functions.csv`.
+  `ext/tools/progress.py` gives each row a status in `out/progress/functions.csv`.
 - **Relocations: `server.dll` has them, `Lithtech.exe` does not.** NOLF2's
   DLLs (`server.dll`, the game DLLs, `snddrv.dll`) keep a real `.reloc`
   section (`server.dll`'s is 0x4c72 bytes), so every absolute address in them
@@ -53,7 +53,7 @@ things:
 **The 1.3 multiplayer demo's `Lithtech.exe` is the stand-in.** It was built
 20 days after retail, its Rich header is retail's triple for triple, and it
 is not protected. 94.5% of retail's app instructions occur in it verbatim.
-`tools/demoimports.py` extracts it from `rez/`, maps each redirected call
+`ext/tools/demoimports.py` extracts it from `ext/rez/`, maps each redirected call
 site to its real import (`progress/engine/Lithtech-iat-calls.csv`), and can
 write a readable copy of retail with the encrypted pages filled in and the
 redirected calls restored (into `out/`, never committed). Use the demo **for
@@ -73,10 +73,10 @@ binutils), after `build/reference.sh` has put the retail images in
 
 ```sh
 # annotated disassembly of a range (resolves IAT calls, inlines string/section refs)
-tools/exedump.py out/reference/server.dll 0x1002b705 0x1002b7a8
+ext/tools/exedump.py out/reference/server.dll 0x1002b705 0x1002b7a8
 
 # verify: does the image contain our objects' functions, byte-for-byte?
-tools/exematch.py out/reference/server.dll src/Engine/built/Final/server/*.obj
+ext/tools/exematch.py out/reference/server.dll src/Engine/built/Final/server/*.obj
 ```
 
 `exedump` is your `dumpfn` here -- read a function, identify its imports and
@@ -85,7 +85,7 @@ reports `MATCH <addr>` per function, or nothing for a miss.
 
 ## The method
 
-1. **Enumerate and map.** `tools/enumfuncs.py` collects function starts from
+1. **Enumerate and map.** `ext/tools/enumfuncs.py` collects function starts from
    several independent sources and reports byte coverage (`build/reference.sh`
    already runs it for every image: about 11,000 rows for `Lithtech.exe`,
    3,570 for `server.dll`). Use all the sources -- none is sufficient alone.
@@ -95,7 +95,7 @@ reports `MATCH <addr>` per function, or nothing for a miss.
    starts are still missing.
 
 2. **Name and place them.** NOLF2 has far better evidence than NOLF1 had:
-   - **The Mac NOLF2 engine** (`tools/macho.py`) is not stripped: every
+   - **The Mac NOLF2 engine** (`ext/tools/macho.py`) is not stripped: every
      function's mangled C++ name, class and size, and Monolith's source paths
      (`Source/Engine/Runtime/...`). `progress/engine/mac-functions.csv`
      attributes each function to its source file. It decides which files
@@ -108,7 +108,7 @@ reports `MATCH <addr>` per function, or nothing for a miss.
      symbols say what 2002 had).
    - **Error tags and interface registrations.** `RETURN_ERROR(...,
      "Class::Method", ...)` literals name 133 functions of the exe outright
-     (`tools/tagmap.py`), and every `define_holder` /
+     (`ext/tools/tagmap.py`), and every `define_holder` /
      `instantiate_implementation` pushes its interface name from an
      initializer at the start of its object (48 in the exe, 25 in the dll):
      object boundaries for free.
@@ -141,7 +141,7 @@ tells look like: [03](03_reading_disassembly.md#o1-minimize-size-idioms)).
 
 `build/engine.sh` builds each target through `build/build.mk`'s engine pass
 (the projects in `src/Engine/runtime/winbuild/Engine.dsw`, turned into make
-rules by `tools/dsp2mk.py`) and, with `verify`, runs `exematch` on every
+rules by `ext/tools/dsp2mk.py`) and, with `verify`, runs `exematch` on every
 object:
 
 ```sh
@@ -184,9 +184,9 @@ A byte-identical function needs no runtime test: it *is* the shipped code. A
 therefore not shown to be correct. For NOLF2 this matters more than it did
 for NOLF1: the retail `Lithtech.exe` does not run under Wine because of
 SecuROM, so **a built `Lithtech.exe` that boots is the way to play the 1.3
-game from this tree**, and every near in it runs. `tools/loadtest.c` loads a
+game from this tree**, and every near in it runs. `ext/tools/loadtest.c` loads a
 linked `server.dll` under Wine and exercises `CreateServer` /
-`DeleteServer`; `make test` (`tools/playtest.sh`) plays the game.
+`DeleteServer`; `make test` (`ext/tools/playtest.sh`) plays the game.
 
 The lesson that carried over from running nears in NOLF1: **a near can be
 the wrong function.** Pairing by shape once matched a thiscall `AllocItems`

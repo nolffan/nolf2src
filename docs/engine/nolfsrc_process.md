@@ -21,7 +21,7 @@ directory:
    squashed commit, "First blood" (2215e97). The 128 later commits that touch `src/engine` add
    only about 3.8k net lines: closing nears, placing functions and fixing pairings. The
    process is therefore recorded in `guides/` (13 guides), `progress/README.md`,
-   `toolchains/COMPILERS.md` and the long banner comments in each source file.
+   `ext/toolchains/COMPILERS.md` and the long banner comments in each source file.
 2. **For NOLF2 (Jupiter), the F.E.A.R. tree is the right seed almost everywhere. nolfsrc's
    engine source is not.** The evidence:
    - NOLF2's SDK headers are line-for-line the F.E.A.R. tree's for `iltmessage.h`,
@@ -75,7 +75,7 @@ directory:
 | RezMgr | Reconstructed | `src/lithshared/rezmgr/` was written from the bytes. It was identified as a prebuilt `.lib` because the same bytes appear in both `lithtech.exe` (/O2) and `server.dll` (/O1). |
 | AvP2 `proj/LT2` | **No** | `grep` finds no reference. It holds only `sdk/` and `lithshared/` headers plus prebuilt `libs/{debug,release}/*.lib` with symbols: RezMgr, controlfilemgr, StdLith, WONAPI and others. These were never used. They are still a symbol-bearing reference for an LT2.2-era RezMgr (members `REZMGR.OBJ`, `REZHASH.OBJ`, `RezFile.obj`). |
 | Shogo (`../shogo`) | **No** | Game code plus `softdib.ren`; no engine. |
-| NOLF1 Mac PEF (`tools/pef.py`) | Late, and not for the engine recon | `pef.py` arrived on Oct 12 (7e4b28f), after the engine work, as a reference for the modern renderers. The engine's names came from tag strings, vtables and inference instead. |
+| NOLF1 Mac PEF (`ext/tools/pef.py`) | Late, and not for the engine recon | `pef.py` arrived on Oct 12 (7e4b28f), after the engine work, as a reference for the modern renderers. The engine's names came from tag strings, vtables and inference instead. |
 
 ### 1.2 Order of work
 
@@ -131,7 +131,7 @@ Final state: `lithtech.exe` 77.5% of bytes identical (3,042 of 3,432 functions),
 
   `build/engine.sh` wraps it with `server|lithtech|d3d [verify]`, the `*-one <tu.cpp> [sym]`
   loop (recompile one object, then `exematch`), and `*-link test`, which loads the image
-  under Wine through `tools/loadtest.c` with its base occupied.
+  under Wine through `ext/tools/loadtest.c` with its base occupied.
 - **Link order was never matched.** `SERVER_OBJ := $(sort …)` and
   `LITHTECH_OBJ := $(sort …)` link the objects alphabetically. `progress/README.md` says so
   ("that final, whole-file comparison is not made yet"). Scoring is per function only.
@@ -162,7 +162,7 @@ Final state: `lithtech.exe` 77.5% of bytes identical (3,042 of 3,432 functions),
   - The modern and debug code goes in `#ifdef NOLFSRC_MODERN` blocks. `releasesrc.py`
     removes them before the release compile, because VC6 output depends on line layout.
 
-### 1.4 How the scorer places functions (`tools/progress.py`, `progress/README.md`)
+### 1.4 How the scorer places functions (`ext/tools/progress.py`, `progress/README.md`)
 
 A shipped function is placed in this order:
 
@@ -268,8 +268,8 @@ The evidence CSVs change the denominator, so each row must carry evidence:
 | Engine source paths | invented | Mac binary strings: `Source/Engine/Runtime/{client,kernel,kernel/mem,model,render_a/src/sys/d3d,render_b/src/sys/d3d,server,shared,sound}/src/...`, `Source/Engine/libs/rezmgr`, `Source/libs/stdlith` | the same `runtime/<module>/src/` tree |
 
 **The Mac NOLF2 engine is a significant resource that nolf2src does not use yet.**
-`rez/games/nolf2-mac-usa/NOLF2.app/Contents/MacOS/NOLF2` is a GCC-built Mach-O PowerPC binary.
-`rez/README.md` counts about 19,500 symbols; this survey extracted about 11k demangled
+`ext/rez/games/nolf2-mac-usa/NOLF2.app/Contents/MacOS/NOLF2` is a GCC-built Mach-O PowerPC binary.
+`ext/rez/README.md` counts about 19,500 symbols; this survey extracted about 11k demangled
 names. The NOLF2Srv Mac bundle's `server` (`Contents/Resources/server.dll/Contents/MacOS/server`)
 has about 3,080 functions, 3,043 of which also appear in the Mac client engine. That confirms
 the NOLF1 structure: the server TUs are linked into the client too. The Mac binaries give:
@@ -340,7 +340,7 @@ does not apply, and `fndiff.py`'s revision hints are wrong for NOLF2.
   - `pef.py` (the NOLF1 Mac PEF reader);
   - `moddata.py`;
   - the modern playtest scripts `p1..p5*.txt`;
-  - **`guides/`**: none of it is in nolf2src, although `tools/README.md` refers readers to it.
+  - **`guides/`**: none of it is in nolf2src, although `ext/tools/README.md` refers readers to it.
 - **Not ported from `build/`:**
   - `build/engine.sh` (the `server|lithtech verify`, `*-one`, `*-link test` loop);
   - `env.sh`'s `run_cl`, `run_link`, `run_lib`, `run_rc` and `CL_REV`; nolf2src's `env.sh`
@@ -360,7 +360,7 @@ Grep of nolf2src/tools for hard-coded NOLF1 facts (comments excluded where noted
 | `nearscan.py`, `layoutscan.py`, `tagmap.py` | `OBJDIR`/`IMAGE` dicts and `rel = {"lithtech.exe": "src/engine/lithtech/Release", …}` | The same remap; better, derive the object directories from the built image's `.rsp` as `progress.py` does |
 | `fndiff.py` | default `--image=out/reference/server.dll`; hints naming 8168/8447 ("server.dll is a mixed 8168/8447 build") | NOLF2 is uniformly 8966, so drop or retarget the revision hints |
 | `sdkvtab.py` | `src/LT2/sdk/inc` | `src/Engine/sdk/inc` |
-| `agentwt.sh` | checks `out/reference/server.dll`; assumes outputs in `src/*/Release` and `src/lithshared/out` | NOLF2 builds into `src/Game/built`, `src/Engine/built` and `src/libs/built`; `rez/sdk` (the Jupiter SDK) must also be linked in |
+| `agentwt.sh` | checks `out/reference/server.dll`; assumes outputs in `src/*/Release` and `src/lithshared/out` | NOLF2 builds into `src/Game/built`, `src/Engine/built` and `src/libs/built`; `ext/rez/sdk` (the Jupiter SDK) must also be linked in |
 | `exedump.py`, `enumfuncs.py`, `extentcheck.py` | generic; d3d notes only | **SecuROM:** `Lithtech.exe` 0x565000–0x56a000 is encrypted and holds the CRT entry, chkstk- and atexit-like targets (0x567648 has 401 callers). Calls into it will show as unknown; `enumfuncs` rows there are garbage, and the scorer already marks them `encrypted`. The `.cms_t`/`.cms_d` sections should be skipped by any section scan |
 | `mkaliasobj.py`, `mkvtabobj.py`, `mkviewobj.py`, `linkresolve.py` | generic | Keep as fallbacks only. With real class declarations from the F.E.A.R. tree, the stand-in vtables and aliases should mostly be unnecessary |
 | `loadtest.c` | `CreateServer`/`DeleteServer` | Usable for NOLF2's `server.dll` as is. NOLF2 also exports `SetMasterDatabase`, which could be exercised |
@@ -472,10 +472,10 @@ Follow the snddrv and ltmsg pattern exactly (`build/build.mk`):
 
 ```make
 ENGINE_WANTED := Lithtech server
-DSP_OK := $(shell python3 tools/dsp2mk.py src/Engine/runtime/winbuild/Engine.dsw Final \
+DSP_OK := $(shell python3 ext/tools/dsp2mk.py src/Engine/runtime/winbuild/Engine.dsw Final \
             $(DEPDIR)/engine.mk $(ENGINE_WANTED) 2>$(DEPDIR)/dsp2mk-engine.log && echo ok)
 ifneq ($(DSP_OK),ok)
-$(error tools/dsp2mk.py failed: $(file <$(DEPDIR)/dsp2mk-engine.log))
+$(error ext/tools/dsp2mk.py failed: $(file <$(DEPDIR)/dsp2mk-engine.log))
 endif
 include $(DEPDIR)/engine.mk
 all game: ... $(ENGINE_WANTED)
@@ -486,7 +486,7 @@ all game: ... $(ENGINE_WANTED)
   `CL_<project>` overrides. The `binary` macro writes the `.rsp` and `.map` the scorer needs.
 - The workspace needs `ltmem` (already in `src/libs/ltmem`, added for snddrv), `stdlith` and
   `lith` (Monolith's, in `src/libs`), and `rezmgr` (new).
-- Link libraries: from `toolchains/dxsdk-8.1`, `d3d8.lib`, `d3dx8.lib`, `dinput8.lib` and
+- Link libraries: from `ext/toolchains/dxsdk-8.1`, `d3d8.lib`, `d3dx8.lib`, `dinput8.lib` and
   `dxguid.lib`; plus `wsock32`, `winmm`, `version`, `ole32`, `advapi32`, `gdi32`, `user32`
   and `kernel32`. Bink is not imported by the retail exe, so it is presumably loaded
   dynamically.

@@ -40,7 +40,7 @@ mkdir -p "$OUT"
 # are what they were when it was last built. A directory (the submodule)
 # counts by its files' names, sizes and times -- read without git, which
 # the image does not have, and the same whether ext/ffmpeg is a submodule
-# checkout or a worktree's hard-linked copy of one (tools/agentwt.sh).
+# checkout or a worktree's hard-linked copy of one (ext/tools/agentwt.sh).
 inputs() { for f in "$@"; do
                if [ -d "$f" ]; then
                    echo "$f $(find "$f" -name .git -prune -o -type f -printf '%P %s %T@\n' | sort | sha256sum)"

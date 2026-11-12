@@ -34,7 +34,7 @@
 # span both discs: python3 (its zlib) unpacks them, with bash, sha256sum, stat and sed
 # (GNU coreutils; a Steam Deck has them all). The list of files, at the end
 # of this script, says for each one which bytes of which image it is made
-# of (tools/mkinstall.py).
+# of (ext/tools/mkinstall.py).
 set -euo pipefail
 HERE="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 SELF="$HERE/$(basename "${BASH_SOURCE[0]}")"

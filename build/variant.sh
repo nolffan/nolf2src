@@ -9,7 +9,7 @@
 #
 # (on the host the make targets run this in the build container; inside
 # `make shell` run it directly). Play the result exactly like out/nolf2-legacy-release/:
-# out/<name>/linux-run.sh, or tools/playtest.sh out/<name> ...
+# out/<name>/linux-run.sh, or ext/tools/playtest.sh out/<name> ...
 #
 #   debug    NOLF2SRC_DEBUG and symbols, for finding out why something goes
 #            wrong. Compile + /Z7 /Oy- /D NOLF2SRC_DEBUG (debug information,
@@ -75,20 +75,17 @@ if ! command -v wine >/dev/null 2>&1; then
 fi
 
 TREE="$REPO/out/build-$VARIANT"
-echo "== $VARIANT tree: src/ build/ tools/ -> out/build-$VARIANT/ (sources only; its outputs kept)"
+echo "== $VARIANT tree: src/ build/ ext/tools/ -> out/build-$VARIANT/ (sources only; its outputs kept)"
 mkdir -p "$TREE"
-python3 tools/releasesrc.py mirror "$REPO/src" "$TREE/src"
-rm -rf "$TREE/build" "$TREE/tools"
-tar -C "$REPO" -cf - --exclude='__pycache__' --exclude='.git' build tools | tar -C "$TREE" -xf -
-# the compilers, and the retail game where build/retail.sh looks for it
-[ -L "$TREE/toolchains" ] || ln -s ../../toolchains "$TREE/toolchains"
-[ -L "$TREE/rez" ] || ln -s ../../rez "$TREE/rez"
-# the 1.3 update's data, and lithrez's source, which packs it (step 1b)
+python3 ext/tools/releasesrc.py mirror "$REPO/src" "$TREE/src"
+# build/ and ext/tools/ copied; the compilers, the retail game where
+# build/retail.sh looks for it, lithrez's source (step 1b) and the modern
+# build's FFmpeg (build/ext.sh, built once into out/ext/ for every variant)
+# linked from ext/ (build/tree.sh)
+source "$REPO/build/tree.sh"
+nolf2src_tree_layout "$TREE" || exit 1
+# the 1.3 update's data, which lithrez packs (step 1b)
 [ -L "$TREE/assets" ] || ln -s ../../assets "$TREE/assets"
-[ -L "$TREE/lithtools" ] || ln -s ../../lithtools "$TREE/lithtools"
-# the modern build's open-source middleware (build/ext.sh), built once into
-# out/ext/ for every variant
-[ -L "$TREE/ext" ] || ln -s ../../ext "$TREE/ext"
 
 export NOLF2SRC_CFLAGS="$CFLAGS"
 export NOLF2SRC_LDFLAGS="$LDFLAGS"

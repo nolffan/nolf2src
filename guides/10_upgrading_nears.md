@@ -6,7 +6,7 @@ types are right, and the remaining difference is small enough to name. But a
 near is also the only kind of reconstruction that has *never been proven*. A
 byte-identical function **is** the shipped code; a near is our guess at it,
 and it has to be executed (in our linked engine images, by `make test` /
-`tools/playtest.sh`) before anyone can believe it.
+`ext/tools/playtest.sh`) before anyone can believe it.
 
 This guide is about closing nears. It assumes you can already read VC6 codegen
 ([03](03_reading_disassembly.md)) and know the fingerprint catalogue
@@ -19,7 +19,7 @@ addresses are NOLF1's.
 ## Where the worklist comes from
 
 ```sh
-python3 tools/progress.py --nears[=target]
+python3 ext/tools/progress.py --nears[=target]
 ```
 
 NOLF2's images have no symbols, so `progress.py` pairs each unmatched
@@ -36,7 +36,7 @@ paired one.)
 ## Triage: work the worklist, closest first
 
 ```sh
-python3 tools/progress.py --nears=server
+python3 ext/tools/progress.py --nears=server
 ```
 
 One line per near, closest first (NOLF1's, for the format):
@@ -53,7 +53,7 @@ Then, for one function:
 
 ```sh
 # NOLF1's server.dll and object path
-python3 tools/fndiff.py 0x1002c8aa src/engine/server/Release/commonphysics.obj \
+python3 ext/tools/fndiff.py 0x1002c8aa src/engine/server/Release/commonphysics.obj \
     '?Set@GlobalForceControl@@QAEXPAV?$_CVector@M@@@Z' --image=out/reference/server.dll
 ```
 
@@ -112,7 +112,7 @@ or one we wrote twice. Both have happened:
   reconstructed as the box projections: the same six shipped functions,
   twice, and six nears that were really one duplicate file. Before writing a
   new function, search the tree for the shipped address you are working from
-  (`grep -rn 0x<addr> src/`); `tools/dupes.py` finds addresses that more than
+  (`grep -rn 0x<addr> src/`); `ext/tools/dupes.py` finds addresses that more than
   one of our symbols reconstructs.
 
 **3. A documented class.** The difference is a free choice the register
@@ -145,7 +145,7 @@ source build/env.sh
 run_cl /nologo /MD /W3 /O1 /D WIN32 /D NDEBUG /D _WINDOWS \
       /c /Foout/probe/ out/probe/zzprobe.cpp
 
-python3 tools/dumpfn.py out/probe/zzprobe.obj '?f1@C@@QAEPAXIPAX@Z'
+python3 ext/tools/dumpfn.py out/probe/zzprobe.obj '?f1@C@@QAEPAXIPAX@Z'
 ```
 
 Use the *target's* flags (`/O1` for `server.dll`, `/O2 /GX` for
@@ -387,8 +387,8 @@ engine's `/O1` and `/O2` are inferred from function alignment, not proven,
 and a file built with its own flags looks like a cluster of nears.
 
 ```sh
-python3 tools/richhdr.py out/reference/Lithtech.exe   # a PE image's inventory
-python3 tools/compid.py  <a .lib or .obj>              # per-object compiler build
+python3 ext/tools/richhdr.py out/reference/Lithtech.exe   # a PE image's inventory
+python3 ext/tools/compid.py  <a .lib or .obj>              # per-object compiler build
 ```
 
 `progress/COMPILERS.md` records what each binary was built with and the
@@ -397,7 +397,7 @@ evidence for it.
 **Then sweep it per translation unit.** Rebuild each file with the
 alternative flags in turn against an otherwise-unchanged set and watch the
 *whole-image* total (`build/engine.sh <target> verify`, or
-`tools/progress.py`); per-object counts double-count and will mislead you.
+`ext/tools/progress.py`); per-object counts double-count and will mislead you.
 In NOLF1 such sweeps found exactly one exception in `server.dll`
 (`localdriver.cpp`, `/Os`) and retired "maybe it is the flags" for hundreds
 of nears at once.

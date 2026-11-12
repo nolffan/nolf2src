@@ -22,7 +22,7 @@ for the shapes they show.
    it. An interrupted session loses everything not yet on disk.
 4. **When several people or agents work clusters at once, keep them apart.**
    Either give each its own worktree (`.worktrees/<name>` on its own branch,
-   as `docs/engine/PLAN.md` describes; `tools/agentwt.sh` makes one), so each can build and measure its own work and
+   as `docs/engine/PLAN.md` describes; `ext/tools/agentwt.sh` makes one), so each can build and measure its own work and
    commit it there for merging, or have workers write one new source file each
    and leave building and measuring to one person. Two builds in one tree
    overwrite each other's objects.
@@ -34,19 +34,19 @@ for the shapes they show.
 
 ## Choosing the rows
 
-`tools/uncovered.py` lists the shipped functions that nothing of ours accounts
+`ext/tools/uncovered.py` lists the shipped functions that nothing of ours accounts
 for. It marks EVERY address one of our COMDATs matches, not one per symbol,
 and reads the hand-curated exclusions in `progress/`:
 
 ```sh
-python3 tools/uncovered.py out/reference/Lithtech.exe <our object dir> \
+python3 ext/tools/uncovered.py out/reference/Lithtech.exe <our object dir> \
     out/reference/Lithtech-functions.csv --csv=rows.csv
 ```
 
 Read its four counts, not just the list. Rows below exematch's 8-byte floor
 that one of our symbols already covers by shape, rows already written up, and
 rows matched by name are not work; only the UNTOUCHED count is. Cross-check
-the status of each row in `out/progress/functions.csv` (`tools/progress.py`),
+the status of each row in `out/progress/functions.csv` (`ext/tools/progress.py`),
 so that nothing already written up as a near elsewhere is redone.
 
 **You still must check extents.** That screen says nothing about whether a
@@ -58,7 +58,7 @@ row is a real function.
 engine never had:
 
 * **The Mac engine's symbols** (`progress/engine/mac-functions.csv`, from
-  `tools/macho.py`): every function's demangled name and size, in the Mac
+  `ext/tools/macho.py`): every function's demangled name and size, in the Mac
   linker's object order, attributed to a source file. A cluster's shape --
   how many functions, their sizes, which are tiny accessors -- usually lines
   up with one file's Mac functions, which names the module and the methods
@@ -86,15 +86,15 @@ Then, in order of reliability:
    (`"Prediction"`, `"PredictionLines"`, `"MaxExtrapolateTime" -> 0.5f`) named
    the whole run 0x00460d30..0x00461ccf as client dead-reckoning after the
    string pool had pointed at the renderer.
-1. **A dispatch table or vtable.** `tools/vtabmap.py`, `tools/vtabaudit.py`,
-   `tools/dataref.py`. One table at 0x00477fe0 typed nineteen handlers at
+1. **A dispatch table or vtable.** `ext/tools/vtabmap.py`, `ext/tools/vtabaudit.py`,
+   `ext/tools/dataref.py`. One table at 0x00477fe0 typed nineteen handlers at
    once. A run of adjacent vtables lined up column by column gives you the
    class shape for free.
 2. **The `.data` string pool read in ADDRESS ORDER.** Literal order follows
    function address order in these images.
 3. **The call graph.** `wm_PushWorldModel` was identified by a single edge:
    the only caller in the image, sitting exactly where the source returns it.
-   `tools/tagmap.py` names functions from the `Class::Method` error-tag
+   `ext/tools/tagmap.py` names functions from the `Class::Method` error-tag
    literals they push.
 
 **A string pool identifies the MODULE, not the function that references it.**
@@ -115,8 +115,8 @@ disagree, the second kind wins.
 
 ## Step 2: verify every extent
 
-`python3 tools/extentcheck.py <image> <start> <size|end>`, and
-`tools/enumcheck.py` for a whole table. Wrong extents are common: clusters
+`python3 ext/tools/extentcheck.py <image> <start> <size|end>`, and
+`ext/tools/enumcheck.py` for a whole table. Wrong extents are common: clusters
 have come back with half their rows defective. Catalogued defect shapes:
 
 * the success arm of the function above;
@@ -254,11 +254,11 @@ The rules that pay most, in order:
 * In `Lithtech.exe`, a `call dword ptr [0x607ec0]` is SecuROM's, not the
   source's: look the site up in `progress/engine/Lithtech-iat-calls.csv` for
   the import it really calls. Calls into 0x565000..0x56a000 go to code you
-  can only read in the 1.3 multiplayer demo (`tools/demoimports.py`).
+  can only read in the 1.3 multiplayer demo (`ext/tools/demoimports.py`).
 * A `+` suffix on an exematch address means those bytes occur more than once;
   when two functions differ only inside a masked relocation it will name the
   wrong one.
-* `tools/callseq.py` needs a compiled object. Until you have one, say
+* `ext/tools/callseq.py` needs a compiled object. Until you have one, say
   NOT RUN rather than claiming a pass.
 * The client half of shared code may legitimately differ from the server
   half by a define: in NOLF1 the server alone kept a scoped profiling timer,
@@ -294,10 +294,10 @@ ORDER is declaration order.
 
 ## Tools
 
-    python3 tools/exedump.py out/reference/Lithtech.exe <start_va> <end_va>
-    python3 tools/extentcheck.py out/reference/Lithtech.exe <start> <size|end>
-    python3 tools/vtabmap.py | dataref.py | enumcheck.py | nearpos.py | tagmap.py
-    python3 tools/macho.py funcs <regex>                  # the Mac engine's names
+    python3 ext/tools/exedump.py out/reference/Lithtech.exe <start_va> <end_va>
+    python3 ext/tools/extentcheck.py out/reference/Lithtech.exe <start> <size|end>
+    python3 ext/tools/vtabmap.py | dataref.py | enumcheck.py | nearpos.py | tagmap.py
+    python3 ext/tools/macho.py funcs <regex>                  # the Mac engine's names
     build/engine.sh Lithtech-one <file.cpp> [symbol]     # once you can build
 
 ## Reporting back

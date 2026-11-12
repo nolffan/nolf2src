@@ -11,7 +11,7 @@ only what is most likely to match means working the smallest functions, so the
 share of *functions* reproduced runs well ahead of the share of *bytes*, and
 the functions left over are several times the size of the finished ones. A
 small number of functions over a kilobyte hold a large part of the remaining
-code. `tools/progress.py --todo=<target>` lists what is left, largest first;
+code. `ext/tools/progress.py --todo=<target>` lists what is left, largest first;
 look at it before deciding what is worth doing.
 
 A 13 KB function is unlikely to come out exact, and the byte oracle credits
@@ -53,7 +53,7 @@ write-up. **A function 90% decoded with an honest hole is a good result; one
 ## The check
 
 ```sh
-python3 tools/callseq.py <image> <start> <end> <obj> <symbol-substring>
+python3 ext/tools/callseq.py <image> <start> <end> <obj> <symbol-substring>
 ```
 
 It compares the **ordered sequence of calls** in the shipped function with the
@@ -119,7 +119,7 @@ is strong; over 300 it is weak, and you must say what else pins the decode.
 **Count the calls with the tool, not by eye or by grep.**
 
 ```sh
-python3 tools/callseq.py <image> <start> <end> --count
+python3 ext/tools/callseq.py <image> <start> <end> --count
 ```
 
 Byte-scanning for `0xe8` is wrong in both directions. It counts `0xe8` bytes
@@ -190,7 +190,7 @@ to a twelve-instruction `shld`/`neg`/`or`/`shr`/`and`/`xor`/`cmp`/`test`/
 idiom dominates the census of every function in the family. `/Qrcd` (icl 4.0's
 "fast float-to-int conversions", and the option that `/QIfist` is not; icl
 parses `/QIfist` as something else and silently ignores it) turns it into one
-instruction. Measured with `tools/census.py`:
+instruction. Measured with `ext/tools/census.py`:
 
     big2b1b0  residue 1864 -> 807    2883 -> 1596 instr   (shipped 1575)
     big051a0           848 -> 357    2139 -> 1318          (shipped 1523)
@@ -235,7 +235,7 @@ the residual down.
 
 Do not decode linearly from the top.
 
-0. **Check the extent first** (`tools/extentcheck.py`, below). Above about a
+0. **Check the extent first** (`ext/tools/extentcheck.py`, below). Above about a
    kilobyte, a bad row is likelier than a correct one.
 1. **Frame first.** The prologue's `sub $N,%esp` gives the local footprint and
    often the whole shape: a 0x100-byte block that ends exactly where the next
@@ -262,7 +262,7 @@ working in parallel write helper files (stub headers, disassembly dumps), and
 in a shared scratch directory they collide: files change underneath a worker
 mid-run. Give each one a directory of its own, e.g. `scratch/<addr>/`, and
 uniquely named output files. If they also need to build, give each its own
-worktree (`tools/agentwt.sh`), so their objects cannot collide either.
+worktree (`ext/tools/agentwt.sh`), so their objects cannot collide either.
 
 **Write the output file incrementally.** A long decode that is interrupted
 (a killed process, an exhausted budget) loses everything not yet on disk.
@@ -276,7 +276,7 @@ up that leans on them is worth more than one that quotes a clean figure:
 
 **An instruction census with no residue.** Count the opcodes the claimed
 structure predicts and show the totals leave no room for anything else
-(`tools/census.py` compares both sides). 0x10070d10 is the model: `fmull`
+(`ext/tools/census.py` compares both sides). 0x10070d10 is the model: `fmull`
 66 = 6×11, `fildl` 60 = 6×5×2, `fistpl` 30 = 6×5, `fstpl` 12 = 6 divides + 6
 sunk arms, `fcomp` 12 = 6 low + 6 high epsilon tests, `fdivp` 6, `idiv` 6 =
 the six `/40`, `rep movsl` 7 = 6×0xa plus 1×3. A seventh plane, a missing
@@ -352,9 +352,9 @@ are the load-bearing ones. `lea` 60 = 20 lea-nop pads + 40 real, and the 40
 split 12/6/12/**10**, where the 10 rather than 12 says pass 6's `pOut += nIn`
 is dead. No call, no constant and no frame slot shows that.
 
-### Run tools/extentcheck.py first
+### Run ext/tools/extentcheck.py first
 
-    python3 tools/extentcheck.py out/reference/d3d.ren 0x1005dca0 6368
+    python3 ext/tools/extentcheck.py out/reference/d3d.ren 0x1005dca0 6368
 
 It runs the extent checks mechanically: `ret` count, `push %ebp` frames and
 whether padding precedes them, branch targets leaving the range or landing
@@ -402,9 +402,9 @@ assumed. Every one needs, in its comments:
 * every coin-flip stated with **both** exact spellings, so one build settles
   it.
 
-`tools/decoded.py` and `tools/decodedlt.py` count the bytes under structural
+`ext/tools/decoded.py` and `ext/tools/decodedlt.py` count the bytes under structural
 reconstruction and how well each is proved, which the byte scoreboard does
-not (see `tools/README.md` for their state in this tree).
+not (see `ext/tools/README.md` for their state in this tree).
 
 ---
 

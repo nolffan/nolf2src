@@ -1,16 +1,16 @@
 # Lithtech.exe / server.dll (NOLF2 1.3): anatomy of the retail binaries
 
 This is a read-only study to guide the reconstruction. Nothing in either repo was changed.
-Intermediate files were in an analysis scratch directory (not in the repository); the scripts that matter are being rebuilt as tools/.
+Intermediate files were in an analysis scratch directory (not in the repository); the scripts that matter are being rebuilt as ext/tools/.
 
 The images compared:
 
 | Tag | File | PE time stamp (UTC) | Notes |
 |---|---|---|---|
 | **retail** | `out/reference/Lithtech.exe` (2,608,595 B), `server.dll` (397,312 B) | exe 2003-02-08 02:35:54, dll 02:35:36 | 1.3 patch, SecuROM-wrapped exe |
-| **mpdemo** | `nolf2_mpdemo_en.exe` → `Resources\Lithtech.exe` (1,794,048 B), `server.dll` (397,312 B) | exe **2003-02-28 00:55:22**, dll 00:54:43 | **unprotected**. Extracted here to `mpdemo/x/Resources/` with `rez/tools/sfxcab.py` + `unshield -g Resources` |
+| **mpdemo** | `nolf2_mpdemo_en.exe` → `Resources\Lithtech.exe` (1,794,048 B), `server.dll` (397,312 B) | exe **2003-02-28 00:55:22**, dll 00:54:43 | **unprotected**. Extracted here to `mpdemo/x/Resources/` with `ext/rez/tools/sfxcab.py` + `unshield -g Resources` |
 | **prerelease** | Jupiter SDK build 51 `Game Code\TO2\Lithtech.exe` (1,605,632 B), `server.dll` (364,544 B) | exe 2002-03-15 18:30:39, dll 18:26:52 | unprotected, about 11 months older |
-| **mac** | `../rez/games/nolf2-mac-usa/NOLF2.app/Contents/MacOS/NOLF2` (Mach-O PPC, 4,483,488 B; its sha256 is the one in `rez/games.sha256`) | 2003 | **not stripped: 19,467 symbols** |
+| **mac** | `../rez/games/nolf2-mac-usa/NOLF2.app/Contents/MacOS/NOLF2` (Mach-O PPC, 4,483,488 B; its sha256 is the one in `ext/rez/games.sha256`) | 2003 | **not stripped: 19,467 symbols** |
 
 The headline: **the multiplayer demo's engine is the stand-in to use.** It was built 20 days after
 1.3. Its Rich header is retail's, triple for triple, and its `.rdata`, `.data` and `.data1` are the
@@ -79,7 +79,7 @@ WSOCK32 20. Rich `Import0` is ×145 (×252 for the exe).
 * retail `Lithtech.exe`: `LTGetILTMemory` (0x442a00), `SetMasterDatabase` (0x447190). The prerelease has only `SetMasterDatabase`.
 * `server.dll`: `CreateServer` (0x1002b705), `DeleteServer` (0x1002b7a8), `SetMasterDatabase` (0x100140ec).
 
-### Rich header (`tools/richhdr.py`)
+### Rich header (`ext/tools/richhdr.py`)
 
 | | retail exe | **mpdemo exe** | prerelease exe | retail dll (= mpdemo dll) | prerelease dll |
 |---|---|---|---|---|---|
@@ -145,7 +145,7 @@ SSE members and 4 are unidentified. VC6's `uuid.lib` is 0x0a/0x0b build 8447, so
 
 ### How close each candidate stand-in is
 
-The method: function tables from `tools/enumfuncs.py` for all six images (11,066 / 10,996 / 9,759 functions
+The method: function tables from `ext/tools/enumfuncs.py` for all six images (11,066 / 10,996 / 9,759 functions
 for the retail / mpdemo / prerelease exe; 3,570 / 3,571 / 3,308 for the dll). Instructions are normalized (addresses ≥ 0x10000
 → `A`), and each retail function of at least 6 instructions in the app range is searched for verbatim in the other image's instruction stream
 (`substr.py`).
@@ -217,7 +217,7 @@ and was not examined.
 ### Better sources for names and file list (all local)
 
 1. **Mac NOLF2 engine** (`../rez/games/nolf2-mac-usa/NOLF2.app/Contents/MacOS/NOLF2`, already
-   installed in the sibling `../rez`; nolf2src's own `rez/games/` has only `nolf2-eu-1.3`).
+   installed in the sibling `../rez`; nolf2src's own `ext/rez/games/` has only `nolf2-eu-1.3`).
    * It is not stripped: 11,485 text symbols with full Itanium-mangled C++ names (8,207 in `__text` and 3,278 coalesced
      templates/inlines). `mac-text-dem.tsv` is the address-ordered, demangled list (a 30-line Mach-O reader,
      `macho.py`).

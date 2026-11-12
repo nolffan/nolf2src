@@ -6,8 +6,8 @@ whether you are right -- you diff.
 
 ## The tools
 
-All live in `tools/` and are plain Python 3 (the disassemblers also need
-`objdump` from binutils, which the build image has). [`tools/README.md`](../tools/README.md)
+All live in `ext/tools/` and are plain Python 3 (the disassemblers also need
+`objdump` from binutils, which the build image has). [`ext/tools/README.md`](../tools/README.md)
 describes every tool; these are the core of the loop.
 
 | Tool | What it does | Use when |
@@ -25,7 +25,7 @@ The fast engine loop is these two commands, a few seconds a cycle (in
 
 ```sh
 build/engine.sh server-one <file.cpp> [symbol]      # recompile ONE file, match it
-python3 tools/fndiff.py <shipped-addr> src/Engine/built/Final/server/<file>.obj <symbol> \
+python3 ext/tools/fndiff.py <shipped-addr> src/Engine/built/Final/server/<file>.obj <symbol> \
     --image=out/reference/server.dll
 ```
 
@@ -61,7 +61,7 @@ make progress                          # the scoreboard, held to the recorded ba
 
 `exematch.py`'s own totals are not the ones to quote: it scores each of our
 functions independently, so two of ours with identical code both "match" the
-same retail address. `tools/progress.py` gives every retail function to at
+same retail address. `ext/tools/progress.py` gives every retail function to at
 most one of ours; its numbers are the authoritative ones.
 
 ## Why relocations are masked
@@ -74,8 +74,8 @@ after masking are the same code; the linker will place the addresses.
 
 **This is also a blind spot:** a `call` to the *wrong* function of the same
 shape still masks to a match, and so does a load of the wrong float constant
-(`tools/fpconst.py` checks those). `objdiff`/`exematch` cannot catch a
-miswired call -- `tools/callcheck.py` can, and so can *linking* (an
+(`ext/tools/fpconst.py` checks those). `objdiff`/`exematch` cannot catch a
+miswired call -- `ext/tools/callcheck.py` can, and so can *linking* (an
 unresolved external) or running the game.
 
 In `Lithtech.exe` there is a third blind spot: SecuROM rewrote every
@@ -83,7 +83,7 @@ In `Lithtech.exe` there is a third blind spot: SecuROM rewrote every
 0x607ec0, so the retail bytes no longer say which import a site calls. The
 masked comparison does not notice (the operand is an address), but reading
 the code does: `progress/engine/Lithtech-iat-calls.csv` (from
-`tools/demoimports.py` and the 1.3 multiplayer demo, whose IAT is at the
+`ext/tools/demoimports.py` and the 1.3 multiplayer demo, whose IAT is at the
 same addresses) names the real import of each site.
 
 ## Libraries
@@ -110,8 +110,8 @@ offsets so only *structural* differences remain:
 
 ```sh
 norm() { sed -E 's/%e[a-ds][ipx]/%R/g; s/0x[0-9a-f]+\(%esp[^)]*\)/SLOT/g'; }
-diff <(python3 tools/dumpfn.py ours.obj Sym | norm) \
-     <(python3 tools/dumpfn.py theirs.obj Sym | norm)
+diff <(python3 ext/tools/dumpfn.py ours.obj Sym | norm) \
+     <(python3 ext/tools/dumpfn.py theirs.obj Sym | norm)
 ```
 
 If the normalised diff is empty, all that is left is register and slot
@@ -141,16 +141,16 @@ going, and add what you learn to
 ## Ghidra as a reading aid (optional)
 
 For `Lithtech.exe`, decompile a copy with the encrypted pages and the
-redirected import calls restored from the demo (`tools/demoimports.py`
+redirected import calls restored from the demo (`ext/tools/demoimports.py`
 `plain`, into `out/`); Ghidra on the retail file sees five pages of noise
 and 1,514 calls to one SecuROM slot.
 
 
 For a large or unfamiliar function, a decompiled C draft saves real reading
-time. `tools/ghidra/decomp.sh` batch-decompiles a binary's app region:
+time. `ext/tools/ghidra/decomp.sh` batch-decompiles a binary's app region:
 
 ```sh
-tools/ghidra/decomp.sh out/reference/server.dll 0x10001000 0x1004d1d0 out/ghidra/server-app.c
+ext/tools/ghidra/decomp.sh out/reference/server.dll 0x10001000 0x1004d1d0 out/ghidra/server-app.c
 ```
 
 It runs on the host, not in the build container: it needs
@@ -206,4 +206,4 @@ decompile the retail function and our own object, and if the C differs, the
 diagnosis of "compiler-revision variance" is wrong and there is still a
 source fix to find.
 
-Read the draft, then derive the real source from `tools/exedump.py` as usual.
+Read the draft, then derive the real source from `ext/tools/exedump.py` as usual.

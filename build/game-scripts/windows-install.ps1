@@ -1,5 +1,5 @@
 # windows-install.ps1 -- the PowerShell inside windows-install.bat
-# (tools/mkinstall.py puts it there; the .bat runs it with -File, passing its
+# (ext/tools/mkinstall.py puts it there; the .bat runs it with -File, passing its
 # own path and the files dropped on it). Windows PowerShell 5.1; ASCII
 # only, as it reads a .ps1 without a byte-order mark as the ANSI code page.
 #

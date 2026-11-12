@@ -8,10 +8,10 @@
 #                            container)
 #   build/all.sh            (inside the build container, e.g. `make shell`)
 #
-# Needs: the toolchain (toolchains/, see toolchains/README.md), Wine (the
+# Needs: the toolchain (ext/toolchains/, see ext/toolchains/README.md), Wine (the
 # build container has it), and the retail game, NOLF2 (Europe) with the
-# English 1.3 update, as the rez/ submodule installs it
-# (rez/games/nolf2-eu-1.3/, build/retail.sh). It only reads that directory.
+# English 1.3 update, as the ext/rez/ submodule installs it
+# (ext/rez/games/nolf2-eu-1.3/, build/retail.sh). It only reads that directory.
 #
 # The steps, in order:
 #   1. resources          the game's data from the retail game: the .rez
@@ -28,14 +28,14 @@
 #                         ext/ffmpeg submodule by build/ext.sh.
 #   2b. Jupiter SDK source  WONAPI, the library ServerDir.dll is built with
 #                         and Monolith's release lacks: from
-#                         the LithTech Jupiter SDK, as rez/ fetches it
+#                         the LithTech Jupiter SDK, as ext/rez/ fetches it
 #                         (build/jupiter.sh; `make` fetches it once), into
-#                         src/Game/Libs/ (tools/jupitersrc.py; not committed).
+#                         src/Game/Libs/ (ext/tools/jupitersrc.py; not committed).
 #   2c. engine art        the icon lithtech.rc compiles into Lithtech.exe
 #                         (IDR_MAINFRAME, five images), read out of the
 #                         retail Lithtech.exe's resources into
 #                         src/Engine/runtime/winbuild/lithtech/res/
-#                         (tools/retailextract.py art; not committed). Its
+#                         (ext/tools/retailextract.py art; not committed). Its
 #                         other binary resources, the help cursor and four
 #                         bitmaps, are MFC's, from the toolchain's afxres.rc.
 #   3. compile            every project of Monolith's workspace the game
@@ -62,7 +62,7 @@
 #                         binary of the game is then built here but the
 #                         third-party runtime of step 2. Each built engine
 #                         binary was shown to work in the game under Wine
-#                         (tools/playtest.sh: the menus, a new game, play,
+#                         (ext/tools/playtest.sh: the menus, a new game, play,
 #                         quicksave and quickload; Internet multiplayer
 #                         reaching the directory-server request, which fails
 #                         as retail's does without sierraup.cfg).
@@ -116,7 +116,7 @@ case "${NOLF2SRC_CFLAGS:-}" in
 esac
 
 step "1. resources: game data from $RETAIL -> $OUT"
-python3 tools/retailextract.py resources "$RETAIL" "$OUT"
+python3 ext/tools/retailextract.py resources "$RETAIL" "$OUT"
 
 step "1b. assets: the 1.3 update's data (assets/) -> $OUT/nolf2src.rez and the shipped settings"
 # The 1.3 update's data ships with the release (assets/README.md): what its
@@ -157,18 +157,18 @@ cp build/game-scripts/linux-server.sh "$OUT/" && chmod +x "$OUT/linux-server.sh"
 if [ "${NOLF2_MIDDLEWARE:-retail}" = open ]; then
     step "2. open runtime: our Bink player on FFmpeg (build/ext.sh); the Microsoft runtime from $RETAIL"
     bash build/ext.sh
-    python3 tools/retailextract.py thirdparty "$RETAIL" "$OUT" open
-    python3 tools/retailextract.py openruntime "${NOLF2_EXT_OUT:-out/ext}" "$OUT"
+    python3 ext/tools/retailextract.py thirdparty "$RETAIL" "$OUT" open
+    python3 ext/tools/retailextract.py openruntime "${NOLF2_EXT_OUT:-out/ext}" "$OUT"
 else
     step "2. THIRD-PARTY RUNTIME: Bink and the Microsoft runtime from $RETAIL"
-    python3 tools/retailextract.py thirdparty "$RETAIL" "$OUT"
+    python3 ext/tools/retailextract.py thirdparty "$RETAIL" "$OUT"
 fi
 
 step "2b. Jupiter SDK source: WONAPI -> src/Game/Libs/"
-python3 tools/jupitersrc.py "$(jupiter_source)" src
+python3 ext/tools/jupitersrc.py "$(jupiter_source)" src
 
 step "2c. engine art: the retail Lithtech.exe's icon in $RETAIL -> src/Engine/runtime/winbuild/lithtech/res/"
-python3 tools/retailextract.py art "$RETAIL" Lithtech.exe src/Engine/runtime/winbuild/lithtech/res \
+python3 ext/tools/retailextract.py art "$RETAIL" Lithtech.exe src/Engine/runtime/winbuild/lithtech/res \
     lithtech.ico=icon:128
 
 step "3. compile: Monolith's workspace (build/compile.sh: build/build.mk, ${NOLF2SRC_JOBS:-$(nproc)} jobs)"
@@ -201,7 +201,7 @@ with open(p, "w") as f:
 PY
 
 step "5. audit: every PE file in $OUT"
-python3 tools/retailextract.py audit "$OUT"
+python3 ext/tools/retailextract.py audit "$OUT"
 
 # (NOLF2_PACKAGE=0 skips it: build/variant.sh packages its game directory
 # itself)

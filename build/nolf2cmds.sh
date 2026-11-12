@@ -3,7 +3,7 @@
 #
 #   build/nolf2cmds.sh
 #
-# tools/playtest.sh starts the engine with this rez stack, as the retail NOLF2.exe launcher does with its own
+# ext/tools/playtest.sh starts the engine with this rez stack, as the retail NOLF2.exe launcher does with its own
 # launchcmds.txt ("Lithtech.exe -cmdfile ..."). The order is the launcher's
 # (later archives override earlier ones; the engine opens Engine.REZ
 # itself), with the 1.3 update's data (nolf2src.rez, built from assets/,

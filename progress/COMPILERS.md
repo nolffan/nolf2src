@@ -5,13 +5,13 @@ tool builds that produced its objects, as (tool id, build, object count)
 triples -- and every object the Microsoft compilers emit carries the same
 pair in its `@comp.id` symbol. This file maps each retail binary to the
 compiler and flags that built it, with the evidence. The toolchains
-themselves, and NOLF's own map, are in `toolchains/README.md` and
-`toolchains/COMPILERS.md` (the shared submodule).
+themselves, and NOLF's own map, are in `ext/toolchains/README.md` and
+`ext/toolchains/COMPILERS.md` (the shared submodule).
 
 ```sh
-python3 tools/richhdr.py out/reference/*.exe out/reference/*.dll   # the inventories
-python3 tools/compid.py <lib or obj>       # @comp.id of each object of a library
-python3 tools/libscan.py <image> <lib>...  # where a library's code is in an image
+python3 ext/tools/richhdr.py out/reference/*.exe out/reference/*.dll   # the inventories
+python3 ext/tools/compid.py <lib or obj>       # @comp.id of each object of a library
+python3 ext/tools/libscan.py <image> <lib>...  # where a library's code is in an image
 ```
 
 ## The binaries
@@ -62,7 +62,7 @@ Intel's compilers and not Monolith's code: they are Microsoft's DirectX 8.1
 SDK, statically linked.
 
 1. **The SDK's libraries carry exactly these ids.** `compid.py` on
-   `toolchains/dxsdk-8.1/lib/`: `d3dx8.lib` is C++ 9178 ×133, C 9178 ×1,
+   `ext/toolchains/dxsdk-8.1/lib/`: `d3dx8.lib` is C++ 9178 ×133, C 9178 ×1,
    `0x12`/8444 ×1 (and C 8685 ×1, `0x45`/9111 ×1, which `Lithtech.exe` does
    not link), and eight members with no `@comp.id`; `dxguid.lib` and
    `DxErr8.lib` are one C++ 9178 object each; `dinput8.lib` is C 9178 ×5

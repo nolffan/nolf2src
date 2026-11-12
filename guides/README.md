@@ -55,7 +55,7 @@ declared rather than filled in.
 Companion documents outside this directory:
 [`docs/engine/`](../docs/engine/) (the plan, the anatomy of the retail
 engine, the mapping onto the Jupiter tree, and what nolfsrc's process
-was), [`tools/README.md`](../tools/README.md) (what each tool does),
+was), [`ext/tools/README.md`](../tools/README.md) (what each tool does),
 [`progress/COMPILERS.md`](../progress/COMPILERS.md) (which compiler and flags
 built each retail binary) and [`docs/SETUP_NOTES.md`](../docs/SETUP_NOTES.md) (the
 build container and toolchains).
@@ -73,7 +73,7 @@ build container and toolchains).
    the evidence that names their functions (the Mac engine's symbols, the
    1.3 multiplayer demo, the Jupiter tree).
 4. **[07-vtables](07_vtables.md)** -- naming *anonymous* functions: find the
-   class's vtable in `.rdata` (`tools/vtabmap.py`), anchor it against the SDK
+   class's vtable in `.rdata` (`ext/tools/vtabmap.py`), anchor it against the SDK
    header's declaration order, and read the unknown slots' names and
    signatures straight out of the header.
 5. **[09-codegen-patterns](09_codegen_patterns.md)** -- the case law: every
@@ -84,13 +84,13 @@ build container and toolchains).
    is *nearly* right and closing the gap.
 7. **[11-large-functions](11_large_functions.md)** -- the third standard:
    reconstructing a function of several kilobytes to be *structurally* right
-   and proving it with the call-sequence check (`tools/callseq.py`). Learned
+   and proving it with the call-sequence check (`ext/tools/callseq.py`). Learned
    on NOLF1's Intel-compiled renderer; read its last section for what holds
    on an MSVC target, which is everything in NOLF2 (the renderer's biggest
    functions are where it will be used).
 8. **[12-o2-shape](12_o2_shape.md)** -- functions already byte-identical in
    `server.dll` (`/O1`) but not in `Lithtech.exe` (`/O2`): the source is
-   proven, only its `/O2` shape is wrong (`tools/o2gap.py`).
+   proven, only its `/O2` shape is wrong (`ext/tools/o2gap.py`).
 9. **[13-cluster-recon](13_cluster_recon.md)** -- the procedure for
    reconstructing a whole untouched cluster of functions from scratch.
 
@@ -114,7 +114,7 @@ Missing numbers:
 
 ## Picking a target
 
-`tools/progress.py` scores every function of every target that
+`ext/tools/progress.py` scores every function of every target that
 `progress/targets.py` lists and writes `out/progress/functions.csv`: one row
 per retail function, with its size and status (`identical`, `near`, `small`,
 `attempted`, `todo`, and the uncounted `crt`, `middleware` and `encrypted`;
@@ -132,8 +132,8 @@ reconstructed.
 To find work:
 
 ```sh
-python3 tools/progress.py --todo=server.dll      # untouched, largest first
-python3 tools/progress.py --nears=server.dll     # near matches, closest first
+python3 ext/tools/progress.py --todo=server.dll      # untouched, largest first
+python3 ext/tools/progress.py --nears=server.dll     # near matches, closest first
 grep ',todo$' out/progress/functions.csv | grep '^server.dll,' | sort -t, -k3 -n | head
 ```
 
@@ -149,7 +149,7 @@ source is also `Lithtech.exe`'s (`docs/engine/nolfsrc_process.md`, 4.3).
 
 The flags decide everything before you start. All of Monolith's code in NOLF2
 was compiled by **one** compiler, VC6 SP5 (`cl` build **8966**,
-`toolchains/msvc-6.00-8966`); NOLF1's mixed revisions are history:
+`ext/toolchains/msvc-6.00-8966`); NOLF1's mixed revisions are history:
 
 | target | compiler | optimisation |
 |---|---|---|
@@ -182,12 +182,12 @@ back and report a match that proves nothing.
 
 Two stand-ins sit beside the retail images, for reading only:
 
-- **the 1.3 multiplayer demo's engine** (`tools/demoimports.py`), built 20
+- **the 1.3 multiplayer demo's engine** (`ext/tools/demoimports.py`), built 20
   days after retail with the same Rich header, unprotected. It has the
   plaintext of the encrypted pages and the real import of each of the 1,514
   `call [IAT]` sites SecuROM redirected (`progress/engine/Lithtech-iat-calls.csv`).
   Use it for code and data, **never for addresses**: some objects are
   linked in another order.
-- **the Mac NOLF2 engine** (`tools/macho.py`), a PowerPC Mach-O that kept its
+- **the Mac NOLF2 engine** (`ext/tools/macho.py`), a PowerPC Mach-O that kept its
   symbols: the name, class and source file of nearly every function
   (`progress/engine/mac-functions.csv`).

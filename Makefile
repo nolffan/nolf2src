@@ -9,11 +9,11 @@
 #   make help     everything else
 #
 # Needs only docker on the host and three submodules (`git submodule update
-# --init`): the build's scripts and checks, tools/ (shared with the NOLF and
-# Contract J.A.C.K. projects; tools/README.md), the compilers, toolchains/
-# (toolchains/README.md), and rez/, which
+# --init`): the build's scripts and checks, ext/tools/ (shared with the NOLF and
+# Contract J.A.C.K. projects; ext/tools/README.md), the compilers, ext/toolchains/
+# (ext/toolchains/README.md), and ext/rez/, which
 # fetches the redump images of the European discs from archive.org and
-# installs the game from them with the 1.3 update (rez/README.md; `make
+# installs the game from them with the 1.3 update (ext/rez/README.md; `make
 # retail`, which every build runs first, does it once, and fetches the USA
 # discs too, which the public archive's install scripts read), and the LithTech
 # Jupiter SDK, whose source ServerDir.dll is built from (`make sdk`, the same
@@ -37,8 +37,8 @@ DOCKER_RUN = docker run --rm --init --name $(CONTAINER) \
 	$(if $(NOLF2_ARCHIVES),-e NOLF2_ARCHIVES="$(NOLF2_ARCHIVES)") \
 	-v $(CURDIR):/repo -w /repo $(IMAGE)
 
-TOOLCHAIN_FILES = toolchains/msvc-6.00-8966/BIN/cl.exe toolchains/msvc-6.00-9782/Common/MSDev98/Bin/RC.EXE \
-	toolchains/dxsdk-8.1/include/d3d8.h
+TOOLCHAIN_FILES = ext/toolchains/msvc-6.00-8966/BIN/cl.exe ext/toolchains/msvc-6.00-9782/Common/MSDev98/Bin/RC.EXE \
+	ext/toolchains/dxsdk-8.1/include/d3d8.h
 
 .PHONY: all game debug modern modern-debug image retail sdk check-tools check-rez check-lithtools check-ext check-toolchain test progress progress-update shell clean distclean help
 
@@ -51,7 +51,7 @@ help:
 	@echo "make modern-debug  both, in out/nolf2-modern-debug/"
 	@echo "                (none of these is ever scored; build/variant.sh)"
 	@echo "make test       scripted playtest of out/nolf2-legacy-release/ under Xvfb: the main menu,"
-	@echo "               a new game, the first level (tools/playtest-newgame.txt; out/play/test/)"
+	@echo "               a new game, the first level (ext/tools/playtest-newgame.txt; out/play/test/)"
 	@echo "make test TEST_GAME=out/nolf2-modern-release   the same on a variant's game directory"
 	@echo "               (out/play/test-<its name>/)"
 	@echo "make progress   score the build against the retail binaries; fails if a"
@@ -59,10 +59,10 @@ help:
 	@echo "make progress-update  record the score in progress/ and README.md"
 	@echo "make retail     fetch the two disc images and install the retail game and its"
 	@echo "                1.3 update from them, and fetch the USA release's two too, for"
-	@echo "                the public archive (rez/, once; every build runs it); check it"
-	@echo "make sdk        fetch the LithTech Jupiter SDK and extract its source (rez/, once;"
+	@echo "                the public archive (ext/rez/, once; every build runs it); check it"
+	@echo "make sdk        fetch the LithTech Jupiter SDK and extract its source (ext/rez/, once;"
 	@echo "                every build runs it), and check it"
-	@echo "make shell      a shell in the build container (build/*.sh, tools/ work there)"
+	@echo "make shell      a shell in the build container (build/*.sh, ext/tools/ work there)"
 	@echo "make image      (re)build the docker image $(IMAGE)"
 	@echo "make clean      remove out/ and every build output in the source tree"
 	@echo "make distclean  clean, and remove the docker image too"
@@ -97,39 +97,39 @@ endif
 	@echo "== docker image $(IMAGE) ready"
 
 # The retail game the build takes its data from (build/retail.sh): installed
-# by rez/ the first time, checked against rez/games.sha256 every time; and
+# by ext/rez/ the first time, checked against ext/rez/games.sha256 every time; and
 # the USA release's disc images, which the public archive's install scripts
 # read too.
 retail: check-rez image
 	@$(DOCKER_RUN) bash -c 'source build/retail.sh && retail_install && retail_discs && retail_verify'
 
-# The Jupiter SDK (build/jupiter.sh): fetched and installed by rez/ the first
-# time, checked against rez/sdk.sha256 every time.
+# The Jupiter SDK (build/jupiter.sh): fetched and installed by ext/rez/ the first
+# time, checked against ext/rez/sdk.sha256 every time.
 sdk: check-rez image
 	@$(DOCKER_RUN) bash -c 'source build/jupiter.sh && jupiter_install && jupiter_verify'
 
 check-tools:
-	@[ -f tools/retailextract.py ] || { echo "error: tools/ is empty -- the build's scripts and checks are the tools/ submodule: run git submodule update --init (see tools/README.md)" >&2; exit 1; }
+	@[ -f ext/tools/retailextract.py ] || { echo "error: ext/tools/ is empty -- the build's scripts and checks are the ext/tools/ submodule: run git submodule update --init (see ext/tools/README.md)" >&2; exit 1; }
 
 check-rez: check-tools
-	@[ -f rez/install-games.sh ] || { echo "error: rez/ is empty -- the disc images and their installer are the rez/ submodule: run git submodule update --init (see rez/README.md)" >&2; exit 1; }
+	@[ -f ext/rez/install-games.sh ] || { echo "error: ext/rez/ is empty -- the disc images and their installer are the ext/rez/ submodule: run git submodule update --init (see ext/rez/README.md)" >&2; exit 1; }
 
 check-lithtools:
-	@[ -f lithtools/tools/lithrez/CMakeLists.txt ] || { echo "error: lithtools/ is empty -- lithrez, which packs assets/ into nolf2src.rez, is the lithtools submodule's: run git submodule update --init lithtools" >&2; exit 1; }
+	@[ -f ext/lithtools/tools/lithrez/CMakeLists.txt ] || { echo "error: ext/lithtools/ is empty -- lithrez, which packs assets/ into nolf2src.rez, is the lithtools submodule's: run git submodule update --init lithtools" >&2; exit 1; }
 
 check-ext:
 	@[ -f ext/ffmpeg/LICENSE.md ] || { echo "error: ext/ffmpeg is empty -- the modern build's Bink player is built on the ext/ffmpeg submodule: run git submodule update --init ext/ffmpeg" >&2; exit 1; }
 
 check-toolchain: check-tools
 	@for f in $(TOOLCHAIN_FILES); do \
-	  [ -f "$$f" ] || { echo "error: $$f is missing -- the compilers are the toolchains/ submodule: run git submodule update --init (see toolchains/README.md)" >&2; exit 1; }; \
+	  [ -f "$$f" ] || { echo "error: $$f is missing -- the compilers are the ext/toolchains/ submodule: run git submodule update --init (see ext/toolchains/README.md)" >&2; exit 1; }; \
 	done
 
 test: check-tools image
 	@[ -f $(TEST_GAME)/Lithtech.exe ] || { echo "error: no $(TEST_GAME)/ -- build it first (make, or make debug/modern/modern-debug)" >&2; exit 1; }
-	$(DOCKER_RUN) env PLAYTEST_NAME=$(TEST_NAME) PLAYTEST_SCRIPT=tools/playtest-newgame.txt bash tools/playtest.sh $(TEST_GAME) - 5
+	$(DOCKER_RUN) env PLAYTEST_NAME=$(TEST_NAME) PLAYTEST_SCRIPT=ext/tools/playtest-newgame.txt bash ext/tools/playtest.sh $(TEST_GAME) - 5
 
-# what tools/evidence.py cannot ask git for in the container (the build
+# what ext/tools/evidence.py cannot ask git for in the container (the build
 # image has no git)
 EVIDENCE_ENV = EVIDENCE_REVISION=$(shell git rev-parse HEAD 2>/dev/null) \
 	EVIDENCE_MODIFIED=$(shell git status --porcelain --untracked-files=no 2>/dev/null | wc -l) \

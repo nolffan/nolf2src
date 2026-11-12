@@ -20,7 +20,7 @@ Where the bug is in the engine (`Lithtech.exe`, `server.dll`), the entry
 names the retail address it was read from. The engine's source here is a
 reconstruction (`docs/engine/PLAN.md`), so an engine entry is listed only
 where our function is byte-identical to the retail one at that address
-(`tools/exematch.py`; for a string, the string is in the retail image too):
+(`ext/tools/exematch.py`; for a string, the string is in the retail image too):
 it describes what the retail code does, not a guess. Addresses are as in the
 retail images (`build/reference.sh` extracts them into `out/reference/`).
 The game binaries (`CShell.dll`, `Object.lto`, `ClientFx.fxd`, `NOLF2.exe`,
@@ -1047,7 +1047,7 @@ row (whose level-0 cost is 0, so it is free), and later the modifier tables
 > password is ignored and, if it has not left by then, kicked two seconds
 > later (the client still gets the answer, and leaves on its own as
 > before). Tested with a client and a dedicated server in two containers
-> (`tools/mptest.sh`). The release build keeps the retail code.
+> (`ext/tools/mptest.sh`). The release build keeps the retail code.
 
 NOLF1 sent the password to anyone who asked; NOLF2 checks a hash of it on
 the server. But on a wrong password the server only tells the client

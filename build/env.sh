@@ -1,13 +1,14 @@
 # Source this to get the VC6-under-Wine build environment. It runs inside the
 # build container (docker/Dockerfile; `make shell` gives you one), where Wine
-# is on PATH and the toolchain is toolchains/ in this checkout
-# (toolchains/README.md). The compile and link command lines themselves are
+# is on PATH and the toolchain is ext/toolchains/ in this checkout
+# (ext/toolchains/README.md). The compile and link command lines themselves are
 # build/build.mk's.
 
 REPO="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+source "$REPO/build/tree.sh"
 for f in msvc-6.00-8966/BIN/cl.exe msvc-6.00-9782/Common/MSDev98/Bin/RC.EXE dxsdk-8.1/include/d3d8.h; do
-    if [ ! -f "$REPO/toolchains/$f" ]; then
-        echo "error: toolchains/$f not found -- the toolchain is missing (toolchains/README.md)" >&2
+    if [ ! -f "$REPO/ext/toolchains/$f" ]; then
+        echo "error: ext/toolchains/$f not found -- the toolchain is missing (ext/toolchains/README.md)" >&2
         return 1 2>/dev/null || exit 1
     fi
 done
@@ -17,8 +18,8 @@ if ! command -v wine >/dev/null 2>&1; then
 fi
 export WINEDEBUG=-all
 export WINEDLLOVERRIDES="mscoree,mshtml="
-# the variant macros tools/releasesrc.py resolves, and the project's own
-# header directory tools/mkdeps.py follows (the shared tools/ also serve
+# the variant macros ext/tools/releasesrc.py resolves, and the project's own
+# header directory ext/tools/mkdeps.py follows (the shared ext/tools/ also serve
 # the other games' projects)
 export RELEASESRC_VARIANTS="NOLF2SRC_MODERN NOLF2SRC_DEBUG"
 export MKDEPS_PROJECT_INCLUDE=src/nolf2src
@@ -45,10 +46,10 @@ fi
 # NOLF2SRC_DEBUG blocks, not merely with them switched off: a block the
 # compiler skips still moves everything below it, and VC6 lets the file's
 # layout decide where some out-of-line inline functions go, so enough
-# skipped blocks can change the release binary (tools/releasesrc.py).
+# skipped blocks can change the release binary (ext/tools/releasesrc.py).
 # build/compile.sh calls this first, with its own arguments: in a checkout it
 # brings out/release-tree/ up to date -- src/ with those blocks resolved as
-# the release build sees them, the same build/ and tools/, this checkout's
+# the release build sees them, the same build/ and ext/tools/, this checkout's
 # build outputs -- runs the script there, copies the build outputs back into
 # this checkout's src/ (where `make progress` and the checks read them) and
 # exits with the script's status. In a build/variant.sh tree (out/build-*/,
@@ -59,13 +60,11 @@ nolf2src_release_tree() {
     local tree="$REPO/out/release-tree" script rc=0
     script="$(basename "${BASH_SOURCE[1]}")"
     mkdir -p "$tree"
-    python3 "$REPO/tools/releasesrc.py" sync "$REPO/src" "$tree/src" || exit 1
-    python3 "$REPO/tools/releasesrc.py" outputs "$REPO/src" "$tree/src" || exit 1
-    rm -rf "$tree/build" "$tree/tools"
-    tar -C "$REPO" -cf - --exclude='__pycache__' --exclude='.git' build tools | tar -C "$tree" -xf -
-    [ -L "$tree/toolchains" ] || ln -s ../../toolchains "$tree/toolchains"
+    python3 "$REPO/ext/tools/releasesrc.py" sync "$REPO/src" "$tree/src" || exit 1
+    python3 "$REPO/ext/tools/releasesrc.py" outputs "$REPO/src" "$tree/src" || exit 1
+    nolf2src_tree_layout "$tree" || exit 1
     ( cd "$tree" && NOLF2SRC_IN_RELEASE_TREE=1 bash "build/$script" "$@" ) || rc=$?
-    python3 "$REPO/tools/releasesrc.py" outputs "$tree/src" "$REPO/src" || exit 1
+    python3 "$REPO/ext/tools/releasesrc.py" outputs "$tree/src" "$REPO/src" || exit 1
     exit $rc
 }
 
@@ -81,7 +80,7 @@ nolf2src_make() {
 # The tools by hand, for the one-object loop and experiments
 # (build/engine.sh, guides/02, guides/10): the compiler, linker, librarian
 # and resource compiler build/build.mk uses, in the same environment --
-# src/ as drive S:, toolchains/ as T:, the DirectX 8.1 SDK first on the
+# src/ as drive S:, ext/toolchains/ as T:, the DirectX 8.1 SDK first on the
 # INCLUDE and LIB paths, src/nolf2src last -- so a command line copied out of
 # an object's <object>.cmd gives the same object. (A compile's .cmd also
 # starts with `cd <dir> &&`: run it from that directory.) They use their own
@@ -89,10 +88,10 @@ nolf2src_make() {
 #
 #   run_cl /nologo /O2 /c foo.cpp       cl 12.00.8966 (VC6 SP5), unless
 #                                       CL_REV=<build> names another
-#                                       toolchains/msvc-6.00-<build>
+#                                       ext/toolchains/msvc-6.00-<build>
 #   run_link, run_lib, run_rc           link/lib 6.00.8447, RC from SP6
 #   nolf2src_wpath <path>               the Windows path the tools see
-TC="$REPO/toolchains"
+TC="$REPO/ext/toolchains"
 VC8966="$TC/msvc-6.00-8966"
 VC9782="$TC/msvc-6.00-9782"
 DXSDK="$TC/dxsdk-8.1"

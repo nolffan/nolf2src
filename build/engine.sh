@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # The engine's reconstruction loop (guides/02_the_loop.md): build one engine
 # project, or recompile ONE of its files, and match what was compiled
-# against the retail image, function by function (tools/exematch.py).
+# against the retail image, function by function (ext/tools/exematch.py).
 #
 #   build/engine.sh <project> [link]       compile and link it (build.mk)
 #   build/engine.sh <project> objs         compile its objects, no link
@@ -12,9 +12,9 @@
 #   build/engine.sh server test            link server.dll, then load it
 #                                          under Wine with its base occupied
 #                                          and call CreateServer/DeleteServer
-#                                          (tools/loadtest.c)
+#                                          (ext/tools/loadtest.c)
 #
-# <project> is a project of build/build.mk, as tools/dsp2mk.py names it from
+# <project> is a project of build/build.mk, as ext/tools/dsp2mk.py names it from
 # Monolith's workspace: `Lithtech` (Lithtech.exe) and `server` (server.dll)
 # once src/Engine/runtime/winbuild/Engine.dsw is in the build (the skeleton
 # package of docs/engine/PLAN.md); also snddrv, ServerDir, or any game
@@ -97,9 +97,9 @@ match() {
         args+=("$1"); shift
     done
     if [ -n "$filter" ]; then
-        python3 tools/exematch.py "$img" "${args[@]}" | grep -Ei "${filter}|^matched" || true
+        python3 ext/tools/exematch.py "$img" "${args[@]}" | grep -Ei "${filter}|^matched" || true
     else
-        python3 tools/exematch.py "$img" "${args[@]}"
+        python3 ext/tools/exematch.py "$img" "${args[@]}"
     fi
 }
 
@@ -126,7 +126,7 @@ case "$1" in
             msg="$(var P_ltmsg_OUT)"
             d="out/linktest"
             mkdir -p "$d"
-            cp tools/loadtest.c "$dll" "$msg" "$d/"
+            cp ext/tools/loadtest.c "$dll" "$msg" "$d/"
             ( cd "$d" && run_cl /nologo /O1 loadtest.c /link /out:loadtest.exe \
                   kernel32.lib user32.lib ole32.lib >/dev/null &&
               nolf2src_tools_env && wine loadtest.exe "$(basename "$dll")" rebase )

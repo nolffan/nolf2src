@@ -8,49 +8,49 @@ parts of it by hand, and how the game is packaged.
 * **Linux with Docker.** The compilers are Win32 programs and run under Wine
   in a container; the host needs nothing else (no Wine, no Python).
 * **The submodules**: `git submodule update --init`.
-  * `tools/`, the build's scripts, its tests (`playtest.sh`, `srvtest.sh`,
+  * `ext/tools/`, the build's scripts, its tests (`playtest.sh`, `srvtest.sh`,
     `mptest.sh`) and the byte-matching and scoring tools: a repository of
     its own, shared with the reconstructions of *No One Lives Forever*
     (nolfsrc) and *Contract J.A.C.K.* (cjacksrc), so a tool one of them
     makes serves the others. A tool reads the project from its own files
     (`progress/targets.py`; `build/env.sh` names the variant macros and the
-    header directory). See `tools/README.md`.
-  * `toolchains/`, the compilers (Visual C++ 6.0 SP5 and the other
+    header directory). See `ext/tools/README.md`.
+  * `ext/toolchains/`, the compilers (Visual C++ 6.0 SP5 and the other
     revisions), the DirectX 8.1 SDK and Microsoft's DirectMusic. See
-    `toolchains/README.md`.
-  * `lithtools/`, the reconstruction of LithTech's development tools: the
+    `ext/toolchains/README.md`.
+  * `ext/lithtools/`, the reconstruction of LithTech's development tools: the
     build uses its `lithrez` (`build/lithrez.sh` builds it, without its Qt
     GUI) to pack `assets/rez/`, the 1.3 update's data, into the game
     directory's `nolf2src.rez` (`assets/README.md`). A shallow submodule.
-  * `rez/`, the retail game the build takes its data from. It fetches the
+  * `ext/rez/`, the retail game the build takes its data from. It fetches the
     redump images of the two European discs of *No One Lives Forever 2*
     from archive.org, checks them, and installs the game from them as its
     own setup would, then the English 1.3 update it carries, into
-    `rez/games/nolf2-eu-1.3/`, checked file by file against
-    `rez/games.sha256`, and the USA release's two discs, which the public
+    `ext/rez/games/nolf2-eu-1.3/`, checked file by file against
+    `ext/rez/games.sha256`, and the USA release's two discs, which the public
     archive's install scripts are made against too (below). It also
-    fetches the LithTech Jupiter SDK's CD image and installs its source into `rez/sdk/lithtech-jupiter-51/`, for
+    fetches the LithTech Jupiter SDK's CD image and installs its source into `ext/rez/sdk/lithtech-jupiter-51/`, for
     `ServerDir.dll` (`LICENSE_NOTES.md`). `make` does both the first time
-    (`make retail`, `make sdk`); see `rez/README.md`.
+    (`make retail`, `make sdk`); see `ext/rez/README.md`.
   * `ext/ffmpeg`, FFmpeg, which the modern build's Bink player is built on
     (`build/ext.sh`). The release build does not need it.
-* About 14 GB of disk: 3.4 GB for the docker image, 5.9 GB in `rez/` (the
+* About 14 GB of disk: 3.4 GB for the docker image, 5.9 GB in `ext/rez/` (the
   disc images of both releases, zipped and unzipped, the SDK's image, the
   installed game),
   1.2 GB for each game directory in `out/` (the retail files the build does
-  not change are hard links to `rez/games/`), 1 to 2 GB for each variant's
+  not change are hard links to `ext/rez/games/`), 1 to 2 GB for each variant's
   build tree and Wine prefix, and 0.9 GB for a `-private` archive.
 
 ## What `make` does
 
-1. Checks the compilers are in `toolchains/` and that `rez/` is there.
+1. Checks the compilers are in `ext/toolchains/` and that `ext/rez/` is there.
 2. Builds the docker image `nolf2src-build` from `docker/Dockerfile` if
    needed (a few minutes, once).
 3. `make retail` and `make sdk`, in a container: the first time, fetch the
    disc images and the SDK's image and install them (`build/retail.sh`,
    `build/jupiter.sh`); every time, check the installed files.
 4. Runs `build/all.sh` in a throwaway container (`--rm --init`, named
-   `nolf2src-build`), as your user, with the checkout (and so `rez/`)
+   `nolf2src-build`), as your user, with the checkout (and so `ext/rez/`)
    mounted at `/repo`.
 
 `build/all.sh` then:
@@ -60,8 +60,8 @@ parts of it by hand, and how the game is packaged.
 | 1. resources | the game data from the retail discs: the `.rez` archives (the retail game DLLs inside them zeroed) and the movies | `out/nolf2-legacy-release/` |
 | 1b. assets | the 1.3 update's data, from `assets/`: `assets/rez/` packed into `nolf2src.rez` by lithtools' `lithrez` (`build/lithrez.sh`; a fixed time, so the same bytes every build), and 1.3's `autoexec.cfg` and default profile (`assets/README.md`) | `out/nolf2-legacy-release/` |
 | 2. third-party runtime | Bink (`binkw32.dll`) and the Microsoft C++ and MFC runtime DLLs from the retail game: licensed binaries with no source. The modern build takes only the Microsoft runtime, and builds its own `binkw32.dll` | `out/nolf2-legacy-release/` |
-| 2b. Jupiter SDK source | WONAPI, the library `ServerDir.dll` is built with, from the installed SDK (`tools/jupitersrc.py`; never committed) | `src/Game/Libs/` |
-| 2c. engine art | the icon `lithtech.rc` compiles into `Lithtech.exe` (`IDR_MAINFRAME`, five images), read out of the retail `Lithtech.exe`'s resources (`tools/retailextract.py art`; never committed: the retail game's art, not ours). The engine's text resources (dialog, version block, string table) are `.rc` source in the repository (`lithtech.rc`, `server.rc`, `ltmsg.rc`); its other binary resources, MFC's help cursor and four bitmaps, come from the toolchain's `afxres.rc`, as the original's did | `src/Engine/runtime/winbuild/lithtech/res/` |
+| 2b. Jupiter SDK source | WONAPI, the library `ServerDir.dll` is built with, from the installed SDK (`ext/tools/jupitersrc.py`; never committed) | `src/Game/Libs/` |
+| 2c. engine art | the icon `lithtech.rc` compiles into `Lithtech.exe` (`IDR_MAINFRAME`, five images), read out of the retail `Lithtech.exe`'s resources (`ext/tools/retailextract.py art`; never committed: the retail game's art, not ours). The engine's text resources (dialog, version block, string table) are `.rc` source in the repository (`lithtech.rc`, `server.rc`, `ltmsg.rc`); its other binary resources, MFC's help cursor and four bitmaps, come from the toolchain's `afxres.rc`, as the original's did | `src/Engine/runtime/winbuild/lithtech/res/` |
 | 3. compile | `build/compile.sh`: every compile and link, by `build/build.mk` -- the libraries, the game DLLs, the launcher and the dedicated server from Monolith's workspace, `ServerDir.dll`, `snddrv.dll`, the engine (`Lithtech.exe`, `server.dll`) and `ltmsg.dll` | `src/Game/built/`, `src/Engine/built/` |
 | 4. assemble | the built binaries into the game directory; the game DLLs go in `custom/`, last in the rez stack | `out/nolf2-legacy-release/` |
 | 5. audit | every PE file in the game directory listed with its origin (`MANIFEST.txt`); the build fails if one is unaccounted for, or if a `.rez` archive still holds one | |
@@ -73,8 +73,8 @@ third-party runtime of step 2; the audit prints them all.
 ## Other targets
 
 ```sh
-make test         # tools/playtest.sh under Xvfb: the main menu, a new game,
-                  #   the first level (tools/playtest-newgame.txt; out/play/test/)
+make test         # ext/tools/playtest.sh under Xvfb: the main menu, a new game,
+                  #   the first level (ext/tools/playtest-newgame.txt; out/play/test/)
 make progress     # score the build against the retail binaries, function by
                   #   function; fails if a function recorded as byte-identical
                   #   in progress/identical.txt no longer is
@@ -85,17 +85,17 @@ make distclean    # clean, and remove the docker image
 ```
 
 The dedicated server has tests of its own, run in `make shell`:
-`tools/srvtest.sh` starts a game directory's `NOLF2Srv.exe` unattended under
+`ext/tools/srvtest.sh` starts a game directory's `NOLF2Srv.exe` unattended under
 Xvfb on a co-operative profile of its own, checks that it is still running
 and then that Stop Server stops it, and prints the end of its log
-(`nolf2srv.log`); `tools/mptest.sh` has the game join such a server over
+(`nolf2srv.log`); `ext/tools/mptest.sh` has the game join such a server over
 the LAN. Their runs are in `out/srvtest/<name>/` and `out/mptest/<name>/`:
 
 ```sh
 G=out/nolf2-modern-release
-SRVTEST_NAME=modern tools/srvtest.sh $G/server.dll 60 $G
+SRVTEST_NAME=modern ext/tools/srvtest.sh $G/server.dll 60 $G
 MPTEST_NAME=modern MPTEST_KEYS='Down Down Return Return w2 Down Return w2 F5 w4 Down Down Return w20 space w15' \
-    tools/mptest.sh $G/server.dll $G/Lithtech.exe 30 $G
+    ext/tools/mptest.sh $G/server.dll $G/Lithtech.exe 30 $G
 # (in the modern game the found server is one Down further than mptest.sh's
 # default keys go)
 ```
@@ -129,7 +129,7 @@ Every game directory is packaged twice by `build/package.sh`:
   discs -- every file `MANIFEST.txt` lists as `data` or `THIRD-PARTY` --
   and with two scripts that install those files from the player's own disc
   images of *No One Lives Forever 2* (the European or the USA release):
-  `linux-install.sh` and `windows-install.bat` (`tools/mkinstall.py`). The
+  `linux-install.sh` and `windows-install.bat` (`ext/tools/mkinstall.py`). The
   data of Sierra's free English 1.3 update is in the archive itself
   (`asset` in `MANIFEST.txt`: `nolf2src.rez` and the shipped settings and
   default profile, from `assets/`), so the player needs only the discs. They check every file they write against its
@@ -144,7 +144,7 @@ Every game directory is packaged twice by `build/package.sh`:
 
 `nolf2cmds.txt`, the engine's command file as the build writes it (the rez
 stack, `custom/` last), is in the game directory and the private archive,
-for `tools/playtest.sh`. The launcher never reads it: it writes its own
+for `ext/tools/playtest.sh`. The launcher never reads it: it writes its own
 `launchcmds.txt` on every Play. So the public archive has none.
 
 `LICENSE_NOTES.md` says what each holds and under whose terms.
@@ -152,7 +152,7 @@ for `tools/playtest.sh`. The launcher never reads it: it writes its own
 Nothing is installed or run from the discs. NOLF2's setup stores its files
 compressed in InstallShield 6 cabinets that span both discs (`data1.hdr`,
 `data1.cab` to `data3.cab`; only `Data/GAME.REZ` is a plain file).
-`tools/mkinstall.py` works out, against the images in `rez/isos/`, where
+`ext/tools/mkinstall.py` works out, against the images in `ext/rez/isos/`, where
 every byte the game needs is: for each retail file, the ranges of an image
 that hold it as it is or as InstallShield's compressed chunks (each a
 16-bit length and a raw deflate stream; a file split across two cabinets
@@ -169,11 +169,11 @@ coreutils do the rest); on Windows, PowerShell 5.1's .NET `DeflateStream`
 block, as it takes no dictionary). An image is a plain `.iso`, redump's
 `.bin` (or its `.cue`) or redump's `.zip`, converted to a temporary `.iso`
 first. Redump has two dumps of the USA disc 2; the other, `(Alt)`, which
-rez/ does not fetch, has the cabinet at the same offset, and is recorded by
+ext/rez/ does not fetch, has the cabinet at the same offset, and is recorded by
 its size and SHA-256 (`mkinstall.py`'s `ALIASES`; checked whenever it is in
-`rez/isos/`).
+`ext/rez/isos/`).
 
-The public archive is made only if `rez/isos/` has the `.iso` of both
+The public archive is made only if `ext/rez/isos/` has the `.iso` of both
 discs of both releases: `make retail` fetches the USA ones too
 (`build/retail.sh`'s `retail_discs`, 1.1 GB more, once).
 `NOLF2_ARCHIVES` says which archives to write (default `private public`):
@@ -205,7 +205,7 @@ beforehand keeps its own text, and gets the archives added. Its steps are the ma
 above, so a run can be reproduced locally:
 
 ```sh
-git submodule update --init                 # tools/, toolchains/, rez/, lithtools/, ext/ffmpeg
+git submodule update --init                 # ext/tools/, ext/toolchains/, ext/rez/, ext/lithtools/, ext/ffmpeg
 make image && make retail sdk               # (CI: the image from its layer cache, IMAGE_BUILD=0)
 export NOLF2_ARCHIVES=public
 make && make progress && make debug && make modern && make modern-debug
@@ -214,7 +214,7 @@ ls out/*-public.tar.gz
 
 A first job, "prepare", fetches the redump zips of the European and the
 USA discs and the Jupiter SDK's image (2.9 GB from archive.org) only if the
-cache (keyed on `rez/isos/SHA256SUMS`, against which `rez/fetch-isos.sh`
+cache (keyed on `ext/rez/isos/SHA256SUMS`, against which `ext/rez/fetch-isos.sh`
 checks them either way) does not have them, so the builds never all
 download them at once, and it writes the docker image's layer cache, which
 the builds only read. The submodules are fetched over HTTPS at depth 1.

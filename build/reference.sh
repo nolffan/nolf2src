@@ -12,28 +12,28 @@
 #                                  Python 3; no Wine involved)
 #   build/reference.sh tables     only the function tables, from the images
 #                                  already there (build/progress.sh, when
-#                                  tools/enumfuncs.py is newer than them)
+#                                  ext/tools/enumfuncs.py is newer than them)
 set -e
 cd "$(dirname "${BASH_SOURCE[0]}")/.."
 if [ "${1:-}" != tables ]; then
     source build/retail.sh
-    python3 tools/retailextract.py reference "$(retail_dir)" out/reference
+    python3 ext/tools/retailextract.py reference "$(retail_dir)" out/reference
 fi
 
-# The function table of each image (tools/enumfuncs.py --csv): addr, size,
+# The function table of each image (ext/tools/enumfuncs.py --csv): addr, size,
 # how the start was found, and the name an error-tag literal or export gives
 # it. The reconstruction tools read these (fndiff.py's sizes, tagmap.py,
 # uncovered.py, ...); like the images, they are derived, never committed.
 for pair in server:server.dll Lithtech:Lithtech.exe ServerDir:ServerDir.dll snddrv:snddrv.dll \
             NOLF2:NOLF2.exe NOLF2Srv:NOLF2Srv.exe \
             CShell:CShell.dll Object:Object.lto ClientFx:ClientFx.fxd; do
-    python3 tools/enumfuncs.py "out/reference/${pair#*:}" \
+    python3 ext/tools/enumfuncs.py "out/reference/${pair#*:}" \
         --csv "out/reference/${pair%%:*}-functions.csv" | tail -1
 done
 [ "${1:-}" = tables ] && exit 0
-# ... and its vtables, one row per slot (tools/vtabaudit.py), which
-# tools/vtabcheck.py compares our linked images against.
+# ... and its vtables, one row per slot (ext/tools/vtabaudit.py), which
+# ext/tools/vtabcheck.py compares our linked images against.
 for pair in server:server.dll Lithtech:Lithtech.exe; do
-    python3 tools/vtabaudit.py "out/reference/${pair#*:}" \
+    python3 ext/tools/vtabaudit.py "out/reference/${pair#*:}" \
         --csv="out/reference/${pair%%:*}-vtables.csv" | tail -1
 done
