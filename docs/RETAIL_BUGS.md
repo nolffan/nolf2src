@@ -77,6 +77,7 @@ NOLF2 no longer has are listed at the end, so nobody looks again.
 * [The dedicated server prints its operator's command as a format](#the-dedicated-server-prints-its-operators-command-as-a-format)
 * [`ILTModel::GetNodeName` reads one past the node list](#iltmodelgetnodename-reads-one-past-the-node-list)
 * [`trk_ScanToKeyFrame` divides by the last keyframe's time](#trk_scantokeyframe-divides-by-the-last-keyframes-time)
+* [An empty sprite file divides by zero, and a sprite that fails to load is unlinked from no list](#an-empty-sprite-file-divides-by-zero-and-a-sprite-that-fails-to-load-is-unlinked-from-no-list)
 * [`LTObject::Clear` leaves the standing-on link untied](#ltobjectclear-leaves-the-standing-on-link-untied)
 * [An object DLL of the wrong version is freed twice](#an-object-dll-of-the-wrong-version-is-freed-twice)
 * [With no sound driver at all, the sound system is terminated through a null pointer](#with-no-sound-driver-at-all-the-sound-system-is-terminated-through-a-null-pointer)
@@ -867,6 +868,27 @@ terminate; NOLF2's accepts node 0 and uses `LTStrCpy`, but has this.)
 NOLF1's `at_Advance` bug in its successor: a looping animation wraps with
 `%= endTime`, guarded only against one keyframe, so several keyframes all at
 time 0 divide by zero.
+
+### An empty sprite file divides by zero, and a sprite that fails to load is unlinked from no list
+`0x482720` (lithtech.exe) · `src/Engine/runtime/client/src/sprite.cpp`
+
+> **FIXED in the modern build** (`NOLF2SRC_MODERN`, MODERN.md M-E72): the
+> sprite's link is tied off when it is made, and a header that could not be
+> read or a frame rate of 0 is refused before the division.
+
+`spr_Create` reads a sprite's header -- frame count, frame rate, flags --
+and computes the animation's length as `(1000 / nFrameRate) * nFrames`
+(retail: `mov eax, 1000; xor edx, edx; ... div dword [esp+20]`) before it
+asks the stream whether the reads succeeded. The rez stream zeroes what it
+cannot read (`RezFileStream::Read`, `de_file.cpp`), so a file too short for
+the header has a frame rate of 0, and the division faults. One shipped
+file is like that: `FX/GUNS/TAZER/PVFLARE.SPR` in `GAME.REZ` is 0 bytes;
+nothing loads it. And the way out of a failed load is no safer: the
+sprite was zeroed with `memset` and its link never tied off, so
+`spr_Destroy`'s `dl_Remove` writes through the link's null pointers -- on
+a frame name longer than 1,000 bytes, or a short read the final check
+catches. (Found by lithtools, which reads every shipped sprite: its
+`docs/SPR.md`.)
 
 ### `LTObject::Clear` leaves the standing-on link untied
 `0x10021fa2` (server.dll) · `src/Engine/runtime/shared/src/objectmgr.cpp`
