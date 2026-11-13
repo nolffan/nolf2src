@@ -21,7 +21,9 @@ parts of it by hand, and how the game is packaged.
   * `ext/lithtools/`, the reconstruction of LithTech's development tools: the
     build uses its `lithrez` (`build/lithrez.sh` builds it, without its Qt
     GUI) to pack `assets/rez/`, the 1.3 update's data, into the game
-    directory's `nolf2src.rez` (`assets/README.md`). A shallow submodule.
+    directory's `nolf2src.rez`, and the two official map packs,
+    `assets/mappack001/` and `assets/mappack002/`, into `MapPack001.rez`
+    and `MapPack002.rez` (`assets/README.md`). A shallow submodule.
   * `ext/rez/`, the retail game the build takes its data from. It fetches the
     redump images of the two European discs of *No One Lives Forever 2*
     from archive.org, checks them, and installs the game from them as its
@@ -58,7 +60,7 @@ parts of it by hand, and how the game is packaged.
 | Step | What | Output |
 |---|---|---|
 | 1. resources | the game data from the retail discs: the `.rez` archives (the retail game DLLs inside them zeroed) and the movies | `out/nolf2-legacy-release/` |
-| 1b. assets | the 1.3 update's data, from `assets/`: `assets/rez/` packed into `nolf2src.rez` by lithtools' `lithrez` (`build/lithrez.sh`; a fixed time, so the same bytes every build), and 1.3's `autoexec.cfg` and default profile (`assets/README.md`) | `out/nolf2-legacy-release/` |
+| 1b. assets | the 1.3 update's data, from `assets/`: `assets/rez/` packed into `nolf2src.rez` by lithtools' `lithrez` (`build/lithrez.sh`; a fixed time, so the same bytes every build), and 1.3's `autoexec.cfg` and default profile; the official map packs, `assets/mappack001/` and `assets/mappack002/`, packed into `MapPack001.rez` and `MapPack002.rez` (`assets/README.md`) | `out/nolf2-legacy-release/` |
 | 2. third-party runtime | Bink (`binkw32.dll`) and the Microsoft C++ and MFC runtime DLLs from the retail game: licensed binaries with no source. The modern build takes only the Microsoft runtime, and builds its own `binkw32.dll` | `out/nolf2-legacy-release/` |
 | 2b. Jupiter SDK source | WONAPI, the library `ServerDir.dll` is built with, from the installed SDK (`ext/tools/jupitersrc.py`; never committed) | `src/Game/Libs/` |
 | 2c. engine art | the icon `lithtech.rc` compiles into `Lithtech.exe` (`IDR_MAINFRAME`, five images), read out of the retail `Lithtech.exe`'s resources (`ext/tools/retailextract.py art`; never committed: the retail game's art, not ours). The engine's text resources (dialog, version block, string table) are `.rc` source in the repository (`lithtech.rc`, `server.rc`, `ltmsg.rc`); its other binary resources, MFC's help cursor and four bitmaps, come from the toolchain's `afxres.rc`, as the original's did | `src/Engine/runtime/winbuild/lithtech/res/` |
@@ -123,8 +125,8 @@ Every game directory is packaged twice by `build/package.sh`:
 * `out/<directory>-private.tar.gz` (about 0.9 GB): the whole directory,
   the retail game's data included. For your own machines, and for others
   developing on the build.
-* `out/<directory>-public.tar.gz` (about 70 MB, most of it the 1.3
-  update's data in `nolf2src.rez`; 15 MB more for a debug build, with its
+* `out/<directory>-public.tar.gz` (about 100 MB, most of it the 1.3
+  update's data in `nolf2src.rez` and the map packs; 15 MB more for a debug build, with its
   `.pdb` files): the same without anything that came from the retail
   discs -- every file `MANIFEST.txt` lists as `data` or `THIRD-PARTY` --
   and with two scripts that install those files from the player's own disc
@@ -132,7 +134,8 @@ Every game directory is packaged twice by `build/package.sh`:
   `linux-install.sh` and `windows-install.bat` (`ext/tools/mkinstall.py`). The
   data of Sierra's free English 1.3 update is in the archive itself
   (`asset` in `MANIFEST.txt`: `nolf2src.rez` and the shipped settings and
-  default profile, from `assets/`), so the player needs only the discs. They check every file they write against its
+  default profile, from `assets/`), and so are the official map packs
+  (`MapPack001.rez`, `MapPack002.rez`), so the player needs only the discs. They check every file they write against its
   SHA-256, so the result is the private archive's directory, byte for byte.
   Its last file, `SHA256SUMS`, lists every file of the archive and every
   file the scripts write (but `autoexec.cfg` and `Profiles/Default.prf`,

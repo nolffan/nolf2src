@@ -30,7 +30,8 @@ get it, build it ([`BUILDING.md`](BUILDING.md)); each build on GitHub
 Actions also keeps it as an artifact for a while.
 
 No game files are included beyond the data of Sierra's free English 1.3
-update, which comes with each release (`nolf2src.rez`; `assets/README.md`).
+update and its two free multiplayer map packs, which come with each release
+(`nolf2src.rez`, `MapPack001.rez`, `MapPack002.rez`; `assets/README.md`).
 Each archive has two installer scripts that copy the rest of the game's data
 from your own disc images, and check every file they write.
 
@@ -170,7 +171,7 @@ wrong, please report it.
   or (either build) list the archives with `custom` last:
 
   ```bat
-  Lithtech.exe -rez GAME.REZ -rez GAME2.REZ -rez GAMEDLL.REZ -rez SOUND.REZ -rez nolf2src.rez -rez custom +ScreenWidth 2560 +ScreenHeight 1440
+  Lithtech.exe -rez GAME.REZ -rez GAME2.REZ -rez GAMEDLL.REZ -rez SOUND.REZ -rez MapPack001.rez -rez MapPack002.rez -rez nolf2src.rez -rez custom +ScreenWidth 2560 +ScreenHeight 1440
   ```
 
   (`Engine.REZ` is opened by the engine itself.) Settings can follow the

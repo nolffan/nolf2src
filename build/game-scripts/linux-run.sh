@@ -46,6 +46,9 @@
 # writes that into its Wine prefix, under HKLM\Software\Monolith
 # Productions\No One Lives Forever 2\1.0:
 #   * InstallDir: this directory (the launcher changes to it).
+#   * ContentNum, ContentCommandLine0 and 1: the official map packs,
+#     MapPack001.rez and MapPack002.rez, as their installers wrote them
+#     (the launcher adds content before the updates).
 #   * UpdateNum, UpdateCommandLine1: the archives it adds after its own
 #     (GAME.REZ, GAME2.REZ, GAMEDLL.REZ, SOUND.REZ, custom): the 1.3
 #     update's, as its installer wrote -- and, after it, custom/ again,
@@ -98,6 +101,9 @@ if [ -z "$MODERN" ]; then
             "$WINE" reg add "$@" /reg:64 /f >/dev/null 2>&1 || true; }
     reg "$KEY" /v InstallDir         /t REG_SZ    /d "$DIR"
     reg "$KEY" /v NetRegionCode      /t REG_SZ    /d EN
+    reg "$KEY" /v ContentNum         /t REG_DWORD /d 2
+    reg "$KEY" /v ContentCommandLine0 /t REG_SZ   /d '-rez MapPack001.rez'
+    reg "$KEY" /v ContentCommandLine1 /t REG_SZ   /d '-rez MapPack002.rez'
     reg "$KEY" /v UpdateNum          /t REG_DWORD /d 2
     reg "$KEY" /v UpdateCommandLine1 /t REG_SZ    /d '-rez nolf2src.rez -rez custom'
     reg "$KEY" /v 'Disable Movies'   /t REG_DWORD /d 1

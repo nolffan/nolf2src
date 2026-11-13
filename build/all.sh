@@ -118,22 +118,35 @@ esac
 step "1. resources: game data from $RETAIL -> $OUT"
 python3 ext/tools/retailextract.py resources "$RETAIL" "$OUT"
 
-step "1b. assets: the 1.3 update's data (assets/) -> $OUT/nolf2src.rez and the shipped settings"
+step "1b. assets: the 1.3 update's data and the two map packs (assets/) -> $OUT/nolf2src.rez, MapPack001.rez, MapPack002.rez and the shipped settings"
 # The 1.3 update's data ships with the release (assets/README.md): what its
 # Update_v1x3.rez carries besides the game DLLs, packed into nolf2src.rez by
 # lithtools' lithrez (build/lithrez.sh) with a fixed time, so the archive is
 # the same bytes on every build; and the settings and default profile it
 # installs. build/retail.py keeps the retail Update_v1x3.rez out.
+# The official map packs (assets/README.md) are packed into the archives
+# their installers installed, MapPack001.rez and MapPack002.rez, as NOLF2's
+# LithRez wrote them (--compat 1.10: no resource IDs) and with each
+# original's time: the same files as the originals, every time.
 bash build/lithrez.sh
 rm -f "$OUT/Update_v1x3.rez"                 # the retail archive, before assets/
 out/lithrez/lithrez c "$OUT/nolf2src.rez.part" assets/rez --time 1044489600 >/dev/null
 mv "$OUT/nolf2src.rez.part" "$OUT/nolf2src.rez"
+for mp in 001:1037757884 002:1044088336; do
+    out/lithrez/lithrez c "$OUT/MapPack${mp%%:*}.rez.part" "assets/mappack${mp%%:*}" \
+        --compat 1.10 --time "${mp#*:}" >/dev/null
+    mv "$OUT/MapPack${mp%%:*}.rez.part" "$OUT/MapPack${mp%%:*}.rez"
+done
 cp assets/game/autoexec.cfg "$OUT/autoexec.cfg.retail"
 cp assets/game/Profiles/Default.prf "$OUT/Default.prf.retail"
 printf 'asset assets/rez (lithrez)\tnolf2src.rez\n' >> "$OUT/MANIFEST.txt"
+printf 'asset assets/mappack001 (lithrez)\tMapPack001.rez\n' >> "$OUT/MANIFEST.txt"
+printf 'asset assets/mappack002 (lithrez)\tMapPack002.rez\n' >> "$OUT/MANIFEST.txt"
 printf 'asset assets/game/autoexec.cfg\tautoexec.cfg.retail\n' >> "$OUT/MANIFEST.txt"
 printf 'asset assets/game/Profiles/Default.prf\tDefault.prf.retail\n' >> "$OUT/MANIFEST.txt"
 echo "   nolf2src.rez  <-  assets/rez/ ($(find assets/rez -type f | wc -l) files)"
+echo "   MapPack001.rez  <-  assets/mappack001/ ($(find assets/mappack001 -type f | wc -l) files)"
+echo "   MapPack002.rez  <-  assets/mappack002/ ($(find assets/mappack002 -type f | wc -l) files)"
 
 # autoexec.cfg and the default profile start as the shipped ones (the game
 # rewrites them); a rebuild keeps the player's.

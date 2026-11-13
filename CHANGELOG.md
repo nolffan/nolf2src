@@ -16,6 +16,11 @@ covers each change in detail, under its item number (M-E1, M-G2 and so on).
   instead of a few. Unpack each release into a new, empty directory, as
   before: a directory set up by an older release still has
   `Update_v1x3.rez`, which the installer rejects as not this release's.
+- **The official map packs come with the game.** Sierra's two free
+  multiplayer map packs -- nine deathmatch worlds (`DM_01` to `DM_09`) and
+  seven Doomsday worlds (`DD_01` to `DD_07`) -- are in each release, as
+  `MapPack001.rez` and `MapPack002.rez`, the archives their installers
+  installed, so there is nothing else to install to host or join them.
 - **`gimmemod`, `gimmegear` and `budonkadonk` work.** In the original
   game `gimmemod` gave gear, `gimmegear` did nothing (a single mod took
   the nonsense code `ewkkckmb`), and the third-person cheat worked only in

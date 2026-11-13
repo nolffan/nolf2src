@@ -97,7 +97,8 @@ Needs docker and four submodules (`git submodule update --init`):
 `ext/tools/` (the build's scripts, tests and byte-matching tools, shared with
 the NOLF and Contract J.A.C.K. reconstructions), `ext/toolchains/` (the
 compilers), `ext/lithtools/` (whose `lithrez` packs the 1.3 update's data,
-`assets/`, into `nolf2src.rez`) and `ext/rez/` (which fetches the European
+`assets/`, into `nolf2src.rez`, and the map packs into `MapPack001.rez` and
+`MapPack002.rez`) and `ext/rez/` (which fetches the European
 discs from archive.org and installs the game with its 1.3 update, and the
 USA discs, for the public archive's install scripts).
 
@@ -139,9 +140,10 @@ packaged the same way: `out/nolf2-legacy-debug-private.tar.gz`,
 The `-private` archives hold the retail game's data (1.8 GB of it), so they
 are for your own machines and for others developing on the build. To give
 the game to anyone else, give them the `-public` archive instead
-(`out/nolf2-modern-release-public.tar.gz`, about 70 MB): the same
+(`out/nolf2-modern-release-public.tar.gz`, about 100 MB): the same
 directory without anything from the retail discs -- the data of Sierra's
-free English 1.3 update is in it (`assets/README.md`) -- and two scripts
+free English 1.3 update and its two free map packs are in it
+(`assets/README.md`) -- and two scripts
 that install the rest from their own disc images of *No One Lives Forever
 2* (the European or the USA release), without installing the game. An image can be a plain `.iso` (an own
 rip), redump's `.bin` (or its `.cue`), or redump's `.zip` as archive.org

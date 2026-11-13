@@ -73,7 +73,8 @@ fi
 # a prefix to set up: make it now if it does not exist yet
 [ -d "$WINEPREFIX/dosdevices" ] || "$WINE" wineboot -i >/dev/null 2>&1 || true
 # The release build's server stops without the installer's key, and takes
-# the 1.3 update's archive (and custom/ again after it) from its values; the
+# the map packs' archives, then the 1.3 update's (and custom/ again after
+# it), from its values; the
 # modern build's needs none (docs/MODERN.md, M-G50).
 if ! grep -q '^EXT .*	binkw32\.dll$' MANIFEST.txt 2>/dev/null; then
     DIR="$("$WINE" winepath -w "$(pwd)" 2>/dev/null)"
@@ -81,6 +82,9 @@ if ! grep -q '^EXT .*	binkw32\.dll$' MANIFEST.txt 2>/dev/null; then
     reg() { "$WINE" reg add "$@" /reg:32 /f >/dev/null 2>&1
             "$WINE" reg add "$@" /reg:64 /f >/dev/null 2>&1 || true; }
     reg "$KEY" /v InstallDir         /t REG_SZ    /d "$DIR"
+    reg "$KEY" /v ContentNum         /t REG_DWORD /d 2
+    reg "$KEY" /v ContentCommandLine0 /t REG_SZ   /d '-rez MapPack001.rez'
+    reg "$KEY" /v ContentCommandLine1 /t REG_SZ   /d '-rez MapPack002.rez'
     reg "$KEY" /v UpdateNum          /t REG_DWORD /d 2
     reg "$KEY" /v UpdateCommandLine1 /t REG_SZ    /d '-rez nolf2src.rez -rez custom'
 fi

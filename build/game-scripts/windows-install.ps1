@@ -477,6 +477,9 @@ if (-not (Test-Path -LiteralPath $save)) { New-Item -ItemType Directory -Path $s
 # without it, "Install", and an error), and builds the engine's command
 # line from the rest:
 #   * InstallDir: this folder (the launcher changes to it).
+#   * ContentNum, ContentCommandLine0 and 1: the official map packs,
+#     MapPack001.rez and MapPack002.rez, as their installers wrote them (the
+#     launcher adds content before the updates).
 #   * UpdateNum, UpdateCommandLine1: the archives it adds after its own: the
 #     1.3 update's data, nolf2src.rez (where its installer put its archive)
 #     -- and, after it, custom\ again, the game DLLs built from source
@@ -504,6 +507,9 @@ if (-not $modern) {
         try {
             $k.SetValue('InstallDir', $here, [Microsoft.Win32.RegistryValueKind]::String)
             $k.SetValue('NetRegionCode', 'EN', [Microsoft.Win32.RegistryValueKind]::String)
+            $k.SetValue('ContentNum', 2, [Microsoft.Win32.RegistryValueKind]::DWord)
+            $k.SetValue('ContentCommandLine0', '-rez MapPack001.rez', [Microsoft.Win32.RegistryValueKind]::String)
+            $k.SetValue('ContentCommandLine1', '-rez MapPack002.rez', [Microsoft.Win32.RegistryValueKind]::String)
             $k.SetValue('UpdateNum', 2, [Microsoft.Win32.RegistryValueKind]::DWord)
             $k.SetValue('UpdateCommandLine1', '-rez nolf2src.rez -rez custom', [Microsoft.Win32.RegistryValueKind]::String)
             $k.SetValue('Disable Movies', 1, [Microsoft.Win32.RegistryValueKind]::DWord)

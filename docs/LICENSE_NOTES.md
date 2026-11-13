@@ -10,7 +10,7 @@
 | `src/Engine/runtime/`, `src/Engine/libs/rezmgr/` | **Monolith Productions / LithTech, Inc.** (later Touchdown Entertainment): the *LithTech Jupiter* engine's own source -- its runtime (client, server, shared, kernel, world, model, sound, render_a, render_b, ui, controlfilemgr, lithtemplate, the `winbuild` resource scripts) and its RezMgr library -- as a 2006 distribution of the engine carries it, the same engine line as NOLF2's, three to four years later (`docs/engine/fear_mapping.md`). Only the files the retail `Lithtech.exe` and `server.dll` link, and the headers they include, were taken (`docs/engine/PLAN.md`, package 2); they were committed first as they were, with LF line endings, and every later change is a back-port to the 2002 engine (or, marked `nolf2src`, what it takes to build). `render_a/src/sys/d3d/FixedPoint.h` is Chris Hecker's fixed-point code, as Monolith carried it. | as Monolith's code above: Monolith's terms; no licence is declared for the engine source itself. Work out the terms before distributing anything built from it (`Lithtech.exe`, `server.dll`). |
 | `src/modern/binkw32/` | written for this project: the modern build's Bink player (adapted from nolfsrc's, the same project's for NOLF1) | no licence is declared |
 | `ext/ffmpeg` (submodule) | **FFmpeg**, upstream at github.com/FFmpeg/FFmpeg, pinned to n8.1.3 | LGPL-2.1-or-later as the modern build configures it (no GPL or non-free parts enabled); see its `LICENSE.md` |
-| `assets/` | **Monolith Productions / Fox Interactive / Sierra**: the data of Sierra's English 1.3 update for NOLF2 (`nolf2-update_1x3.exe`, published as a free download), as its `Update_v1x3.rez` and installer carry it, unchanged, less the game binaries (built here) and Visual SourceSafe's files (`assets/README.md`) | the publishers'; included because the update was distributed freely, so that installing needs only the player's discs |
+| `assets/` | **Monolith Productions / Fox Interactive / Sierra**: the data of Sierra's English 1.3 update for NOLF2 (`nolf2-update_1x3.exe`, published as a free download), as its `Update_v1x3.rez` and installer carry it, unchanged, less the game binaries (built here) and Visual SourceSafe's files (`assets/README.md`); and the data of Sierra's two official multiplayer map packs (`si_nolf2_mappack01.exe`, `si_nolf2_update_mappack2.exe`, published as free downloads), their archives' contents unchanged less Visual SourceSafe's files (`assets/mappack001/`, `assets/mappack002/`) | the publishers'; included because the update and the map packs were distributed freely, so that installing needs only the player's discs |
 | `ext/rez/` (submodule) | the disc images' installer; the images themselves are fetched from archive.org | see `ext/rez/README.md` |
 | `ext/lithtools/` (submodule) | the reconstruction of LithTech's development tools; the build uses its `lithrez` | see `ext/lithtools/README.md` |
 | `ext/tools/` (submodule) | the build's scripts, tests and byte-matching tools, shared with the NOLF and Contract J.A.C.K. projects | ours; see `ext/tools/README.md` |
@@ -23,7 +23,7 @@ directory lists every file; `ext/tools/retailextract.py audit` every binary):
 |---|---|---|
 | the game DLLs, the dedicated server | built here from Monolith's source | `src/` |
 | the game data: `.rez` archives, movies | Monolith Productions / Fox Interactive / Sierra | the retail discs (the retail game DLLs inside the archives are zeroed) |
-| the 1.3 update's data: `nolf2src.rez`, `autoexec.cfg.retail`, `Default.prf.retail` | Monolith Productions / Fox Interactive / Sierra | `assets/` (the free 1.3 update's), `nolf2src.rez` packed by lithtools' `lithrez` |
+| the 1.3 update's data: `nolf2src.rez`, `autoexec.cfg.retail`, `Default.prf.retail`; the map packs: `MapPack001.rez`, `MapPack002.rez` | Monolith Productions / Fox Interactive / Sierra | `assets/` (the free 1.3 update's and map packs'), the archives packed by lithtools' `lithrez` |
 | the engine: `Lithtech.exe`, `server.dll` | built here from the LithTech Jupiter engine source, back-ported to 2002 (Monolith Productions / LithTech, Inc.); `Lithtech.exe`'s icon is the retail game's, read out of the retail `Lithtech.exe` at build time and never committed | `src/Engine/runtime/`, `src/Engine/libs/rezmgr/`; the icon from the retail game |
 | `snddrv.dll`, the sound driver; `ltmsg.dll`, the engine's messages | built here from reconstructions (Monolith Productions' code in substance; ltmsg's strings are the retail DLL's) | `src/Engine/snddrv/`, `src/Engine/ltmsg/` |
 | `ServerDir.dll`, the server directory | built here from Monolith's `CServerDir_Titan` (from the F.E.A.R. source release) and the LithTech Jupiter SDK's WONAPI, fetched at build time | `src/Game/Libs/ServerDir/`, `src/Game/Libs/WONAPI/` |
@@ -50,7 +50,8 @@ the build who have the game, not for handing out.
 
 **`<directory>-public.tar.gz`** holds what the build made, the project's
 own files and the free 1.3 update's data (`nolf2src.rez` and 1.3's settings
-and default profile, from `assets/`), none of the retail discs':
+and default profile, from `assets/`) and map packs (`MapPack001.rez`,
+`MapPack002.rez`), none of the retail discs':
 
 | In it | Whose | Terms |
 |---|---|---|
@@ -62,6 +63,7 @@ and default profile, from `assets/`), none of the retail discs':
 | `.pdb`, `.map` (debug builds only) | the linker's, for the binaries above | as those binaries |
 | `linux-run.sh`, `linux-install.sh`, `windows-install.bat`, `nolf2cmds.txt`, `MANIFEST.txt`, `SHA256SUMS` | written for this project (the install scripts by `ext/tools/mkinstall.py`, with the sizes and SHA-256 of the disc images and the retail files they read, and where on the images each file's bytes are) | no licence is declared |
 | `nolf2src.rez`, `autoexec.cfg`, `autoexec.cfg.retail`, `Profiles/Default.prf`, `Default.prf.retail` | the 1.3 update's data (`assets/`) | as `assets/` above |
+| `MapPack001.rez`, `MapPack002.rez` | the official map packs' data (`assets/`) | as `assets/` above |
 
 It has no `.rez` archive or movie of the retail discs, no RAD Bink and no
 Microsoft runtime DLL. The install scripts copy those from the player's own

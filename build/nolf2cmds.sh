@@ -6,9 +6,12 @@
 # ext/tools/playtest.sh starts the engine with this rez stack, as the retail NOLF2.exe launcher does with its own
 # launchcmds.txt ("Lithtech.exe -cmdfile ..."). The order is the launcher's
 # (later archives override earlier ones; the engine opens Engine.REZ
-# itself), with the 1.3 update's data (nolf2src.rez, built from assets/,
-# where its installer's UpdateCommandLine1 put its archive) and then
+# itself), with the official map packs (MapPack001.rez and MapPack002.rez,
+# built from assets/, where their installers' ContentCommandLine0 and 1 put
+# them: content before the updates), the 1.3 update's data (nolf2src.rez,
+# built from assets/, where its installer's UpdateCommandLine1 put its
+# archive) and then
 # custom/ -- our game DLLs -- last, so that nothing overrides them (the
 # retail launcher put custom/ before the update). build/all.sh writes it
 # into the game directory and build/package.sh into the private archive.
-printf -- '-rez GAME.REZ -rez GAME2.REZ -rez GAMEDLL.REZ -rez SOUND.REZ -rez nolf2src.rez -rez custom\r\n'
+printf -- '-rez GAME.REZ -rez GAME2.REZ -rez GAMEDLL.REZ -rez SOUND.REZ -rez MapPack001.rez -rez MapPack002.rez -rez nolf2src.rez -rez custom\r\n'

@@ -1637,6 +1637,20 @@ bool CServerDlg::AddResources( )
 	bool bModernRegistry = regMgr.OpenKey( HKEY_CURRENT_USER, "SOFTWARE", "Monolith Productions", (char*)REGPRODUCTNAME,
 		(char *)REGPRODUCTVER ) ? true : false;
 	DWORD nModernUpdateNum = 0;
+	DWORD nModernContentNum = 0;
+	// (and the official map packs, where their installers' content
+	// values put them, when the key has none: assets/README.md)
+	if( !bModernRegistry || !regMgr.GetField( "ContentNum", &nModernContentNum ))
+	{
+		if( GetFileAttributes( "MapPack001.rez" ) != 0xFFFFFFFF )
+		{
+			lstRez.AddTail( "MapPack001.rez" );
+		}
+		if( GetFileAttributes( "MapPack002.rez" ) != 0xFFFFFFFF )
+		{
+			lstRez.AddTail( "MapPack002.rez" );
+		}
+	}
 	if( bModernRegistry )
 	{
 		ReadRezFromRegCommandLine( lstRez, regMgr, "ContentNum", "ContentCommandLine" );

@@ -999,6 +999,22 @@ BOOL CLauncherDlg::LaunchGame(DWORD dwAction)
 			}
 		}
 	}
+#ifdef NOLF2SRC_MODERN
+	else
+	{
+		// MODERN.md M-L6: no content in the registry (no registry at
+		// all): the official map packs, where their installers'
+		// ContentCommandLine0 and 1 put them (assets/README.md)
+		if(GetFileAttributes("MapPack001.rez") != 0xFFFFFFFF)
+		{
+			sNewCmdLine += " -rez MapPack001.rez";
+		}
+		if(GetFileAttributes("MapPack002.rez") != 0xFFFFFFFF)
+		{
+			sNewCmdLine += " -rez MapPack002.rez";
+		}
+	}
+#endif
 
 	// Get the number of updates installed.  Make sure to do this after the content
 	// addons so they override anything.
