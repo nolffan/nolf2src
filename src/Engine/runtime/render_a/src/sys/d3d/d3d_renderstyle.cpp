@@ -128,8 +128,10 @@ bool CD3DRenderStyle::Load_LTBData(ILTStream* pFileStream)
 				// Vertex shaders aren't supported any more, but the data is still in the file
 				bool bUseVertexShader;
 				pFileStream->Read(&bUseVertexShader, sizeof(bUseVertexShader));
-				D3DRenderPass.bUseVertexShader = false;
-				pFileStream->Read(&D3DRenderPass.bExpandForSkinning, sizeof(D3DRenderPass) - offsetof(RSD3DRenderPass, bExpandForSkinning));
+				// as retail reads them (0x512f76): the file has the two
+				// bools and then the rest, without the padding after them
+				pFileStream->Read(&D3DRenderPass.bExpandForSkinning, sizeof(D3DRenderPass.bExpandForSkinning));
+				pFileStream->Read(&D3DRenderPass.ConstVector_ConstReg1, sizeof(D3DRenderPass) - offsetof(RSD3DRenderPass, ConstVector_ConstReg1));
 
 				if (!SetRenderPass_D3DOptions(i, &D3DRenderPass))
 				{
