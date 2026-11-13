@@ -95,7 +95,8 @@ NOLF2 no longer has are listed at the end, so nobody looks again.
 
 Every other entry says under its heading why it is not fixed. Most are
 left as retail on purpose: the snow volumes, sprite systems and particle
-colours, because the levels and effects were tuned with them; and what is
+colours and the texture scripts' `Sin` and `Cos`, because the levels and
+effects were tuned with them; and what is
 cosmetic, harmless or never reached by the game -- the engine's version
 string, `CLTDirectMusicMgr::Stop`, the retail console's name completion,
 `_findclose` on an unopened handle, the server's error messages that name
@@ -672,6 +673,25 @@ address twice or take a new one for one it has: the unique count is wrong
 once players come from addresses like these.
 
 ---
+
+### Texture scripts' `Sin` is the cosine and their `Cos` the sine
+`0x54c0b0`, `0x54c0c0`, the handler table at `0x5abb78` (lithtech.exe) · `src/Engine/runtime/render_a/src/sys/d3d/texturescriptinterpreter.cpp`
+
+Not fixed: the shipped texture scripts were tuned on it.
+
+The interpreter calls a script's functions through a table in the order of
+`TSFUNC_SIN`, `TSFUNC_COS`, ... (`texturescriptdefs.h`), and the script
+compiler gives `Sin` and `Cos` those numbers (F.E.A.R.'s
+`TextureScriptCompiler.cpp`, `TEST_FUNCTION`). But `TSFuncSin`, the first
+entry, returns `cos(fVal)` and `TSFuncCos` returns `sin(fVal)`: in the
+retail image the table's first two entries are `fld [esp+4]; fcos; ret`
+and `fld [esp+4]; fsin; ret`. So a script's `Sin(x)` runs as `cos(x)` and
+its `Cos(x)` as `sin(x)`. A rotation a script builds from the two is still
+a rotation, a quarter turn off what its source says, and every shipped
+script looks as it was made to on this engine; making `Sin` the sine would
+turn those effects a quarter turn, so a fix would have to swap the calls in
+the shipped `.tfs` scripts too. (Found by lithtools, whose texture script
+tools run the scripts as the engine does: its `docs/TEXFX.md`.)
 
 ## Crashes and corruption: checks that are missing
 
