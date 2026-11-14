@@ -6,8 +6,11 @@ The game code is Monolith's own public source release (version 1.3, the
 game's last update), compiled with the compiler Monolith used, Visual C++ 6,
 under Wine. Where the release differs from what the retail 1.3 game shipped,
 the retail code is reconstructed from the retail binaries, in place, and
-marked `RETAIL:`. The aim, as for [nolfsrc](https://github.com/nolffan/nolfsrc)
-(the first game), is two builds:
+marked `RETAIL:`. The engine, which the release leaves out, is rebuilt from
+the LithTech Jupiter engine source, taken back to the 2002 engine NOLF2
+shipped with ([`docs/engine/PLAN.md`](docs/engine/PLAN.md)). The aim, as
+for [nolfsrc](https://github.com/nolffan/nolfsrc) (the first game), is two
+builds:
 
 - **legacy**: the 1.3 game as it shipped, rebuilt so that it compiles back
   to the retail binaries byte for byte, as far as that can be done;
@@ -38,16 +41,6 @@ legacy build keeps matching the retail one.
 | [`docs/LICENSE_NOTES.md`](docs/LICENSE_NOTES.md) | what is whose, and what each archive holds |
 | [`docs/engine/`](docs/engine/) | the engine's reconstruction: the plan and its packages, the retail engine's anatomy |
 | [`guides/`](guides/) | how to reconstruct a function so it compiles to the retail bytes |
-
-## Where it stands
-
-| | |
-|---|---|
-| Game DLLs | `CShell.dll`, `Object.lto`, `ClientFx.fxd`, `CRes.dll`, `SRes.dll` compile from Monolith's workspace (`src/Game/TO2.dsw`, Final configuration) and run in the game. Each is the retail binary's exact size, compiled with VC6 SP5 (build 8966) as retail was. `ClientFx.fxd`, `CRes.dll` and `SRes.dll` are byte for byte the retail ones apart from link time stamps; `CShell.dll` and `Object.lto` are close but not yet identical. |
-| Dedicated server | `NOLF2Srv.exe` compiles; its code is the retail one's but for two `CButeMgr` functions (`libs/ButeMgr`), where SP5 orders two loads the other way round. |
-| Launcher | `NOLF2.exe` compiles against the DirectX 8.1 SDK and is the retail binary's exact size; its functions match the retail ones' but for a few short ones not yet proven and six not yet placed (`make progress`). It is in the game directory, and starts the game under Wine (`linux-run.sh`; in the legacy build it also writes the registry values the retail installer wrote). |
-| Engine | Built here and in the game: `Lithtech.exe` and `server.dll` from the LithTech Jupiter engine source (a 2006 distribution of NOLF2's engine line, back-ported to 2002: `docs/engine/PLAN.md`), with no SecuROM; `snddrv.dll` and `ltmsg.dll` reconstructed from the retail binaries (`ltmsg.dll` is byte for byte retail's but for its time stamp; `snddrv.dll` is close, not yet identical); `ServerDir.dll` from Monolith's 1.3 `CServerDir_Titan` (as the F.E.A.R. source release carries it) and the LithTech Jupiter SDK's WONAPI (ext/rez/ fetches the SDK, nothing of it is committed). Under Wine the game runs: the menus, a new game, the first level played with sound, saving and loading (`make test`). Nothing of the retail engine is in the game directory: every binary there is built here but the third-party runtime (Bink, the Microsoft C++ and MFC DLLs; the modern build plays the movies with its own Bink player on FFmpeg). |
-| Scoring | `make progress` scores every binary function by function against the retail 1.3 ones (below, and `progress/README.md`). |
 
 ## Progress
 
