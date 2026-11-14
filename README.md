@@ -122,62 +122,6 @@ server").
 rules, compile for compile. [`docs/BUILDING.md`](docs/BUILDING.md)
 describes the build step by step.
 
-## Playing it elsewhere: the archives
-
-To play elsewhere, copy `out/nolf2-legacy-release-private.tar.gz` (one
-file), unpack it and run `nolf2-legacy-release/linux-run.sh`. Every variant is
-packaged the same way: `out/nolf2-legacy-debug-private.tar.gz`,
-`out/nolf2-modern-release-private.tar.gz` and
-`out/nolf2-modern-debug-private.tar.gz`.
-
-The `-private` archives hold the retail game's data (1.8 GB of it), so they
-are for your own machines and for others developing on the build. To give
-the game to anyone else, give them the `-public` archive instead
-(`out/nolf2-modern-release-public.tar.gz`, about 100 MB): the same
-directory without anything from the retail discs -- the data of Sierra's
-free English 1.3 update and its two free map packs are in it
-(`assets/README.md`) -- and two scripts
-that install the rest from their own disc images of *No One Lives Forever
-2* (the European or the USA release), without installing the game. An image can be a plain `.iso` (an own
-rip), redump's `.bin` (or its `.cue`), or redump's `.zip` as archive.org
-serves it; a `.bin` or `.zip` is converted to a temporary `.iso` first
-(about 0.6 GB a disc). On Linux they need `python3`, whose zlib unpacks
-the setup's compressed cabinets; on Windows, the PowerShell every Windows
-10 and 11 has. They check each image's SHA-256 and every file they write,
-so the result is the `-private` archive's directory, byte for byte:
-
-```sh
-nolf2-modern-release/linux-install.sh disc1.zip disc2.zip   # Linux, Steam Deck
-```
-
-On Windows, drop both images onto `windows-install.bat` (or
-put them in the game folder and double-click it), then start `NOLF2.exe`.
-Either script finds them in the game directory or the one above it by
-itself, and can be run again: a file already in place is checked and kept.
-The archive is the whole game, not a patch: its last file, `SHA256SUMS`,
-lists every file of it and every file the scripts write, and they check
-the directory against it first, refusing one that holds anything else (a
-release unpacked over another installation). After an install,
-`sha256sum -c SHA256SUMS` checks every file.
-The public archive is made only if `ext/rez/isos/` has the `.iso` images of
-both releases' discs (`make retail` fetches them; `ext/tools/mkinstall.py`).
-The GitHub Actions workflow builds the four public archives on every push,
-and for a tag `v*` makes a GitHub release with the modern build's two
-attached as `nolf2src-<tag>.tar.gz` and `nolf2src-debug-<tag>.tar.gz`
-(`docs/BUILDING.md`). For players, [`docs/INSTALL.md`](docs/INSTALL.md)
-walks through it.
-
-The modern build plays with a controller: an Xbox-style (XInput) pad, which
-is also what Steam Input makes of the Steam Deck's controls and of most other
-pads. The sticks move and look, the triggers fire and zoom, A skips a
-cut-scene, and the menus follow the d-pad, A and B; Options > Controls >
-Controller sets the look speed and dead zones, and Configure controls binds
-the buttons like keys (`docs/MODERN.md` M-G47). So far it is tested with a
-simulated pad only.
-
-See [`docs/LICENSE_NOTES.md`](docs/LICENSE_NOTES.md) for what is whose, and
-what each archive holds.
-
 ## Credits
 
 This project builds on the work of others:
