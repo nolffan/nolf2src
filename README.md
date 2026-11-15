@@ -30,17 +30,9 @@ legacy build keeps matching the retail one.
 
 ## Documentation
 
-| | |
-|---|---|
-| [`docs/INSTALL.md`](docs/INSTALL.md) | for players: from a release's public archive and your own discs to a running game, on Linux, the Steam Deck and Windows |
-| [`CHANGELOG.md`](CHANGELOG.md) | what the modern build changes from the retail game |
-| [`docs/CONSOLE.md`](docs/CONSOLE.md), [`docs/VARIABLES.md`](docs/VARIABLES.md) | the console commands and cheat codes; the console variables |
-| [`docs/MODERN.md`](docs/MODERN.md) | the modern build, item by item, with the NOLF 2 Modernizer's every change |
-| [`docs/RETAIL_BUGS.md`](docs/RETAIL_BUGS.md) | the retail game's bugs found while rebuilding it |
-| [`docs/BUILDING.md`](docs/BUILDING.md), [`docs/SETUP_NOTES.md`](docs/SETUP_NOTES.md) | the build, step by step; how the base was set up |
-| [`docs/LICENSE_NOTES.md`](docs/LICENSE_NOTES.md) | what is whose, and what each archive holds |
-| [`docs/engine/`](docs/engine/) | the engine's reconstruction: the plan and its packages, the retail engine's anatomy |
-| [`guides/`](guides/) | how to reconstruct a function so it compiles to the retail bytes |
+To play: [`docs/INSTALL.md`](docs/INSTALL.md). Everything else -- the
+modern build, the retail bugs, the build, the engine's reconstruction --
+is listed in [`docs/README.md`](docs/README.md).
 
 ## Progress
 
