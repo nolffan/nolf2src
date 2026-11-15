@@ -4,13 +4,13 @@
 
 - [`INSTALL.md`](INSTALL.md): from a release's public archive and your own
   discs to a running game, on Linux, the Steam Deck and Windows.
-- [`../CHANGELOG.md`](../CHANGELOG.md): what the modern build changes from
-  the retail game.
 - [`CONSOLE.md`](CONSOLE.md) and [`VARIABLES.md`](VARIABLES.md): the console
   commands and cheat codes; the console variables.
 
 ## The game, as rebuilt
 
+- [`../CHANGELOG.md`](../CHANGELOG.md): what the modern build changes from
+  the retail game.
 - [`MODERN.md`](MODERN.md): the modern build, item by item, with the NOLF 2
   Modernizer's every change.
 - [`RETAIL_BUGS.md`](RETAIL_BUGS.md): the retail game's bugs found while
