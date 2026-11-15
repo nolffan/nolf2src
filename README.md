@@ -26,16 +26,10 @@ legacy build keeps matching the retail one.
 <p align="center">
   <img src="screenshots/00-main-menu.jpg" alt="The main menu" width="49%">
   <img src="screenshots/01-ninja.jpg" alt="A ninja runs across a Japanese courtyard at night, seen over a crossbow" width="49%">
-</p>
-<p align="center">
   <img src="screenshots/02-hurricane.jpg" alt="A cut-scene: the Serenity Valley trailer court sign under a storm sky" width="49%">
   <img src="screenshots/03-katana-fight.jpg" alt="A katana fight with Isako in a trailer" width="49%">
-</p>
-<p align="center">
   <img src="screenshots/04-kate.jpg" alt="A cut-scene in a night street: &quot;Oh, hello, Cate.&quot;" width="49%">
   <img src="screenshots/05-unity.jpg" alt="A cut-scene: a briefing at UNITY headquarters" width="49%">
-</p>
-<p align="center">
   <img src="screenshots/06-lava.jpg" alt="A cut-scene: catwalks over a lava cave" width="49%">
   <img src="screenshots/07-india.jpg" alt="A street in Calcutta, seen over a pistol" width="49%">
 </p>
