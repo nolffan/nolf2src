@@ -56,7 +56,7 @@ help:
 	@echo "               (out/play/test-<its name>/)"
 	@echo "make progress   score the build against the retail binaries; fails if a"
 	@echo "                function recorded in progress/identical.txt stops matching"
-	@echo "make progress-update  record the score in progress/ and README.md"
+	@echo "make progress-update  record the score in progress/ (and its README.md table)"
 	@echo "make retail     fetch the two disc images and install the retail game and its"
 	@echo "                1.3 update from them, and fetch the USA release's two too, for"
 	@echo "                the public archive (ext/rez/, once; every build runs it); check it"

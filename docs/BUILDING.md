@@ -80,7 +80,7 @@ make test         # ext/tools/playtest.sh under Xvfb: the main menu, a new game,
 make progress     # score the build against the retail binaries, function by
                   #   function; fails if a function recorded as byte-identical
                   #   in progress/identical.txt no longer is
-make progress-update   # record the score in progress/ and README.md
+make progress-update   # record the score in progress/ (and its README.md table)
 make shell        # a shell in the build container, at /repo
 make clean        # remove out/ and every build output in the source tree
 make distclean    # clean, and remove the docker image

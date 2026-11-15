@@ -71,6 +71,8 @@ ClientFx.fxd and the resource DLLs, which link libcmt.lib statically.
 REFERENCE = "out/reference"     # build/reference.sh writes it
 OUT = "out/progress"            # each run's functions.csv and summary.json
 DATA = "progress"               # the recorded baseline and the evidence
+# The file ext/tools/ratchet.py keeps the progress table in.
+README = "progress/README.md"
 
 # Every hex address cited in these source trees marks the address
 # `attempted` in a target with `cites` (an address a reconstruction has
