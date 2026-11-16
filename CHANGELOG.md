@@ -16,6 +16,10 @@ covers each change in detail, under its item number (M-E1, M-G2 and so on).
   instead of a few. Unpack each release into a new, empty directory, as
   before: a directory set up by an older release still has
   `Update_v1x3.rez`, which the installer rejects as not this release's.
+- **The launcher stays open while the game runs.** `NOLF2Launcher.exe`
+  hides its window and waits for the game (or the dedicated server) to
+  end, so Steam's overlay and Remote Play keep working when the game is
+  started from the launcher. (M-L9)
 - **The official map packs come with the game.** Sierra's two free
   multiplayer map packs -- nine deathmatch worlds (`DM_01` to `DM_09`) and
   seven Doomsday worlds (`DD_01` to `DD_07`) -- are in each release, as

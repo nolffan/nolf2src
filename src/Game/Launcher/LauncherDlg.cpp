@@ -799,6 +799,39 @@ void CLauncherDlg::OnDestroy()
 // ----------------------------------------------------------------------- //
 
 #ifdef NOLF2SRC_MODERN
+// MODERN.md M-L9: the launcher waits for what it started, so the program
+// a player (or Steam, for its overlay and Remote Play) started does not end
+// while the game runs. A direct start (NOLF2.exe) shows no window and only
+// waits; the launcher window is hidden and keeps its messages pumped, as
+// the thread owns a window. A WM_QUIT is posted again for the caller.
+static void ModernWaitForProcess(CWnd* pWnd, HANDLE hProcess)
+{
+	if(theApp.m_bDirectLaunch)
+	{
+		WaitForSingleObject(hProcess, INFINITE);
+		return;
+	}
+	if(pWnd && pWnd->GetSafeHwnd())
+		pWnd->ShowWindow(SW_HIDE);
+	for(;;)
+	{
+		DWORD dwWait = MsgWaitForMultipleObjects(1, &hProcess, FALSE, INFINITE, QS_ALLINPUT);
+		if(dwWait != WAIT_OBJECT_0 + 1)
+			return;		// the process ended (or the wait failed)
+		MSG msg;
+		while(PeekMessage(&msg, NULL, 0, 0, PM_REMOVE))
+		{
+			if(msg.message == WM_QUIT)
+			{
+				PostQuitMessage((int)msg.wParam);
+				return;
+			}
+			TranslateMessage(&msg);
+			DispatchMessage(&msg);
+		}
+	}
+}
+
 BOOL CLauncherDlg::LaunchDirect()
 {
 	// Honor the launcher's existing automatic multiplayer/server switches.
@@ -817,11 +850,31 @@ BOOL CLauncherDlg::LaunchGame(DWORD dwAction)
 {
 	if(dwAction == ACTION_STANDALONESERVER)
 	{
+#ifdef NOLF2SRC_MODERN
+		// MODERN.md M-L9: started with a handle to wait on (WinExec gives
+		// none), from the same place WinExec looked first
+		STARTUPINFO ssi;
+		PROCESS_INFORMATION spi;
+		memset(&ssi, 0, sizeof(ssi));
+		ssi.cb = sizeof(ssi);
+		CString csServer = theApp.m_csServerExe;
+		BOOL bServer = CreateProcess(NULL, csServer.GetBuffer(0), NULL, NULL, FALSE,
+			0, NULL, NULL, &ssi, &spi);
+		csServer.ReleaseBuffer();
+		if(bServer)
+		{
+			CloseHandle(spi.hThread);
+			ModernWaitForProcess(this, spi.hProcess);
+			CloseHandle(spi.hProcess);
+			return TRUE;
+		}
+#else
 		if(WinExec(theApp.m_csServerExe,SW_SHOW) > 31)
 		{
 			// Just let it happen...
 			return TRUE;
 		}
+#endif
 		else
 		{
 			theApp.MessageBox(IDS_CANTLAUNCHSERVER, IDS_GAME_NAME, MB_OK | MB_ICONSTOP);
@@ -1331,11 +1384,10 @@ BOOL CLauncherDlg::LaunchGame(DWORD dwAction)
 
 #ifdef NOLF2SRC_MODERN
 	CloseHandle(pi.hThread);
+	// MODERN.md M-L9: the launcher window waits too
+	ModernWaitForProcess(this, pi.hProcess);
 	if(theApp.m_bDirectLaunch)
-	{
-		if(WaitForSingleObject(pi.hProcess, INFINITE) == WAIT_OBJECT_0)
-			GetExitCodeProcess(pi.hProcess, &theApp.m_dwGameExitCode);
-	}
+		GetExitCodeProcess(pi.hProcess, &theApp.m_dwGameExitCode);
 	CloseHandle(pi.hProcess);
 
 #endif
