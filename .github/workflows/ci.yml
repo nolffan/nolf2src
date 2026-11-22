@@ -1,21 +1,35 @@
-# The public archives of every build variant, as workflow artifacts (each
-# the .tar.gz itself, not a zip around it):
-# out/nolf2-{legacy,modern}-{release,debug}-public.tar.gz (build/package.sh),
-# the game directory without anything from the retail game, with the
-# scripts that install that from the player's own disc images and 1.3
-# update (ext/tools/mkinstall.py). The -private archives, which hold the retail
-# data, are not made here. The release build is also checked for byte
-# regressions (make progress).
+# The four build variants without the retail game, their public archives,
+# the byte check, and the nightly and tagged releases.
 #
-# The build needs, from archive.org, the redump zips of the European discs
-# (the retail game, `make retail` installs it from them and the 1.3 update
-# ext/rez/ carries), of the USA discs (the install scripts are made against
-# both releases') and the LithTech Jupiter SDK's CD image (`make sdk`,
-# ServerDir.dll's source): 2.9 GB, checked against ext/rez/isos/SHA256SUMS. The
-# job "prepare" fetches them once, into a cache keyed on that file, and
-# builds the docker image into a layer cache; then the four builds run at
-# the same time, each in a job of its own that restores both. None of the
-# builds needs another's output.
+# The runner has no disc images and no retail data, so every build is
+# `make NODISCS=1 <target>` (build/all.sh, NOLF2_NODISCS=1):
+#
+#   * It compiles every binary from this repository as always, with the
+#     retail art that is committed in assets/art/, and takes the release
+#     build's ServerDir.dll from assets/serverdir/ (its source needs the
+#     LithTech Jupiter SDK, which the runner does not have). So every
+#     binary is the same as in a build with the retail game and the SDK.
+#     It takes no game data, no Bink and no Microsoft runtime.
+#   * Its game directory, out/<name>-nodiscs/, does not play. Its public
+#     archive, out/<name>-public.tar.gz, does: the same archive as a build
+#     with the retail game makes (build/package.sh). Its install scripts
+#     copy the game's data out of the player's own disc images
+#     (build/mkinstall.py). The -private archives hold retail data: they
+#     are never made here.
+#
+# Each variant is a job of its own, named for the variant, and uploads its
+# public archive as a workflow artifact (the .tar.gz itself, not a zip
+# around it). The legacy release build is also checked for byte regressions
+# without the retail binaries (`make progress-ci`, build/progress.sh ci): it
+# compares the build with the hashes in progress/hashes/, which `make
+# progress-update` records locally from the full check. It fails if a
+# function, a resource, a float constant, a string, a vtable or a call
+# recorded there changed. It finds no new match: only a local `make
+# progress-update` does.
+#
+# The job "prepare" builds the docker image once into the layer cache; the
+# four builds then run at the same time and only read it. None of the builds
+# needs another's output.
 #
 # Pushing a tag (v*, e.g. v0.1.0-alpha) also makes a GitHub release of it,
 # with the modern build's public archives attached (the job "release"),
@@ -40,7 +54,7 @@
 # watchers are not notified of every merge, and it is never marked the
 # latest release. A run whose commit is no longer master's head (one re-run
 # later, say) leaves it alone.
-name: Public archives
+name: CI
 
 on:
   push:
@@ -50,7 +64,7 @@ on:
   workflow_dispatch:
 
 concurrency:
-  group: public-archives-${{ github.ref }}
+  group: ci-${{ github.ref }}
   cancel-in-progress: true
 
 permissions:
@@ -60,50 +74,8 @@ jobs:
   prepare:
     runs-on: ubuntu-24.04
     timeout-minutes: 60
-    outputs:
-      discs-key: ${{ steps.key.outputs.key }}
     steps:
       - uses: actions/checkout@v4
-
-      # .gitmodules names the submodules by SSH; all of them are public, so
-      # fetch them over HTTPS instead, at the commit this one records. Only
-      # ext/rez/ (the disc list and fetch-isos.sh) is needed here.
-      - name: Submodules
-        run: |
-          git config --global url."https://github.com/".insteadOf "git@github.com:"
-          git submodule sync
-          git submodule update --init --depth 1 ext/rez
-
-      # hashFiles() sees only the checkout, so the key is made once the
-      # submodule is there, and handed to the builds.
-      - name: Cache key
-        id: key
-        run: echo "key=redump-nolf2-eu-usa-jupiter-$(sha256sum ext/rez/isos/SHA256SUMS | cut -c1-64)" >> "$GITHUB_OUTPUT"
-
-      # Only whether the cache has them: nothing is downloaded on a hit.
-      - name: Look for the disc images
-        id: discs
-        uses: actions/cache/restore@v4
-        with:
-          path: |
-            ext/rez/isos/*.zip
-            ext/rez/isos/sdk/LithEngine.iso
-          key: ${{ steps.key.outputs.key }}
-          lookup-only: true
-
-      # Checked against SHA256SUMS before it is saved.
-      - name: Fetch the disc images
-        if: steps.discs.outputs.cache-hit != 'true'
-        run: ext/rez/fetch-isos.sh nolf2-eu-1.3 nolf2-usa lithtech-jupiter-51
-
-      - name: Save the disc images
-        if: steps.discs.outputs.cache-hit != 'true'
-        uses: actions/cache/save@v4
-        with:
-          path: |
-            ext/rez/isos/*.zip
-            ext/rez/isos/sdk/LithEngine.iso
-          key: ${{ steps.key.outputs.key }}
 
       # Written to the layer cache here, once; the builds only read it.
       - uses: docker/setup-buildx-action@v3
@@ -123,49 +95,41 @@ jobs:
       fail-fast: false         # one build failing still lets the others finish
       matrix:
         include:
+          # submodules: the legacy builds need ext/tools (the build's
+          # scripts), ext/toolchains (the compilers, the DirectX 8.1 SDK)
+          # and ext/lithtools (lithrez, which packs assets/ into
+          # nolf2src.rez and the map packs' archives); the modern builds
+          # also ext/ffmpeg (their Bink player)
           - name: nolf2-legacy-release
             target: all
+            submodules: ext/tools ext/toolchains ext/lithtools
           - name: nolf2-legacy-debug
             target: debug
+            submodules: ext/tools ext/toolchains ext/lithtools
           - name: nolf2-modern-release
             target: modern
+            submodules: ''
           - name: nolf2-modern-debug
             target: modern-debug
+            submodules: ''
     name: ${{ matrix.name }}
     env:
       NOLF2_ARCHIVES: public
       IMAGE_BUILD: 0           # the step "Build image" loads it, cached
     steps:
-      # The runner's preinstalled SDKs we never use: about 30 GB, where a
-      # build needs about 14 (the image, the discs and the retail game, a
-      # game directory and its build tree).
-      - name: Free disk space
-        run: |
-          sudo rm -rf /usr/share/dotnet /usr/local/lib/android /opt/ghc \
-            /opt/hostedtoolcache/CodeQL /usr/local/share/boost
-          df -h /
-
       - uses: actions/checkout@v4
 
-      # ext/tools/ (the build's scripts), ext/toolchains/ (the compilers, the
-      # DirectX 8.1 SDK), ext/rez/ (the discs'
-      # installer and the 1.3 update), ext/lithtools/ (lithrez, which packs
-      # assets/ into nolf2src.rez) and ext/ffmpeg (the modern build's
-      # Bink player).
+      # .gitmodules names the submodules by SSH; all of them are public, so
+      # fetch them over HTTPS instead, at the commit this one records (no
+      # names: all of them).
       - name: Submodules
+        env:
+          SUBMODULES: ${{ matrix.submodules }}
         run: |
           git config --global url."https://github.com/".insteadOf "git@github.com:"
           git submodule sync
-          git submodule update --init --depth 1 --jobs 4
-
-      - name: Restore the disc images
-        uses: actions/cache/restore@v4
-        with:
-          path: |
-            ext/rez/isos/*.zip
-            ext/rez/isos/sdk/LithEngine.iso
-          key: ${{ needs.prepare.outputs.discs-key }}
-          fail-on-cache-miss: true
+          # shellcheck disable=SC2086 # (a list of paths, or none)
+          git submodule update --init --depth 1 --jobs 4 $SUBMODULES
 
       # Loaded as nolf2src-build, which the Makefile then uses (IMAGE_BUILD=0).
       - uses: docker/setup-buildx-action@v3
@@ -177,20 +141,14 @@ jobs:
           load: true
           cache-from: type=gha
 
-      # Checks the zips against SHA256SUMS, converts them to .iso, then
-      # installs the retail game and the SDK's source.
-      - name: Install the retail game and the Jupiter SDK
-        run: make retail sdk
-
       - name: Build ${{ matrix.name }}
-        run: make ${{ matrix.target }}
+        run: make NODISCS=1 ${{ matrix.target }}
 
-      # The release build scored against the retail binaries: fails if a
-      # function recorded in progress/identical.txt is no longer
-      # byte-identical (build/progress.sh).
-      - name: Byte regressions (make progress)
+      # Fails if a function recorded in progress/identical.txt is no longer
+      # byte-identical, by its hash in progress/hashes/
+      - name: Byte regressions (make progress-ci)
         if: matrix.name == 'nolf2-legacy-release'
-        run: make progress
+        run: make progress-ci
 
       # Uploaded as the .tar.gz itself (archive: false), not zipped again;
       # the artifact takes the file's name.
@@ -293,7 +251,7 @@ jobs:
           if [ "$TAG" = nightly ]; then
             gh release view nightly --json assets --jq '.assets[].name' |
               while read -r a; do
-                case "$a" in nolf2src-nightly-${SHA:0:7}.tar.gz|nolf2src-debug-nightly-${SHA:0:7}.tar.gz) ;;
+                case "$a" in "nolf2src-nightly-${SHA:0:7}.tar.gz"|"nolf2src-debug-nightly-${SHA:0:7}.tar.gz") ;;
                   *) echo "deleting $a"; gh release delete-asset nightly "$a" --yes < /dev/null ;;
                 esac
               done
