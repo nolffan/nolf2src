@@ -419,11 +419,13 @@ try {
                 $skip = (($p[4] -eq 'once') -and (Test-Path -LiteralPath $dest)) -or (Test-Done $dest $size $sha)
                 if ($skip) { $kept++ } else {
                     Write-Host $name
-                    if (-not $ways.ContainsKey($p[5])) { Fail "$name`: none of the images found has it" }
+                    if ($p[5] -ne '-' -and -not $ways.ContainsKey($p[5])) { Fail "$name`: none of the images found has it" }
                     $dir = Split-Path -Parent $dest
                     if (-not (Test-Path -LiteralPath $dir)) { New-Item -ItemType Directory -Path $dir | Out-Null }
                     $out = [IO.File]::Create($part)
-                    $src = New-Reader $ways[$p[5]]
+                    # (source '-': a file of ours, only L records)
+                    $src = $null
+                    if ($p[5] -ne '-') { $src = New-Reader $ways[$p[5]] }
                 }
             }
             'C' {
@@ -443,7 +445,7 @@ try {
             'L' {
                 if ($skip) { continue }
                 $b = [Convert]::FromBase64String($p[1])
-                Read-File $src $b.Length $null
+                if ($src) { Read-File $src $b.Length $null }
                 $out.Write($b, 0, $b.Length)
             }
             'E' {

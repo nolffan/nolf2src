@@ -23,8 +23,9 @@
 # end). The script checks each file's SHA-256, then copies the game's data
 # out of them into this directory -- the .rez archives (with the retail game
 # DLLs inside them zeroed: the game DLLs here are built from source), the
-# movies, the shipped settings, and Bink and the Microsoft runtime where
-# this build uses them -- and checks every file it writes. Nothing is
+# movies, and Bink and the Microsoft runtime where this build uses them --
+# and the shipped settings and default profile if there are none, and
+# checks every file it writes. Nothing is
 # installed or run from the discs, and nothing else is changed. It can be
 # run again: a file already in place is checked and kept, and saves,
 # profiles, settings, logs and screenshots are left alone. Then play with
@@ -372,11 +373,12 @@ for l in lines:
             kept += 1
             continue
         print(name, flush=True)
-        if vid not in ways:
+        if vid != "-" and vid not in ways:
             fail(f"{name}: none of the images found has it")
         os.makedirs(os.path.dirname(dest), exist_ok=True)
         part = dest + ".part"
-        out, src = open(part, "wb"), Reader(*ways[vid])
+        # (source "-": a file of ours, only L records)
+        out, src = open(part, "wb"), (Reader(*ways[vid]) if vid != "-" else None)
     elif skip or tag not in ("C", "Z", "L", "E"):
         continue
     elif tag == "C":
@@ -391,7 +393,8 @@ for l in lines:
             n -= k
     elif tag == "L":
         b = base64.b64decode(p[1])
-        src.take(len(b))
+        if src:
+            src.take(len(b))
         out.write(b)
     elif tag == "E":
         out.close()

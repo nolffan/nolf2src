@@ -46,20 +46,25 @@ list:
                                    the first whose images it has.
   F <path> <size> <sha256> <flag> <n>
                                    a file of the game directory, made from
-                                   retail file <n> by, in order:
+                                   retail file <n> (`-`: from none, only
+                                   L records) by, in order:
   C <length>                       its next bytes, as they are
   Z <length>                       zeros in place of its next bytes (the
                                    retail game DLLs blanked inside the .rez
                                    archives: build/all.sh's `resources`)
   L <base64>                       bytes of ours in place of its next ones
-                                   (none: room for data edits)
+                                   (of a file from none: its bytes)
   E                                the end of the file: the script checks
                                    its size and SHA-256 before it moves it
                                    into place
 
-A file's flag is `-` (`once` marks a file the scripts write only if there is
-none; no file of the discs is one now). So the result is the game
-directory as built, byte for byte. The list goes at the end of each script,
+A file's flag is `-`, or `once` for autoexec.cfg and Profiles/Default.prf:
+the 1.3 update's shipped settings and default profile (assets/game/, in the
+game directory as autoexec.cfg.retail and Default.prf.retail), which the
+game rewrites. The archive does not carry them, so that a release unpacked
+over an installed game keeps the player's; the scripts write them, from
+our bytes, only if there are none. So the result is the game directory as
+built, byte for byte. The list goes at the end of each script,
 after a marker line; the scripts' code is build/game-scripts/linux-install.sh
 and windows-install.ps1 (the .bat's header is written here).
 
@@ -97,6 +102,10 @@ RAW_SECTOR = 2352
 LITERAL_LINE = 3 * 1024          # raw bytes per L record (4 KB of base64)
 LITERAL_MAX = 1 << 20            # more than this of ours means a wrong source
 NODISCS_MARK = "NOT-PLAYABLE.txt"   # build/all.sh, NOLF2_NODISCS=1
+# The settings the game rewrites: their shipped copies in the game
+# directory (from assets/game/), and the file each starts.
+SETTINGS = {"autoexec.cfg.retail": "autoexec.cfg",
+            "Default.prf.retail": "Profiles/Default.prf"}
 
 
 def sha256(path):
@@ -199,7 +208,7 @@ def main():
             vlines.append(f"W {kind} " + " ".join(f"{i}:{o}:{c}" for i, o, c in r))
             used.update(i for i, _o, _c in r)
 
-    records, sums, literal = [], [], 0
+    records, sums, literal, wanted_once = [], [], 0, []
     for rel in sorted(wanted, key=str.lower):
         f = wanted[rel]
         ops, size, sha = retail_ops(f, ranges)
@@ -213,6 +222,20 @@ def main():
         sums.append(f"{sha}  {rel}")
         records.extend(ops.lines())
         records.append("E")
+    # The shipped settings and default profile (assets/game/, the 1.3
+    # update's): the game rewrites both, so the archive does not carry them
+    # -- a release unpacked over an installed game keeps the player's -- and
+    # the scripts write them only if there are none, from these bytes of
+    # ours (L records, from no retail file: source "-").
+    for copy, live in SETTINGS.items():
+        data = open(os.path.join(game, copy), "rb").read()
+        ops = Ops()
+        ops.add("L", len(data), data)
+        literal += ops.literal
+        records.append(f"F {live} {len(data)} {hashlib.sha256(data).hexdigest()} once -")
+        records.extend(ops.lines())
+        records.append("E")
+        wanted_once.append(live)
     if literal > LITERAL_MAX:
         sys.exit(f"mkinstall: {literal} bytes would ship as literal data")
 
@@ -241,7 +264,7 @@ def main():
         fh.write("\n".join(bat) + "\n")
 
     with open(os.path.join(outdir, "disc-files.txt"), "w") as fh:
-        for rel in sorted(wanted, key=str.lower):
+        for rel in sorted(list(wanted) + wanted_once, key=str.lower):
             fh.write(rel + "\n")
     with open(os.path.join(outdir, "disc-sums.txt"), "w", newline="\n") as fh:
         fh.write("".join(line + "\n" for line in sums))

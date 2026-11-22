@@ -40,9 +40,11 @@
 # Save/), no logs, no player profiles but the shipped default one,
 # autoexec.cfg as the shipped one (autoexec.cfg.retail), none of what the
 # launcher and the game write as they run (launchcmds.txt, display.cfg,
-# BanList.txt) nor the per-machine state linux-run.sh creates; the public
-# one has them too when their shipped copies ship with it (assets/game/),
-# else its install scripts write them. nolf2cmds.txt, the engine's command file as the build
+# BanList.txt) nor the per-machine state linux-run.sh creates. The public
+# one has neither autoexec.cfg nor Profiles/Default.prf: its install
+# scripts write them from the shipped copies, only if there are none, so
+# that a newer release unpacked over an installed game keeps the player's.
+# nolf2cmds.txt, the engine's command file as the build
 # writes it (build/nolf2cmds.sh), is in the private archive (for
 # ext/tools/playtest.sh) but not the public one: the launcher never reads it
 # (it writes launchcmds.txt).
@@ -103,17 +105,13 @@ PUB="$PARENT/$NAME-public.tar.gz"
 python3 "$HERE/mkinstall.py" "$OUT" "$PARENT/$STAGE"
 sed "s|^|$DIR/|" "$PARENT/$STAGE/disc-files.txt" > "$PARENT/$STAGE/exclude.txt"
 echo "$DIR/NOT-PLAYABLE.txt" >> "$PARENT/$STAGE/exclude.txt"
-# autoexec.cfg and the default profile: the install scripts write them when
-# their shipped copies come from the discs; when those ship with the release
-# (assets/game/, the 1.3 update's), the archive carries them too
-SETTINGS=()
-for s in autoexec.cfg Profiles/Default.prf; do
-    grep -qxF "$s" "$PARENT/$STAGE/disc-files.txt" || SETTINGS+=("$STAGE/$s")
-done
+# autoexec.cfg and the default profile are not in it: the install scripts
+# write them, only if there are none (build/mkinstall.py), so that the
+# release unpacked over an installed game keeps the player's
 tar -C "$PARENT" -h -cf "$PARENT/$STAGE/public.tar" "${EXCLUDE[@]}" \
     --anchored --no-wildcards --exclude-from="$PARENT/$STAGE/exclude.txt" \
     "${NAMES[@]}" \
-    "$DIR" "${SETTINGS[@]}" "$STAGE/linux-install.sh" "$STAGE/windows-install.bat"
+    "$DIR" "$STAGE/linux-install.sh" "$STAGE/windows-install.bat"
 # Last, SHA256SUMS: every file of the archive and every file the install
 # scripts write, but the two they write only once, which the game rewrites
 # (autoexec.cfg and Profiles/Default.prf). The scripts check the directory
