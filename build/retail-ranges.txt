@@ -1,0 +1,41 @@
+## Where the retail game's bytes go in a game directory, beyond the files
+## that the build copies whole (build/retail-files.txt lists those). This
+## list holds no game data: only names, offsets, sizes and SHA-256 values.
+## build/retailextract.py writes it from the installed retail game (`make
+## retail-ranges`). A build with the retail game checks it. A build without
+## the retail game (NODISCS=1) and the install scripts of a public archive
+## (build/mkinstall.py) use it in place of the retail game.
+##
+## PE <path>
+##   A file of the install that is a PE image (the build does not copy it
+##   as game data).
+## ZERO <archive> <offset> <size> <entry>
+##   A retail game DLL in one of the archives: the build writes zeros over
+##   its data in the game directory's copy. The offset is in the archive.
+## ZSUM <archive> <size> <SHA-256>
+##   The game directory's copy of that archive, with those zeros.
+## The fields are separated by one TAB.
+PE	binkw32.dll
+PE	Lithtech.exe
+PE	ltmsg.dll
+PE	MFC42.DLL
+PE	MFC42U.DLL
+PE	MSVCP60.DLL
+PE	Msvcrt.dll
+PE	NOLF2.exe
+PE	NOLF2Srv.exe
+PE	server.dll
+PE	ServerDir.dll
+PE	SierraUp.exe
+PE	snddrv.dll
+ZSUM	Engine.REZ	102162	cd999462cd5dbab870a3f6032f0ad4a3abe5614dfdda0b59ee018176a9e710c5
+ZSUM	GAME.REZ	224475015	442d176659b72426bd17701e226e000b32037bfcc0df1e3897cd78f2d5c5752f
+ZERO	GAME2.REZ	16202577	1011712	TEX/INDIA/SURFREYES.dlm
+ZSUM	GAME2.REZ	1138259607	33d4f772871c87ba63e4d50417c309d769ff6f4c2a867853c09301debb7d80ca
+ZERO	GAMEDLL.REZ	2973864	45056	SRES.dll
+ZERO	GAMEDLL.REZ	221352	688128	CRES.dll
+ZERO	GAMEDLL.REZ	909480	2064384	CSHELL.dll
+ZERO	GAMEDLL.REZ	168	221184	CLIENTFX.fxd
+ZERO	GAMEDLL.REZ	3018920	3284992	OBJECT.lto
+ZSUM	GAMEDLL.REZ	6304090	a7b79a3e8f08d6370680aae3d05215ec61d817055ec0271bff1254a501b296d8
+ZSUM	SOUND.REZ	360255681	45e265829ba24a16d92f4a5775058c895774278c0514a3f53cf00f3d965cac35

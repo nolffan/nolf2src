@@ -9,15 +9,36 @@
 #   build/all.sh            (inside the build container, e.g. `make shell`)
 #
 # Needs: the toolchain (ext/toolchains/, see ext/toolchains/README.md), Wine (the
-# build container has it), and the retail game, NOLF2 (Europe) with the
-# English 1.3 update, as the ext/rez/ submodule installs it
-# (ext/rez/games/nolf2-eu-1.3/, build/retail.sh). It only reads that directory.
+# build container has it), the retail game, NOLF2 (Europe) with the English
+# 1.3 update, as build/discs.py installs it from your two disc images and
+# the update's installer (out/retail/nolf2-eu-1.3/, build/retail.sh), and
+# the LithTech Jupiter SDK's WONAPI source, from your image of its CD the
+# same way (out/retail/lithtech-jupiter-51/, build/jupiter.sh). It only
+# reads those directories.
+#
+# NOLF2_NODISCS=1 builds without the retail game and without the SDK (the
+# CI build, `make NODISCS=1`, for any variant). Every binary is the same as
+# with them: the art they are compiled with is committed (assets/art/), and
+# so is the release build's ServerDir.dll (assets/serverdir/), which is used
+# in place of one compiled from the SDK's source. But step 1 copies no game
+# data and step 2 no Bink or Microsoft runtime: both write only the
+# manifest's rows of those files (from build/retail-files.txt and
+# build/retail-ranges.txt). The game directory is out/<name>-nodiscs/, with
+# NOT-PLAYABLE.txt in it: without the discs' .rez archives it does not
+# play. Step 6 makes only its public archive, out/<name>-public.tar.gz,
+# which is the playable form: unpacked, its install scripts copy the game
+# data from the player's discs into it (build/mkinstall.py). It is the same
+# archive as a build with the retail game makes (but the link time in each
+# binary).
 #
 # The steps, in order:
 #   1. resources          the game's data from the retail game: the .rez
-#                         archives (with the retail game DLLs inside them
-#                         zeroed), the movies, the shipped autoexec.cfg and
-#                         default profile. No binary.
+#                         archives of the discs (with the retail game DLLs
+#                         inside them zeroed) and the movies. No binary.
+#   1b. assets            the 1.3 update's data and the two map packs, from
+#                         assets/: nolf2src.rez, MapPack001.rez and
+#                         MapPack002.rez (packed by lithrez), the shipped
+#                         autoexec.cfg and default profile.
 #   2. third-party runtime  Bink (binkw32.dll) and the Microsoft C++ and MFC
 #                         runtime DLLs, from the retail game: licensed
 #                         binaries with no source. The modern build
@@ -27,15 +48,22 @@
 #                         FFmpeg, built from src/modern/binkw32/ and the
 #                         ext/ffmpeg submodule by build/ext.sh.
 #   2b. Jupiter SDK source  WONAPI, the library ServerDir.dll is built with
-#                         and Monolith's release lacks: from
-#                         the LithTech Jupiter SDK, as ext/rez/ fetches it
-#                         (build/jupiter.sh; `make` fetches it once), into
-#                         src/Game/Libs/ (ext/tools/jupitersrc.py; not committed).
+#                         and Monolith's release lacks: from the LithTech
+#                         Jupiter SDK, as build/discs.py installs it from
+#                         your image of its CD (build/jupiter.sh; `make sdk`,
+#                         which every build runs), into src/Game/Libs/
+#                         (ext/tools/jupitersrc.py; not committed). Without
+#                         the SDK (NODISCS=1), the committed
+#                         assets/serverdir/ServerDir.dll goes where the
+#                         compile puts its own, and the compile leaves
+#                         ServerDir.dll out.
 #   2c. engine art        the icon lithtech.rc compiles into Lithtech.exe
-#                         (IDR_MAINFRAME, five images), read out of the
-#                         retail Lithtech.exe's resources into
-#                         src/Engine/runtime/winbuild/lithtech/res/
-#                         (ext/tools/retailextract.py art; not committed). Its
+#                         (IDR_MAINFRAME, five images): the retail icon,
+#                         committed in assets/art/lithtech/ (made from the
+#                         retail Lithtech.exe's resources by `make art`, and
+#                         checked against them in every build with the
+#                         retail game), copied into
+#                         src/Engine/runtime/winbuild/lithtech/res/. Its
 #                         other binary resources, the help cursor and four
 #                         bitmaps, are MFC's, from the toolchain's afxres.rc.
 #   3. compile            every project of Monolith's workspace the game
@@ -51,7 +79,10 @@
 #                         snddrv.dsw), the engine, Lithtech.exe and
 #                         server.dll (src/Engine/runtime/winbuild/
 #                         Engine.dsw), and ltmsg.dll (src/Engine/ltmsg/
-#                         ltmsg.dsw), the engine's message strings.
+#                         ltmsg.dsw), the engine's message strings. The
+#                         release build's ServerDir.dll is then checked
+#                         against assets/serverdir/ (build/serverdir.py;
+#                         make serverdir writes it again).
 #   4. assemble           the built binaries into out/nolf2-legacy-release/: the
 #                         game DLLs in the custom/ rez directory, last in the
 #                         rez stack (nolf2cmds.txt); the engine (Lithtech.exe,
@@ -74,8 +105,7 @@
 #                         -- see its header; Wine needed there), and
 #                         -public.tar.gz: the same without the retail game's
 #                         files, which its install scripts copy out of the
-#                         player's own disc images and 1.3 update
-#                         (build/package.sh).
+#                         player's own disc images (build/package.sh).
 set -e
 REPO="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 
@@ -91,9 +121,18 @@ cd "$REPO"
 source build/retail.sh
 source build/jupiter.sh
 OUT="${NOLF2_GAME_OUT:-out/nolf2-legacy-release}"
-RETAIL="$(retail_dir)"
-retail_verify
-jupiter_verify
+NODISCS=
+if [ "${NOLF2_NODISCS:-0}" = 1 ]; then
+    NODISCS=1
+    RETAIL=-
+    # not the game directory of a real build: this one does not play
+    # (build/variant.sh gives its own, out/<name>-nodiscs)
+    OUT="${NOLF2_GAME_OUT:-out/nolf2-legacy-release-nodiscs}"
+else
+    RETAIL="$(retail_dir)"
+    retail_verify
+    jupiter_verify
+fi
 T0=$(date +%s)
 step() { echo; echo "######## $* ($(( $(date +%s) - T0 ))s)"; }
 B=src/Game/built/Final
@@ -115,15 +154,29 @@ case "${NOLF2SRC_CFLAGS:-}" in
     *NOLF2SRC_MODERN*) BUILT+=("$B/Launcher/NOLF2Launcher.exe" NOLF2Launcher.exe) ;;
 esac
 
-step "1. resources: game data from $RETAIL -> $OUT"
-python3 ext/tools/retailextract.py resources "$RETAIL" "$OUT"
+if [ -n "$NODISCS" ]; then
+    step "1. resources: without the retail game, only the manifest rows of its data -> $OUT"
+    mkdir -p "$OUT"
+    cat > "$OUT/NOT-PLAYABLE.txt" <<EOF
+This directory was built without the retail game (NODISCS=1). It has no
+game data from the discs (no .rez archives of the discs, no movies, no Bink
+and no Microsoft runtime): it does not play. The playable form is its
+public archive, $(basename "$OUT" -nodiscs)-public.tar.gz beside it: unpack it
+into an empty directory, then run its install script with your two disc
+images (docs/INSTALL.md).
+EOF
+else
+    step "1. resources: game data from $RETAIL -> $OUT"
+    rm -f "$OUT/NOT-PLAYABLE.txt"
+fi
+python3 build/retailextract.py resources "$RETAIL" "$OUT"
 
 step "1b. assets: the 1.3 update's data and the two map packs (assets/) -> $OUT/nolf2src.rez, MapPack001.rez, MapPack002.rez and the shipped settings"
 # The 1.3 update's data ships with the release (assets/README.md): what its
 # Update_v1x3.rez carries besides the game DLLs, packed into nolf2src.rez by
 # lithtools' lithrez (build/lithrez.sh) with a fixed time, so the archive is
 # the same bytes on every build; and the settings and default profile it
-# installs. build/retail.py keeps the retail Update_v1x3.rez out.
+# installs. build/retailextract.py keeps the retail Update_v1x3.rez out.
 # The official map packs (assets/README.md) are packed into the archives
 # their installers installed, MapPack001.rez and MapPack002.rez, as NOLF2's
 # LithRez wrote them (--compat 1.10: no resource IDs) and with each
@@ -168,27 +221,53 @@ chmod +x "$OUT/linux-run.sh"
 cp build/game-scripts/linux-server.sh "$OUT/" && chmod +x "$OUT/linux-server.sh"
 
 if [ "${NOLF2_MIDDLEWARE:-retail}" = open ]; then
-    step "2. open runtime: our Bink player on FFmpeg (build/ext.sh); the Microsoft runtime from $RETAIL"
+    if [ -n "$NODISCS" ]; then
+        step "2. open runtime: our Bink player on FFmpeg (build/ext.sh); without the retail game, only the manifest rows of the Microsoft runtime"
+    else
+        step "2. open runtime: our Bink player on FFmpeg (build/ext.sh); the Microsoft runtime from $RETAIL"
+    fi
     bash build/ext.sh
-    python3 ext/tools/retailextract.py thirdparty "$RETAIL" "$OUT" open
-    python3 ext/tools/retailextract.py openruntime "${NOLF2_EXT_OUT:-out/ext}" "$OUT"
+    python3 build/retailextract.py thirdparty "$RETAIL" "$OUT" open
+    python3 build/retailextract.py openruntime "${NOLF2_EXT_OUT:-out/ext}" "$OUT"
 else
-    step "2. THIRD-PARTY RUNTIME: Bink and the Microsoft runtime from $RETAIL"
-    python3 ext/tools/retailextract.py thirdparty "$RETAIL" "$OUT"
+    if [ -n "$NODISCS" ]; then
+        step "2. third-party runtime: without the retail game, only the manifest rows of Bink and the Microsoft runtime"
+    else
+        step "2. THIRD-PARTY RUNTIME: Bink and the Microsoft runtime from $RETAIL"
+    fi
+    python3 build/retailextract.py thirdparty "$RETAIL" "$OUT"
 fi
 
-step "2b. Jupiter SDK source: WONAPI -> src/Game/Libs/"
-python3 ext/tools/jupitersrc.py "$(jupiter_source)" src
+SERVERDIR_BUILT=src/Game/built/Final/libs/ServerDir/ServerDir.dll
+if [ -n "$NODISCS" ]; then
+    step "2b. no Jupiter SDK: the committed ServerDir.dll, assets/serverdir/ -> $(dirname "$SERVERDIR_BUILT")/"
+    # where the compile puts its own (build/build.mk then leaves it out), so
+    # that make progress-ci finds it there with its link map; without the
+    # compile's command file beside it, a later build with the SDK makes it
+    # again
+    export NOLF2SRC_SERVERDIR=prebuilt
+    python3 build/serverdir.py install "$SERVERDIR_BUILT"
+else
+    step "2b. Jupiter SDK source: WONAPI -> src/Game/Libs/"
+    python3 ext/tools/jupitersrc.py "$(jupiter_source)" src
+fi
 
-step "2c. engine art: the retail Lithtech.exe's icon in $RETAIL -> src/Engine/runtime/winbuild/lithtech/res/"
-python3 ext/tools/retailextract.py art "$RETAIL" Lithtech.exe src/Engine/runtime/winbuild/lithtech/res \
-    lithtech.ico=icon:128
+step "2c. engine art: the retail icon, assets/art/lithtech/ -> src/Engine/runtime/winbuild/lithtech/res/"
+# (with the retail game: first checked against the retail Lithtech.exe's
+# resources, as make art-check does)
+[ -n "$NODISCS" ] || python3 build/retailextract.py art check "$RETAIL"
+python3 build/retailextract.py art install
 
 step "3. compile: Monolith's workspace (build/compile.sh: build/build.mk, ${NOLF2SRC_JOBS:-$(nproc)} jobs)"
 bash build/compile.sh all
 for ((i = 0; i < ${#BUILT[@]}; i += 2)); do
     [ -f "${BUILT[i]}" ] || { echo "error: ${BUILT[i]} was not built" >&2; exit 1; }
 done
+# The release build's ServerDir.dll, compiled from the SDK's source, must be
+# the committed one that a build without the SDK uses (but its link time).
+if [ -z "$NODISCS" ] && [ -z "${NOLF2SRC_CFLAGS:-}" ]; then
+    python3 build/serverdir.py check "$SERVERDIR_BUILT"
+fi
 
 step "4. assemble: the built binaries -> $OUT"
 for ((i = 0; i < ${#BUILT[@]}; i += 2)); do
@@ -200,12 +279,17 @@ done
 python3 - "$OUT/MANIFEST.txt" <<'PY'
 import os, sys
 p = sys.argv[1]
+d = os.path.dirname(p)
+# (a directory built without the retail game has the rows of the discs'
+# files, but not the files: build/mkinstall.py reads them)
+nodiscs = os.path.exists(os.path.join(d, "NOT-PLAYABLE.txt"))
 rows = {}
 for line in open(p).read().splitlines():
     if "\t" in line and not line.startswith("#"):
         origin, path = line.split("\t", 1)
+        retail = origin.startswith(("data nolf2-eu-1.3:", "THIRD-PARTY nolf2-eu-1.3:"))
         # a file an older build put here and this one removed
-        if os.path.exists(os.path.join(os.path.dirname(p), path)):
+        if os.path.exists(os.path.join(d, path)) or nodiscs and retail:
             rows[path] = origin
 with open(p, "w") as f:
     f.write("# origin<TAB>path, one row per file build/all.sh put here\n")
@@ -214,13 +298,20 @@ with open(p, "w") as f:
 PY
 
 step "5. audit: every PE file in $OUT"
-python3 ext/tools/retailextract.py audit "$OUT"
+python3 build/retailextract.py audit "$OUT"
 
 # (NOLF2_PACKAGE=0 skips it: build/variant.sh packages its game directory
 # itself)
-if [ "${NOLF2_PACKAGE:-1}" = 1 ]; then
+if [ "${NOLF2_PACKAGE:-1}" = 1 ] && [ -n "$NODISCS" ]; then
+    step "6. package: $OUT -> $(dirname "$OUT")/$(basename "$OUT" -nodiscs)-public.tar.gz (no private archive without the retail game)"
+    bash "$REPO/build/package.sh" "$OUT" "$(basename "$OUT" -nodiscs)"
+elif [ "${NOLF2_PACKAGE:-1}" = 1 ]; then
     step "6. package: $OUT -> $OUT-private.tar.gz, -public.tar.gz"
     bash "$REPO/build/package.sh" "$OUT"
 fi
 
-step "done: $OUT ($(( $(date +%s) - T0 ))s) -- play it with $OUT/linux-run.sh"
+if [ -n "$NODISCS" ]; then
+    step "done: $OUT ($(( $(date +%s) - T0 ))s) -- built without the retail game: it does not play (NOT-PLAYABLE.txt); its public archive, installed from the discs, does; check the build with make progress-ci"
+else
+    step "done: $OUT ($(( $(date +%s) - T0 ))s) -- play it with $OUT/linux-run.sh"
+fi

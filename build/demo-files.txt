@@ -1,0 +1,14 @@
+## The engine of the NOLF2 multiplayer demo (nolf2_mpdemo_en.exe, as Sierra
+## published it), which make progress reads to see the pages of the retail
+## Lithtech.exe that SecuROM keeps encrypted (ext/tools/demoimports.py;
+## progress/README.md). This list holds no code: only the two files' sizes
+## and SHA-256, and where their data is in the installer's cabinets. The
+## lines are those of build/retail-files.txt (build/discs.py describes
+## them).
+U	demo	179282860	aa6f2f747716377df7fd72bf02081f2bef97b1850d184571dd8358e5b5ef0652	nolf2_mpdemo_en.exe
+M	pdemo	demo	284026	179536515	b872241047b16299679cec672cf3e9c7ef2b7ba03ec913a1e86bcb85d65ccc9e
+I	demo	demo
+F	Lithtech.exe	1794048	5cdd539d4b625ea04a95f9754f7bc29549a3dc6740eccd14aaa365ba1b80d7b1
+W	is	pdemo:6864941:781119
+F	server.dll	397312	2cb74ee9766b6649f0095d7a496a00bc66938aab42a601d16eedee4429956987
+W	is	pdemo:9049857:210104

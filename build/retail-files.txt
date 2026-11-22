@@ -1,0 +1,183 @@
+## The retail game the build takes its data from: No One Lives Forever 2
+## (Europe), as its setup installs it from its two discs, with Sierra's
+## English 1.3 update over it, as the update's setup installs it. This list
+## holds no game data. It tells build/discs.py which bytes of which image
+## make each file, and what each file must be (its size and SHA-256). The
+## public install scripts (build/mkinstall.py) read the files of the game
+## directory from it too, from the European or the USA discs.
+##
+## D <id> <volume label> <volume blocks> <image size> <image SHA-256> <redump ID> <name>
+##   One disc. A disc image is recognised by its volume label and its volume
+##   size (blocks of 2048 bytes). The image size and SHA-256 are those of the
+##   .iso of the redump dump with that ID and name. Another correct copy of
+##   the disc can have another size and SHA-256: each file is checked.
+##   us2alt is redump's other dump of the USA disc 2: the same cabinets at
+##   the same offsets.
+## U <id> <size> <SHA-256> <name>
+##   The update's installer, as it was published.
+## M <id> <installer> <offset> <size> <SHA-256>
+##   Its payload: the one folder of the Microsoft cabinet at <offset>,
+##   unpacked.
+## S <set> <id> ...
+##   A set of discs the public install scripts accept.
+## I <set> <id> ...
+##   The images that `make retail` needs.
+## F <path> <size> <SHA-256>
+##   One installed file ...
+## W copy|is <id>:<offset>:<length> ...
+##   ... and one way to read it: the byte ranges that are the file (copy),
+##   or that hold its InstallShield 6 cabinet data (is). One W line for each
+##   set of images it is on.
+## The fields are separated by one TAB. build/discs.py describes the formats.
+D	eu1	NOLF_UK_D1	316179	647534592	633acbecd7c74a0832e73f274fe1be140a13a50b6160218fe52d2a2110351c85	35959	No One Lives Forever 2 - A Spy in H.A.R.M.'s Way (Europe) (Disc 1)
+D	eu2	NOLF2_UK_D2	226620	464117760	11ae9dfcba35a54022d14222f5d0f8c3abfdd686e5c75710aa16284006d947c2	35960	No One Lives Forever 2 - A Spy in H.A.R.M.'s Way (Europe) (Disc 2)
+D	us1	NOLF2_CD1	316179	647534592	89d1b64da7be63bd028e91e8c5479e733d269b7fca07e023233081d074e5bd29	12883	No One Lives Forever 2 - A Spy in H.A.R.M.'s Way (USA) (Disc 1)
+D	us2	NOLF2_CD2	226598	464379904	3c9bd5707f5c5b3289a7aa1bb76c33df38ec0bd075195eb5f3b2538205ee4811	33578	No One Lives Forever 2 - A Spy in H.A.R.M.'s Way (USA) (Disc 2)
+D	us2alt	NOLF2_CD2	226598	464687104	46e4d552f14f8ca052f6b023aba71adadc575232863d2ca9832ebebf4d63384a	12882	No One Lives Forever 2 - A Spy in H.A.R.M.'s Way (USA) (Disc 2) (Alt)
+U	upd	29479272	7e0f70806437979a39806d8aea08751e2ccfebdb50dad752eed03cac35437157	nolf2-update_1x3.exe
+M	pupd	upd	284019	29499259	f453e7c7c234ce52e841eb70f69d0f67c9665eb292ee6c6c8574523f45ad7822
+S	Europe	eu1 eu2
+S	USA	us1 us2
+S	USA-alt	us1 us2alt
+I	Europe	eu1 eu2 upd
+F	autoexec.cfg	7605	f07f6c9ebee7b93820a76796c5479da85d452fc6157345bedfa597c05f075a73
+W	is	pupd:29306881:2379
+F	binkw32.dll	358963	892a51c4056efcb22297a3b44a3491e3f5888f28b08ed1b17030f24acffedb44
+W	is	eu1:254988904:137991
+W	is	us1:256107360:137991
+F	Engine.REZ	102162	cd999462cd5dbab870a3f6032f0ad4a3abe5614dfdda0b59ee018176a9e710c5
+W	is	eu2:96080717:4741
+W	is	us2:417680907:4741
+W	is	us2alt:417680907:4741
+F	GAME.REZ	224475015	442d176659b72426bd17701e226e000b32037bfcc0df1e3897cd78f2d5c5752f
+W	copy	eu1:59392:224475015
+W	copy	us1:59392:224475015
+F	GAME2.REZ	1138259607	f0d6883d035f32ad77307bcb8f44fd449e285476e49884161d8e80eecce6fb73
+W	is	eu1:271665592:367564360 eu2:113152:95967565
+W	is	us1:590731414:48512874 us2:113152:415019051
+W	is	us1:590731414:48512874 us2alt:113152:415019051
+F	GAMEDLL.REZ	6304090	cb4eba665dc3e62848783d575d78f31a7ad08e4ccf0685279c8ff12f0a981d8f
+W	is	eu2:96085458:2548704
+W	is	us2:415132203:2548704
+W	is	us2alt:415132203:2548704
+F	Lithtech.exe	2608595	4e83a4be52e10586d93077ef746874a751a25ad4d079d79347d92fce02e172e9
+W	is	pupd:26174425:1255151
+F	ltmsg.dll	24576	6e6c342bb1817638517fb3b038180505e7517b542caf59753accfc533091f9e4
+W	is	pupd:27429576:1526
+F	MFC42.DLL	995383	ec63a85030c60716acdcf060abfaa95a6a3528631622fa60e7d17fbea2f751f9
+W	is	eu1:270711063:479433
+W	is	us1:270680338:479433
+F	MFC42U.DLL	995384	5b3b68bb88be968a0c7c24887b437fac6d9081671b8d8376482168383ca30b8b
+W	is	eu1:271190496:475096
+W	is	us1:271159771:475096
+F	Movies/foxlogo.bik	4629416	a7484fdb9876a48cd9358dd2c03413d252aa645dc1a554a4da741720de2861b4
+W	is	eu1:256995728:4583454
+W	is	us1:265808321:4583454
+F	Movies/lithlogo.bik	3799320	9ebc2e8fc2a4d4730311d3d36412d3e8a8159020047f60d1a633ff402ad9cb7f
+W	is	eu1:261579182:3741831
+W	is	us1:259647905:3741831
+F	Movies/ltlogo.bik	2539652	f4dab811ad6c2d8ffb675270354c5d0cc589576ac5ad2aa9e6a76b7c403c84b2
+W	is	eu1:265321013:2418585
+W	is	us1:263389736:2418585
+F	Movies/sierralogo.bik	2735104	57aa1c143bf362eab503c762994f0d3a550bf075d808a64f7facc4a04d41e750
+W	is	eu1:267739598:2682902
+W	is	us1:256965003:2682902
+F	MSVCP60.DLL	401462	2b6b93c2d66969eb00258e2b5ad6172decebada096e3b1b077a3380c80e4a072
+W	is	eu1:270451356:117455
+W	is	us1:270420631:117455
+F	Msvcrt.dll	278581	887eb5ce93edb7192ca3e9220f07f9ca0f94db02af5862ebcbdfcb852db99fd1
+W	is	eu1:270568811:142252
+W	is	us1:270538086:142252
+F	NOLF2.exe	6123520	7cb2a900c1f468e3db3644e9e76aaafdbe2d88bc5e48dafd030893793866288e
+W	is	pupd:27431102:868755
+F	NOLF2Srv.exe	1114112	90f58132a2d110b18ea1efd0a6319a4f73cc58b2adf6487145d4926d9d263922
+W	is	pupd:28299857:533954
+F	NolfGirl Community Website.url	79	d3d225135470bd27767904f210aa6137db02a1b90d1ddb1994f221c5890e57a8
+W	is	eu1:256254128:83
+W	is	us1:256963985:83
+F	Official NOLF2 Website.url	79	af7d5d232167e0960debc8ed7b904dd863e77dcd21e81ba1a4f5774aebcb59a2
+W	is	eu1:256254211:83
+W	is	us1:256964068:83
+F	Profiles/Default.prf	2069	c0f536004c11f6191c6506c115c12ad252e3d191d19cebce1e30eadc7243a746
+W	is	pupd:29309260:861
+F	readme.txt	56736	46db051916b647d0cb8caf6191cba3d5e07ebb9ac6b7671dd9f1aee25db9c23c
+W	is	pupd:28833811:22070
+F	Register NOLF2.url	100	d38b167ea3f319303731938bcb2cce90609d2ec701e7a4f9a939957f764f5b95
+W	is	eu1:254988800:104
+F	server.dll	397312	f6745caf105553eb7629bfe0d0b0814cd8ebadda2320390f6c17477f0ab03dd0
+W	is	pupd:28855881:209772
+F	ServerDir.dll	479232	c33b80dee5278e2bcdb729202211640d9c03066ab7302cb75a8a3e35072867de
+W	is	pupd:29065653:211121
+F	serverreadme.txt	14193	6930302fabc831b5753900feabd91333b7076e3e20c817483c600595bb39da0e
+W	is	pupd:29276774:5260
+F	SierraUp.cfg	344	bd9ccc3edea6f613e47159d6849e537cd2c6ae2415cbb28c9304d63818df8b37
+W	is	pupd:29282034:199
+F	SierraUp.exe	1658880	a210467041900cf188441de6fd1f258dfc9958bcb6c8bfd6706beb04bc5c623b
+W	is	eu1:256256862:718535
+W	is	us1:256245351:718535
+F	SierraUpRes/1302.bmp	33564	f02b025697885f6b2bcff9f8c54be36c4f0359586392c91c7232b35b1323c273
+W	is	eu1:270422500:11563
+W	is	us1:270397836:11563
+F	SierraUpRes/_GameUpdateResource.cfg	730	36062b005e368018339c6ee45afe837805adb0965a2caced8563659aeebfa8fc
+W	is	eu1:270445295:298
+W	is	us1:270391775:298
+F	SierraUpRes/_UpdateMaster.cfg	1471	97c4b3afa697b2c4ac881302f7f2a01443e17b6ce11fad51b220839957ec6da5
+W	is	eu1:270445593:414
+W	is	us1:270392073:414
+F	SierraUpRes/_UpdateResource.cfg	21343	8b598e0d0af0a10f11ab57e657c0b77961bd3832e03b844175edfe26716487c4
+W	is	eu1:270446007:5349
+W	is	us1:270392487:5349
+F	SierraUpRes/AboutCtrl.cfg	930	bd6ec29fa749a2cc86ea040e7d7b739e4fd547d40536abbed50052c66fff61e5
+W	is	eu1:270434063:368
+W	is	us1:270409399:368
+F	SierraUpRes/CommonCtrl.cfg	1415	84d469ac943a4f2fd349a6b10aa4a08d6a8657d37f16e772413fef7049151e3e
+W	is	eu1:270434431:562
+W	is	us1:270409767:562
+F	SierraUpRes/ConfigProxyCtrl.cfg	1742	f884b8454695bdf2581fed8382b3cc17e8f32cac2bd90381fc1dd1bf66eb35b1
+W	is	eu1:270434993:570
+W	is	us1:270410329:570
+F	SierraUpRes/DownloadCtrl.cfg	2440	4125037e466c087d66c930bbba04675c1ed436efd4edc0388861373839481cd0
+W	is	eu1:270435563:672
+W	is	us1:270410899:672
+F	SierraUpRes/GameLogo.bmp	16886	124129dfe30948d4ae9f17c0156a88066d28438f055e7818a3443e6d6e59d48b
+W	is	eu1:270436235:1365
+W	is	us1:270411571:1365
+F	SierraUpRes/LoginCtrl.cfg	1981	c5d5ace1f69d2f87750932dbd9454e79a7bd6cf3b33340b385885ef1f90665be
+W	is	eu1:270437600:572
+W	is	us1:270412936:572
+F	SierraUpRes/MotdCtrl.cfg	625	82d70a46f3b514481d96f578042ef7a75db70f3c2007d992abb872aa6565bdff
+W	is	eu1:270438172:298
+W	is	us1:270413508:298
+F	SierraUpRes/MpsLogo.bmp	8878	336deb29da0bed8616507afcffcccc275d905860d7ca99fe2b9b20e3fb1b25ab
+W	is	eu1:270438470:2970
+W	is	us1:270413806:2970
+F	SierraUpRes/OptionalPatchCtrl.cfg	1064	31b2c728a45a764167aae41b8d81342478fb114234ec49463c99bb42a8029885
+W	is	eu1:270441440:372
+W	is	us1:270416776:372
+F	SierraUpRes/PatchDetailsCtrl.cfg	594	bfec99e29fc0e4ae6bc950a6742dc320a33a165740b6ef8d7f24a2b6a323ed39
+W	is	eu1:270441812:286
+W	is	us1:270417148:286
+F	SierraUpRes/SelectHostCtrl.cfg	1679	faa4a526386aa5129f82f7a65e0b7b09d63d686a6c1d37bd4bf0fd932eb031e0
+W	is	eu1:270442098:593
+W	is	us1:270417434:593
+F	SierraUpRes/SierraUp.ico	2998	e3de60a3f1d6d33cf1aa22613b5fd4ed532cb6ffe2a32d9c2efd3dd340475d58
+W	is	eu1:270442691:1504
+W	is	us1:270418027:1504
+F	SierraUpRes/VersionCheckCtrl.cfg	1173	306f0d194ca1536c236658164b67cf511c88ba48e86d69e61c55f3037ac2688f
+W	is	eu1:270444195:419
+W	is	us1:270419531:419
+F	SierraUpRes/WebLaunchCtrl.cfg	591	55f709af6889671873c6bc8769a4ef8a0abe5ac75f7a792149e7d9074f25f454
+W	is	eu1:270444614:282
+W	is	us1:270419950:282
+F	SierraUpRes/WelcomeCtrl.cfg	1062	65f9dc7bb71354d7895ecfb746c0b101606399499179e6c315aa077504d5073e
+W	is	eu1:270444896:399
+W	is	us1:270420232:399
+F	SierraVn.cfg	18	5c74dd82217f110c5f8e3b9cb8404c895dd10a662b59e20aa3a0c52068f27eb5
+W	is	pupd:29282233:20
+F	snddrv.dll	61440	ce8087763b6762376cc487dcada185386c087c3ed8c0c4311770e9df7802ccac
+W	is	pupd:29282253:24628
+F	SOUND.REZ	360255681	45e265829ba24a16d92f4a5775058c895774278c0514a3f53cf00f3d965cac35
+W	is	eu2:98634162:319096547
+W	is	us1:271634867:319096547
+F	Update_v1x3.rez	73060819	d394326533e0488ca79615772ae2a0bd52f9e393d0a29a9f4bd3535eaa26a04b
+W	is	pupd:837797:25336628

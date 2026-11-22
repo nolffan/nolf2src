@@ -9,8 +9,8 @@
 # the USA release -- in either order, each as any of
 #
 #   .iso   a plain image (2048-byte sectors), e.g. your own rip
-#   .bin   redump's raw image (2352-byte sectors), or its .cue
-#   .zip   redump's download as archive.org serves it (the .cue and .bin)
+#   .bin   a raw image (2352-byte sectors, e.g. redump's), or its .cue
+#   .zip   a .zip that holds one such .bin (and its .cue)
 #
 # (The data of Sierra's free English 1.3 update comes with the release:
 # nolf2src.rez and the shipped settings, assets/README.md.) First the
@@ -34,7 +34,7 @@
 # span both discs: python3 (its zlib) unpacks them, with bash, sha256sum, stat and sed
 # (GNU coreutils; a Steam Deck has them all). The list of files, at the end
 # of this script, says for each one which bytes of which image it is made
-# of (ext/tools/mkinstall.py).
+# of (build/mkinstall.py).
 set -euo pipefail
 HERE="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 SELF="$HERE/$(basename "${BASH_SOURCE[0]}")"

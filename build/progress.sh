@@ -13,7 +13,8 @@
 # Scores what the last `make` left in the tree (each binary progress/targets.py
 # names, and the objects and libraries its link read); it compiles nothing.
 # Needs the installed retail game (build/retail.sh): its binaries are
-# extracted into out/reference/ the first time.
+# extracted into out/reference/ the first time; and the multiplayer demo's
+# engine (make demo, build/demo-files.txt).
 #
 #   check   ext/tools/progress.py, then ext/tools/ratchet.py check: fails if a
 #           function recorded in progress/identical.txt no longer matches
@@ -105,13 +106,20 @@ if [ -n "${need:-}" ] || ! refcheck 2>/dev/null || [ "$(cat out/reference/.stamp
 fi
 
 # Lithtech.exe's encrypted pages as the multiplayer demo has them, for
-# placing our functions there (progress/targets.py `readable`): the demo out
-# of ext/rez/'s artifact chunks, its engine unpacked, retail's image with the
-# pages filled in (ext/tools/demoimports.py; out/ only, never committed)
+# placing our functions there (progress/targets.py `readable`): the demo's
+# engine, as build/discs.py installed it from your copy of the demo's
+# installer (make demo: out/retail/nolf2-mpdemo/), and retail's image with
+# the pages filled in (ext/tools/demoimports.py plain; out/ only, never
+# committed)
 if [ ! -f out/mpdemo/Lithtech-readable.exe ]; then
     echo "== Lithtech.exe's encrypted pages from the multiplayer demo (for placement only)"
-    [ -f ext/rez/demos/nolf2_mpdemo_en.exe ] || bash ext/rez/assemble-artifacts.sh demos/nolf2_mpdemo_en.exe
-    python3 ext/tools/demoimports.py extract
+    if [ ! -f out/retail/nolf2-mpdemo/.retail-files ]; then
+        echo "error: the multiplayer demo's engine is not installed in out/retail/nolf2-mpdemo/" >&2
+        echo "       run make demo (it needs the demo's installer in isos/: see docs/BUILDING.md)" >&2
+        exit 1
+    fi
+    mkdir -p out/mpdemo
+    cp out/retail/nolf2-mpdemo/Lithtech.exe out/retail/nolf2-mpdemo/server.dll out/mpdemo/
     python3 ext/tools/demoimports.py plain
 fi
 

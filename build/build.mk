@@ -71,9 +71,12 @@ PROJECTS_WANTED := ClientShellDLL Object ClientFxDLL ClientRes ServerRes ServerA
 # import library: src/Game/Libs/ServerDir/ServerDir.dsw (written for this
 # project) builds it from CServerDir_Titan (src/Game/Libs/ServerDir/, from
 # the F.E.A.R. source release) and the LithTech Jupiter SDK's WONAPI, which
-# ext/tools/jupitersrc.py copies into src/Game/Libs/ from ext/rez/ (build/all.sh
-# does, first).
-SERVERDIR_WANTED := ServerDir
+# ext/tools/jupitersrc.py copies into src/Game/Libs/ from the SDK's install
+# (build/jupiter.sh; build/all.sh does, first). NOLF2SRC_SERVERDIR=prebuilt
+# (a build without the SDK, NODISCS=1) leaves it out: build/all.sh puts the
+# committed assets/serverdir/ServerDir.dll where it would go.
+NOLF2SRC_SERVERDIR ?=
+SERVERDIR_WANTED := $(if $(filter prebuilt,$(NOLF2SRC_SERVERDIR)),,ServerDir)
 
 # The engine's sound driver, SndDrv.dll, of which Monolith's release has
 # nothing: src/Engine/snddrv/snddrv.dsw (written for this project) builds it
@@ -242,6 +245,7 @@ $(error ext/tools/dsp2mk.py failed: $(file <$(DEPDIR)/dsp2mk.log))
 endif
 include $(DEPDIR)/projects.mk
 
+ifneq ($(SERVERDIR_WANTED),)
 ifeq ($(wildcard $(ROOT)/src/Game/Libs/WONAPI/WONAPI.dsp),)
 $(error src/Game/Libs/WONAPI/ is missing -- the Jupiter SDK's source is put there by ext/tools/jupitersrc.py (build/all.sh runs it))
 endif
@@ -250,6 +254,7 @@ ifneq ($(DSP_OK),ok)
 $(error ext/tools/dsp2mk.py failed: $(file <$(DEPDIR)/dsp2mk-serverdir.log))
 endif
 include $(DEPDIR)/serverdir.mk
+endif
 
 DSP_OK := $(shell python3 ext/tools/dsp2mk.py src/Engine/snddrv/snddrv.dsw Final $(DEPDIR)/snddrv.mk $(SNDDRV_WANTED) 2>$(DEPDIR)/dsp2mk-snddrv.log && echo ok)
 ifneq ($(DSP_OK),ok)

@@ -17,7 +17,7 @@ set -e
 cd "$(dirname "${BASH_SOURCE[0]}")/.."
 if [ "${1:-}" != tables ]; then
     source build/retail.sh
-    python3 ext/tools/retailextract.py reference "$(retail_dir)" out/reference
+    python3 build/retailextract.py reference "$(retail_dir)" out/reference
 fi
 
 # The function table of each image (ext/tools/enumfuncs.py --csv): addr, size,

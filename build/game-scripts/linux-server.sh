@@ -34,6 +34,8 @@
 # process is ended (Ctrl+C here).
 set -e
 cd "$(dirname "$0")"
+# a game directory built without the retail game (NODISCS=1) does not play
+if [ -f NOT-PLAYABLE.txt ]; then cat NOT-PLAYABLE.txt >&2; exit 1; fi
 
 PROFILE=
 HEADLESS=

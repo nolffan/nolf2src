@@ -4,8 +4,9 @@
 # build's own trees (out/release-tree/, out/build-<variant>/), the tools at
 # <tree>/ext/tools/ so that they take <tree> for the project (as their
 # layout.py works it out), and every other submodule of ext/ (the compilers,
-# the retail game where build/retail.sh looks for it, lithrez's source, the
-# modern build's FFmpeg) a link to this checkout's. A tree made before the
+# lithrez's source, the modern build's FFmpeg) a link to this checkout's.
+# (ext/rez/, a submodule no more, which an older checkout can still have on
+# disk, is not linked.) A tree made before the
 # submodules moved to ext/ had a link for ext/ itself, and tools/ and links
 # for toolchains, rez and lithtools at its top: those go first.
 nolf2src_tree_layout() {
@@ -20,9 +21,10 @@ nolf2src_tree_layout() {
     rm -rf "$tree/build" "$tree/ext/tools"
     tar -C "$repo" -cf - --exclude='__pycache__' --exclude='.git' build ext/tools |
         tar -C "$tree" -xf - || return 1
+    rm -f "$tree/ext/rez"
     for d in "$repo"/ext/*; do
         n="$(basename "$d")"
-        [ "$n" = tools ] || [ -L "$tree/ext/$n" ] ||
+        [ "$n" = tools ] || [ "$n" = rez ] || [ -L "$tree/ext/$n" ] ||
             ln -s "../../../ext/$n" "$tree/ext/$n" || return 1
     done
 }
