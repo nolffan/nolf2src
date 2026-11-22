@@ -249,6 +249,29 @@ are checked against `progress/reference.sha256` (and extracted again from
 the installed game if they differ): what is scored is always the retail
 release, not whatever the cache holds.
 
+### Without the retail game: `make progress-ci`
+
+A machine without the retail game (a CI runner) cannot score. `make
+progress-ci` (`build/progress.sh ci`) checks the build without it, against
+`progress/hashes/`: `make progress-update` records there, as hashes, what
+each check of the full run compared against (`--hashes`), once all the
+checks pass:
+
+| File | What | Checked by |
+|---|---|---|
+| `hashes/identical.tsv` | each identical function: its retail address and length, where it is in our link (a symbol of our `.map`), the bytes the match masks, and the SHA-256 of the masked retail bytes; each identical resource and its SHA-256 | `ext/tools/hashcheck.py check` |
+| `hashes/data.tsv` | the SHA-256 of each text of the retail images' data that the data check compared | `ext/tools/datacheck.py ci` |
+| `hashes/fpconst.tsv` | each float constant that a placed function loads, by hash | `ext/tools/fpconst.py --targets --ci` |
+| `hashes/vtab.tsv` | each vtable slot and call that the full check verified, by our symbols | `ext/tools/vtabcheck.py --targets --ci` |
+
+They hold no retail bytes: only addresses, lengths, offsets, our symbols
+and SHA-256 hashes (about 11 MB). The check fails if a function, a
+resource, a text, a constant, a vtable or a call recorded there is no
+longer what it was. It compiles nothing, and finds no new match: only
+`make progress-update`, with the retail game, records one. A build without
+the retail game (`make NODISCS=1`) is checked whole: its binaries are the
+same (`docs/BUILDING.md`, "Without the retail game").
+
 The data check came to this project late: `data-known.txt` started as
 every difference there was then, under `UNREVIEWED` reasons. Those entries
 are a worklist, not explanations: each is either fixed (and
@@ -283,6 +306,7 @@ minutes.
 | `reference.sha256` | the retail images `out/reference/` must hold to be scored |
 | `vtab-known.txt` | the vtable and wiring differences `ext/tools/vtabcheck.py` finds that are known, each with its reason |
 | `evidence.json` | what the recorded run rested on (`ext/tools/evidence.py`) |
+| `hashes/` | what each check compared against, as hashes, for `make progress-ci` (above). Written by `make progress-update` |
 | `corrections.txt` | the functions taken out of `identical.txt` when the scoring was corrected (2026-11-02), each with why: matches inside another identical function (the same bytes counted twice), and matches outside the image's own code |
 | `data-known.txt` | the text differences from the retail images that are known, each under its reason (`ext/tools/datacheck.py`) |
 | `COMPILERS.md` | which compiler and flags built each retail binary, and the evidence |

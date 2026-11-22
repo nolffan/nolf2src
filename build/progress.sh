@@ -5,8 +5,10 @@
 #   make progress           (on the host: runs `build/progress.sh check` in a
 #                            container)
 #   make progress-update    (`build/progress.sh update`: record the run)
-#   build/progress.sh check|update   (inside the build container, or on a
-#                                     host with Python 3)
+#   make progress-ci        (`build/progress.sh ci`: the check without the
+#                            retail game)
+#   build/progress.sh check|update|ci   (inside the build container, or on a
+#                                        host with Python 3)
 #
 # Scores what the last `make` left in the tree (each binary progress/targets.py
 # names, and the objects and libraries its link read); it compiles nothing.
@@ -19,7 +21,17 @@
 #           unless nothing is unwritten or unplaced)
 #   update  ext/tools/progress.py, then ext/tools/ratchet.py update: records the run
 #           in progress/ and rewrites progress/README.md's table (ACCEPT_LOSSES=1 to
-#           record a run that lost functions)
+#           record a run that lost functions). Each check also records what
+#           it compared against as hashes (--hashes), into progress/hashes/
+#           when every check passes: what `ci` checks against
+#   ci      the same checks without the retail game or its images, against
+#           progress/hashes/ (ext/tools/hashcheck.py, `datacheck.py ci`,
+#           `fpconst.py --targets --ci`, `vtabcheck.py --targets --ci`):
+#           fails if a function, a resource, a constant, a string, a vtable
+#           or a call recorded there is no longer what it was. It compiles
+#           nothing and finds no new match (only `update` records one). A
+#           build without the retail game (build/all.sh, NOLF2_NODISCS=1) is
+#           checked whole: its art is the committed retail art (assets/art/)
 #   both    then ext/tools/datacheck.py: the text in our images' data against the
 #           retail images'; fails on a difference progress/data-known.txt
 #           does not list (update also drops the entries no longer needed);
@@ -40,8 +52,30 @@ cd "$(dirname "${BASH_SOURCE[0]}")/.."
 mode="${1:-check}"
 case "$mode" in
     check|update) ;;
-    *) echo "usage: build/progress.sh check|update" >&2; exit 2 ;;
+    ci)
+        rc=0
+        echo "functions and resources (ext/tools/hashcheck.py, progress/hashes/):"
+        python3 ext/tools/hashcheck.py check || rc=1
+        echo
+        python3 ext/tools/datacheck.py ci || rc=1
+        echo
+        echo "float constants (ext/tools/fpconst.py --ci):"
+        python3 ext/tools/fpconst.py --targets --ci || rc=1
+        echo
+        echo "vtables and wiring (ext/tools/vtabcheck.py --ci):"
+        python3 ext/tools/vtabcheck.py --targets --ci || rc=1
+        echo
+        if [ $rc = 0 ]; then
+            echo "PASS: everything recorded in progress/hashes/ is unchanged (new matches are found only by make progress-update)"
+        else
+            echo "FAIL: see above"
+        fi
+        exit $rc ;;
+    *) echo "usage: build/progress.sh check|update|ci" >&2; exit 2 ;;
 esac
+H=
+[ "$mode" = update ] && H=--hashes
+rm -rf out/progress/hashes
 
 # the images, and the function tables build/reference.sh derives from them
 for f in Lithtech.exe server.dll ServerDir.dll snddrv.dll ltmsg.dll \
@@ -81,7 +115,7 @@ if [ ! -f out/mpdemo/Lithtech-readable.exe ]; then
     python3 ext/tools/demoimports.py plain
 fi
 
-python3 ext/tools/progress.py
+python3 ext/tools/progress.py $H
 echo
 rc=0
 if [ "$mode" = check ]; then
@@ -93,19 +127,29 @@ fi
 # differences progress/data-known.txt lists (update: drops the ones that are
 # gone)
 echo
-python3 ext/tools/datacheck.py "$mode" || rc=1
+python3 ext/tools/datacheck.py "$mode" $H || rc=1
 # ... and the float constants behind the masked relocations
 echo
 echo "float constants (ext/tools/fpconst.py):"
-python3 ext/tools/fpconst.py --targets || rc=1
+python3 ext/tools/fpconst.py --targets $H || rc=1
 # ... and every vtable slot and every call and global our identically placed
 # functions reach, against the shipped ones (progress/vtab-known.txt)
 echo
 echo "vtables and wiring (ext/tools/vtabcheck.py):"
-python3 ext/tools/vtabcheck.py --targets || rc=1
+python3 ext/tools/vtabcheck.py --targets $H || rc=1
 # ... and what all of it rested on (the toolchains' digests checked), kept
 # with the baseline when one is recorded
 echo
 python3 ext/tools/evidence.py || rc=1
 [ "$mode" = update ] && cp out/progress/evidence.json progress/evidence.json
+# ... and what the checks compared against, for `ci`, once all of them pass
+if [ "$mode" = update ]; then
+    if [ $rc = 0 ]; then
+        mkdir -p progress/hashes
+        cp out/progress/hashes/*.tsv progress/hashes/
+        echo "recorded progress/hashes/ ($(du -sh progress/hashes | cut -f1)): what make progress-ci checks against"
+    else
+        echo "progress/hashes/ not recorded: a check failed"
+    fi
+fi
 exit $rc

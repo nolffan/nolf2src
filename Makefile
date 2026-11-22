@@ -40,7 +40,7 @@ DOCKER_RUN = docker run --rm --init --name $(CONTAINER) \
 TOOLCHAIN_FILES = ext/toolchains/msvc-6.00-8966/BIN/cl.exe ext/toolchains/msvc-6.00-9782/Common/MSDev98/Bin/RC.EXE \
 	ext/toolchains/dxsdk-8.1/include/d3d8.h
 
-.PHONY: all game debug modern modern-debug image retail sdk check-tools check-rez check-lithtools check-ext check-toolchain test progress progress-update shell clean distclean help
+.PHONY: all game debug modern modern-debug image retail sdk check-tools check-rez check-lithtools check-ext check-toolchain test progress progress-update progress-ci shell clean distclean help
 
 all: game
 
@@ -56,7 +56,10 @@ help:
 	@echo "               (out/play/test-<its name>/)"
 	@echo "make progress   score the build against the retail binaries; fails if a"
 	@echo "                function recorded in progress/identical.txt stops matching"
-	@echo "make progress-update  record the score in progress/ (and its README.md table)"
+	@echo "make progress-update  record the score in progress/ (and its README.md table), and"
+	@echo "                the hashes make progress-ci checks against in progress/hashes/"
+	@echo "make progress-ci  the check without the retail game: the build against"
+	@echo "                progress/hashes/ (finds no new matches)"
 	@echo "make retail     fetch the two disc images and install the retail game and its"
 	@echo "                1.3 update from them, and fetch the USA release's two too, for"
 	@echo "                the public archive (ext/rez/, once; every build runs it); check it"
@@ -140,6 +143,10 @@ progress: retail
 
 progress-update: retail
 	$(DOCKER_RUN) env ACCEPT_LOSSES=$(ACCEPT_LOSSES) $(EVIDENCE_ENV) bash build/progress.sh update
+
+# Without the retail game: the build against progress/hashes/ (build/progress.sh ci)
+progress-ci: check-tools image
+	$(DOCKER_RUN) bash build/progress.sh ci
 
 shell: image
 	docker run --rm -it --init --name $(CONTAINER)-shell \
