@@ -98,8 +98,9 @@ Done. What there is now:
   files the Mac build lacks, the Mac classes Jupiter lacks). Use them to
   decide which Jupiter files exist in 2002 and which functions to drop.
   Regenerate with `ext/tools/macinventory.py --jupiter ../fear/Dev/Source`; it
-  needs the Mac release, which this repo's `ext/rez/games` does not have:
-  `ext/rez/fetch-isos.sh nolf2-mac-usa && ext/rez/install-games.sh nolf2-mac-usa`.
+  needs the installed Mac release, which the build does not use: name its
+  directory with `NOLF2_MAC_DIR=<directory>` (`make shell` mounts it at
+  `/mac`).
 - `progress/engine/Lithtech-iat-calls.csv`: the import behind each of the
   1,514 redirected `call [IAT]` sites (all paired with the demo).
   `ext/tools/demoimports.py extract|map|plain`; `plain` gives

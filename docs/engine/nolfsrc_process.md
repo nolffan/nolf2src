@@ -268,8 +268,8 @@ The evidence CSVs change the denominator, so each row must carry evidence:
 | Engine source paths | invented | Mac binary strings: `Source/Engine/Runtime/{client,kernel,kernel/mem,model,render_a/src/sys/d3d,render_b/src/sys/d3d,server,shared,sound}/src/...`, `Source/Engine/libs/rezmgr`, `Source/libs/stdlith` | the same `runtime/<module>/src/` tree |
 
 **The Mac NOLF2 engine is a significant resource that nolf2src does not use yet.**
-`ext/rez/games/nolf2-mac-usa/NOLF2.app/Contents/MacOS/NOLF2` is a GCC-built Mach-O PowerPC binary.
-`ext/rez/README.md` counts about 19,500 symbols; this survey extracted about 11k demangled
+`$NOLF2_MAC_DIR/NOLF2.app/Contents/MacOS/NOLF2` (the installed Mac release) is a GCC-built Mach-O PowerPC binary.
+It has about 19,500 symbols; this survey extracted about 11k demangled
 names. The NOLF2Srv Mac bundle's `server` (`Contents/Resources/server.dll/Contents/MacOS/server`)
 has about 3,080 functions, 3,043 of which also appear in the Mac client engine. That confirms
 the NOLF1 structure: the server TUs are linked into the client too. The Mac binaries give:
@@ -360,7 +360,7 @@ Grep of nolf2src/tools for hard-coded NOLF1 facts (comments excluded where noted
 | `nearscan.py`, `layoutscan.py`, `tagmap.py` | `OBJDIR`/`IMAGE` dicts and `rel = {"lithtech.exe": "src/engine/lithtech/Release", …}` | The same remap; better, derive the object directories from the built image's `.rsp` as `progress.py` does |
 | `fndiff.py` | default `--image=out/reference/server.dll`; hints naming 8168/8447 ("server.dll is a mixed 8168/8447 build") | NOLF2 is uniformly 8966, so drop or retarget the revision hints |
 | `sdkvtab.py` | `src/LT2/sdk/inc` | `src/Engine/sdk/inc` |
-| `agentwt.sh` | checks `out/reference/server.dll`; assumes outputs in `src/*/Release` and `src/lithshared/out` | NOLF2 builds into `src/Game/built`, `src/Engine/built` and `src/libs/built`; `ext/rez/sdk` (the Jupiter SDK) must also be linked in |
+| `agentwt.sh` | checks `out/reference/server.dll`; assumes outputs in `src/*/Release` and `src/lithshared/out` | NOLF2 builds into `src/Game/built`, `src/Engine/built` and `src/libs/built`; `out/retail/` (the installed retail game and Jupiter SDK) must also be linked in |
 | `exedump.py`, `enumfuncs.py`, `extentcheck.py` | generic; d3d notes only | **SecuROM:** `Lithtech.exe` 0x565000–0x56a000 is encrypted and holds the CRT entry, chkstk- and atexit-like targets (0x567648 has 401 callers). Calls into it will show as unknown; `enumfuncs` rows there are garbage, and the scorer already marks them `encrypted`. The `.cms_t`/`.cms_d` sections should be skipped by any section scan |
 | `mkaliasobj.py`, `mkvtabobj.py`, `mkviewobj.py`, `linkresolve.py` | generic | Keep as fallbacks only. With real class declarations from the F.E.A.R. tree, the stand-in vtables and aliases should mostly be unnecessary |
 | `loadtest.c` | `CreateServer`/`DeleteServer` | Usable for NOLF2's `server.dll` as is. NOLF2 also exports `SetMasterDatabase`, which could be exercised |

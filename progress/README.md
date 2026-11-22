@@ -148,7 +148,9 @@ is the whole game's code, the engine's included.
   only, those pages are read from the multiplayer demo's unprotected
   engine (built 20 days after 1.3, the same compiler), put at retail's
   addresses by `ext/tools/demoimports.py plain` into `out/mpdemo/`
-  (`build/progress.sh` makes it; never committed): a function of ours
+  (`build/progress.sh` makes it from the demo's engine, which `make demo`
+  installs from your copy of its installer, `nolf2_mpdemo_en.exe`; never
+  committed): a function of ours
   found there is placed, so not unplaced, and the row stays `encrypted`.
 
 ## Coverage: unwritten and unplaced

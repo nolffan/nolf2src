@@ -7,14 +7,14 @@
 
 **No game data is included beyond Sierra's free 1.3 update**, whose data comes with the release, so you don't need it. A platform specific installer is included that copies the game's data from your own images of the two discs of the European or the USA release.
 
-Supported images:
+Supported images (the redump dumps of the discs):
 
-- Europe: <http://redump.org/disc/35959/>, <http://redump.org/disc/35960/>
-- USA: <http://redump.org/disc/12883/>, and for disc 2 either <http://redump.org/disc/12882/> or <http://redump.org/disc/33578/>
+- Europe: `No One Lives Forever 2 - A Spy in H.A.R.M.'s Way (Europe) (Disc 1)`, redump ID 35959, and `(Disc 2)`, redump ID 35960
+- USA: `No One Lives Forever 2 - A Spy in H.A.R.M.'s Way (USA) (Disc 1)`, redump ID 12883, and for disc 2 either `(Disc 2) (Alt)`, redump ID 12882, or `(Disc 2)`, redump ID 33578
 
 ## Install
 
-**This is the whole game, not a patch.** Unpack it into a new, empty directory, not over an earlier release or another installation: the installer checks the directory against `SHA256SUMS` and stops if it holds anything else. Copy your old `Save` and `Profiles` folders across to keep your saved games and profiles.
+**This is the whole game, not a patch.** For a first installation, unpack it into a new, empty directory and run the installer. **To upgrade, unpack it over your installed game** (the same build, legacy or modern): put the files of its directory into your game's directory, e.g. `tar xzf <archive> --strip-components=1 -C <game directory>`. Do not run the installer again: the files from your discs, your saved games, your profiles and your settings stay.
 
 The full guide is [here](https://github.com/{{REPO}}/blob/{{TAG}}/docs/INSTALL.md).
 

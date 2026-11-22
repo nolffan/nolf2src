@@ -49,14 +49,37 @@ compiler built each binary, and the evidence, is `progress/COMPILERS.md`.
 
 ## Building
 
-Needs docker and four submodules (`git submodule update --init`):
-`ext/tools/` (the build's scripts, tests and byte-matching tools, shared with
-the NOLF and Contract J.A.C.K. reconstructions), `ext/toolchains/` (the
-compilers), `ext/lithtools/` (whose `lithrez` packs the 1.3 update's data,
-`assets/`, into `nolf2src.rez`, and the map packs into `MapPack001.rez` and
-`MapPack002.rez`) and `ext/rez/` (which fetches the European
-discs from archive.org and installs the game with its 1.3 update, and the
-USA discs, for the public archive's install scripts).
+**No game data of the discs is in this repository.** The build takes the
+game's data (and the Bink and Microsoft runtime, the only binaries not
+built from source) from the retail game, which the build installs from your
+own images of its two discs and of the 1.3 update's installer (bring your
+own: see below). The repository holds only this retail data
+(`assets/README.md`): the data of Sierra's free 1.3 update and of its two
+free map packs (`assets/rez/`, `assets/game/`, `assets/mappack001/`,
+`assets/mappack002/`), the retail icon that our `Lithtech.exe` is compiled
+with (`assets/art/`, 8 KB), and the release build's `ServerDir.dll`
+(`assets/serverdir/`), our own build, for a build without the LithTech
+Jupiter SDK.
+
+You need Linux with Docker, the submodules, and your own images:
+
+1. Fetch the submodules: `git submodule update --init`. `ext/tools/` is the
+   build's scripts, tests and byte-matching tools, shared with the NOLF and
+   Contract J.A.C.K. reconstructions; `ext/toolchains/` is the compilers;
+   `ext/lithtools/` is our LithTech tools, whose `lithrez` packs the 1.3
+   update's data, `assets/`, into `nolf2src.rez`, and the map packs into
+   `MapPack001.rez` and `MapPack002.rez`; `ext/ffmpeg` is the modern build's
+   Bink player's decoder.
+2. Put your images in `isos/` (a hard link is good: `ln <image> isos/`), or
+   set `NOLF2_ISOS=<directory>`: the two discs of the European release (a
+   `.iso`, a `.bin` with its `.cue`, or a `.zip` of one), the 1.3 update's
+   installer (`nolf2-update_1x3.exe`), and the CD of the LithTech Jupiter
+   SDK (build 51), whose source `ServerDir.dll` is built from. `make
+   progress` also needs the multiplayer demo's installer
+   (`nolf2_mpdemo_en.exe`). The first build installs the game from them
+   into `out/retail/` and checks every file. See
+   [`docs/BUILDING.md`](docs/BUILDING.md), "What you need".
+3. Run
 
 ```sh
 make            # out/nolf2-legacy-release/ and its -private / -public .tar.gz
@@ -66,6 +89,13 @@ make test       # play it under Xvfb: main menu, new game, the first level
 make test TEST_GAME=out/nolf2-modern-release   # the same, on a variant
 make help       # everything else
 ```
+
+`make NODISCS=1 [debug|modern|modern-debug]` builds any of them without
+your images, as CI does: every binary is the same, but the game directory,
+`out/<name>-nodiscs/`, has no game data and does not play; its public
+archive, `out/<name>-public.tar.gz`, installs from the discs as the one of a
+normal build does. `make progress-ci` then checks the build against the
+hashes in `progress/hashes/`, without the retail game.
 
 `make modern` also needs the `ext/ffmpeg` submodule (FFmpeg, pinned to a
 release; `git submodule update --init ext/ffmpeg`): `build/ext.sh` builds
@@ -110,5 +140,4 @@ This project builds on the work of others:
   is built.
 - **Wine** and **Proton**, which run the game on Linux and the Steam Deck.
 - **redump.org**, for the verified disc images the installers check
-  against, and **archive.org**, which keeps them and the LithTech Jupiter
-  SDK.
+  against.

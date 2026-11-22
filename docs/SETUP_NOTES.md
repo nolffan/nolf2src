@@ -19,11 +19,12 @@ README.md for the current state.
 
 ## What is in the repo
 
-- **Submodules:** `rez` and `toolchains`, staged with their GitHub URLs. They
-  were cloned from local copies to avoid downloading.
-- **Disc images:** the NOLF2 zips and isos are hard-linked into
-  `ext/rez/isos/` from another local copy of rez, so they take no extra space,
-  and all verified against `isos/SHA256SUMS`.
+- **Submodules:** `toolchains` (and, then, `rez`, which is no longer a
+  submodule), staged with their GitHub URLs. They were cloned from local
+  copies to avoid downloading.
+- **Disc images:** now your own, in `isos/` (hard links are good: they take
+  no extra space), recognised and checked by `build/discs.py`
+  (`docs/BUILDING.md`, "What you need").
 - **Source:** Monolith's release in `src/`, keeping the `Game/`, `Engine/`,
   `libs/` layout so their project files work unmodified. Text is converted to
   LF, except the credits and intro files, which the game embeds byte for
@@ -71,7 +72,7 @@ Separately, a rare Wine compiler crash under parallel load (`C1001` /
   binary, its code range and what is left out (the C runtime, D3DX, WONAPI,
   SecuROM's encrypted pages); see `progress/README.md`.
 - **DirectX SDK version:** 8.1 is a guess; if the launcher's or game DLLs'
-  remaining differences point at the headers, try 8.0 (archive.org `dx8sdk`).
+  remaining differences point at the headers, try 8.0.
 
 ## A shared `decomp` submodule?
 

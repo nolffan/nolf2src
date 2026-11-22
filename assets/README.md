@@ -1,4 +1,14 @@
-# The 1.3 update's data, and the map packs
+# The retail data in this repository
+
+This directory holds the only retail data in the repository (with the
+metadata of `build/*-files.txt`, `build/retail-ranges.txt` and
+`progress/hashes/`, which holds no data): the 1.3 update's data and the two
+map packs, which ship with the releases; the retail art that our binaries
+are compiled with (`art/`); and our own build of `ServerDir.dll`
+(`serverdir/`). The game's data from the discs is never here: the build
+installs it from your own images (`docs/BUILDING.md`, "What you need").
+
+## The 1.3 update's data
 
 What Sierra's free English 1.3 update for *No One Lives Forever 2*
 (`nolf2-update_1x3.exe`, SHA-256
@@ -26,8 +36,9 @@ discs.
 
 The rest of the update -- its engine, launcher and dedicated server, its
 readmes and Sierra's updater -- is either built from source here or not
-needed. Taken out of rez/'s copy of the update (`Update_v1x3.rez` of the
-`nolf2-eu-1.3` install, `ext/rez/README.md`); the files are unchanged. They
+needed. Taken out of the update's `Update_v1x3.rez`, as its installer
+installs it (`out/retail/nolf2-eu-1.3/`, `build/retail-files.txt`); the
+files are unchanged. They
 are Monolith's and Fox's, as the rest of the game's data is
 (`docs/LICENSE_NOTES.md`).
 
@@ -47,10 +58,9 @@ Each directory is its archive's contents, as the archive has them
 (`WORLDS/RETAILMULTIPLAYER/`: each world's `.DAT`, its `.CFG`, the `.TXT`
 of its objects and the `.DTX` of its loading screen), less the archive's
 `VSSVER.SCC`: 36 and 28 files. The archives are the same as the Mac
-release's `MapPack001.rez` and `MapPack002.rez` (`ext/rez/games.sha256`,
-`nolf2-mac-usa`). Taken out of `ext/rez/mappacks/` (the installers' cabinets
-with `ext/rez/tools/sfxcab.py`, the archives with `ext/rez/tools/unshield`,
-their files with `lithrez x`); the files are unchanged.
+release's `MapPack001.rez` and `MapPack002.rez`. Taken out of the
+installers (their Microsoft cabinets, then their InstallShield cabinets,
+then the archives' files with `lithrez x`); the files are unchanged.
 
 `build/all.sh` packs each back into its archive, `MapPack001.rez` and
 `MapPack002.rez`, with `lithrez c --compat 1.10` (NOLF2's LithRez, which
@@ -64,3 +74,36 @@ launcher's order; the modern build's launcher and dedicated server load them
 from the game directory when the registry has no content (`docs/MODERN.md`,
 M-L6, M-G50). The map packs' installers installed no other file: the rest of
 each is InstallShield's own runtime.
+
+## The retail art: `art/`
+
+The art and text that our binaries are compiled with and that Monolith's
+source release does not have. For NOLF2 that is one file:
+
+| File | What it is | Compiled into |
+|---|---|---|
+| `art/lithtech/lithtech.ico` | the engine's icon (`IDR_MAINFRAME`, five images), as the retail 1.3 `Lithtech.exe` has it | `Lithtech.exe`, by `src/Engine/runtime/winbuild/lithtech/lithtech.rc` from `res/` |
+
+`build/retailextract.py art write` (`make art`) writes it from the retail
+`Lithtech.exe`'s resources: the image is parsed, never run, and the icon
+group and its images are written as the `.ico` file that `rc.exe` compiles
+back into the same resources. Every build copies it into the directory the
+resource script includes it from (`art install`, step 2c of
+`build/all.sh`), so `Lithtech.exe` has the retail icon in every build, with
+or without your discs. Every build with the retail game first checks it
+against the retail `Lithtech.exe` (`art check`, also `make art-check`).
+
+## Our build of ServerDir.dll: `serverdir/`
+
+`ServerDir.dll` and `ServerDir.map`: the release build's server directory
+and its link map, as `make` builds them from Monolith's `CServerDir_Titan`
+(`src/Game/Libs/ServerDir/`) and the WONAPI library of the LithTech Jupiter
+SDK. The SDK's source is not in the repository, and a build without your
+image of its CD (`make NODISCS=1`, as CI builds) cannot compile it: it puts
+these two files where the compile puts its own (`build/serverdir.py
+install`), so its game directory and its public archive have the same
+`ServerDir.dll` as a build with the SDK. Every release build with the SDK
+checks that the `ServerDir.dll` it compiles is this one, but for its link
+time (`build/serverdir.py check`); `make serverdir` writes them again from
+the last `make`. They are this project's build, not a retail file, and the
+public archives carry the same binary (`docs/LICENSE_NOTES.md`).

@@ -8,9 +8,9 @@ The images compared:
 | Tag | File | PE time stamp (UTC) | Notes |
 |---|---|---|---|
 | **retail** | `out/reference/Lithtech.exe` (2,608,595 B), `server.dll` (397,312 B) | exe 2003-02-08 02:35:54, dll 02:35:36 | 1.3 patch, SecuROM-wrapped exe |
-| **mpdemo** | `nolf2_mpdemo_en.exe` → `Resources\Lithtech.exe` (1,794,048 B), `server.dll` (397,312 B) | exe **2003-02-28 00:55:22**, dll 00:54:43 | **unprotected**. Extracted here to `mpdemo/x/Resources/` with `ext/rez/tools/sfxcab.py` + `unshield -g Resources` |
+| **mpdemo** | `nolf2_mpdemo_en.exe` → `Resources\Lithtech.exe` (1,794,048 B), `server.dll` (397,312 B) | exe **2003-02-28 00:55:22**, dll 00:54:43 | **unprotected**. Extracted here to `mpdemo/x/Resources/` with rez's `sfxcab.py` + `unshield -g Resources` (now `make demo`, `build/demo-files.txt`) |
 | **prerelease** | Jupiter SDK build 51 `Game Code\TO2\Lithtech.exe` (1,605,632 B), `server.dll` (364,544 B) | exe 2002-03-15 18:30:39, dll 18:26:52 | unprotected, about 11 months older |
-| **mac** | `../rez/games/nolf2-mac-usa/NOLF2.app/Contents/MacOS/NOLF2` (Mach-O PPC, 4,483,488 B; its sha256 is the one in `ext/rez/games.sha256`) | 2003 | **not stripped: 19,467 symbols** |
+| **mac** | `$NOLF2_MAC_DIR/NOLF2.app/Contents/MacOS/NOLF2` (the installed Mac release; Mach-O PPC, 4,483,488 B; its sha256 is the one in the rez repository's `games.sha256`) | 2003 | **not stripped: 19,467 symbols** |
 
 The headline: **the multiplayer demo's engine is the stand-in to use.** It was built 20 days after
 1.3. Its Rich header is retail's, triple for triple, and its `.rdata`, `.data` and `.data1` are the
@@ -216,8 +216,8 @@ and was not examined.
 
 ### Better sources for names and file list (all local)
 
-1. **Mac NOLF2 engine** (`../rez/games/nolf2-mac-usa/NOLF2.app/Contents/MacOS/NOLF2`, already
-   installed in the sibling `../rez`; nolf2src's own `ext/rez/games/` has only `nolf2-eu-1.3`).
+1. **Mac NOLF2 engine** (`$NOLF2_MAC_DIR/NOLF2.app/Contents/MacOS/NOLF2`, the installed Mac
+   release; the build does not use it).
    * It is not stripped: 11,485 text symbols with full Itanium-mangled C++ names (8,207 in `__text` and 3,278 coalesced
      templates/inlines). `mac-text-dem.tsv` is the address-ordered, demangled list (a 30-line Mach-O reader,
      `macho.py`).

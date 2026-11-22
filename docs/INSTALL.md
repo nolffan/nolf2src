@@ -29,19 +29,36 @@ included, is kept for archive purposes and is not attached to releases. To
 get it, build it ([`BUILDING.md`](BUILDING.md)); each build on GitHub
 Actions also keeps it as an artifact for a while.
 
-No game files are included beyond the data of Sierra's free English 1.3
-update and its two free multiplayer map packs, which come with each release
-(`nolf2src.rez`, `MapPack001.rez`, `MapPack002.rez`; `assets/README.md`).
-Each archive has two installer scripts that copy the rest of the game's data
-from your own disc images, and check every file they write.
+No game files of the discs are included. Each release has the data of
+Sierra's free English 1.3 update and its two free multiplayer map packs
+(`nolf2src.rez`, `MapPack001.rez`, `MapPack002.rez`, and the update's
+shipped settings and default profile; `assets/README.md`), and our
+binaries, complete: `Lithtech.exe` has the retail game's icon, as the
+retail one does. Each archive has two installer scripts that copy the rest
+of the game's data from your own disc images, and check every file they
+write.
 
-**Each release is the whole game, not a patch.** Unpack it into a new, empty
-directory, never over an earlier release or another installation of the
-game. The installer checks this first and stops if the directory holds
-anything the release does not: it lists every file of the release, and every
-file the installer writes, in `SHA256SUMS`. To keep your saved games and
-profiles, copy the old directory's `Save` and `Profiles` folders into the
-new one.
+**Each release is the whole game, not a patch.** For a first installation,
+unpack it into a new, empty directory, then run the installer. The installer
+checks this first and stops if the directory holds a file that the release
+does not have: it lists every file of the release, and every file the
+installer writes, in `SHA256SUMS`.
+
+**To upgrade, unpack the new release over your installed game.** Use the
+same build (legacy or modern) as the installed game. Each archive holds one
+directory with the name of its release, so put the files that are in that
+directory into the directory of the installed game. On Linux:
+
+```sh
+tar xzf nolf2src-v0.1.0-alpha.tar.gz --strip-components=1 -C /path/to/installed/game
+```
+
+On Windows, unpack the archive, then copy the files in its directory into
+the folder of the installed game, and replace the files that are there. Do
+not run the installer again: the release replaces all of our files, and the
+files from your discs stay. Your saved games (`Save`), your profiles
+(`Profiles`) and your settings (`autoexec.cfg`) stay too: the release does
+not hold them. Then use `sha256sum -c SHA256SUMS` to check the directory.
 
 Once the game is installed, `sha256sum -c SHA256SUMS` in its directory checks
 every file of it (all but your settings, `autoexec.cfg` and
@@ -51,16 +68,17 @@ every file of it (all but your settings, `autoexec.cfg` and
 
 - **The two discs of _No One Lives Forever 2: A Spy in H.A.R.M.'s Way_**,
   the European or the USA release, as disc images. These are the images the
-  installer expects:
-  - Europe: <http://redump.org/disc/35959/> (Disc 1),
-    <http://redump.org/disc/35960/> (Disc 2)
-  - USA: <http://redump.org/disc/12883/> (Disc 1), and for Disc 2 either
-    of redump's two dumps of it: <http://redump.org/disc/12882/> ("(Disc 2)
-    (Alt)", the one redump marks verified) or
-    <http://redump.org/disc/33578/> ("(Disc 2)")
+  installer expects (the redump dumps of the discs):
+  - Europe: `No One Lives Forever 2 - A Spy in H.A.R.M.'s Way (Europe)
+    (Disc 1)`, redump ID 35959, and `... (Europe) (Disc 2)`, redump ID
+    35960
+  - USA: `No One Lives Forever 2 - A Spy in H.A.R.M.'s Way (USA) (Disc 1)`,
+    redump ID 12883, and for Disc 2 either of redump's two dumps of it:
+    `... (USA) (Disc 2) (Alt)`, redump ID 12882 (the one redump marks
+    verified), or `... (USA) (Disc 2)`, redump ID 33578
 
-  An image can be a plain `.iso` (your own rip), redump's `.bin` (or its
-  `.cue`), or redump's `.zip` download. A `.bin` or `.zip` is first
+  An image can be a plain `.iso` (your own rip), a raw `.bin` (or its
+  `.cue`), or a `.zip` that holds one. A `.bin` or `.zip` is first
   converted to a temporary `.iso`, which needs about 0.6 GB of free space per
   disc; it is removed at the end. Other editions and dumps are not
   supported: the installer checks each image's checksum.
@@ -70,7 +88,8 @@ every file of it (all but your settings, `autoexec.cfg` and
 
 ## Linux
 
-1. Unpack the archive into a new, empty directory:
+1. Unpack the archive into a new, empty directory (to upgrade, unpack it
+   over the installed game instead, and skip step 2: see above):
 
    ```sh
    tar xzf nolf2src-v0.1.0-alpha.tar.gz    # the version you downloaded
@@ -126,7 +145,8 @@ changes it. These steps are untested so far.
 ## Windows
 
 1. Unpack the archive into a new, empty folder (7-Zip and Windows 11's
-   Explorer both open `.tar.gz`).
+   Explorer both open `.tar.gz`). To upgrade, copy the files in its folder
+   over the installed game instead, and skip step 2 (see above).
 2. Drop both disc images onto `windows-install.bat`, or put them in the
    game folder and double-click it.
 3. Start `NOLF2.exe` to play immediately. Open `NOLF2Launcher.exe` for the

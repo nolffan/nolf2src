@@ -3,7 +3,7 @@
 | Path | Whose | Terms |
 |---|---|---|
 | `src/Game/`, `src/Engine/sdk/`, `src/libs/`, `src/Build*.bat` | **Monolith Productions**: the *No One Lives Forever 2* source code release (version 1.3) -- the game code, the LithTech Jupiter SDK headers and Monolith's shared libraries -- unmodified apart from line endings (LF; `credits.txt` and `intro.txt`, which the game embeds byte for byte, keep CRLF) changes inside `#ifdef NOLF2SRC_MODERN` / `NOLF2SRC_DEBUG` blocks (`MODERN.md`), and the places where the retail 1.3 game differs from the release, reconstructed for this project from the retail `CShell.dll` and `Object.lto`, made in place and marked with `RETAIL:` comments. `src/libs/STLPort-4.0/` is STLport, `src/libs/zlib/` zlib, as the release carried them. | Monolith's terms for the source release; `src/Engine/sdk/Legal.txt` is its legal notice. Work out those terms before distributing anything built from it. |
-| `src/Game/Libs/WONAPI/` -- **not in the repository**: copied in at build time | **Monolith Productions / LithTech, Inc.**: the *LithTech Jupiter* SDK (build 51, March 2002), the engine's licensee SDK -- its "Source Code" file group, which has the library the public release lacks for `ServerDir.dll`. `WONAPI` is WON's (Sierra's) Titan client library, as Monolith shipped it to licensees; `WONAPI/WONMisc/` includes GameSpy's query-reporting code (copyright GameSpy Industries). ext/rez/ fetches the SDK's CD image from archive.org and installs its source (`ext/rez/fetch-isos.sh`, `ext/rez/install-games.sh`, pinned by SHA-256); `ext/tools/jupitersrc.py` copies these files from it with LF line endings. | The SDK was licensed to engine licensees, not released. archive.org labels the item public domain; nothing in the SDK says so. So it is fetched, never committed (`.gitignore`), and the caution above applies more strongly still to anything built from it (`ServerDir.dll`): work out the terms before distributing it. |
+| `src/Game/Libs/WONAPI/` -- **not in the repository**: copied in at build time | **Monolith Productions / LithTech, Inc.**: the *LithTech Jupiter* SDK (build 51, March 2002), the engine's licensee SDK -- its "Source Code" file group, which has the library the public release lacks for `ServerDir.dll`. `WONAPI` is WON's (Sierra's) Titan client library, as Monolith shipped it to licensees; `WONAPI/WONMisc/` includes GameSpy's query-reporting code (copyright GameSpy Industries). `build/discs.py` installs these files from your own image of the SDK's CD (`build/sdk-files.txt`: their sizes and SHA-256 and where they are on the CD, no source); `ext/tools/jupitersrc.py` copies them from there with LF line endings. | The SDK was licensed to engine licensees, not released; nothing in the SDK says it is public domain. So it is never committed (`.gitignore`), and the caution above applies more strongly still to anything built from it (`ServerDir.dll`): work out the terms before distributing it. |
 | in `src/Game/Libs/ServerDir/`, `CServerDir_Titan.*`, `TitanTest.*`, `WinSync.h`, `stdafx.*` | **Monolith Productions**: NOLF2's server directory (the WON/Titan implementation of `IServerDir.h`), as the F.E.A.R. source release carries it in `libs/ServerDir/` (its 1.3 code, matching the retail `ServerDir.dll`), with LF line endings; changes are marked `nolf2src`. | as Monolith's code above |
 | `src/nolf2src/`, `src/Game/Libs/ServerDir/ServerDir.dsp` and `ServerDir.dsw`, `src/Engine/ltmsg/`, `build/`, `ext/tools/`, `docker/`, `Makefile`, the documentation | written for this project (much of it adapted from nolfsrc). `src/Engine/ltmsg/ltmsg.rc` is a reconstruction of the retail `ltmsg.dll`'s resources: its strings are Monolith's engine messages, as that DLL has them. | no licence is declared |
 | `src/Engine/snddrv/`, `src/libs/ltmem/` | written for this project: a reconstruction of the engine's sound driver `SndDrv.dll` (and of what it links of the `ltmem` library) from the retail 1.3 binary, so **Monolith Productions'** code in substance. Its classes, names and code follow Monolith's later revision of the same driver, as the F.E.A.R. (Jupiter EX) engine source carries it, corrected to the retail bytes; that revision's comments are not carried over. `eax.h` and `eaxguid/eaxguid.cpp` restate what the driver uses of **Creative Labs'** EAX 2.0 interface (its ids and property layouts, the values read off the retail image) in place of Creative's SDK header and `eaxguid.lib`. | as Monolith's code above; no licence is declared for what is this project's |
@@ -11,7 +11,9 @@
 | `src/modern/binkw32/` | written for this project: the modern build's Bink player (adapted from nolfsrc's, the same project's for NOLF1) | no licence is declared |
 | `ext/ffmpeg` (submodule) | **FFmpeg**, upstream at github.com/FFmpeg/FFmpeg, pinned to n8.1.3 | LGPL-2.1-or-later as the modern build configures it (no GPL or non-free parts enabled); see its `LICENSE.md` |
 | `assets/` | **Monolith Productions / Fox Interactive / Sierra**: the data of Sierra's English 1.3 update for NOLF2 (`nolf2-update_1x3.exe`, published as a free download), as its `Update_v1x3.rez` and installer carry it, unchanged, less the game binaries (built here) and Visual SourceSafe's files (`assets/README.md`); and the data of Sierra's two official multiplayer map packs (`si_nolf2_mappack01.exe`, `si_nolf2_update_mappack2.exe`, published as free downloads), their archives' contents unchanged less Visual SourceSafe's files (`assets/mappack001/`, `assets/mappack002/`) | the publishers'; included because the update and the map packs were distributed freely, so that installing needs only the player's discs |
-| `ext/rez/` (submodule) | the disc images' installer; the images themselves are fetched from archive.org | see `ext/rez/README.md` |
+| `assets/art/` | **Monolith Productions / Fox Interactive / Sierra**: the retail art that our binaries are compiled with -- the engine's icon (`assets/art/lithtech/lithtech.ico`, `IDR_MAINFRAME` of the retail 1.3 `Lithtech.exe`, 8 KB) -- unchanged, as `make art` reads it out of the retail binary (`assets/README.md`) | the publishers'; committed so that every build, with or without your discs, compiles `Lithtech.exe` with its retail icon, as the retail `Lithtech.exe` has it (and as every public archive already carried it) |
+| `assets/serverdir/` | this project's release build of `ServerDir.dll` and its link map: built here from Monolith's `CServerDir_Titan` and the LithTech Jupiter SDK's WONAPI (`assets/README.md`) | as `ServerDir.dll` in the public archive below; committed so that a build without the SDK (`NODISCS=1`, CI) has the same `ServerDir.dll` as the public archives already carried |
+| `build/retail-files.txt`, `build/retail-ranges.txt`, `build/sdk-files.txt`, `build/demo-files.txt`, `progress/hashes/` | written for this project: metadata of the retail game, the SDK and the multiplayer demo (paths, sizes, offsets, SHA-256 hashes), no data of them | no licence is declared |
 | `ext/lithtools/` (submodule) | the reconstruction of LithTech's development tools; the build uses its `lithrez` | see `ext/lithtools/README.md` |
 | `ext/tools/` (submodule) | the build's scripts, tests and byte-matching tools, shared with the NOLF and Contract J.A.C.K. projects | ours; see `ext/tools/README.md` |
 | `ext/toolchains/` (submodule) | the compilers, assembled from public copies of the original media | see `ext/toolchains/README.md` |
@@ -24,9 +26,9 @@ directory lists every file; `ext/tools/retailextract.py audit` every binary):
 | the game DLLs, the dedicated server | built here from Monolith's source | `src/` |
 | the game data: `.rez` archives, movies | Monolith Productions / Fox Interactive / Sierra | the retail discs (the retail game DLLs inside the archives are zeroed) |
 | the 1.3 update's data: `nolf2src.rez`, `autoexec.cfg.retail`, `Default.prf.retail`; the map packs: `MapPack001.rez`, `MapPack002.rez` | Monolith Productions / Fox Interactive / Sierra | `assets/` (the free 1.3 update's and map packs'), the archives packed by lithtools' `lithrez` |
-| the engine: `Lithtech.exe`, `server.dll` | built here from the LithTech Jupiter engine source, back-ported to 2002 (Monolith Productions / LithTech, Inc.); `Lithtech.exe`'s icon is the retail game's, read out of the retail `Lithtech.exe` at build time and never committed | `src/Engine/runtime/`, `src/Engine/libs/rezmgr/`; the icon from the retail game |
+| the engine: `Lithtech.exe`, `server.dll` | built here from the LithTech Jupiter engine source, back-ported to 2002 (Monolith Productions / LithTech, Inc.); `Lithtech.exe`'s icon is the retail game's, committed in `assets/art/` | `src/Engine/runtime/`, `src/Engine/libs/rezmgr/`; the icon from `assets/art/` |
 | `snddrv.dll`, the sound driver; `ltmsg.dll`, the engine's messages | built here from reconstructions (Monolith Productions' code in substance; ltmsg's strings are the retail DLL's) | `src/Engine/snddrv/`, `src/Engine/ltmsg/` |
-| `ServerDir.dll`, the server directory | built here from Monolith's `CServerDir_Titan` (from the F.E.A.R. source release) and the LithTech Jupiter SDK's WONAPI, fetched at build time | `src/Game/Libs/ServerDir/`, `src/Game/Libs/WONAPI/` |
+| `ServerDir.dll`, the server directory | built here from Monolith's `CServerDir_Titan` (from the F.E.A.R. source release) and the LithTech Jupiter SDK's WONAPI, installed from your image of the SDK's CD; without it (`NODISCS=1`), the committed release build of it | `src/Game/Libs/ServerDir/`, `src/Game/Libs/WONAPI/`; or `assets/serverdir/` |
 | `NOLF2.exe`, the launcher | built here from Monolith's source | `src/Game/Launcher/` |
 | `binkw32.dll` (Bink), the Microsoft C++ and MFC runtime DLLs | RAD Game Tools, Microsoft | the retail game |
 | `binkw32.dll` in the modern build | built here: our player (`src/modern/binkw32/`) statically linked with FFmpeg (LGPL-2.1-or-later) | `build/ext.sh`, from `ext/ffmpeg` |
@@ -61,8 +63,8 @@ and default profile, from `assets/`) and map packs (`MapPack001.rez`,
 | `snddrv.dll`, `ltmsg.dll` | built here from this project's reconstructions (Monolith's code in substance; `ltmsg.dll`'s strings are the retail DLL's) | as above |
 | `binkw32.dll` (modern builds only) | our Bink player statically linked with FFmpeg | LGPL-2.1-or-later (FFmpeg); the source is `src/modern/binkw32/` and `ext/ffmpeg`, rebuilt by `build/ext.sh` |
 | `.pdb`, `.map` (debug builds only) | the linker's, for the binaries above | as those binaries |
-| `linux-run.sh`, `linux-install.sh`, `windows-install.bat`, `nolf2cmds.txt`, `MANIFEST.txt`, `SHA256SUMS` | written for this project (the install scripts by `ext/tools/mkinstall.py`, with the sizes and SHA-256 of the disc images and the retail files they read, and where on the images each file's bytes are) | no licence is declared |
-| `nolf2src.rez`, `autoexec.cfg`, `autoexec.cfg.retail`, `Profiles/Default.prf`, `Default.prf.retail` | the 1.3 update's data (`assets/`) | as `assets/` above |
+| `linux-run.sh`, `linux-install.sh`, `windows-install.bat`, `MANIFEST.txt`, `SHA256SUMS` | written for this project (the install scripts by `build/mkinstall.py`, with the sizes and SHA-256 of the disc images and the retail files they read, and where on the images each file's bytes are) | no licence is declared |
+| `nolf2src.rez`, `autoexec.cfg.retail`, `Default.prf.retail` (from which the install scripts write `autoexec.cfg` and `Profiles/Default.prf`) | the 1.3 update's data (`assets/`) | as `assets/` above |
 | `MapPack001.rez`, `MapPack002.rez` | the official map packs' data (`assets/`) | as `assets/` above |
 
 It has no `.rez` archive or movie of the retail discs, no RAD Bink and no
@@ -76,4 +78,25 @@ the public archive is the one meant for other people -- but its binaries
 are still built from Monolith's source, the LithTech engine source and the
 Jupiter SDK, whose terms no licence here overrides: work them out before
 distributing it, as the tables above say. The GitHub Actions workflow
-(`.github/workflows/public-archives.yml`) makes only public archives.
+(`.github/workflows/ci.yml`) makes only public archives, without any retail
+data or the SDK (`NODISCS=1`).
+
+## What retail data the repository holds
+
+No data of the retail discs, no part of the LithTech Jupiter SDK and no
+part of the multiplayer demo is in the repository: you bring your own
+images, and `build/discs.py` installs from them (`BUILDING.md`, "What you
+need"). The repository holds only this:
+
+- `assets/rez/`, `assets/game/`: the data of Sierra's free English 1.3
+  update (less its binaries), which ships with each release;
+- `assets/mappack001/`, `assets/mappack002/`: the data of Sierra's two free
+  official map packs, which ship with each release;
+- `assets/art/`: the retail icon that our `Lithtech.exe` is compiled with
+  (8 KB);
+- `assets/serverdir/`: our own release build of `ServerDir.dll` (built with
+  the SDK's WONAPI), for a build without the SDK;
+- metadata only, no data: `build/retail-files.txt`,
+  `build/retail-ranges.txt`, `build/sdk-files.txt`, `build/demo-files.txt`
+  and `progress/hashes/` (paths, sizes, offsets and SHA-256 hashes), and
+  the reconstructed resource scripts and tables described above.

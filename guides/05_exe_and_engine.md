@@ -53,7 +53,7 @@ things:
 **The 1.3 multiplayer demo's `Lithtech.exe` is the stand-in.** It was built
 20 days after retail, its Rich header is retail's triple for triple, and it
 is not protected. 94.5% of retail's app instructions occur in it verbatim.
-`ext/tools/demoimports.py` extracts it from `ext/rez/`, maps each redirected call
+`make demo` installs it from your copy of the demo's installer (`build/demo-files.txt`), `ext/tools/demoimports.py` maps each redirected call
 site to its real import (`progress/engine/Lithtech-iat-calls.csv`), and can
 write a readable copy of retail with the encrypted pages filled in and the
 redirected calls restored (into `out/`, never committed). Use the demo **for
